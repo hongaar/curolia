@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { UserAvatar as UiUserAvatar } from "@curolia/ui/user-avatar";
 import { getGravatarUrl } from "@/lib/gravatar";
+import { UserAvatar as UiUserAvatar } from "@curolia/ui/user-avatar";
+import { useEffect, useState } from "react";
 
 export type UserAvatarProps = {
   storedAvatarUrl: string | null | undefined;
@@ -19,27 +19,31 @@ export function UserAvatar({
   showUnreadDot = false,
   size = "md",
 }: UserAvatarProps) {
-  const [gravatar, setGravatar] = useState<string | null>(null);
+  const trimmedEmail = email?.trim() ?? "";
+  const [gravatar, setGravatar] = useState<{
+    email: string;
+    url: string | null;
+  } | null>(null);
 
   useEffect(() => {
-    if (!email?.trim()) {
-      setGravatar(null);
-      return;
-    }
+    if (!trimmedEmail) return;
     let cancelled = false;
-    void getGravatarUrl(email, gravatarSize).then((url) => {
-      if (!cancelled) setGravatar(url);
+    void getGravatarUrl(trimmedEmail, gravatarSize).then((url) => {
+      if (!cancelled) setGravatar({ email: trimmedEmail, url });
     });
     return () => {
       cancelled = true;
     };
-  }, [email, gravatarSize]);
+  }, [trimmedEmail, gravatarSize]);
+
+  const gravatarUrl =
+    trimmedEmail && gravatar?.email === trimmedEmail ? gravatar.url : null;
 
   return (
     <UiUserAvatar
       storedAvatarUrl={storedAvatarUrl}
       email={email}
-      gravatarUrl={gravatar}
+      gravatarUrl={gravatarUrl}
       size={size}
       label={label}
       showUnreadDot={showUnreadDot}
