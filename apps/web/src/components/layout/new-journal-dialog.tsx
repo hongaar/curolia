@@ -7,7 +7,7 @@ import {
   PanelDialogField,
   PanelDialogFormStack,
   PanelDialogTitle,
-} from "@curolia/ui/curolia/panel-dialog";
+} from "@curolia/ui/panel-dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { EmojiPicker } from "@/components/traces/emoji-picker";

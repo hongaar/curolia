@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserAvatar as UiUserAvatar } from "@curolia/ui/curolia/user-avatar";
+import { UserAvatar as UiUserAvatar } from "@curolia/ui/user-avatar";
 import { getGravatarUrl } from "@/lib/gravatar";
 
 export type UserAvatarProps = {

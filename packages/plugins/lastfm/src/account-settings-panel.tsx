@@ -10,7 +10,7 @@ import {
   pluginAccountButtonClass,
   pluginAccountInputClass,
   pluginAccountInputDescriptionClass,
-} from "@curolia/ui/curolia/plugin-account-ui";
+} from "@curolia/ui/plugin-account";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 

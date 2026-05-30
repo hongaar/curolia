@@ -9,12 +9,12 @@ import {
   PageDisplayTitle,
   PageLead,
   PagePanel,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 import {
   BorderedList,
   ListEmptyItem,
   NotificationListButton,
-} from "@curolia/ui/curolia/list-ui";
+} from "@curolia/ui/list";
 
 export function NotificationsPage() {
   const { user } = useAuth();

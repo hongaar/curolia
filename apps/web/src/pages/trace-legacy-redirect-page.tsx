@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { traceDetailHref } from "@/lib/app-paths";
 import { TRACE_ID_PARAM_RE } from "@/lib/map-view-params";
 import { supabase } from "@/lib/supabase";
-import { StatusCenterMessage } from "@curolia/ui/curolia/status-center";
+import { StatusCenterMessage } from "@curolia/ui/status-center";
 
 export function TraceLegacyRedirectPage() {
   const { legacyTraceId } = useParams<{ legacyTraceId: string }>();

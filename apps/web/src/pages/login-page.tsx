@@ -16,7 +16,7 @@ import {
   LoginTabPanel,
   LoginTabsList,
   LoginTabTrigger,
-} from "@curolia/ui/curolia/login-layout";
+} from "@curolia/ui/login-layout";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;

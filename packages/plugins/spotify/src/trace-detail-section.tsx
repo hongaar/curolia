@@ -19,7 +19,7 @@ import {
   PluginTraceMutedXs,
   PluginTraceSpinner,
   PluginTraceTitleRow,
-} from "@curolia/ui/curolia/plugin-trace-ui";
+} from "@curolia/ui/plugin-trace";
 import {
   SPOTIFY_SYNC_STALE_TIME_MS,
   SPOTIFY_TOP_TRACKS_LIMIT,

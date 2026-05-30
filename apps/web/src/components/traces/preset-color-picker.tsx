@@ -1,5 +1,5 @@
 import { PRESET_TRACE_TAG_COLOR_GRID } from "@/lib/preset-trace-tag-colors";
-import { PresetColorPicker as UiPresetColorPicker } from "@curolia/ui/curolia/picker-ui";
+import { PresetColorPicker as UiPresetColorPicker } from "@curolia/ui/picker";
 
 type PresetColorPickerProps = {
   id?: string;

@@ -11,7 +11,7 @@ import {
   TraceLinkRowLink,
   TraceLinkRowTitle,
   TraceLinksListRoot,
-} from "@curolia/ui/curolia/trace-links-ui";
+} from "@curolia/ui/trace-links";
 
 type TraceLinksListProps = {
   traceId: string | undefined;

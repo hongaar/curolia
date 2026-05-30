@@ -14,7 +14,7 @@ import {
   panelDialogIconSmClass,
   panelDialogImportButtonClass,
   panelDialogRoundedButtonClass,
-} from "@curolia/ui/curolia/panel-dialog";
+} from "@curolia/ui/panel-dialog";
 import {
   keepPreviousData,
   useMutation,

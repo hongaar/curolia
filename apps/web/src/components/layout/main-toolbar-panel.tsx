@@ -7,7 +7,7 @@ import {
   MainToolbarSearchSlot,
   MainToolbarShell,
   MainToolbarUnreadDot,
-} from "@curolia/ui/curolia/main-toolbar";
+} from "@curolia/ui/main-toolbar-panel";
 import { GlobalSearch } from "@/components/layout/global-search";
 import { useAuth } from "@/providers/auth-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";

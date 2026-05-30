@@ -9,7 +9,7 @@ import {
 } from "@/providers/navigation-shell-provider";
 import { TagSidebarProvider } from "@/providers/tag-sidebar-provider";
 import { isMapFullscreenPathname } from "@/lib/app-paths";
-import { AppShellLayout } from "@curolia/ui/curolia/app-shell";
+import { AppShellLayout } from "@curolia/ui/app-shell";
 import { Outlet, useLocation } from "react-router-dom";
 
 function AppShellInner() {

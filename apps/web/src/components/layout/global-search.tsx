@@ -29,7 +29,7 @@ import {
   GlobalSearchSectionLabel,
   GlobalSearchSpinner,
   GlobalSearchStatusText,
-} from "@curolia/ui/curolia/global-search-ui";
+} from "@curolia/ui/global-search";
 import { Popover } from "@curolia/ui/popover";
 import {
   applyMapBboxToSearchParams,

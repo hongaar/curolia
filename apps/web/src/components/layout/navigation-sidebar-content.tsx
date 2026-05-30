@@ -33,7 +33,7 @@ import {
   SidebarPickerChevron,
   SidebarPickerLabel,
   SidebarPickerTrigger,
-} from "@curolia/ui/curolia/navigation-sidebar";
+} from "@curolia/ui/navigation-sidebar";
 
 function journalEmoji(journal: Journal) {
   return journal.icon_emoji ?? defaultJournalIcon(journal.is_personal);

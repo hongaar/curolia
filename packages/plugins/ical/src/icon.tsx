@@ -1,4 +1,4 @@
-import { PluginIconFrame } from "@curolia/ui/curolia/plugin-icon-frame";
+import { PluginIconFrame } from "@curolia/ui/plugin-icon-frame";
 
 export function IcalIcon({
   size = 5,

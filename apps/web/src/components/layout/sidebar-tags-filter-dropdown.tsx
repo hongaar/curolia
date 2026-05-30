@@ -20,7 +20,7 @@ import {
   SidebarPickerTrigger,
   SidebarTagIconWrap,
   SidebarTagName,
-} from "@curolia/ui/curolia/navigation-sidebar";
+} from "@curolia/ui/navigation-sidebar";
 import { Check, ChevronDown, Pencil, Plus, Tag as TagIcon } from "lucide-react";
 
 type SidebarTagsFilterDropdownProps = {

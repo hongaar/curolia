@@ -9,7 +9,7 @@ import {
   AccountMenuSignedInLabel,
   AccountMenuTrigger,
   FloatingNavBar,
-} from "@curolia/ui/curolia/floating-nav-bar";
+} from "@curolia/ui/floating-nav-bar";
 import {
   DropdownMenu,
   DropdownMenuGroup,

@@ -33,7 +33,7 @@ import {
   PanelDialogField,
   PanelDialogFormStack,
   PanelDialogTitle,
-} from "@curolia/ui/curolia/panel-dialog";
+} from "@curolia/ui/panel-dialog";
 import {
   FormErrorText,
   FormField,
@@ -57,11 +57,11 @@ import {
   TraceFormUploadInput,
   TraceFormUploadLabel,
   TraceFormUploadRow,
-} from "@curolia/ui/curolia/trace-form-ui";
+} from "@curolia/ui/trace-form";
 import {
   TracePhotoLightbox,
   TracePhotoThumb,
-} from "@curolia/ui/curolia/trace-photo-lightbox";
+} from "@curolia/ui/trace-photo-lightbox";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, Upload } from "lucide-react";

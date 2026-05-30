@@ -15,7 +15,7 @@ import {
   PageLead,
   PageMuted,
   PagePanel,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 
 export function InvitationsPage() {
   const [params] = useSearchParams();

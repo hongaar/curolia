@@ -21,7 +21,7 @@ import {
   PageSectionSpaced,
   PageSwitchRow,
   PageSwitchStack,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 
 type ThemeChoice = "light" | "dark" | "system";
 
