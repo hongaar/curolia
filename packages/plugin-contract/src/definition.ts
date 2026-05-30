@@ -17,7 +17,10 @@ export type TracePhotoImportSlotProps = {
 /** Shared trace-scoped props for plugin surfaces (photo slots, trace detail panels, …). */
 export type TraceContextProps = TracePhotoImportSlotProps;
 
-export type PluginIconComponent = ComponentType<{ className?: string }>;
+export type PluginIconComponent = ComponentType<{
+  className?: string;
+  size?: 4 | 5 | 6;
+}>;
 
 export type PluginDefinition = {
   id: string;

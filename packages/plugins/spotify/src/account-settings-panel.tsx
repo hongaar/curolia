@@ -1,6 +1,15 @@
 import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@curolia/ui/button";
+import {
+  PluginAccountBody,
+  PluginAccountHeading,
+  PluginAccountMuted,
+  PluginAccountName,
+  PluginAccountPanel,
+  PluginAccountRow,
+  pluginAccountButtonClass,
+} from "@curolia/ui/curolia/plugin-account-ui";
 import { toast } from "sonner";
 
 export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
@@ -35,11 +44,11 @@ export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
 
   if (!oauth) {
     return (
-      <div className="border-border/60 bg-muted/25 mt-3 rounded-xl border px-3 py-2.5">
-        <p className="text-muted-foreground text-sm">
+      <PluginAccountPanel compact>
+        <PluginAccountMuted>
           OAuth is not configured for this environment.
-        </p>
-      </div>
+        </PluginAccountMuted>
+      </PluginAccountPanel>
     );
   }
 
@@ -61,48 +70,44 @@ export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
     (oauthCfg && typeof oauthCfg.sub === "string" ? oauthCfg.sub : null);
 
   return (
-    <div className="border-border/60 bg-muted/25 mt-3 rounded-xl border px-3 py-3">
-      <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-        Account
-      </p>
+    <PluginAccountPanel>
+      <PluginAccountHeading>Account</PluginAccountHeading>
       {statusQuery.isLoading ? (
-        <p className="text-muted-foreground text-sm">Checking link status…</p>
+        <PluginAccountMuted>Checking link status…</PluginAccountMuted>
       ) : linked ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-foreground text-sm">
+        <PluginAccountRow>
+          <PluginAccountBody>
             Linked as{" "}
-            <span className="break-all font-medium">
-              {accountLabel ?? "Spotify"}
-            </span>
-          </p>
+            <PluginAccountName>{accountLabel ?? "Spotify"}</PluginAccountName>
+          </PluginAccountBody>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="shrink-0 rounded-xl"
+            className={pluginAccountButtonClass}
             disabled={unlinkMut.isPending}
             onClick={() => unlinkMut.mutate()}
           >
             Unlink Spotify
           </Button>
-        </div>
+        </PluginAccountRow>
       ) : (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-muted-foreground text-sm">
+        <PluginAccountRow gap="sm">
+          <PluginAccountMuted>
             Connect Spotify to add top tracks you listened to during each
             trace&apos;s dates (as links).
-          </p>
+          </PluginAccountMuted>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="shrink-0 rounded-xl"
+            className={pluginAccountButtonClass}
             onClick={() => void onLink()}
           >
             Link Spotify
           </Button>
-        </div>
+        </PluginAccountRow>
       )}
-    </div>
+    </PluginAccountPanel>
   );
 }

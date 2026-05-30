@@ -1,5 +1,4 @@
 import type { TraceContextProps } from "@curolia/plugin-contract";
-import { Card, CardContent, CardHeader, CardTitle } from "@curolia/ui/card";
 import {
   keepPreviousData,
   useQuery,
@@ -7,6 +6,20 @@ import {
 } from "@tanstack/react-query";
 import { Loader2, Music } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import {
+  PluginTraceCard,
+  PluginTraceContent,
+  PluginTraceError,
+  PluginTraceHeader,
+  PluginTraceLink,
+  PluginTraceLinkMeta,
+  PluginTraceList,
+  PluginTraceMuted,
+  PluginTraceMutedStack,
+  PluginTraceMutedXs,
+  PluginTraceSpinner,
+  PluginTraceTitleRow,
+} from "@curolia/ui/curolia/plugin-trace-ui";
 import {
   SPOTIFY_SYNC_STALE_TIME_MS,
   SPOTIFY_TOP_TRACKS_LIMIT,
@@ -98,20 +111,17 @@ export function SpotifyTraceDetailSection({
 
   if (!hasPeriod) {
     return (
-      <Card className="border-border/60 bg-muted/10 border shadow-none">
-        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-          <SpotifyIcon className="text-muted-foreground size-5 shrink-0" />
-          <CardTitle className="font-display text-base font-normal tracking-tight">
-            Spotify
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
+      <PluginTraceCard>
+        <PluginTraceHeader>
+          <PluginTraceTitleRow icon={<SpotifyIcon />} title="Spotify" />
+        </PluginTraceHeader>
+        <PluginTraceContent>
+          <PluginTraceMuted>
             Add a date to this trace to load your most-played tracks on Spotify
             during that period (up to {SPOTIFY_TOP_TRACKS_LIMIT}).
-          </p>
-        </CardContent>
-      </Card>
+          </PluginTraceMuted>
+        </PluginTraceContent>
+      </PluginTraceCard>
     );
   }
 
@@ -123,68 +133,59 @@ export function SpotifyTraceDetailSection({
     syncQuery.error instanceof Error ? syncQuery.error.message : null;
 
   return (
-    <Card className="border-border/60 bg-muted/10 border shadow-none">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-        <div className="flex items-center gap-2">
-          <SpotifyIcon className="text-muted-foreground size-5 shrink-0" />
-          <CardTitle className="font-display text-base font-normal tracking-tight">
-            Spotify
-          </CardTitle>
-        </div>
+    <PluginTraceCard>
+      <PluginTraceHeader between>
+        <PluginTraceTitleRow icon={<SpotifyIcon />} title="Spotify" />
         {busy ? (
-          <Loader2 className="text-muted-foreground size-4 animate-spin" />
+          <PluginTraceSpinner>
+            <Loader2 className="spin" />
+          </PluginTraceSpinner>
         ) : null}
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </PluginTraceHeader>
+      <PluginTraceContent>
         {syncFailed ? (
-          <p className="text-destructive text-sm">
+          <PluginTraceError>
             {errMsg ?? "Could not sync Spotify data."}
-          </p>
+          </PluginTraceError>
         ) : null}
         {!payload?.tracks?.length && !busy && !syncFailed ? (
-          <div className="text-muted-foreground space-y-2 text-sm leading-relaxed">
+          <PluginTraceMutedStack>
             <p>
               No streams in this trace&apos;s dates matched Spotify&apos;s
               recently-played feed from the Web API.
             </p>
-            <p className="text-xs">
-              Spotify’s Web API only returns a shallow, rolling “recently
-              played” stream—not full playback history by calendar day—so
-              listening from older periods usually isn’t visible here. Trace
-              dates use UTC calendar boundaries (midnight–end of day UTC).
-            </p>
-          </div>
+            <PluginTraceMutedXs>
+              Spotify&apos;s Web API only returns a shallow, rolling
+              &quot;recently played&quot; stream—not full playback history by
+              calendar day—so listening from older periods usually isn&apos;t
+              visible here. Trace dates use UTC calendar boundaries
+              (midnight–end of day UTC).
+            </PluginTraceMutedXs>
+          </PluginTraceMutedStack>
         ) : null}
         {payload?.tracks?.length ? (
-          <ul className="space-y-2">
+          <PluginTraceList>
             {payload.tracks.map((row) => (
-              <li key={row.trackId}>
-                <a
-                  href={row.openUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground inline-flex items-start gap-2 text-sm font-medium underline-offset-4 hover:underline"
-                >
-                  <Music className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                  <span>
-                    {row.title}
-                    <span className="text-muted-foreground font-normal">
-                      {" "}
-                      · {row.playCount}×
-                    </span>
-                  </span>
-                </a>
-              </li>
+              <PluginTraceLink
+                key={row.trackId}
+                href={row.openUrl}
+                icon={<Music />}
+              >
+                <span>
+                  {row.title}
+                  <PluginTraceLinkMeta> · {row.playCount}×</PluginTraceLinkMeta>
+                </span>
+              </PluginTraceLink>
             ))}
-          </ul>
+          </PluginTraceList>
         ) : null}
         {payload?.limitedByPagination ? (
-          <p className="text-muted-foreground text-xs">
+          <PluginTraceMutedXs>
             Partial history: pagination cap reached; counts may not reflect your
             full listening for this window.
-          </p>
+          </PluginTraceMutedXs>
         ) : null}
-      </CardContent>
-    </Card>
+      </PluginTraceContent>
+    </PluginTraceCard>
   );
 }

@@ -1,0 +1,21 @@
+.frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.size4 {
+  width: 1rem;
+  height: 1rem;
+}
+
+.size5 {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.size6 {
+  width: 1.5rem;
+  height: 1.5rem;
+}

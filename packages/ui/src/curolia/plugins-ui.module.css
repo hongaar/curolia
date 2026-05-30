@@ -1,0 +1,72 @@
+.row {
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  padding-block: 1rem;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .rowMain {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.rowInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTitleLine {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rowTitle {
+  font-weight: 500;
+}
+
+.rowDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.rowHint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.rowToggle {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.iconMuted {
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-foreground);
+}
+
+.headerBlock {
+  margin-bottom: 1rem;
+}

@@ -15,17 +15,45 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@curolia/ui/select";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from "@curolia/ui/dialog";
+import {
+  FormErrorText,
+  FormField,
+  FormSelectTriggerCompact,
+  FormSelectTriggerRounded,
+} from "@curolia/ui/curolia/form-layout";
+import {
+  BorderedList,
+  ListEmptyItem,
+  MemberActions,
+  MemberListRow,
+  MemberPrimary,
+  MemberRole,
+} from "@curolia/ui/curolia/list-ui";
+import {
+  PageErrorText,
+  PageInviteEmailField,
+  PageInviteRoleField,
+  PageInviteRow,
+  PageSectionHint,
+  PageSectionSubheading,
+  PageSharingRoot,
+  PageSharingSection,
+  PageSectionHeading,
+} from "@curolia/ui/curolia/page";
+import {
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFormStack,
+  PanelDialogTitle,
+} from "@curolia/ui/curolia/panel-dialog";
 import {
   journalRoleLabel,
   type InviteJournalRole,
@@ -205,63 +233,47 @@ export function JournalSharingSection({
   }
 
   return (
-    <div className="space-y-6">
+    <PageSharingRoot>
       <div>
-        <h2 className="text-foreground text-sm font-semibold tracking-tight">
-          Sharing
-        </h2>
-        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+        <PageSectionHeading>Sharing</PageSectionHeading>
+        <PageSectionHint>
           Invite others by email. They must sign in with that email to accept.
           Connectors stay with each owner; transferring ownership clears all
           plugins for this journal.
-        </p>
+        </PageSectionHint>
       </div>
 
-      {inviteErr ? (
-        <p className="text-destructive text-sm">{inviteErr}</p>
-      ) : null}
+      {inviteErr ? <PageErrorText>{inviteErr}</PageErrorText> : null}
 
-      <div className="space-y-3">
-        <h3 className="text-foreground text-xs font-medium uppercase tracking-wide">
-          Members
-        </h3>
-        <ul className="divide-y divide-border/60 rounded-xl border border-border/60">
+      <PageSharingSection>
+        <PageSectionSubheading>Members</PageSectionSubheading>
+        <BorderedList flush>
           {membersQuery.isLoading ? (
-            <li className="text-muted-foreground px-3 py-2 text-sm">
-              Loading…
-            </li>
+            <ListEmptyItem>Loading…</ListEmptyItem>
           ) : (
             members.map((m) => {
               const isSelf = m.user_id === user?.id;
               const label =
                 m.profile?.display_name?.trim() || (isSelf ? "You" : "Member");
               return (
-                <li
-                  key={m.user_id}
-                  className="flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm"
-                >
-                  <span className="min-w-0 flex-1 font-medium">
+                <MemberListRow key={m.user_id}>
+                  <MemberPrimary
+                    secondary={isSelf && user?.email ? user.email : undefined}
+                  >
                     {label}
-                    {isSelf && user?.email ? (
-                      <span className="text-muted-foreground block truncate text-xs font-normal">
-                        {user.email}
-                      </span>
-                    ) : null}
-                  </span>
-                  <span className="text-muted-foreground shrink-0 text-xs">
-                    {journalRoleLabel(m.role)}
-                  </span>
+                  </MemberPrimary>
+                  <MemberRole>{journalRoleLabel(m.role)}</MemberRole>
                   {isOwner && !isSelf && m.role !== "owner" ? (
-                    <div className="flex shrink-0 flex-wrap items-center gap-1">
+                    <MemberActions>
                       <Select
                         value={m.role}
                         onValueChange={(v) =>
                           void changeRole(m.user_id, v as JournalMemberRole)
                         }
                       >
-                        <SelectTrigger className="h-8 w-[9.5rem] rounded-lg text-xs">
+                        <FormSelectTriggerCompact>
                           <SelectValue />
-                        </SelectTrigger>
+                        </FormSelectTriggerCompact>
                         <SelectContent>
                           <SelectItem value="viewer">Reader</SelectItem>
                           <SelectItem value="editor">Contributor</SelectItem>
@@ -271,98 +283,90 @@ export function JournalSharingSection({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-destructive hover:text-destructive h-8 rounded-lg text-xs"
                         onClick={() => void removeMember(m.user_id)}
                       >
                         Remove
                       </Button>
-                    </div>
+                    </MemberActions>
                   ) : null}
-                </li>
+                </MemberListRow>
               );
             })
           )}
-        </ul>
-      </div>
+        </BorderedList>
+      </PageSharingSection>
 
       {isOwner ? (
         <>
-          <div className="space-y-3">
-            <h3 className="text-foreground text-xs font-medium uppercase tracking-wide">
-              Invite by email
-            </h3>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="min-w-0 flex-1 space-y-2">
-                <Label htmlFor="inv-email">Email</Label>
-                <Input
-                  id="inv-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="friend@example.com"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                />
-              </div>
-              <div className="w-full space-y-2 sm:w-40">
-                <Label>Access</Label>
-                <Select
-                  value={inviteRole}
-                  onValueChange={(v) => setInviteRole(v as InviteJournalRole)}
-                >
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="viewer">Reader</SelectItem>
-                    <SelectItem value="editor">Contributor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <PageSharingSection>
+            <PageSectionSubheading>Invite by email</PageSectionSubheading>
+            <PageInviteRow>
+              <PageInviteEmailField>
+                <FormField>
+                  <Label htmlFor="inv-email">Email</Label>
+                  <Input
+                    id="inv-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="friend@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                  />
+                </FormField>
+              </PageInviteEmailField>
+              <PageInviteRoleField>
+                <FormField>
+                  <Label>Access</Label>
+                  <Select
+                    value={inviteRole}
+                    onValueChange={(v) => setInviteRole(v as InviteJournalRole)}
+                  >
+                    <FormSelectTriggerRounded>
+                      <SelectValue />
+                    </FormSelectTriggerRounded>
+                    <SelectContent>
+                      <SelectItem value="viewer">Reader</SelectItem>
+                      <SelectItem value="editor">Contributor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </PageInviteRoleField>
               <Button
                 type="button"
-                className="rounded-xl"
                 disabled={inviteBusy || !inviteEmail.trim()}
                 onClick={() => void sendInvite()}
               >
                 Send invite
               </Button>
-            </div>
-            <p className="text-muted-foreground text-xs">
+            </PageInviteRow>
+            <PageSectionHint>
               If they already have an account, they get an in-app notification.
               Pending invites work after they sign up with the same email.
-            </p>
-          </div>
+            </PageSectionHint>
+          </PageSharingSection>
 
           {pendingInvites.length > 0 ? (
-            <div className="space-y-2">
-              <h3 className="text-foreground text-xs font-medium uppercase tracking-wide">
-                Pending invitations
-              </h3>
-              <ul className="divide-y divide-border/60 rounded-xl border border-border/60">
+            <PageSharingSection>
+              <PageSectionSubheading>Pending invitations</PageSectionSubheading>
+              <BorderedList flush>
                 {pendingInvites.map((inv) => (
-                  <li
-                    key={inv.id}
-                    className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm"
-                  >
-                    <span className="min-w-0 flex-1 truncate">
-                      {inv.invitee_email}
-                    </span>
-                    <span className="text-muted-foreground shrink-0 text-xs">
+                  <MemberListRow key={inv.id}>
+                    <MemberPrimary>{inv.invitee_email}</MemberPrimary>
+                    <MemberRole>
                       {journalRoleLabel(inv.invited_role)}
-                    </span>
+                    </MemberRole>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="rounded-lg text-xs"
                       onClick={() => void cancelInvite(inv.id)}
                     >
                       Cancel
                     </Button>
-                  </li>
+                  </MemberListRow>
                 ))}
-              </ul>
-            </div>
+              </BorderedList>
+            </PageSharingSection>
           ) : null}
 
           <CautionPanel
@@ -378,7 +382,6 @@ export function JournalSharingSection({
             <Button
               type="button"
               variant="secondary"
-              className="rounded-xl"
               onClick={() => {
                 setTransferErr(null);
                 setTransferOpen(true);
@@ -389,38 +392,38 @@ export function JournalSharingSection({
           </CautionPanel>
 
           <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-            <DialogContent className="border-[var(--panel-border)] bg-[var(--panel-bg)] backdrop-blur-xl">
+            <PanelDialogContent>
               <DialogHeader>
-                <DialogTitle className="font-display text-xl font-normal">
-                  Transfer ownership
-                </DialogTitle>
+                <PanelDialogTitle>Transfer ownership</PanelDialogTitle>
                 <DialogDescription>
                   This cannot be undone from here. Connectors and iCal tokens
                   for this journal will be cleared.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-3 py-2">
-                <Label>New owner</Label>
-                <Select
-                  value={transferTo}
-                  onValueChange={(v) => setTransferTo(v ?? "")}
-                >
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Choose a member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {transferCandidates.map((m) => (
-                      <SelectItem key={m.user_id} value={m.user_id}>
-                        {m.profile?.display_name?.trim() || "Member"} (
-                        {journalRoleLabel(m.role)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <PanelDialogFormStack>
+                <PanelDialogField>
+                  <Label>New owner</Label>
+                  <Select
+                    value={transferTo}
+                    onValueChange={(v) => setTransferTo(v ?? "")}
+                  >
+                    <FormSelectTriggerRounded>
+                      <SelectValue placeholder="Choose a member" />
+                    </FormSelectTriggerRounded>
+                    <SelectContent>
+                      {transferCandidates.map((m) => (
+                        <SelectItem key={m.user_id} value={m.user_id}>
+                          {m.profile?.display_name?.trim() || "Member"} (
+                          {journalRoleLabel(m.role)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </PanelDialogField>
                 {transferErr ? (
-                  <p className="text-destructive text-sm">{transferErr}</p>
+                  <FormErrorText>{transferErr}</FormErrorText>
                 ) : null}
-              </div>
+              </PanelDialogFormStack>
               <DialogFooter>
                 <Button
                   type="button"
@@ -437,14 +440,14 @@ export function JournalSharingSection({
                   Confirm transfer
                 </Button>
               </DialogFooter>
-            </DialogContent>
+            </PanelDialogContent>
           </Dialog>
         </>
       ) : (
-        <p className="text-muted-foreground text-xs">
+        <PageSectionHint>
           Only the journal owner can invite people or transfer ownership.
-        </p>
+        </PageSectionHint>
       )}
-    </div>
+    </PageSharingRoot>
   );
 }

@@ -10,5 +10,10 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", ".storybook/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    ".storybook/**/*.ts"
+  ]
 }

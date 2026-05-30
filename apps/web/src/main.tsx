@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "@curolia/ui/sonner";
 import App from "./App.tsx";
-import "./index.css";
+import "@curolia/ui/styles";
 import { registerSW } from "virtual:pwa-register";
 
 const queryClient = new QueryClient({

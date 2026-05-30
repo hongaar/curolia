@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { traceDetailHref } from "@/lib/app-paths";
 import { TRACE_ID_PARAM_RE } from "@/lib/map-view-params";
 import { supabase } from "@/lib/supabase";
+import { StatusCenterMessage } from "@curolia/ui/curolia/status-center";
 
 export function TraceLegacyRedirectPage() {
   const { legacyTraceId } = useParams<{ legacyTraceId: string }>();
@@ -41,24 +42,12 @@ export function TraceLegacyRedirectPage() {
   }, [legacyTraceId, navigate, destQuery.data, destQuery.isPending]);
 
   if (!legacyTraceId || !TRACE_ID_PARAM_RE.test(legacyTraceId)) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <p className="text-muted-foreground text-sm">Trace not found.</p>
-      </div>
-    );
+    return <StatusCenterMessage>Trace not found.</StatusCenterMessage>;
   }
 
   if (destQuery.isError || (!destQuery.isPending && !destQuery.data)) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <p className="text-muted-foreground text-sm">Trace not found.</p>
-      </div>
-    );
+    return <StatusCenterMessage>Trace not found.</StatusCenterMessage>;
   }
 
-  return (
-    <div className="flex h-full items-center justify-center p-6">
-      <p className="text-muted-foreground text-sm">Redirecting…</p>
-    </div>
-  );
+  return <StatusCenterMessage>Redirecting…</StatusCenterMessage>;
 }

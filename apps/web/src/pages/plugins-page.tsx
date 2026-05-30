@@ -12,16 +12,27 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { pluginList } from "@/plugins/registry";
 import { Switch } from "@curolia/ui/switch";
-import { Label } from "@curolia/ui/label";
 import type { Json } from "@/lib/database.types";
 import type { UserPlugin } from "@/types/database";
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import { PageBackButton } from "@/components/layout/page-back-button";
+import {
+  AppPageLayout,
+  PageDisplayTitle,
+  PageLead,
+  PagePanel,
+} from "@curolia/ui/curolia/page";
+import {
+  PluginListHeader,
+  PluginListIcon,
+  PluginListRow,
+  PluginListRowDescription,
+  PluginListRowHint,
+  PluginListRowInfo,
+  PluginListRowMain,
+  PluginListRowTitle,
+  PluginListRowToggle,
+} from "@curolia/ui/curolia/plugins-ui";
 
-/**
- * React Strict Mode runs effects twice with the same URL before `setSearchParams` applies,
- * which duplicated OAuth result toasts. Skip duplicate handling for identical redirect params.
- */
 let oauthRedirectHandledSig = "";
 
 function PluginRow({
@@ -70,40 +81,42 @@ function PluginRow({
   );
 
   return (
-    <div className="border-b border-border/60 py-4 last:border-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <Icon className="text-muted-foreground size-4" />
-            <p className="font-medium">{plugin.displayName}</p>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            {plugin.description ?? "Plugin integration."}
-          </p>
-          {!implemented ? (
-            <p className="text-muted-foreground mt-1 text-xs">
-              Sync and linking are not implemented yet.
-            </p>
-          ) : null}
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-          <Label
-            htmlFor={`sw-${plugin.id}`}
-            className="text-muted-foreground text-sm"
+    <PluginListRow>
+      <PluginListRowMain>
+        <PluginListRowInfo>
+          <PluginListRowTitle
+            icon={
+              <PluginListIcon>
+                <Icon />
+              </PluginListIcon>
+            }
           >
-            Enabled
-          </Label>
-          <Switch
-            id={`sw-${plugin.id}`}
-            checked={enabled}
-            disabled={!implemented || toggleDisabled}
-            onCheckedChange={(c) => {
-              if (!implemented) return;
-              onToggle(c === true);
-            }}
-          />
-        </div>
-      </div>
+            {plugin.displayName}
+          </PluginListRowTitle>
+          <PluginListRowDescription>
+            {plugin.description ?? "Plugin integration."}
+          </PluginListRowDescription>
+          {!implemented ? (
+            <PluginListRowHint>
+              Sync and linking are not implemented yet.
+            </PluginListRowHint>
+          ) : null}
+        </PluginListRowInfo>
+        <PluginListRowToggle
+          label="Enabled"
+          control={
+            <Switch
+              id={`sw-${plugin.id}`}
+              checked={enabled}
+              disabled={!implemented || toggleDisabled}
+              onCheckedChange={(c) => {
+                if (!implemented) return;
+                onToggle(c === true);
+              }}
+            />
+          }
+        />
+      </PluginListRowMain>
 
       {Panel && implemented && enabled ? (
         <Panel
@@ -117,7 +130,7 @@ function PluginRow({
           userId={userId}
         />
       ) : null}
-    </div>
+    </PluginListRow>
   );
 }
 
@@ -215,42 +228,38 @@ export function PluginsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-      <div className="mx-auto max-w-2xl space-y-4">
-        <PageBackButton />
-        <FloatingPanel className="p-5 sm:p-6">
-          <div className="mb-4">
-            <h1 className="font-display text-foreground text-2xl font-normal tracking-tight">
-              Plugins
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-              Choose which integrations are available for your account (for
-              example signing in to Google Photos). Journal-specific
-              options—such as publishing an iCalendar feed—are configured in
-              each journal&apos;s settings.
-            </p>
-          </div>
-          <div>
-            {pluginList.map((plugin) => {
-              const up = userPluginsQuery.data?.find(
-                (c) => c.plugin_type_id === plugin.id,
-              );
-              return (
-                <PluginRow
-                  key={plugin.id}
-                  plugin={plugin}
-                  up={up}
-                  onToggle={(en) => void toggle(plugin.id, en)}
-                  toggleDisabled={!user || userPluginsQuery.isLoading}
-                  accessToken={session?.access_token ?? null}
-                  onRefreshAccountPanels={onRefreshAccountPanels}
-                  userId={user?.id}
-                />
-              );
-            })}
-          </div>
-        </FloatingPanel>
-      </div>
-    </div>
+    <AppPageLayout width="2xl">
+      <PageBackButton />
+      <PagePanel>
+        <PluginListHeader>
+          <PageDisplayTitle>Plugins</PageDisplayTitle>
+          <PageLead>
+            Choose which integrations are available for your account (for
+            example signing in to Google Photos). Journal-specific options—such
+            as publishing an iCalendar feed—are configured in each
+            journal&apos;s settings.
+          </PageLead>
+        </PluginListHeader>
+        <div>
+          {pluginList.map((plugin) => {
+            const up = userPluginsQuery.data?.find(
+              (c) => c.plugin_type_id === plugin.id,
+            );
+            return (
+              <PluginRow
+                key={plugin.id}
+                plugin={plugin}
+                up={up}
+                onToggle={(en) => void toggle(plugin.id, en)}
+                toggleDisabled={!user || userPluginsQuery.isLoading}
+                accessToken={session?.access_token ?? null}
+                onRefreshAccountPanels={onRefreshAccountPanels}
+                userId={user?.id}
+              />
+            );
+          })}
+        </div>
+      </PagePanel>
+    </AppPageLayout>
   );
 }

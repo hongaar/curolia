@@ -1,0 +1,113 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.placeholder {
+  display: inline-flex;
+  color: var(--muted-foreground);
+}
+
+.placeholderSm {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.placeholderMd {
+  width: 2rem;
+  height: 2rem;
+}
+
+.placeholderLg {
+  width: 6rem;
+  height: 6rem;
+}
+
+.placeholderFull {
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageWrap {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.imageWrapSm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.imageWrapMd {
+  width: 2rem;
+  height: 2rem;
+}
+
+.imageWrapLg {
+  width: 6rem;
+  height: 6rem;
+}
+
+.imageWrapFull {
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.image {
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 15%, transparent);
+}
+
+.imageSm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.imageMd {
+  width: 2rem;
+  height: 2rem;
+}
+
+.imageLg {
+  width: 6rem;
+  height: 6rem;
+}
+
+.imageFull {
+  width: 100%;
+  height: 100%;
+  box-shadow: none;
+}
+
+.iconSm,
+.iconMd {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.iconLg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.iconFull {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.unreadDot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 2px var(--panel-bg);
+}

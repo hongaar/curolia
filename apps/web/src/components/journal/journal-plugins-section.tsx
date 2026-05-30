@@ -3,8 +3,13 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { pluginList } from "@/plugins/registry";
 import { PluginJournalSettings } from "@/plugins/journal-settings/plugin-journal-settings";
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import type { JournalPlugin, UserPlugin } from "@/types/database";
+import {
+  PageMuted,
+  PagePanel,
+  PagePanelIcon,
+  PagePanelTitleRow,
+} from "@curolia/ui/curolia/page";
 
 type Props = {
   journalId: string;
@@ -65,23 +70,21 @@ export function JournalPluginsSection({
 
   if (userPluginsQuery.isLoading) {
     return (
-      <FloatingPanel className="p-5 sm:p-6">
-        <p className="text-muted-foreground text-sm">Loading plugins…</p>
-      </FloatingPanel>
+      <PagePanel>
+        <PageMuted>Loading plugins…</PageMuted>
+      </PagePanel>
     );
   }
 
   if (implementedEnabled.length === 0) {
     return (
-      <FloatingPanel className="p-5 sm:p-6">
-        <h2 className="font-display text-foreground text-lg font-normal tracking-tight">
-          Plugins
-        </h2>
-        <p className="text-muted-foreground mt-1 text-sm">
+      <PagePanel>
+        <PagePanelTitleRow>Plugins</PagePanelTitleRow>
+        <PageMuted>
           Enable integrations under Plugins in the user menu, then configure
           each journal here.
-        </p>
-      </FloatingPanel>
+        </PageMuted>
+      </PagePanel>
     );
   }
 
@@ -95,14 +98,19 @@ export function JournalPluginsSection({
           (c) => c.plugin_type_id === plugin.id,
         );
         return (
-          <FloatingPanel key={plugin.id} className="p-5 sm:p-6">
-            <h2 className="font-display text-foreground flex items-center gap-2 text-lg font-normal tracking-tight">
-              <Icon className="text-muted-foreground size-4" />
+          <PagePanel key={plugin.id}>
+            <PagePanelTitleRow
+              icon={
+                <PagePanelIcon>
+                  <Icon />
+                </PagePanelIcon>
+              }
+            >
               {title}
-            </h2>
-            <p className="text-muted-foreground mt-1 text-sm">
+            </PagePanelTitleRow>
+            <PageMuted>
               {plugin.description ?? "Plugin journal settings."}
-            </p>
+            </PageMuted>
             <PluginJournalSettings
               pluginTypeId={plugin.id}
               journalId={journalId}
@@ -110,7 +118,7 @@ export function JournalPluginsSection({
               pluginGloballyEnabled
               readOnly={false}
             />
-          </FloatingPanel>
+          </PagePanel>
         );
       })}
     </>

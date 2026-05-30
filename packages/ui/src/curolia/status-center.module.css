@@ -1,0 +1,22 @@
+.centered {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.centeredPanel {
+  max-width: 24rem;
+  text-align: center;
+}
+
+.loaderMinHeight {
+  height: 100%;
+  min-height: 12rem;
+}
+
+.muted {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}

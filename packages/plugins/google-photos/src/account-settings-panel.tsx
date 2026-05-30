@@ -1,6 +1,15 @@
 import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@curolia/ui/button";
+import {
+  PluginAccountBody,
+  PluginAccountHeading,
+  PluginAccountMuted,
+  PluginAccountName,
+  PluginAccountPanel,
+  PluginAccountRow,
+  pluginAccountButtonClass,
+} from "@curolia/ui/curolia/plugin-account-ui";
 import { toast } from "sonner";
 
 export function GooglePhotosAccountSettingsPanel(
@@ -37,11 +46,11 @@ export function GooglePhotosAccountSettingsPanel(
 
   if (!oauth) {
     return (
-      <div className="border-border/60 bg-muted/25 mt-3 rounded-xl border px-3 py-2.5">
-        <p className="text-muted-foreground text-sm">
+      <PluginAccountPanel compact>
+        <PluginAccountMuted>
           OAuth is not configured for this environment.
-        </p>
-      </div>
+        </PluginAccountMuted>
+      </PluginAccountPanel>
     );
   }
 
@@ -64,51 +73,48 @@ export function GooglePhotosAccountSettingsPanel(
     statusQuery.data?.sub ??
     (oauthCfg && typeof oauthCfg.sub === "string" ? oauthCfg.sub : null);
 
-  /** Prefer email from Google userinfo; fall back to OpenID `sub` when missing (legacy links). */
   const accountLabel = email ?? sub;
 
   return (
-    <div className="border-border/60 bg-muted/25 mt-3 rounded-xl border px-3 py-3">
-      <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-        Account
-      </p>
+    <PluginAccountPanel>
+      <PluginAccountHeading>Account</PluginAccountHeading>
       {statusQuery.isLoading ? (
-        <p className="text-muted-foreground text-sm">Checking link status…</p>
+        <PluginAccountMuted>Checking link status…</PluginAccountMuted>
       ) : linked ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-foreground text-sm">
+        <PluginAccountRow>
+          <PluginAccountBody>
             Linked as{" "}
-            <span className="break-all font-medium">
+            <PluginAccountName>
               {accountLabel ?? "Google account"}
-            </span>
-          </p>
+            </PluginAccountName>
+          </PluginAccountBody>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="shrink-0 rounded-xl"
+            className={pluginAccountButtonClass}
             disabled={unlinkMut.isPending}
             onClick={() => unlinkMut.mutate()}
           >
             Unlink Google Photos
           </Button>
-        </div>
+        </PluginAccountRow>
       ) : (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-muted-foreground text-sm">
+        <PluginAccountRow gap="sm">
+          <PluginAccountMuted>
             Connect your library to search and import photos on traces.
-          </p>
+          </PluginAccountMuted>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="shrink-0 rounded-xl"
+            className={pluginAccountButtonClass}
             onClick={() => void onLink()}
           >
             Link Google Photos
           </Button>
-        </div>
+        </PluginAccountRow>
       )}
-    </div>
+    </PluginAccountPanel>
   );
 }

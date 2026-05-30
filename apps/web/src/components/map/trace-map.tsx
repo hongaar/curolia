@@ -6,7 +6,12 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import { filterTracesByTags, type TraceWithTags } from "@/lib/trace-with-tags";
-import { cn, contrastingForeground } from "@/lib/utils";
+import { contrastingForeground } from "@curolia/ui";
+import {
+  TraceMapContainer,
+  TraceMapHoverTooltip,
+  traceMapMarkerFaceClass,
+} from "@curolia/ui/curolia/map-ui";
 import {
   autoUpdate,
   computePosition,
@@ -70,7 +75,6 @@ type TraceMapProps = {
   previewPin?: TraceMapPreviewPin | null;
   placementMode?: boolean;
   onPlacementClick?: (lng: number, lat: number) => void;
-  className?: string;
   /** When set (from URL or localStorage fallback), map uses this view. */
   initialCamera?: MapCamera | null;
   /** When set (from URL), map fits this extent with padding instead of center/zoom fly. */
@@ -129,25 +133,13 @@ function styleTraceMarkerFace(
   const fill = opts.fill;
   const draft = Boolean(opts.draft);
   const hovered = Boolean(opts.hovered);
-  el.className = cn(
-    "flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 text-lg shadow-md transition-[box-shadow,filter]",
-    opts.interactive &&
-      "cursor-pointer hover:shadow-lg hover:brightness-105 active:brightness-95",
-    !fill && "bg-primary text-primary-foreground",
-    draft &&
-      "ring-[3px] ring-dashed ring-primary ring-offset-2 ring-offset-background shadow-lg",
-    !draft &&
-      opts.selected &&
-      "ring-[3px] ring-primary ring-offset-2 ring-offset-background shadow-lg",
-    !draft &&
-      !opts.selected &&
-      hovered &&
-      "ring-[3px] ring-[var(--map-marker-ring)] ring-offset-2 ring-offset-background shadow-lg",
-    !draft &&
-      !opts.selected &&
-      !hovered &&
-      "ring-2 ring-[var(--map-marker-ring)]/40 hover:ring-[var(--map-marker-ring)]/55 hover:shadow-lg",
-  );
+  el.className = traceMapMarkerFaceClass({
+    fill,
+    selected: opts.selected,
+    hovered,
+    interactive: opts.interactive,
+    draft,
+  });
   el.style.backgroundColor = fill ?? "";
   el.style.color = fill ? contrastingForeground(fill) : "";
 }
@@ -171,7 +163,6 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       previewPin = null,
       placementMode = false,
       onPlacementClick,
-      className,
       initialCamera = null,
       initialBbox = null,
       cameraSyncKey = "",
@@ -795,24 +786,15 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
 
     return (
       <>
-        <div
-          ref={containerRef}
-          data-curolia-trace-map
-          className={cn(
-            "h-full min-h-0 w-full min-w-0",
-            placementMode && "ring-2 ring-primary/50",
-            className,
-          )}
+        <TraceMapContainer
+          placementMode={placementMode}
+          containerRef={containerRef}
         />
         {traceHover ? (
-          <div
-            ref={hoverFloatingRef}
-            className="pointer-events-none z-[45] max-w-[min(16rem,calc(100vw-2rem))] min-w-0"
-          >
-            <div className="border-border/60 bg-muted/95 text-foreground shadow-sm supports-backdrop-filter:backdrop-blur-sm rounded-lg border px-2.5 py-1">
-              <p className="text-sm font-medium leading-snug">{hoverTitle}</p>
-            </div>
-          </div>
+          <TraceMapHoverTooltip
+            floatingRef={hoverFloatingRef}
+            title={hoverTitle}
+          />
         ) : null}
       </>
     );

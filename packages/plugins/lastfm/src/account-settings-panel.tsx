@@ -2,6 +2,15 @@ import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
+import {
+  PluginAccountHeading,
+  PluginAccountInputRow,
+  PluginAccountMuted,
+  PluginAccountPanel,
+  pluginAccountButtonClass,
+  pluginAccountInputClass,
+  pluginAccountInputDescriptionClass,
+} from "@curolia/ui/curolia/plugin-account-ui";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -70,25 +79,23 @@ export function LastfmAccountSettingsPanel(props: PluginAccountPanelProps) {
 
   if (!supabase || !userId) {
     return (
-      <div className="border-border/60 bg-muted/25 mt-3 rounded-xl border px-3 py-2.5">
-        <p className="text-muted-foreground text-sm">
-          Sign in to configure Last.fm.
-        </p>
-      </div>
+      <PluginAccountPanel compact>
+        <PluginAccountMuted>Sign in to configure Last.fm.</PluginAccountMuted>
+      </PluginAccountPanel>
     );
   }
 
   return (
-    <div className="border-border/60 bg-muted/25 mt-3 rounded-xl border px-3 py-3">
-      <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
-        Account
-      </p>
-      <p className="text-muted-foreground mb-3 text-sm">
-        Enter your public Last.fm username. Scrobbles are read from
-        Last.fm&apos;s API (full history for the trace dates, subject to API
-        limits).
-      </p>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <PluginAccountPanel>
+      <PluginAccountHeading>Account</PluginAccountHeading>
+      <div className={pluginAccountInputDescriptionClass}>
+        <PluginAccountMuted>
+          Enter your public Last.fm username. Scrobbles are read from
+          Last.fm&apos;s API (full history for the trace dates, subject to API
+          limits).
+        </PluginAccountMuted>
+      </div>
+      <PluginAccountInputRow>
         <Input
           id={`lastfm-user-${pluginTypeId}`}
           type="text"
@@ -96,19 +103,19 @@ export function LastfmAccountSettingsPanel(props: PluginAccountPanelProps) {
           placeholder="Last.fm username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="rounded-xl sm:max-w-xs"
+          className={pluginAccountInputClass}
         />
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="shrink-0 rounded-xl"
+          className={pluginAccountButtonClass}
           disabled={saveMut.isPending}
           onClick={() => saveMut.mutate()}
         >
           Save
         </Button>
-      </div>
-    </div>
+      </PluginAccountInputRow>
+    </PluginAccountPanel>
   );
 }

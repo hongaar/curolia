@@ -1,0 +1,157 @@
+.list {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rowLink {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--background) 40%, transparent);
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background 150ms;
+}
+
+.rowLink:hover {
+  background: color-mix(in oklch, var(--muted) 60%, transparent);
+}
+
+.rowEditor {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--background) 40%, transparent);
+  padding: 0.5rem 0.75rem;
+}
+
+.rowBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.rowTitleLink {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: inherit;
+  text-decoration: none;
+}
+
+.rowTitleLink:hover {
+  text-decoration: underline;
+}
+
+.rowDomain {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--muted-foreground);
+}
+
+.externalIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.rowLink:hover .externalIcon {
+  opacity: 1;
+}
+
+.favicon {
+  display: flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.faviconLg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.faviconImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.faviconIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.editorRoot {
+  min-width: 0;
+}
+
+.editorList {
+  min-width: 0;
+}
+
+.editorAddRow {
+  display: flex;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.removeButton {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  padding: 0;
+  color: var(--destructive);
+}
+
+.removeButton:hover {
+  color: var(--destructive);
+}
+
+.spinIcon {
+  width: 1rem;
+  height: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -11,6 +11,16 @@ import type { JournalPlugin } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { Label } from "@curolia/ui/label";
 import { Switch } from "@curolia/ui/switch";
+import {
+  PluginFeedCode,
+  PluginFeedLabel,
+  PluginFeedRow,
+  PluginSettingsBox,
+  PluginSettingsHint,
+  PluginSettingsRow,
+  PluginSettingsTitle,
+  PluginStatusText,
+} from "@curolia/ui/curolia/plugin-panel";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -116,16 +126,16 @@ export function IcalPluginJournalSettings({
       : null;
 
   return (
-    <div className="border-border/50 mt-3 space-y-4 rounded-xl border bg-foreground/[0.02] p-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <PluginSettingsBox>
+      <PluginSettingsRow>
         <div>
-          <Label htmlFor="ical-publish" className="text-foreground font-medium">
-            Publish as iCalendar file
-          </Label>
-          <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+          <PluginSettingsTitle>
+            <Label htmlFor="ical-publish">Publish as iCalendar file</Label>
+          </PluginSettingsTitle>
+          <PluginSettingsHint>
             Anyone with the secret link can subscribe in Apple Calendar, Google
             Calendar, etc. The URL is not guessable.
-          </p>
+          </PluginSettingsHint>
         </div>
         <Switch
           id="ical-publish"
@@ -135,48 +145,45 @@ export function IcalPluginJournalSettings({
             void saveConfig.mutateAsync({ publishFeed: c === true })
           }
         />
-      </div>
+      </PluginSettingsRow>
       {!pluginGloballyEnabled ? (
-        <p className="text-muted-foreground text-xs">
+        <PluginStatusText size="sm">
           Turn on iCalendar under Plugins (user menu) to publish a feed for this
           journal.
-        </p>
+        </PluginStatusText>
       ) : null}
       {parsed.publishFeed && pluginGloballyEnabled ? (
-        <div className="space-y-2">
+        <div>
           {tokenQuery.isLoading ? (
-            <p className="text-muted-foreground text-xs">Preparing feed URL…</p>
+            <PluginStatusText size="sm">Preparing feed URL…</PluginStatusText>
           ) : feedUrl ? (
             <>
-              <Label className="text-muted-foreground text-xs">Feed URL</Label>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <code className="bg-muted/60 text-foreground block max-w-full flex-1 truncate rounded-lg px-2 py-1.5 text-xs">
-                  {feedUrl}
-                </code>
+              <PluginFeedLabel>Feed URL</PluginFeedLabel>
+              <PluginFeedRow>
+                <PluginFeedCode>{feedUrl}</PluginFeedCode>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="shrink-0 rounded-lg"
                   onClick={() => {
                     void navigator.clipboard
                       .writeText(feedUrl)
                       .then(() => toast.success("Copied feed URL"));
                   }}
                 >
-                  <Copy className="mr-1.5 size-3.5" />
+                  <Copy />
                   Copy
                 </Button>
-              </div>
+              </PluginFeedRow>
             </>
           ) : (
-            <p className="text-muted-foreground text-xs">
+            <PluginStatusText size="sm">
               Set up the Supabase project URL in the app environment to show the
               link.
-            </p>
+            </PluginStatusText>
           )}
         </div>
       ) : null}
-    </div>
+    </PluginSettingsBox>
   );
 }

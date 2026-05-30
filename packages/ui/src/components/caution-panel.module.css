@@ -1,0 +1,24 @@
+.root {
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklch, #f59e0b 25%, transparent);
+  background: color-mix(in oklch, #f59e0b 5%, transparent);
+  padding: 1rem;
+}
+
+.title {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.description {
+  color: var(--muted-foreground);
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.625;
+}
+
+.children {
+  margin-top: 0.75rem;
+}

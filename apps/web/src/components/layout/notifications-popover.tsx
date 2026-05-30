@@ -1,17 +1,24 @@
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronDown } from "lucide-react";
+import { Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { buttonVariants } from "@curolia/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@curolia/ui/popover";
-import { sidebarPickerTriggerClass } from "@/components/layout/sidebar-dropdown-triggers";
-import { cn } from "@/lib/utils";
+import { Popover } from "@curolia/ui/popover";
 import type { AppNotification } from "@/types/database";
+import {
+  NotificationsIconPopoverTrigger,
+  NotificationsPopoverContent,
+  NotificationsPopoverHeader,
+  NotificationsPopoverItem,
+  NotificationsPopoverScroll,
+  NotificationsSeeAllButton,
+  NotificationsSidebarPopoverTrigger,
+  NotificationsSidebarTriggerInner,
+} from "@curolia/ui/curolia/notifications-popover-ui";
+import { FormMutedText } from "@curolia/ui/curolia/form-layout";
 
 type NotificationsPopoverProps = {
   userId: string;
-  /** Wider sidebar row vs compact toolbar icon */
   variant?: "icon" | "sidebar-row";
 };
 
@@ -63,103 +70,63 @@ export function NotificationsPopover({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        className={
-          variant === "sidebar-row"
-            ? sidebarPickerTriggerClass()
-            : cn(
-                buttonVariants({ variant: "ghost", size: "icon" }),
-                "size-9 shrink-0 rounded-xl",
-              )
-        }
-        title="Notifications"
-        aria-label="Notifications"
-      >
-        {variant === "sidebar-row" ? (
-          <>
-            <span className="flex min-w-0 flex-1 items-center gap-2">
-              <Bell className="size-4 shrink-0 opacity-80" />
-              <span className="truncate font-normal">Notifications</span>
-            </span>
-            <ChevronDown className="size-4 shrink-0 opacity-60" />
-          </>
-        ) : (
-          <Bell className="size-4 shrink-0 opacity-80" />
-        )}
-      </PopoverTrigger>
-      <PopoverContent
+      {variant === "sidebar-row" ? (
+        <NotificationsSidebarPopoverTrigger
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <NotificationsSidebarTriggerInner
+            icon={<Bell aria-hidden />}
+            label="Notifications"
+          />
+        </NotificationsSidebarPopoverTrigger>
+      ) : (
+        <NotificationsIconPopoverTrigger
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <Bell aria-hidden />
+        </NotificationsIconPopoverTrigger>
+      )}
+      <NotificationsPopoverContent
         align={variant === "sidebar-row" ? "start" : "end"}
-        side="bottom"
         sideOffset={variant === "sidebar-row" ? 6 : 8}
-        className="w-[min(22rem,calc(100vw-2rem))] p-0"
       >
-        <div className="border-border/60 flex items-center justify-between border-b px-3 py-2">
-          <span className="text-sm font-medium">Notifications</span>
-          <button
-            type="button"
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "h-8 rounded-lg text-xs",
-            )}
-            onClick={() => {
-              setOpen(false);
-              navigate("/notifications");
-            }}
-          >
-            See all
-          </button>
-        </div>
-        <div className="max-h-72 overflow-y-auto">
+        <NotificationsPopoverHeader
+          title="Notifications"
+          action={
+            <NotificationsSeeAllButton
+              onClick={() => {
+                setOpen(false);
+                navigate("/notifications");
+              }}
+            >
+              See all
+            </NotificationsSeeAllButton>
+          }
+        />
+        <NotificationsPopoverScroll>
           {open ? (
             isPending || isFetching ? (
-              <p className="text-muted-foreground px-3 py-4 text-sm">
-                Loading…
-              </p>
+              <FormMutedText>Loading…</FormMutedText>
             ) : items.length === 0 ? (
-              <p className="text-muted-foreground px-3 py-4 text-sm">
-                No notifications yet.
-              </p>
+              <FormMutedText>No notifications yet.</FormMutedText>
             ) : (
               <ul>
                 {items.map((n) => (
-                  <li
+                  <NotificationsPopoverItem
                     key={n.id}
-                    className="border-border/40 border-b last:border-0"
-                  >
-                    <button
-                      type="button"
-                      className={cn(
-                        "hover:bg-foreground/5 flex w-full flex-col gap-0.5 px-3 py-2.5 text-left text-sm transition-colors",
-                        !n.read_at && "bg-primary/5",
-                      )}
-                      onClick={() => void openNotification(n)}
-                    >
-                      <span className="flex items-start gap-2">
-                        {!n.read_at ? (
-                          <span
-                            className="bg-primary mt-1.5 size-1.5 shrink-0 rounded-full"
-                            aria-hidden
-                          />
-                        ) : (
-                          <span className="size-1.5 shrink-0" aria-hidden />
-                        )}
-                        <span className="min-w-0 flex-1">
-                          <span className="font-medium">{n.title}</span>
-                          {n.body ? (
-                            <span className="text-muted-foreground mt-0.5 line-clamp-2 block text-xs">
-                              {n.body}
-                            </span>
-                          ) : null}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
+                    unread={!n.read_at}
+                    onClick={() => void openNotification(n)}
+                    title={n.title}
+                    body={n.body ?? undefined}
+                  />
                 ))}
               </ul>
             )
           ) : null}
-        </div>
-      </PopoverContent>
+        </NotificationsPopoverScroll>
+      </NotificationsPopoverContent>
     </Popover>
   );
 }

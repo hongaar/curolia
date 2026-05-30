@@ -3,12 +3,28 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
+import {
+  AppPageLayout,
+  PageAvatarActions,
+  PageAvatarHint,
+  PageAvatarRow,
+  PageAvatarSection,
+  PageDisplayTitle,
+  PageEmailLine,
+  PageExternalLink,
+  PageFitButton,
+  PageInlineActions,
+  PageLead,
+  PageMessageText,
+  PagePanel,
+  PageProfileGrid,
+} from "@curolia/ui/curolia/page";
+import { FormField, SrOnlyInput } from "@curolia/ui/curolia/form-layout";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
@@ -52,7 +68,6 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (!profile) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate controlled fields when server profile loads
     setDisplayName(profile.display_name ?? "");
     setAvatarUrl(profile.avatar_url ?? "");
   }, [profile]);
@@ -154,109 +169,94 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-      <div className="mx-auto max-w-lg space-y-4">
-        <PageBackButton />
-        <FloatingPanel className="p-5 sm:p-6">
-          <h1 className="font-display text-foreground text-2xl font-normal tracking-tight">
-            Profile
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            Update how you appear in the app. Email is managed by your account
-            provider.
-          </p>
-          {user?.email ? (
-            <p className="text-muted-foreground mt-3 text-sm">
-              Signed in as{" "}
-              <span className="text-foreground font-medium">{user.email}</span>
-            </p>
-          ) : null}
-          <div className="mt-6 grid gap-4">
-            <div className="space-y-3">
-              <Label>Photo</Label>
-              <div className="flex flex-wrap items-center gap-4">
-                <UserAvatar
-                  storedAvatarUrl={avatarUrl}
-                  email={user?.email}
-                  gravatarSize={256}
-                  className="size-24 shrink-0"
-                  imgClassName="size-24"
-                  label={displayName.trim() || user?.email || "Profile"}
-                />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  className="sr-only"
-                  aria-label="Upload profile photo"
-                  disabled={uploading || profileQuery.isLoading || !user}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void uploadAvatar(file);
-                  }}
-                />
-                <div className="flex min-w-0 flex-col gap-2">
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded-xl"
-                      disabled={uploading || profileQuery.isLoading || !user}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {uploading ? "Working…" : "Upload photo"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="rounded-xl"
-                      disabled={
-                        uploading ||
-                        profileQuery.isLoading ||
-                        !user ||
-                        !avatarUrl.trim()
-                      }
-                      onClick={() => void removeAvatar()}
-                    >
-                      Remove photo
-                    </Button>
-                  </div>
-                  <p className="text-muted-foreground max-w-sm text-xs leading-relaxed">
-                    If you do not upload a photo, we show your{" "}
-                    <a
-                      className="text-foreground underline decoration-foreground/25 underline-offset-2 hover:decoration-foreground/60"
-                      href="https://gravatar.com"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Gravatar
-                    </a>{" "}
-                    for this email, then the default icon.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pf-name">Display name</Label>
-              <Input
-                id="pf-name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your name"
-                disabled={profileQuery.isLoading}
+    <AppPageLayout>
+      <PageBackButton />
+      <PagePanel>
+        <PageDisplayTitle>Profile</PageDisplayTitle>
+        <PageLead>
+          Update how you appear in the app. Email is managed by your account
+          provider.
+        </PageLead>
+        {user?.email ? (
+          <PageEmailLine highlight={user.email}>Signed in as </PageEmailLine>
+        ) : null}
+        <PageProfileGrid>
+          <PageAvatarSection>
+            <Label>Photo</Label>
+            <PageAvatarRow>
+              <UserAvatar
+                storedAvatarUrl={avatarUrl}
+                email={user?.email}
+                gravatarSize={256}
+                size="lg"
+                label={displayName.trim() || user?.email || "Profile"}
               />
-            </div>
-            {message ? <p className="text-sm">{message}</p> : null}
+              <SrOnlyInput
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                aria-label="Upload profile photo"
+                disabled={uploading || profileQuery.isLoading || !user}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void uploadAvatar(file);
+                }}
+              />
+              <PageAvatarActions>
+                <PageInlineActions spaced="none">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={uploading || profileQuery.isLoading || !user}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {uploading ? "Working…" : "Upload photo"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={
+                      uploading ||
+                      profileQuery.isLoading ||
+                      !user ||
+                      !avatarUrl.trim()
+                    }
+                    onClick={() => void removeAvatar()}
+                  >
+                    Remove photo
+                  </Button>
+                </PageInlineActions>
+                <PageAvatarHint>
+                  If you do not upload a photo, we show your{" "}
+                  <PageExternalLink href="https://gravatar.com">
+                    Gravatar
+                  </PageExternalLink>{" "}
+                  for this email, then the default icon.
+                </PageAvatarHint>
+              </PageAvatarActions>
+            </PageAvatarRow>
+          </PageAvatarSection>
+          <FormField>
+            <Label htmlFor="pf-name">Display name</Label>
+            <Input
+              id="pf-name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your name"
+              disabled={profileQuery.isLoading}
+            />
+          </FormField>
+          {message ? <PageMessageText>{message}</PageMessageText> : null}
+          <PageFitButton>
             <Button
-              className="w-fit rounded-xl"
               disabled={saving || profileQuery.isLoading}
               onClick={() => void save()}
             >
               Save changes
             </Button>
-          </div>
-        </FloatingPanel>
-      </div>
-    </div>
+          </PageFitButton>
+        </PageProfileGrid>
+      </PagePanel>
+    </AppPageLayout>
   );
 }

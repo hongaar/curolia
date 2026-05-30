@@ -1,0 +1,516 @@
+.root {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.mapLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    oklch(0.35 0.04 260 / 0.12) 100%
+  );
+}
+
+.mapHost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  min-height: 0;
+}
+
+.controlsLayer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+}
+
+.controlsTopRight {
+  pointer-events: auto;
+  position: absolute;
+  top: calc(var(--app-toolbar-h) + 0.75rem);
+  right: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .controlsTopRight {
+    top: calc(var(--app-toolbar-h) + 1rem);
+    right: 1rem;
+  }
+}
+
+.controlsBottomRight {
+  pointer-events: auto;
+  position: absolute;
+  right: 1rem;
+  bottom: 1.5rem;
+}
+
+@media (min-width: 40rem) {
+  .controlsBottomRight {
+    right: 1.5rem;
+  }
+}
+
+.sidebarDismiss {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  border: 0;
+  padding: 0;
+  background: rgb(0 0 0 / 0.45);
+  outline: none;
+  touch-action: none;
+  transition: opacity 200ms;
+}
+
+.sidebarDismissOpen {
+  cursor: default;
+  opacity: 1;
+}
+
+.sidebarDismissClosed {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0;
+}
+
+.placementHint {
+  pointer-events: none;
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  max-width: min(calc(100vw - 2rem), 22rem);
+  transform: translateX(-50%);
+  justify-content: center;
+  padding-inline: 1rem;
+}
+
+.placementHintText {
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+  background: color-mix(in oklch, var(--background) 92%, transparent);
+  padding: 0.625rem 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.375;
+  font-weight: 500;
+  color: var(--foreground);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(4px);
+}
+
+.mapContainer {
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.mapContainerPlacement {
+  box-shadow: inset 0 0 0 2px
+    color-mix(in oklch, var(--primary) 50%, transparent);
+}
+
+.hoverTooltipHost {
+  pointer-events: none;
+  z-index: 45;
+  max-width: min(16rem, calc(100vw - 2rem));
+  min-width: 0;
+}
+
+.hoverTooltip {
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--muted) 95%, transparent);
+  padding: 0.25rem 0.625rem;
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(4px);
+}
+
+.hoverTooltipTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.375;
+}
+
+.toolbarRoot {
+  pointer-events: auto;
+  box-sizing: content-box;
+  display: flex;
+  width: 2.25rem;
+  flex-direction: column;
+  overflow: visible;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklch, var(--foreground) 15%, transparent);
+  background: var(--panel-bg);
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 1px rgb(0 0 0 / 0.04);
+}
+
+:global(.dark) .toolbarRoot {
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 1px rgb(255 255 255 / 0.1);
+}
+
+.toolbarRoot > * + * {
+  border-top: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+.toolbarButton {
+  display: inline-flex;
+  height: 2.25rem;
+  max-width: 2.25rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  outline: none;
+  transition: max-width 200ms ease-out;
+}
+
+.toolbarButton:hover,
+.toolbarButton:focus-visible {
+  max-width: min(13rem, calc(100vw - 5rem));
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
+.toolbarButton:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--ring) 30%, transparent);
+}
+
+.toolbarButtonActive {
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--primary) 20%, transparent);
+}
+
+.toolbarButtonActive:hover {
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.toolbarIconCell {
+  display: flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.toolbarIconCell svg {
+  display: block;
+}
+
+.toolbarLabelCell {
+  display: flex;
+  min-height: 2.25rem;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  align-self: center;
+  padding: 0 0.5rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.sidebarBody {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-top: 0.5rem;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sidebarTitle {
+  min-width: 0;
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.sidebarDescription {
+  max-height: 10rem;
+  overflow-y: auto;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  color: var(--foreground);
+}
+
+.photoStrip {
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.photoStripInner {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.photoStripInner::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebarActions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sidebarStatus {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.sidebarTagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.sidebarHeaderActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.photoSkeleton {
+  width: 5rem;
+  height: 5rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (min-width: 40rem) {
+  .photoSkeleton {
+    width: 6rem;
+    height: 6rem;
+  }
+}
+
+.floatingHost {
+  pointer-events: none;
+  z-index: 45;
+  width: max-content;
+  min-width: 0;
+  max-width: none;
+}
+
+.floatingHostReady {
+  visibility: visible;
+  opacity: 1;
+}
+
+.floatingHostHidden {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.floatingInner {
+  pointer-events: auto;
+}
+
+.floatingPanel {
+  display: flex;
+  min-width: min(calc(100vw - 2rem), 22rem);
+  max-width: min(calc(100vw - 2rem), 22rem);
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+
+.floatingPanelAnchored {
+  max-height: min(85dvh, 36rem);
+}
+
+@media (min-width: 40rem) {
+  .floatingPanelAnchored {
+    max-height: min(calc(100dvh - 6rem), 40rem);
+  }
+}
+
+.floatingPanelFallback {
+  position: fixed;
+  z-index: 40;
+  top: 4.5rem;
+  right: 0.75rem;
+  bottom: 1rem;
+  max-height: none;
+  width: min(calc(100vw - 1.5rem), 22rem);
+  min-width: 0;
+  max-width: none;
+  pointer-events: auto;
+}
+
+@media (min-width: 40rem) {
+  .floatingPanelFallback {
+    top: 5.25rem;
+    right: 1rem;
+  }
+}
+
+.mobileSheetBody {
+  display: flex;
+  max-height: 90dvh;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem 1rem 1.5rem;
+}
+
+.mobileSheetOverlay {
+  pointer-events: none;
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+.mobileSheetContent {
+  pointer-events: auto;
+  gap: 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  border: 1px solid var(--panel-border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--panel-shadow);
+  padding: 0;
+}
+
+.mobileSheetTitleHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.quickAddHost {
+  pointer-events: none;
+  z-index: 45;
+  width: max-content;
+  min-width: 0;
+}
+
+.quickAddInner {
+  pointer-events: auto;
+  position: relative;
+  min-width: 18rem;
+  max-width: 24rem;
+  border-radius: var(--radius-2xl);
+}
+
+.quickAddShell {
+  max-height: min(92dvh, 44rem);
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  box-shadow: inset 0 0 0 1px var(--panel-border);
+}
+
+.markerFace {
+  display: flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid rgb(255 255 255 / 0.8);
+  font-size: 1.125rem;
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow 150ms,
+    filter 150ms;
+}
+
+.markerInteractive {
+  cursor: pointer;
+}
+
+.markerInteractive:hover {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.05);
+}
+
+.markerInteractive:active {
+  filter: brightness(0.95);
+}
+
+.markerDefaultFill {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.markerDraft {
+  box-shadow: var(--shadow-lg);
+  outline: 3px dashed var(--primary);
+  outline-offset: 2px;
+}
+
+.markerSelected {
+  box-shadow: var(--shadow-lg);
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.markerHovered {
+  box-shadow: var(--shadow-lg);
+  outline: 3px solid var(--map-marker-ring);
+  outline-offset: 2px;
+}
+
+.markerDefaultRing {
+  outline: 2px solid
+    color-mix(in oklch, var(--map-marker-ring) 40%, transparent);
+  outline-offset: 0;
+}
+
+.markerDefaultRing:hover {
+  outline-color: color-mix(in oklch, var(--map-marker-ring) 55%, transparent);
+  box-shadow: var(--shadow-lg);
+}

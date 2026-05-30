@@ -1,0 +1,66 @@
+.root {
+  display: flex;
+  height: 2rem;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--input);
+  background: transparent;
+  padding: 0.25rem 0.625rem;
+  font-size: 1rem;
+  color: var(--foreground);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+  outline: none;
+}
+
+.root::placeholder {
+  color: var(--muted-foreground);
+}
+
+.root:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+.root:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  background: color-mix(in oklch, var(--input) 50%, transparent);
+  opacity: 0.5;
+}
+
+.root[aria-invalid="true"] {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+:global(.dark) .root {
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+}
+
+:global(.dark) .root:disabled {
+  background: color-mix(in oklch, var(--input) 80%, transparent);
+}
+
+:global(.dark) .root[aria-invalid="true"] {
+  border-color: color-mix(in oklch, var(--destructive) 50%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+}
+
+@media (min-width: 48rem) {
+  .root {
+    font-size: 0.875rem;
+  }
+}
+
+.root[type="file"]::file-selector-button {
+  display: inline-flex;
+  height: 1.5rem;
+  border: 0;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}

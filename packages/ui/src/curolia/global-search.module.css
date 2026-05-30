@@ -1,0 +1,213 @@
+.searchTriggerEmbed {
+  min-height: 2.75rem;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  border-radius: var(--radius-xl);
+  border: 0;
+  background: transparent;
+  padding-inline: 0.75rem;
+  font-weight: 400;
+  box-shadow: none;
+  color: var(--muted-foreground);
+}
+
+.searchTriggerEmbed:hover {
+  background: color-mix(in oklch, var(--foreground) 4%, transparent);
+  color: var(--foreground);
+}
+
+.searchTriggerStandalone {
+  height: 2.25rem;
+  gap: 0.375rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--panel-border);
+  background: color-mix(in oklch, var(--background) 80%, transparent);
+  padding-inline: 0.625rem;
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 8%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 40rem) {
+  .searchTriggerStandalone {
+    padding-inline: 0.75rem;
+  }
+}
+
+.searchIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.searchLabelEmbed {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.searchLabelStandalone {
+  display: none;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 40rem) {
+  .searchLabelStandalone {
+    display: inline;
+  }
+}
+
+.popoverContent {
+  width: min(calc(100vw - 1.5rem), 22rem);
+  gap: 0;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  padding: 0;
+  box-shadow: 0 20px 25px -5px
+    color-mix(in oklch, var(--foreground) 10%, transparent);
+  backdrop-filter: blur(24px);
+}
+
+.searchHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  padding: 0.5rem;
+}
+
+.searchInput {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.searchInput:focus-visible {
+  box-shadow: none;
+}
+
+.results {
+  max-height: min(50vh, 300px);
+  overflow-y: auto;
+  padding: 0.25rem 0.25rem 0.5rem;
+}
+
+.emptyHint {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.sectionLabel {
+  padding: 0.5rem 0.5rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.resultRow {
+  height: auto;
+  min-height: 2.25rem;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  border-radius: var(--radius-md);
+  padding: 0.375rem 0.5rem;
+  text-align: left;
+  font-weight: 400;
+}
+
+.resultIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.resultBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.resultTitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.resultSubtitle {
+  display: block;
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--muted-foreground);
+}
+
+.statusText {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.footer {
+  display: none;
+  border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  padding: 0.375rem 0.5rem;
+  font-size: 0.625rem;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 40rem) {
+  .footer {
+    display: block;
+  }
+}
+
+.kbd {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 0 0.25rem;
+  font-family: var(--font-mono, monospace);
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

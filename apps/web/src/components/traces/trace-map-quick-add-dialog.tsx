@@ -1,17 +1,19 @@
-import { Button } from "@curolia/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@curolia/ui/card";
-import { Dialog, DialogContent } from "@curolia/ui/dialog";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { supabase } from "@/lib/supabase";
 import type { Trace } from "@/types/database";
+import { Button } from "@curolia/ui/button";
+import { Dialog } from "@curolia/ui/dialog";
+import { Input } from "@curolia/ui/input";
+import { Label } from "@curolia/ui/label";
+import {
+  FormErrorText,
+  FormField,
+  FormMutedTextXs,
+  TraceFormFloatingHost,
+  TraceFormFooterSplit,
+  TraceFormModalContent,
+  TraceFormPanelCard,
+} from "@curolia/ui/curolia/trace-form-ui";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -182,82 +184,69 @@ export function TraceMapQuickAddDialog({
   if (!open || !trace) return null;
 
   const formShell = (
-    <Card className="border-[var(--panel-border)] bg-[var(--panel-bg)] gap-0 py-0 shadow-[var(--panel-shadow)] backdrop-blur-xl">
-      <CardHeader className="gap-1 border-b border-border/50 px-4 pb-3 pt-4">
-        <CardTitle className="font-display text-xl font-normal tracking-tight">
-          New trace
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="max-h-[min(70vh,32rem)] min-h-0 overflow-y-auto px-4 pt-4 pb-2">
-        <div className="grid gap-3 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="trace-quick-title">Title</Label>
-            <Input
-              id="trace-quick-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onBlur={() => void onTitleBlur()}
-              className="rounded-lg"
-              autoComplete="off"
-            />
-          </div>
-          {trace.location_label ? (
-            <p className="text-muted-foreground text-xs leading-snug">
-              {trace.location_label}
-            </p>
-          ) : null}
-          {error ? <p className="text-destructive text-sm">{error}</p> : null}
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col-reverse gap-2 px-4 py-4 sm:flex-row sm:justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={busy}
-          className="rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10"
-          onClick={() => void onDelete()}
-        >
-          Delete
-        </Button>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            className="rounded-xl"
-            disabled={busy}
-            onClick={() => {
-              void flushTitleIfNeeded().then(() => onEdit(trace));
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            type="button"
-            className="rounded-xl"
-            disabled={busy}
-            onClick={() => {
-              void flushTitleIfNeeded().then(() => onOpenChange(false));
-            }}
-          >
-            Done
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+    <TraceFormPanelCard
+      title="New trace"
+      footerBetween
+      footer={
+        <TraceFormFooterSplit
+          start={
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => void onDelete()}
+            >
+              Delete
+            </Button>
+          }
+          end={
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => {
+                  void flushTitleIfNeeded().then(() => onEdit(trace));
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  void flushTitleIfNeeded().then(() => onOpenChange(false));
+                }}
+              >
+                Done
+              </Button>
+            </>
+          }
+        />
+      }
+    >
+      <FormField>
+        <Label htmlFor="trace-quick-title">Title</Label>
+        <Input
+          id="trace-quick-title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={() => void onTitleBlur()}
+          autoComplete="off"
+        />
+      </FormField>
+      {trace.location_label ? (
+        <FormMutedTextXs>{trace.location_label}</FormMutedTextXs>
+      ) : null}
+      {error ? <FormErrorText>{error}</FormErrorText> : null}
+    </TraceFormPanelCard>
   );
 
   if (useFloatingPanel && anchorScreen) {
     return (
-      <div
-        ref={floatingRef}
-        className="pointer-events-none z-[45] w-max min-w-0"
-      >
-        <div className="pointer-events-auto relative min-w-[288px] max-w-sm rounded-2xl">
-          <div className="max-h-[min(92dvh,44rem)] min-h-0 overflow-hidden rounded-2xl ring-1 ring-[var(--panel-border)]">
-            {formShell}
-          </div>
-        </div>
-      </div>
+      <TraceFormFloatingHost hostRef={floatingRef}>
+        {formShell}
+      </TraceFormFloatingHost>
     );
   }
 
@@ -268,9 +257,7 @@ export function TraceMapQuickAddDialog({
         if (!o) void flushTitleIfNeeded().then(() => onOpenChange(false));
       }}
     >
-      <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] gap-0 overflow-hidden border-[var(--panel-border)] bg-transparent p-0 shadow-none sm:max-w-md [&>button]:z-50">
-        {formShell}
-      </DialogContent>
+      <TraceFormModalContent>{formShell}</TraceFormModalContent>
     </Dialog>
   );
 }

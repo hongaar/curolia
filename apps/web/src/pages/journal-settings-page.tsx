@@ -4,9 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useJournal } from "@/providers/journal-provider";
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import { PageBackButton } from "@/components/layout/page-back-button";
-import { Button, buttonVariants } from "@curolia/ui/button";
+import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { EmojiPicker } from "@/components/traces/emoji-picker";
@@ -15,9 +14,20 @@ import {
   normalizeJournalIconForPersist,
 } from "@/lib/journal-display-icon";
 import { journalViewHref } from "@/lib/app-paths";
-import { cn } from "@/lib/utils";
 import { JournalSharingSection } from "@/components/journal/journal-sharing-section";
 import { JournalPluginsSection } from "@/components/journal/journal-plugins-section";
+import {
+  AppPageLayout,
+  PageCenteredLoading,
+  PageDisplayTitle,
+  PageErrorText,
+  PageFormBlockSpaced,
+  PageInlineActions,
+  PageLead,
+  PageMuted,
+  PagePanel,
+} from "@curolia/ui/curolia/page";
+import { FormField } from "@curolia/ui/curolia/form-layout";
 
 export function JournalSettingsPage() {
   const { journalId } = useParams<{ journalId: string }>();
@@ -84,40 +94,36 @@ export function JournalSettingsPage() {
   }
 
   if (!journalId) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <FloatingPanel className="text-muted-foreground text-sm">
-          Missing journal.
-        </FloatingPanel>
-      </div>
-    );
+    return <PageCenteredLoading>Missing journal.</PageCenteredLoading>;
   }
 
   if (!journal) {
     return (
-      <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-        <div className="mx-auto max-w-lg space-y-4">
-          <PageBackButton />
-          <FloatingPanel className="p-6">
-            <p className="text-muted-foreground text-sm">
-              You do not have access to this journal or it does not exist.
-            </p>
-            <Link
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "mt-4 inline-flex rounded-xl",
-              )}
-              to={
-                journals[0]?.slug
-                  ? journalViewHref("map", journals[0].slug)
-                  : "/"
+      <AppPageLayout>
+        <PageBackButton />
+        <PagePanel>
+          <PageMuted>
+            You do not have access to this journal or it does not exist.
+          </PageMuted>
+          <PageInlineActions spaced="tight">
+            <Button
+              variant="outline"
+              size="sm"
+              render={
+                <Link
+                  to={
+                    journals[0]?.slug
+                      ? journalViewHref("map", journals[0].slug)
+                      : "/"
+                  }
+                />
               }
             >
               Back to map
-            </Link>
-          </FloatingPanel>
-        </div>
-      </div>
+            </Button>
+          </PageInlineActions>
+        </PagePanel>
+      </AppPageLayout>
     );
   }
 
@@ -131,82 +137,69 @@ export function JournalSettingsPage() {
     isOwner && Boolean(name.trim()) && (nameDirty || iconDirty) && !saving;
 
   return (
-    <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-      <div className="mx-auto max-w-lg space-y-4">
-        <PageBackButton />
-        <FloatingPanel className="p-5 sm:p-6">
-          <div>
-            <h1 className="font-display text-foreground text-2xl font-normal tracking-tight">
-              Journal settings
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              More options will land here later.
-            </p>
-          </div>
+    <AppPageLayout>
+      <PageBackButton />
+      <PagePanel>
+        <PageDisplayTitle>Journal settings</PageDisplayTitle>
+        <PageLead>More options will land here later.</PageLead>
 
-          <div className="mt-8 space-y-4">
-            {!isOwner && !roleQuery.isLoading ? (
-              <p className="text-muted-foreground text-xs">
-                Only owners can change the journal name or icon.
-              </p>
-            ) : null}
-            <div className="space-y-2">
-              <Label htmlFor="jn-name">Journal name</Label>
-              <Input
-                id="jn-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={!isOwner || roleQuery.isLoading}
-              />
-            </div>
-            <EmojiPicker
-              id="jn-settings-icon"
-              label="Icon"
-              value={iconEmoji}
-              onChange={setIconEmoji}
+        <PageFormBlockSpaced>
+          {!isOwner && !roleQuery.isLoading ? (
+            <PageMuted>
+              Only owners can change the journal name or icon.
+            </PageMuted>
+          ) : null}
+          <FormField>
+            <Label htmlFor="jn-name">Journal name</Label>
+            <Input
+              id="jn-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={!isOwner || roleQuery.isLoading}
             />
-            {error ? <p className="text-destructive text-sm">{error}</p> : null}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                className="rounded-xl"
-                disabled={!canSave}
-                onClick={() => void save()}
-              >
-                Save
-              </Button>
-              {activeJournalId !== journalId ? (
-                <Button
-                  variant="secondary"
-                  className="rounded-xl"
-                  type="button"
-                  onClick={() => {
-                    setActiveJournalId(journalId);
-                    const slug = journal.slug.trim();
-                    navigate(slug ? journalViewHref("map", slug) : "/");
-                  }}
-                >
-                  Switch to this journal
-                </Button>
-              ) : null}
-            </div>
-          </div>
-        </FloatingPanel>
-
-        <JournalPluginsSection
-          journalId={journalId}
-          isOwner={isOwner}
-          roleLoading={roleQuery.isLoading}
-        />
-
-        <FloatingPanel className="p-5 sm:p-6">
-          <JournalSharingSection
-            journalId={journalId}
-            journalName={journal.name}
-            isOwner={isOwner}
+          </FormField>
+          <EmojiPicker
+            id="jn-settings-icon"
+            label="Icon"
+            value={iconEmoji}
+            onChange={setIconEmoji}
+            disabled={!isOwner || roleQuery.isLoading}
           />
-        </FloatingPanel>
-      </div>
-    </div>
+          {error ? <PageErrorText>{error}</PageErrorText> : null}
+          <PageInlineActions>
+            <Button disabled={!canSave} onClick={() => void save()}>
+              Save
+            </Button>
+            {activeJournalId !== journalId ? (
+              <Button
+                variant="secondary"
+                type="button"
+                onClick={() => {
+                  setActiveJournalId(journalId);
+                  const slug = journal.slug.trim();
+                  navigate(slug ? journalViewHref("map", slug) : "/");
+                }}
+              >
+                Switch to this journal
+              </Button>
+            ) : null}
+          </PageInlineActions>
+        </PageFormBlockSpaced>
+      </PagePanel>
+
+      <JournalPluginsSection
+        journalId={journalId}
+        isOwner={isOwner}
+        roleLoading={roleQuery.isLoading}
+      />
+
+      <PagePanel>
+        <JournalSharingSection
+          journalId={journalId}
+          journalName={journal.name}
+          isOwner={isOwner}
+        />
+      </PagePanel>
+    </AppPageLayout>
   );
 }

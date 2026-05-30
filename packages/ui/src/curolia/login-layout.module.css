@@ -1,0 +1,79 @@
+.page {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--background);
+  padding: 1rem;
+}
+
+.backdrop {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+.panel {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 28rem;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.tabsList {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1fr;
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--muted) 80%, transparent);
+  padding: 0.25rem;
+}
+
+.tabTrigger {
+  border-radius: var(--radius-lg);
+}
+
+.formSection {
+  padding-top: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.error {
+  font-size: 0.875rem;
+  color: var(--destructive);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footerNote {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.625;
+  color: var(--muted-foreground);
+}
+
+.inlineCode {
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--muted) 80%, transparent);
+  padding: 0.125rem 0.25rem;
+  font-size: 0.7rem;
+  color: var(--foreground);
+}

@@ -4,8 +4,19 @@ import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@curolia/ui/tabs";
-import { FloatingPanel } from "@/components/layout/floating-panel";
+import { Tabs } from "@curolia/ui/tabs";
+import {
+  LoginActions,
+  LoginError,
+  LoginField,
+  LoginFooterNote,
+  LoginHeader,
+  LoginInlineCode,
+  LoginLayout,
+  LoginTabPanel,
+  LoginTabsList,
+  LoginTabTrigger,
+} from "@curolia/ui/curolia/login-layout";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -46,119 +57,76 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background p-4">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-90"
-        style={{
-          background: `
-            radial-gradient(ellipse 120% 80% at 20% 20%, oklch(0.55 0.08 158 / 0.18), transparent 50%),
-            radial-gradient(ellipse 100% 60% at 80% 70%, oklch(0.55 0.06 250 / 0.14), transparent 45%),
-            linear-gradient(165deg, oklch(0.94 0.02 88) 0%, oklch(0.9 0.025 95) 100%)
-          `,
-        }}
-        aria-hidden
-      />
-      <FloatingPanel className="relative z-10 w-full max-w-md p-6 sm:p-8">
-        <div className="mb-6 text-center">
-          <h1 className="font-display text-foreground text-3xl font-normal tracking-tight">
-            Curolia
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm">
-            Sign in to your travel journal.
-          </p>
-        </div>
-        <Tabs defaultValue="signin">
-          <TabsList className="grid w-full grid-cols-2 rounded-xl bg-muted/80 p-1">
-            <TabsTrigger value="signin" className="rounded-lg">
-              Sign in
-            </TabsTrigger>
-            <TabsTrigger value="signup" className="rounded-lg">
-              Sign up
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="signin" className="space-y-4 pt-5">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-            {error ? <p className="text-destructive text-sm">{error}</p> : null}
-            <Button
-              className="h-11 w-full rounded-xl"
-              disabled={busy}
-              onClick={() => void onSignIn()}
-            >
+    <LoginLayout>
+      <LoginHeader />
+      <Tabs defaultValue="signin">
+        <LoginTabsList>
+          <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
+          <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>
+        </LoginTabsList>
+        <LoginTabPanel value="signin">
+          <LoginField>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </LoginField>
+          <LoginField>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </LoginField>
+          {error ? <LoginError>{error}</LoginError> : null}
+          <LoginActions>
+            <Button disabled={busy} onClick={() => void onSignIn()}>
               Sign in
             </Button>
-          </TabsContent>
-          <TabsContent value="signup" className="space-y-4 pt-5">
-            <div className="space-y-2">
-              <Label htmlFor="email2">Email</Label>
-              <Input
-                id="email2"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password2">Password</Label>
-              <Input
-                id="password2"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="rounded-xl"
-              />
-            </div>
-            {error ? (
-              <p className="text-muted-foreground text-sm">{error}</p>
-            ) : null}
-            <Button
-              className="h-11 w-full rounded-xl"
-              disabled={busy}
-              onClick={() => void onSignUp()}
-            >
+          </LoginActions>
+        </LoginTabPanel>
+        <LoginTabPanel value="signup">
+          <LoginField>
+            <Label htmlFor="email2">Email</Label>
+            <Input
+              id="email2"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </LoginField>
+          <LoginField>
+            <Label htmlFor="password2">Password</Label>
+            <Input
+              id="password2"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </LoginField>
+          {error ? <LoginError>{error}</LoginError> : null}
+          <LoginActions>
+            <Button disabled={busy} onClick={() => void onSignUp()}>
               Create account
             </Button>
-          </TabsContent>
-        </Tabs>
-        <p className="text-muted-foreground mt-6 text-center text-xs leading-relaxed">
-          Configure{" "}
-          <code className="text-foreground rounded bg-muted/80 px-1 py-0.5 text-[0.7rem]">
-            VITE_SUPABASE_URL
-          </code>{" "}
-          and{" "}
-          <code className="text-foreground rounded bg-muted/80 px-1 py-0.5 text-[0.7rem]">
-            VITE_SUPABASE_PUBLISHABLE_KEY
-          </code>{" "}
-          in{" "}
-          <code className="text-foreground rounded bg-muted/80 px-1 py-0.5 text-[0.7rem]">
-            apps/web/.env
-          </code>{" "}
-          (see repository README).
-        </p>
-      </FloatingPanel>
-    </div>
+          </LoginActions>
+        </LoginTabPanel>
+      </Tabs>
+      <LoginFooterNote>
+        Configure <LoginInlineCode>VITE_SUPABASE_URL</LoginInlineCode> and{" "}
+        <LoginInlineCode>VITE_SUPABASE_PUBLISHABLE_KEY</LoginInlineCode> in{" "}
+        <LoginInlineCode>apps/web/.env</LoginInlineCode> (see repository
+        README).
+      </LoginFooterNote>
+    </LoginLayout>
   );
 }

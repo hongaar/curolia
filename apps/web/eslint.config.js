@@ -38,4 +38,18 @@ export default defineConfig([
       "react-hooks/set-state-in-effect": "off",
     },
   },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "JSXAttribute[name.name='className'] > Literal, JSXAttribute[name.name='className'] > TemplateLiteral",
+          message:
+            "Use @curolia/ui components and layout props instead of inline className strings in apps/web.",
+        },
+      ],
+    },
+  },
 ]);

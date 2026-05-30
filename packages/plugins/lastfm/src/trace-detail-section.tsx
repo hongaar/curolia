@@ -1,5 +1,4 @@
 import type { TraceContextProps } from "@curolia/plugin-contract";
-import { Card, CardContent, CardHeader, CardTitle } from "@curolia/ui/card";
 import {
   keepPreviousData,
   useQuery,
@@ -7,6 +6,20 @@ import {
 } from "@tanstack/react-query";
 import { Loader2, Music } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import {
+  PluginTraceCard,
+  PluginTraceContent,
+  PluginTraceError,
+  PluginTraceHeader,
+  PluginTraceLink,
+  PluginTraceLinkMeta,
+  PluginTraceList,
+  PluginTraceMuted,
+  PluginTraceMutedStack,
+  PluginTraceMutedXs,
+  PluginTraceSpinner,
+  PluginTraceTitleRow,
+} from "@curolia/ui/curolia/plugin-trace-ui";
 import {
   LASTFM_SYNC_STALE_TIME_MS,
   LASTFM_TOP_TRACKS_LIMIT,
@@ -106,20 +119,17 @@ export function LastfmTraceDetailSection({
 
   if (!hasPeriod) {
     return (
-      <Card className="border-border/60 bg-muted/10 border shadow-none">
-        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
-          <LastfmIcon className="text-muted-foreground size-5 shrink-0" />
-          <CardTitle className="font-display text-base font-normal tracking-tight">
-            Last.fm
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Add a date to this trace to load your most-scrobbled tracks on
-            Last.fm during that period (up to {LASTFM_TOP_TRACKS_LIMIT}).
-          </p>
-        </CardContent>
-      </Card>
+      <PluginTraceCard>
+        <PluginTraceHeader>
+          <PluginTraceTitleRow icon={<LastfmIcon />} title="Last.fm" />
+        </PluginTraceHeader>
+        <PluginTraceContent>
+          <PluginTraceMuted>
+            Add a date to this trace to load your most-played tracks on Last.fm
+            during that period (up to {LASTFM_TOP_TRACKS_LIMIT}).
+          </PluginTraceMuted>
+        </PluginTraceContent>
+      </PluginTraceCard>
     );
   }
 
@@ -131,66 +141,53 @@ export function LastfmTraceDetailSection({
     syncQuery.error instanceof Error ? syncQuery.error.message : null;
 
   return (
-    <Card className="border-border/60 bg-muted/10 border shadow-none">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-        <div className="flex items-center gap-2">
-          <LastfmIcon className="text-muted-foreground size-5 shrink-0" />
-          <CardTitle className="font-display text-base font-normal tracking-tight">
-            Last.fm
-          </CardTitle>
-        </div>
+    <PluginTraceCard>
+      <PluginTraceHeader between>
+        <PluginTraceTitleRow icon={<LastfmIcon />} title="Last.fm" />
         {busy ? (
-          <Loader2 className="text-muted-foreground size-4 animate-spin" />
+          <PluginTraceSpinner>
+            <Loader2 className="spin" />
+          </PluginTraceSpinner>
         ) : null}
-      </CardHeader>
-      <CardContent className="space-y-3">
+      </PluginTraceHeader>
+      <PluginTraceContent>
         {syncFailed ? (
-          <p className="text-destructive text-sm">
+          <PluginTraceError>
             {errMsg ?? "Could not sync Last.fm data."}
-          </p>
+          </PluginTraceError>
         ) : null}
         {!payload?.tracks?.length && !busy && !syncFailed ? (
-          <div className="text-muted-foreground space-y-2 text-sm leading-relaxed">
-            <p>
-              No scrobbles in this trace&apos;s date range were returned from
-              Last.fm for your username.
-            </p>
-            <p className="text-xs">
-              Trace dates use UTC calendar boundaries (midnight–end of day UTC).
-              If your username or API access changed, check Plugins → Last.fm.
-            </p>
-          </div>
+          <PluginTraceMutedStack>
+            <p>No scrobbles matched this trace&apos;s date range.</p>
+            <PluginTraceMutedXs>
+              Last.fm returns your listening history for the trace window. Dates
+              use UTC calendar boundaries (midnight–end of day UTC).
+            </PluginTraceMutedXs>
+          </PluginTraceMutedStack>
         ) : null}
         {payload?.tracks?.length ? (
-          <ul className="space-y-2">
+          <PluginTraceList>
             {payload.tracks.map((row) => (
-              <li key={row.trackId}>
-                <a
-                  href={row.openUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground inline-flex items-start gap-2 text-sm font-medium underline-offset-4 hover:underline"
-                >
-                  <Music className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                  <span>
-                    {row.title}
-                    <span className="text-muted-foreground font-normal">
-                      {" "}
-                      · {row.playCount}×
-                    </span>
-                  </span>
-                </a>
-              </li>
+              <PluginTraceLink
+                key={row.trackId}
+                href={row.openUrl}
+                icon={<Music />}
+              >
+                <span>
+                  {row.title}
+                  <PluginTraceLinkMeta> · {row.playCount}×</PluginTraceLinkMeta>
+                </span>
+              </PluginTraceLink>
             ))}
-          </ul>
+          </PluginTraceList>
         ) : null}
         {payload?.limitedByPagination ? (
-          <p className="text-muted-foreground text-xs">
-            Partial history: pagination cap reached; counts may not reflect
-            every scrobble in this window.
-          </p>
+          <PluginTraceMutedXs>
+            Partial history: pagination cap reached; counts may not reflect your
+            full listening for this window.
+          </PluginTraceMutedXs>
         ) : null}
-      </CardContent>
-    </Card>
+      </PluginTraceContent>
+    </PluginTraceCard>
   );
 }

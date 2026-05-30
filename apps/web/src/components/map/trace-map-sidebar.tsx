@@ -1,9 +1,5 @@
 import { FloatingPanel } from "@/components/layout/floating-panel";
 import type { TraceMapHandle } from "@/components/map/trace-map";
-import {
-  TracePhotoLightbox,
-  TracePhotoThumb,
-} from "@/components/traces/trace-photo-lightbox";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { traceDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
@@ -12,10 +8,30 @@ import { formatTraceDateRange } from "@/lib/trace-dates";
 import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
 import type { TraceWithTags } from "@/lib/trace-with-tags";
 import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
-import { cn, contrastingForeground } from "@/lib/utils";
-import { Badge } from "@curolia/ui/badge";
-import { Button, buttonVariants } from "@curolia/ui/button";
-import { Sheet, SheetContent, SheetTitle } from "@curolia/ui/sheet";
+import { contrastingForeground } from "@curolia/ui";
+import { Button } from "@curolia/ui/button";
+import {
+  TraceMapFloatingHost,
+  TraceMapFloatingPanel,
+  TraceMapMobileSheetBody,
+  TraceMapMobileSheetContent,
+  TraceMapMobileSheetTitle,
+  TraceMapSidebarActions,
+  TraceMapSidebarBody,
+  TraceMapSidebarDescription,
+  TraceMapSidebarHeader,
+  TraceMapSidebarHeaderActions,
+  TraceMapSidebarPhotoSkeleton,
+  TraceMapSidebarPhotoStrip,
+  TraceMapSidebarStatus,
+  TraceMapSidebarTagRow,
+} from "@curolia/ui/curolia/map-ui";
+import { TraceDetailTagBadge } from "@curolia/ui/curolia/trace-detail-ui";
+import {
+  TracePhotoLightbox,
+  TracePhotoThumb,
+} from "@curolia/ui/curolia/trace-photo-lightbox";
+import { Sheet } from "@curolia/ui/sheet";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
@@ -231,97 +247,94 @@ export function TraceMapSidebar({
       ? formatTraceDateRange(trace.date, trace.end_date)
       : "";
 
+  const detailHref =
+    journalSlug?.trim() && trace
+      ? traceDetailHref(journalSlug.trim(), trace.slug)
+      : "#";
+
   const body = (
-    <div className="flex min-h-0 flex-col gap-3 overflow-y-auto pt-2">
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="font-display text-foreground min-w-0 flex-1 text-lg leading-tight font-normal tracking-tight">
-          {titleText}
-        </h2>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="shrink-0 rounded-lg"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      </div>
+    <TraceMapSidebarBody>
+      <TraceMapSidebarHeader
+        title={titleText}
+        actions={
+          <TraceMapSidebarHeaderActions>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <X />
+            </Button>
+          </TraceMapSidebarHeaderActions>
+        }
+      />
 
       {traceQuery.isLoading ? (
-        <p className="text-muted-foreground text-sm">Fetching trace…</p>
+        <TraceMapSidebarStatus>Fetching trace…</TraceMapSidebarStatus>
       ) : !trace || wrongJournal ? (
-        <p className="text-muted-foreground text-sm">
+        <TraceMapSidebarStatus>
           Trace not found or not in this journal.
-        </p>
+        </TraceMapSidebarStatus>
       ) : (
         <>
           {traceDateSubtitle ? (
-            <p className="text-muted-foreground text-sm">{traceDateSubtitle}</p>
+            <TraceMapSidebarStatus>{traceDateSubtitle}</TraceMapSidebarStatus>
           ) : null}
           {tagBadges.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
+            <TraceMapSidebarTagRow>
               {tagBadges.map((t) => (
-                <Badge
+                <TraceDetailTagBadge
                   key={t.id}
-                  variant="secondary"
-                  className="border-0"
                   style={{
                     backgroundColor: t.color,
                     color: contrastingForeground(t.color),
                   }}
                 >
                   {t.icon_emoji} {t.name}
-                </Badge>
+                </TraceDetailTagBadge>
               ))}
-            </div>
+            </TraceMapSidebarTagRow>
           ) : null}
           {trace.description ? (
-            <p className="text-foreground max-h-40 overflow-y-auto text-sm whitespace-pre-wrap">
+            <TraceMapSidebarDescription>
               {trace.description}
-            </p>
+            </TraceMapSidebarDescription>
           ) : null}
           {photos.length > 0 ? (
-            <div className="min-h-0 shrink-0">
-              <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {photos.map((p) => {
-                  const url = signedUrlByPhotoId[p.id];
-                  return url ? (
-                    <TracePhotoThumb
-                      key={p.id}
-                      url={url}
-                      className="border-border size-20 shrink-0 overflow-hidden rounded-lg border sm:size-24"
-                      onOpen={() => setPhotoLightbox({ photoId: p.id })}
-                    />
-                  ) : (
-                    <div
-                      key={p.id}
-                      className="bg-muted size-20 shrink-0 animate-pulse rounded-lg border sm:size-24"
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-          <div className="mt-auto flex flex-col gap-3">
-            <Link
-              to={
-                journalSlug?.trim()
-                  ? traceDetailHref(journalSlug.trim(), trace.slug)
-                  : "#"
-              }
-              className={buttonVariants({
-                variant: "secondary",
-                size: "lg",
-                className: "inline-flex gap-2 rounded-xl",
+            <TraceMapSidebarPhotoStrip>
+              {photos.map((p) => {
+                const url = signedUrlByPhotoId[p.id];
+                return url ? (
+                  <TracePhotoThumb
+                    key={p.id}
+                    url={url}
+                    size="lg"
+                    onOpen={() => setPhotoLightbox({ photoId: p.id })}
+                  />
+                ) : (
+                  <TraceMapSidebarPhotoSkeleton key={p.id} />
+                );
               })}
+            </TraceMapSidebarPhotoStrip>
+          ) : null}
+          <TraceMapSidebarActions>
+            <Button
+              variant="secondary"
+              size="lg"
+              render={
+                <Link
+                  to={detailHref}
+                  onClick={(e) => {
+                    if (detailHref === "#") e.preventDefault();
+                  }}
+                />
+              }
             >
               View trace
-            </Link>
-          </div>
+            </Button>
+          </TraceMapSidebarActions>
           <TracePhotoLightbox
             open={photoLightbox !== null}
             onOpenChange={(o) => {
@@ -333,43 +346,24 @@ export function TraceMapSidebar({
           />
         </>
       )}
-    </div>
-  );
-
-  const panelClass = cn(
-    "flex min-w-[min(calc(100vw-2rem),22rem)] max-w-[min(calc(100vw-2rem),22rem)] flex-col gap-0 overflow-hidden",
-    anchorCoords &&
-      "max-h-[min(85dvh,36rem)] sm:max-h-[min(calc(100dvh-6rem),40rem)]",
-    !isMobile &&
-      !anchorCoords &&
-      "fixed top-[4.5rem] right-3 bottom-4 z-40 max-h-none w-[min(calc(100vw-1.5rem),22rem)] max-w-none min-w-0 sm:top-[5.25rem] sm:right-4",
+    </TraceMapSidebarBody>
   );
 
   const desktopFallback = !isMobile && !anchorCoords;
 
   if (isMobile) {
     return (
-      <>
-        {/* Pointer dismissal off: map marker taps were closing the sheet ~24ms after onSelectTrace (see debug logs). Dismiss empty map via TraceMap.onMapBackgroundClick. */}
-        <Sheet
-          open
-          modal={false}
-          disablePointerDismissal
-          onOpenChange={(o) => !o && onClose()}
-        >
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-            overlayClassName="pointer-events-none bg-transparent supports-backdrop-filter:backdrop-blur-none"
-            className="pointer-events-auto gap-0 rounded-t-2xl border border-[var(--panel-border)] bg-card text-card-foreground shadow-[var(--panel-shadow)] p-0"
-          >
-            <SheetTitle className="sr-only">{titleText}</SheetTitle>
-            <div className="flex max-h-[90dvh] flex-col overflow-hidden px-4 pt-4 pb-6">
-              {body}
-            </div>
-          </SheetContent>
-        </Sheet>
-      </>
+      <Sheet
+        open
+        modal={false}
+        disablePointerDismissal
+        onOpenChange={(o) => !o && onClose()}
+      >
+        <TraceMapMobileSheetContent>
+          <TraceMapMobileSheetTitle>{titleText}</TraceMapMobileSheetTitle>
+          <TraceMapMobileSheetBody>{body}</TraceMapMobileSheetBody>
+        </TraceMapMobileSheetContent>
+      </Sheet>
     );
   }
 
@@ -380,21 +374,15 @@ export function TraceMapSidebar({
   return (
     <>
       {!desktopFallback ? (
-        <div
-          ref={floatingRef}
-          className={cn(
-            "pointer-events-none z-[45] w-max min-w-0 max-w-none",
-            placementReady ? "visible opacity-100" : "invisible opacity-0",
-          )}
-        >
-          <div className="pointer-events-auto">
-            <FloatingPanel className={panelClass}>{body}</FloatingPanel>
-          </div>
-        </div>
+        <TraceMapFloatingHost ready={placementReady} hostRef={floatingRef}>
+          <TraceMapFloatingPanel anchored>
+            <FloatingPanel>{body}</FloatingPanel>
+          </TraceMapFloatingPanel>
+        </TraceMapFloatingHost>
       ) : (
-        <FloatingPanel className={cn(panelClass, "pointer-events-auto z-40")}>
-          {body}
-        </FloatingPanel>
+        <TraceMapFloatingPanel fallback>
+          <FloatingPanel>{body}</FloatingPanel>
+        </TraceMapFloatingPanel>
       )}
     </>
   );

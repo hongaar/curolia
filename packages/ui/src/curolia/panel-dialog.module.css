@@ -1,0 +1,66 @@
+.panelContent {
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px);
+}
+
+.panelTitle {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.formStack {
+  display: grid;
+  gap: 1rem;
+  padding-block: 0.5rem;
+}
+
+.formField {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.contentMd {
+  max-width: 28rem;
+}
+
+.monoBox {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--muted) 50%, transparent);
+  padding: 0.5rem 0.75rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  word-break: break-word;
+}
+
+.footerRow {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+}
+
+@media (min-width: 40rem) {
+  .footerRow {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.roundedButton {
+  border-radius: var(--radius-xl);
+}
+
+.importButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-xl);
+}
+
+.iconSm {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}

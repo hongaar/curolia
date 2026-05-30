@@ -1,0 +1,66 @@
+.root {
+  display: inline-flex;
+  height: 1.25rem;
+  width: fit-content;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  overflow: hidden;
+  border-radius: var(--radius-4xl);
+  border: 1px solid transparent;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 150ms;
+}
+
+.root:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+.root svg {
+  pointer-events: none;
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+}
+
+.variantDefault {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.variantSecondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.variantDestructive {
+  background: color-mix(in oklch, var(--destructive) 10%, transparent);
+  color: var(--destructive);
+}
+
+:global(.dark) .variantDestructive {
+  background: color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+.variantOutline {
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.variantGhost:hover {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.variantLink {
+  color: var(--primary);
+  text-underline-offset: 4px;
+}
+
+.variantLink:hover {
+  text-decoration: underline;
+}
