@@ -1,4 +1,4 @@
-import { EmojiFieldPicker } from "@curolia/ui/curolia/picker-ui";
+import { EmojiFieldPicker } from "@curolia/ui/picker";
 
 type EmojiPickerProps = {
   id?: string;

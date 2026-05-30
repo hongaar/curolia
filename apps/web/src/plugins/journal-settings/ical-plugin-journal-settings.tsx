@@ -20,7 +20,7 @@ import {
   PluginSettingsRow,
   PluginSettingsTitle,
   PluginStatusText,
-} from "@curolia/ui/curolia/plugin-panel";
+} from "@curolia/ui/plugin-panel";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 

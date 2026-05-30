@@ -28,7 +28,7 @@ import {
   FormField,
   FormSelectTriggerCompact,
   FormSelectTriggerRounded,
-} from "@curolia/ui/curolia/form-layout";
+} from "@curolia/ui/form-layout";
 import {
   BorderedList,
   ListEmptyItem,
@@ -36,7 +36,7 @@ import {
   MemberListRow,
   MemberPrimary,
   MemberRole,
-} from "@curolia/ui/curolia/list-ui";
+} from "@curolia/ui/list";
 import {
   PageErrorText,
   PageInviteEmailField,
@@ -47,13 +47,13 @@ import {
   PageSharingRoot,
   PageSharingSection,
   PageSectionHeading,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 import {
   PanelDialogContent,
   PanelDialogField,
   PanelDialogFormStack,
   PanelDialogTitle,
-} from "@curolia/ui/curolia/panel-dialog";
+} from "@curolia/ui/panel-dialog";
 import {
   journalRoleLabel,
   type InviteJournalRole,

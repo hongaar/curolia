@@ -23,8 +23,8 @@ import {
   PageMessageText,
   PagePanel,
   PageProfileGrid,
-} from "@curolia/ui/curolia/page";
-import { FormField, SrOnlyInput } from "@curolia/ui/curolia/form-layout";
+} from "@curolia/ui/page";
+import { FormField, SrOnlyInput } from "@curolia/ui/form-layout";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 

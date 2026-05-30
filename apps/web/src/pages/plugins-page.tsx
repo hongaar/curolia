@@ -20,7 +20,7 @@ import {
   PageDisplayTitle,
   PageLead,
   PagePanel,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 import {
   PluginListHeader,
   PluginListIcon,
@@ -31,7 +31,7 @@ import {
   PluginListRowMain,
   PluginListRowTitle,
   PluginListRowToggle,
-} from "@curolia/ui/curolia/plugins-ui";
+} from "@curolia/ui/plugins";
 
 let oauthRedirectHandledSig = "";
 

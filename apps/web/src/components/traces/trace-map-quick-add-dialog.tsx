@@ -13,7 +13,7 @@ import {
   TraceFormFooterSplit,
   TraceFormModalContent,
   TraceFormPanelCard,
-} from "@curolia/ui/curolia/trace-form-ui";
+} from "@curolia/ui/trace-form";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {

@@ -1,0 +1,107 @@
+.page {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--background);
+  padding: 1rem;
+}
+
+.backdrop {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+.panel {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 28rem;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.headerTitle {
+  margin: 0;
+}
+
+.headerSubtitle {
+  margin: 0.5rem 0 0;
+}
+
+/* Segmented control: track uses muted fill; inactive pills transparent. */
+.tabsList {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: 1fr 1fr;
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--muted) 80%, transparent);
+  padding: 0.25rem;
+}
+
+.tabTrigger {
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--muted-foreground);
+  box-shadow: none;
+}
+
+.tabTrigger:hover {
+  color: var(--foreground);
+}
+
+.tabTrigger:global([data-active]) {
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+:global(.dark) .tabTrigger:global([data-active]) {
+  border-color: transparent;
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+}
+
+.formSection {
+  padding-top: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.error {
+  font-size: 0.875rem;
+  color: var(--destructive);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footerNote {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.625;
+  color: var(--muted-foreground);
+}
+
+.inlineCode {
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--muted) 80%, transparent);
+  padding: 0.125rem 0.25rem;
+  font-size: 0.7rem;
+  color: var(--foreground);
+}

@@ -1,4 +1,4 @@
-import { AddTraceFabButton } from "@curolia/ui/curolia/add-trace-fab";
+import { FabButton } from "@curolia/ui/fab";
 import { Plus, X } from "lucide-react";
 
 type AddTraceFabProps = {
@@ -10,7 +10,7 @@ export function AddTraceFab({ onClick, active }: AddTraceFabProps) {
   const title = active ? "Stop adding traces" : "Add trace";
 
   return (
-    <AddTraceFabButton
+    <FabButton
       active={active}
       title={title}
       onClick={onClick}

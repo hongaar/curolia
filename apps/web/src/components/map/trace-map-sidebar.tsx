@@ -25,12 +25,12 @@ import {
   TraceMapSidebarPhotoStrip,
   TraceMapSidebarStatus,
   TraceMapSidebarTagRow,
-} from "@curolia/ui/curolia/map-ui";
-import { TraceDetailTagBadge } from "@curolia/ui/curolia/trace-detail-ui";
+} from "@curolia/ui/map";
+import { TraceDetailTagBadge } from "@curolia/ui/trace-detail";
 import {
   TracePhotoLightbox,
   TracePhotoThumb,
-} from "@curolia/ui/curolia/trace-photo-lightbox";
+} from "@curolia/ui/trace-photo-lightbox";
 import { Sheet } from "@curolia/ui/sheet";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery } from "@tanstack/react-query";

@@ -9,7 +9,7 @@ import {
   PagePanel,
   PagePanelIcon,
   PagePanelTitleRow,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 
 type Props = {
   journalId: string;

@@ -26,8 +26,8 @@ import {
   PageLead,
   PageMuted,
   PagePanel,
-} from "@curolia/ui/curolia/page";
-import { FormField } from "@curolia/ui/curolia/form-layout";
+} from "@curolia/ui/page";
+import { FormField } from "@curolia/ui/form-layout";
 
 export function JournalSettingsPage() {
   const { journalId } = useParams<{ journalId: string }>();

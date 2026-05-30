@@ -9,7 +9,7 @@ import {
   PluginAccountPanel,
   PluginAccountRow,
   pluginAccountButtonClass,
-} from "@curolia/ui/curolia/plugin-account-ui";
+} from "@curolia/ui/plugin-account";
 import { toast } from "sonner";
 
 export function GooglePhotosAccountSettingsPanel(

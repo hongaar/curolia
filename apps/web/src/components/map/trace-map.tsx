@@ -11,7 +11,7 @@ import {
   TraceMapContainer,
   TraceMapHoverTooltip,
   traceMapMarkerFaceClass,
-} from "@curolia/ui/curolia/map-ui";
+} from "@curolia/ui/map";
 import {
   autoUpdate,
   computePosition,

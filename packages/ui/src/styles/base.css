@@ -3,6 +3,7 @@
 *,
 *::before,
 *::after {
+  box-sizing: border-box;
   border-color: var(--border);
 }
 
@@ -16,6 +17,33 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
   color: var(--foreground);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
 }
 
 .fontDisplay,

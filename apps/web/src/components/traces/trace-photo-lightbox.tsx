@@ -2,4 +2,4 @@ export {
   TracePhotoLightbox,
   TracePhotoThumb,
   type TracePhotoLightboxItem,
-} from "@curolia/ui/curolia/trace-photo-lightbox";
+} from "@curolia/ui/trace-photo-lightbox";

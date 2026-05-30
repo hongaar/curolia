@@ -2,7 +2,7 @@ import {
   formatTraceMetadataTimestamp,
   traceWasModifiedAfterCreate,
 } from "@/lib/trace-dates";
-import { TraceMetadataFooter as UiTraceMetadataFooter } from "@curolia/ui/curolia/trace-metadata-footer";
+import { TraceMetadataFooter as UiTraceMetadataFooter } from "@curolia/ui/trace-metadata-footer";
 
 type TraceMetadataFooterProps = {
   createdAt: string;

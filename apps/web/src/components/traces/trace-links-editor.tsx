@@ -13,7 +13,7 @@ import {
 import { LinkFavicon } from "@/components/traces/trace-links-list";
 import { useTraceLinks } from "@/lib/use-trace-links";
 import type { TraceLink } from "@/types/database";
-import { FormMutedText } from "@curolia/ui/curolia/form-layout";
+import { FormMutedText } from "@curolia/ui/form-layout";
 import {
   TraceLinkRowBody,
   TraceLinkRowDomain,
@@ -23,7 +23,7 @@ import {
   TraceLinksEditorList,
   TraceLinksEditorRoot,
   TraceLinksSpinnerIcon,
-} from "@curolia/ui/curolia/trace-links-ui";
+} from "@curolia/ui/trace-links";
 
 type TraceLinksEditorProps = {
   traceId: string;

@@ -14,8 +14,8 @@ import {
   NotificationsSeeAllButton,
   NotificationsSidebarPopoverTrigger,
   NotificationsSidebarTriggerInner,
-} from "@curolia/ui/curolia/notifications-popover-ui";
-import { FormMutedText } from "@curolia/ui/curolia/form-layout";
+} from "@curolia/ui/notifications-popover";
+import { FormMutedText } from "@curolia/ui/form-layout";
 
 type NotificationsPopoverProps = {
   userId: string;

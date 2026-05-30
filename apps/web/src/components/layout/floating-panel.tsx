@@ -1,1 +1,1 @@
-export { FloatingPanel } from "@curolia/ui/curolia/floating-panel";
+export { FloatingPanel } from "@curolia/ui/floating-panel";

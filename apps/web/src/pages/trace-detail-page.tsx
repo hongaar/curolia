@@ -20,7 +20,7 @@ import {
   AppPageLayout,
   PageCenteredError,
   PageCenteredLoading,
-} from "@curolia/ui/curolia/page";
+} from "@curolia/ui/page";
 import {
   TraceDetailActions,
   TraceDetailCard,
@@ -33,11 +33,11 @@ import {
   TraceDetailTagBadge,
   TraceDetailTagRow,
   TraceDetailTitle,
-} from "@curolia/ui/curolia/trace-detail-ui";
+} from "@curolia/ui/trace-detail";
 import {
   TracePhotoLightbox,
   TracePhotoThumb,
-} from "@curolia/ui/curolia/trace-photo-lightbox";
+} from "@curolia/ui/trace-photo-lightbox";
 
 type TraceRow = Trace & {
   trace_tags?: {

@@ -1,4 +1,4 @@
-import { PluginIconFrame } from "@curolia/ui/curolia/plugin-icon-frame";
+import { PluginIconFrame } from "@curolia/ui/plugin-icon-frame";
 
 /** Spotify mark (simplified). */
 export function SpotifyIcon({

@@ -56,13 +56,13 @@ import {
   MapPlacementHint,
   MapSidebarDismiss,
   MapVignette,
-} from "@curolia/ui/curolia/map-ui";
+} from "@curolia/ui/map";
 import {
   PanelDialogContent,
   PanelDialogField,
   PanelDialogFormStack,
   PanelDialogTitle,
-} from "@curolia/ui/curolia/panel-dialog";
+} from "@curolia/ui/panel-dialog";
 import type { Tag, Trace } from "@/types/database";
 import { toast } from "sonner";
 import { useJournalSlugRouteSync } from "@/hooks/use-journal-slug-route-sync";

@@ -19,7 +19,7 @@ import {
   PluginTraceMutedXs,
   PluginTraceSpinner,
   PluginTraceTitleRow,
-} from "@curolia/ui/curolia/plugin-trace-ui";
+} from "@curolia/ui/plugin-trace";
 import {
   LASTFM_SYNC_STALE_TIME_MS,
   LASTFM_TOP_TRACKS_LIMIT,

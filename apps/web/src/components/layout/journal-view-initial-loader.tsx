@@ -1,7 +1,7 @@
 import {
   StatusCenterLoader,
   StatusCenterPanel,
-} from "@curolia/ui/curolia/status-center";
+} from "@curolia/ui/status-center";
 
 type JournalViewInitialLoaderProps = {
   label?: string;

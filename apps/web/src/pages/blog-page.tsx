@@ -52,18 +52,18 @@ import {
   BlogTraceList,
   BlogTraceTitle,
   BlogTraceTitleLink,
-} from "@curolia/ui/curolia/blog-ui";
-import { PageMuted } from "@curolia/ui/curolia/page";
+} from "@curolia/ui/blog";
+import { PageMuted } from "@curolia/ui/page";
 import {
   PanelDialogContent,
   PanelDialogField,
   PanelDialogFormStack,
   PanelDialogTitle,
-} from "@curolia/ui/curolia/panel-dialog";
+} from "@curolia/ui/panel-dialog";
 import {
   TracePhotoLightbox,
   TracePhotoThumb,
-} from "@curolia/ui/curolia/trace-photo-lightbox";
+} from "@curolia/ui/trace-photo-lightbox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";

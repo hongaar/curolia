@@ -1,31 +1,57 @@
 import type { Preview } from "@storybook/react";
 import { ThemeProvider } from "next-themes";
+import { transformStorySource } from "../src/storybook/transform-story-source";
 import "../src/styles/index.css";
+
+/** Match `packages/ui/src/styles/tokens.css` — used by Storybook backgrounds toolbar. */
+const curoliaBackgrounds = {
+  light: {
+    name: "Curolia light",
+    value: "oklch(0.955 0.018 88)",
+  },
+  dark: {
+    name: "Curolia dark",
+    value: "oklch(0.19 0.035 260)",
+  },
+} as const;
 
 const preview: Preview = {
   decorators: [
-    (Story) => (
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem={false}
-      >
-        <div
-          style={{
-            background: "var(--background)",
-            color: "var(--foreground)",
-            minHeight: 120,
-            padding: 16,
-          }}
+    (Story, { globals }) => {
+      const theme = globals.backgrounds?.value === "dark" ? "dark" : "light";
+      return (
+        <ThemeProvider
+          attribute="class"
+          forcedTheme={theme}
+          enableSystem={false}
         >
           <Story />
-        </div>
-      </ThemeProvider>
-    ),
+        </ThemeProvider>
+      );
+    },
   ],
   parameters: {
-    layout: "fullscreen",
+    layout: "padded",
+    backgrounds: {
+      options: curoliaBackgrounds,
+    },
+    docs: {
+      toc: true,
+      source: {
+        excludeDecorators: true,
+        transform: transformStorySource,
+      },
+    },
+    options: {
+      storySort: {
+        order: ["Components", "*"],
+      },
+    },
   },
+  initialGlobals: {
+    backgrounds: { value: "light" },
+  },
+  tags: ["autodocs"],
 };
 
 export default preview;
