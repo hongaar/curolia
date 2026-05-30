@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageBackButton } from "@/components/layout/page-back-button";
+import { UserAvatar } from "@/components/user-avatar";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
-import { PageBackButton } from "@/components/layout/page-back-button";
 import { Button } from "@curolia/ui/button";
+import { FormField, SrOnlyInput } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
-import { UserAvatar } from "@/components/user-avatar";
 import {
   AppPageLayout,
   PageAvatarActions,
@@ -24,7 +23,9 @@ import {
   PagePanel,
   PageProfileGrid,
 } from "@curolia/ui/page";
-import { FormField, SrOnlyInput } from "@curolia/ui/form-layout";
+import type { User } from "@supabase/supabase-js";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
@@ -39,41 +40,26 @@ function extFromImageFile(file: File): string | null {
   return MIME_TO_EXT[file.type] ?? null;
 }
 
-export function ProfilePage() {
-  const { user } = useAuth();
+function ProfileEditor({
+  profile,
+  user,
+  profileLoading,
+}: {
+  profile: Profile | null;
+  user: User;
+  profileLoading: boolean;
+}) {
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [displayName, setDisplayName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [displayName, setDisplayName] = useState(
+    () => profile?.display_name ?? "",
+  );
+  const [avatarUrl, setAvatarUrl] = useState(() => profile?.avatar_url ?? "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const profileQuery = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Profile | null;
-    },
-    enabled: Boolean(user),
-  });
-
-  const profile = profileQuery.data;
-
-  useEffect(() => {
-    if (!profile) return;
-    setDisplayName(profile.display_name ?? "");
-    setAvatarUrl(profile.avatar_url ?? "");
-  }, [profile]);
-
   async function save() {
-    if (!user) return;
     setSaving(true);
     setMessage(null);
     const { error } = await supabase
@@ -94,7 +80,6 @@ export function ProfilePage() {
   }
 
   async function uploadAvatar(file: File) {
-    if (!user) return;
     setMessage(null);
     const ext = extFromImageFile(file);
     if (!ext) {
@@ -139,7 +124,6 @@ export function ProfilePage() {
   }
 
   async function removeAvatar() {
-    if (!user) return;
     setMessage(null);
     setUploading(true);
     const { data: files } = await supabase.storage
@@ -169,6 +153,96 @@ export function ProfilePage() {
   }
 
   return (
+    <PageProfileGrid>
+      <PageAvatarSection>
+        <Label>Photo</Label>
+        <PageAvatarRow>
+          <UserAvatar
+            storedAvatarUrl={avatarUrl}
+            email={user.email}
+            gravatarSize={256}
+            size="lg"
+            label={displayName.trim() || user.email || "Profile"}
+          />
+          <SrOnlyInput
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            aria-label="Upload profile photo"
+            disabled={uploading || profileLoading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void uploadAvatar(file);
+            }}
+          />
+          <PageAvatarActions>
+            <PageInlineActions spaced="none">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={uploading || profileLoading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? "Working…" : "Upload photo"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={uploading || profileLoading || !avatarUrl.trim()}
+                onClick={() => void removeAvatar()}
+              >
+                Remove photo
+              </Button>
+            </PageInlineActions>
+            <PageAvatarHint>
+              If you do not upload a photo, we show your{" "}
+              <PageExternalLink href="https://gravatar.com">
+                Gravatar
+              </PageExternalLink>{" "}
+              for this email, then the default icon.
+            </PageAvatarHint>
+          </PageAvatarActions>
+        </PageAvatarRow>
+      </PageAvatarSection>
+      <FormField>
+        <Label htmlFor="pf-name">Display name</Label>
+        <Input
+          id="pf-name"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          placeholder="Your name"
+          disabled={profileLoading}
+        />
+      </FormField>
+      {message ? <PageMessageText>{message}</PageMessageText> : null}
+      <PageFitButton>
+        <Button disabled={saving || profileLoading} onClick={() => void save()}>
+          Save changes
+        </Button>
+      </PageFitButton>
+    </PageProfileGrid>
+  );
+}
+
+export function ProfilePage() {
+  const { user } = useAuth();
+
+  const profileQuery = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+    enabled: Boolean(user),
+  });
+
+  return (
     <AppPageLayout>
       <PageBackButton />
       <PagePanel>
@@ -180,82 +254,14 @@ export function ProfilePage() {
         {user?.email ? (
           <PageEmailLine highlight={user.email}>Signed in as </PageEmailLine>
         ) : null}
-        <PageProfileGrid>
-          <PageAvatarSection>
-            <Label>Photo</Label>
-            <PageAvatarRow>
-              <UserAvatar
-                storedAvatarUrl={avatarUrl}
-                email={user?.email}
-                gravatarSize={256}
-                size="lg"
-                label={displayName.trim() || user?.email || "Profile"}
-              />
-              <SrOnlyInput
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                aria-label="Upload profile photo"
-                disabled={uploading || profileQuery.isLoading || !user}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void uploadAvatar(file);
-                }}
-              />
-              <PageAvatarActions>
-                <PageInlineActions spaced="none">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={uploading || profileQuery.isLoading || !user}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {uploading ? "Working…" : "Upload photo"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    disabled={
-                      uploading ||
-                      profileQuery.isLoading ||
-                      !user ||
-                      !avatarUrl.trim()
-                    }
-                    onClick={() => void removeAvatar()}
-                  >
-                    Remove photo
-                  </Button>
-                </PageInlineActions>
-                <PageAvatarHint>
-                  If you do not upload a photo, we show your{" "}
-                  <PageExternalLink href="https://gravatar.com">
-                    Gravatar
-                  </PageExternalLink>{" "}
-                  for this email, then the default icon.
-                </PageAvatarHint>
-              </PageAvatarActions>
-            </PageAvatarRow>
-          </PageAvatarSection>
-          <FormField>
-            <Label htmlFor="pf-name">Display name</Label>
-            <Input
-              id="pf-name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name"
-              disabled={profileQuery.isLoading}
-            />
-          </FormField>
-          {message ? <PageMessageText>{message}</PageMessageText> : null}
-          <PageFitButton>
-            <Button
-              disabled={saving || profileQuery.isLoading}
-              onClick={() => void save()}
-            >
-              Save changes
-            </Button>
-          </PageFitButton>
-        </PageProfileGrid>
+        {user ? (
+          <ProfileEditor
+            key={profileQuery.data?.updated_at ?? user.id}
+            profile={profileQuery.data ?? null}
+            user={user}
+            profileLoading={profileQuery.isLoading}
+          />
+        ) : null}
       </PagePanel>
     </AppPageLayout>
   );

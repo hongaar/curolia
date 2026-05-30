@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageBackButton } from "@/components/layout/page-back-button";
-import { Button } from "@curolia/ui/button";
-import { Label } from "@curolia/ui/label";
-import { Switch } from "@curolia/ui/switch";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
+import { Button } from "@curolia/ui/button";
+import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
   PageCapitalize,
@@ -22,50 +18,32 @@ import {
   PageSwitchRow,
   PageSwitchStack,
 } from "@curolia/ui/page";
+import { Switch } from "@curolia/ui/switch";
+import type { User } from "@supabase/supabase-js";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "next-themes";
+import { useState } from "react";
 
 type ThemeChoice = "light" | "dark" | "system";
 
-export function AppSettingsPage() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const { user } = useAuth();
+function NotificationPreferences({
+  profile,
+  user,
+}: {
+  profile: Profile | null;
+  user: User;
+}) {
   const qc = useQueryClient();
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [pushNotif, setPushNotif] = useState(false);
+  const [emailNotif, setEmailNotif] = useState(
+    () => profile?.notification_email_enabled ?? true,
+  );
+  const [pushNotif, setPushNotif] = useState(
+    () => profile?.notification_push_enabled ?? false,
+  );
   const [savingNotif, setSavingNotif] = useState(false);
   const [notifMsg, setNotifMsg] = useState<string | null>(null);
 
-  const profileQuery = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Profile | null;
-    },
-    enabled: Boolean(user),
-  });
-
-  useEffect(() => {
-    const p = profileQuery.data;
-    if (!p) return;
-    setEmailNotif(p.notification_email_enabled ?? true);
-    setPushNotif(p.notification_push_enabled ?? false);
-  }, [profileQuery.data]);
-
-  const current = (
-    theme === "light" || theme === "dark" ? theme : "system"
-  ) as ThemeChoice;
-
-  function pick(next: ThemeChoice) {
-    setTheme(next);
-  }
-
   async function saveNotificationPrefs() {
-    if (!user) return;
     setSavingNotif(true);
     setNotifMsg(null);
     const { error } = await supabase
@@ -86,9 +64,80 @@ export function AppSettingsPage() {
   }
 
   const notifDirty =
-    profileQuery.data != null &&
-    (emailNotif !== (profileQuery.data.notification_email_enabled ?? true) ||
-      pushNotif !== (profileQuery.data.notification_push_enabled ?? false));
+    profile != null &&
+    (emailNotif !== (profile.notification_email_enabled ?? true) ||
+      pushNotif !== (profile.notification_push_enabled ?? false));
+
+  return (
+    <PageSectionSpaced large>
+      <PageSectionHeading>Notifications</PageSectionHeading>
+      <PageSectionHint>
+        In-app notifications are always on. Email and push control how we may
+        reach you when delivery is available.
+      </PageSectionHint>
+      <PageSwitchStack>
+        <PageSwitchRow
+          label={<Label htmlFor="notif-email">Email</Label>}
+          hint="Invitation and activity summaries by email when enabled."
+          control={
+            <Switch
+              id="notif-email"
+              checked={emailNotif}
+              onCheckedChange={(c) => setEmailNotif(c === true)}
+            />
+          }
+        />
+        <PageSwitchRow
+          label={<Label htmlFor="notif-push">Push (native app)</Label>}
+          hint="When enabled, mobile app installs can receive invitation push notifications."
+          control={
+            <Switch
+              id="notif-push"
+              checked={pushNotif}
+              onCheckedChange={(c) => setPushNotif(c === true)}
+            />
+          }
+        />
+      </PageSwitchStack>
+      {notifMsg ? <PageMuted>{notifMsg}</PageMuted> : null}
+      <Button
+        type="button"
+        size="sm"
+        disabled={!notifDirty || savingNotif}
+        onClick={() => void saveNotificationPrefs()}
+      >
+        Save notification preferences
+      </Button>
+    </PageSectionSpaced>
+  );
+}
+
+export function AppSettingsPage() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { user } = useAuth();
+
+  const profileQuery = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+    enabled: Boolean(user),
+  });
+
+  const current = (
+    theme === "light" || theme === "dark" ? theme : "system"
+  ) as ThemeChoice;
+
+  function pick(next: ThemeChoice) {
+    setTheme(next);
+  }
 
   return (
     <AppPageLayout>
@@ -130,46 +179,13 @@ export function AppSettingsPage() {
           ) : null}
         </PageSectionSpaced>
 
-        <PageSectionSpaced large>
-          <PageSectionHeading>Notifications</PageSectionHeading>
-          <PageSectionHint>
-            In-app notifications are always on. Email and push control how we
-            may reach you when delivery is available.
-          </PageSectionHint>
-          <PageSwitchStack>
-            <PageSwitchRow
-              label={<Label htmlFor="notif-email">Email</Label>}
-              hint="Invitation and activity summaries by email when enabled."
-              control={
-                <Switch
-                  id="notif-email"
-                  checked={emailNotif}
-                  onCheckedChange={(c) => setEmailNotif(c === true)}
-                />
-              }
-            />
-            <PageSwitchRow
-              label={<Label htmlFor="notif-push">Push (native app)</Label>}
-              hint="When enabled, mobile app installs can receive invitation push notifications."
-              control={
-                <Switch
-                  id="notif-push"
-                  checked={pushNotif}
-                  onCheckedChange={(c) => setPushNotif(c === true)}
-                />
-              }
-            />
-          </PageSwitchStack>
-          {notifMsg ? <PageMuted>{notifMsg}</PageMuted> : null}
-          <Button
-            type="button"
-            size="sm"
-            disabled={!notifDirty || savingNotif || !user}
-            onClick={() => void saveNotificationPrefs()}
-          >
-            Save notification preferences
-          </Button>
-        </PageSectionSpaced>
+        {user ? (
+          <NotificationPreferences
+            key={profileQuery.data?.updated_at ?? user.id}
+            profile={profileQuery.data ?? null}
+            user={user}
+          />
+        ) : null}
       </PagePanel>
     </AppPageLayout>
   );
