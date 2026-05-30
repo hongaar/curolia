@@ -1,0 +1,60 @@
+.header {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 96;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: var(--nav-shell-pad);
+}
+
+@media (min-width: 40rem) {
+  .header {
+    align-items: center;
+  }
+}
+
+.accountTrigger {
+  pointer-events: auto;
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  padding: 0;
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+
+.accountTrigger:hover,
+.accountTrigger:focus-visible,
+.accountTrigger[data-popup-open] {
+  background: var(--panel-bg);
+  border-color: var(--panel-border);
+}
+
+.menuWidth {
+  width: 13rem;
+}
+
+.menuIcon {
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.8;
+}
+
+.menuEmail {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 500;
+}

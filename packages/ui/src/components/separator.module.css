@@ -1,0 +1,14 @@
+.root {
+  flex-shrink: 0;
+  background: var(--border);
+}
+
+.root:global([data-orientation="horizontal"]) {
+  height: 1px;
+  width: 100%;
+}
+
+.root:global([data-orientation="vertical"]) {
+  width: 1px;
+  align-self: stretch;
+}

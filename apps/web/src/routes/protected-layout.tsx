@@ -1,14 +1,14 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/providers/auth-provider";
 import { JournalProvider } from "@/providers/journal-provider";
-import { CuroliaLoadingSplash } from "@/components/layout/curolia-loading-splash";
+import { CuroliaLoadingSplash } from "@curolia/ui/curolia/loading-splash";
 
 export function ProtectedLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return <CuroliaLoadingSplash className="min-h-svh" statusLabel="Loading" />;
+    return <CuroliaLoadingSplash fill statusLabel="Loading" />;
   }
 
   if (!user) {

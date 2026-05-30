@@ -1,0 +1,93 @@
+@keyframes curolia-splash-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.splashPulse {
+  animation: curolia-splash-pulse 2.85s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splashPulse {
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
+@keyframes curolia-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes curolia-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes curolia-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes curolia-zoom-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes curolia-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: curolia-spin 1s linear infinite;
+}
+
+.overlayOpen[data-open] {
+  animation:
+    curolia-fade-in 100ms ease-out,
+    curolia-zoom-in 100ms ease-out;
+}
+
+.overlayClosed[data-closed] {
+  animation:
+    curolia-fade-out 100ms ease-in,
+    curolia-zoom-out 100ms ease-in;
+}
+
+.overlayFadeOpen[data-open] {
+  animation: curolia-fade-in 100ms ease-out;
+}
+
+.overlayFadeClosed[data-closed] {
+  animation: curolia-fade-out 100ms ease-in;
+}

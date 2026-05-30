@@ -1,8 +1,4 @@
 import { TraceLinksEditor } from "@/components/traces/trace-links-editor";
-import {
-  TracePhotoLightbox,
-  TracePhotoThumb,
-} from "@/components/traces/trace-photo-lightbox";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { journalViewHref, traceDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
@@ -10,28 +6,18 @@ import { reversePhotonLocationLabel } from "@/lib/photon-geocode";
 import { supabase } from "@/lib/supabase";
 import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
 import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
-import { cn } from "@/lib/utils";
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import { useJournal } from "@/providers/journal-provider";
 import type { Tag, Trace } from "@/types/database";
 import { Button } from "@curolia/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@curolia/ui/card";
 import { CautionPanel } from "@curolia/ui/caution-panel";
 import { Checkbox } from "@curolia/ui/checkbox";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
@@ -39,10 +25,43 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@curolia/ui/select";
 import { Textarea } from "@curolia/ui/textarea";
+import {
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFormStack,
+  PanelDialogTitle,
+} from "@curolia/ui/curolia/panel-dialog";
+import {
+  FormErrorText,
+  FormField,
+  FormMutedText,
+  FormSelectTriggerFull,
+  TraceFormCoordsGrid,
+  TraceFormDangerActions,
+  TraceFormDangerHint,
+  TraceFormDangerZone,
+  TraceFormFloatingHost,
+  TraceFormGrid,
+  TraceFormModalContent,
+  TraceFormMoveList,
+  TraceFormPanelCard,
+  TraceFormPhotoGrid,
+  TraceFormPhotoPlaceholder,
+  TraceFormPhotoThumb,
+  TraceFormPlaceText,
+  TraceFormTagBox,
+  TraceFormTagOption,
+  TraceFormUploadInput,
+  TraceFormUploadLabel,
+  TraceFormUploadRow,
+} from "@curolia/ui/curolia/trace-form-ui";
+import {
+  TracePhotoLightbox,
+  TracePhotoThumb,
+} from "@curolia/ui/curolia/trace-photo-lightbox";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, Upload } from "lucide-react";
@@ -541,37 +560,34 @@ export function TraceFormDialog({
   }
 
   const formFields = (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 py-2">
-      <div className="space-y-2">
+    <TraceFormGrid>
+      <FormField>
         <Label htmlFor={`t-title-${idSuffix}`}>Title</Label>
         <Input
           id={`t-title-${idSuffix}`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="rounded-lg"
         />
-      </div>
-      <div className="space-y-2">
+      </FormField>
+      <FormField>
         <Label htmlFor={`t-desc-${idSuffix}`}>Description</Label>
         <Textarea
           id={`t-desc-${idSuffix}`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="rounded-lg"
         />
-      </div>
-      <div className="space-y-2">
+      </FormField>
+      <FormField>
         <Label htmlFor={`t-date-${idSuffix}`}>Date (optional)</Label>
         <Input
           id={`t-date-${idSuffix}`}
           type="date"
           value={dateYmd}
           onChange={(e) => setDateYmd(e.target.value)}
-          className="rounded-lg"
         />
-      </div>
-      <div className="space-y-2">
+      </FormField>
+      <FormField>
         <Label htmlFor={`t-end-${idSuffix}`}>End date (optional)</Label>
         <Input
           id={`t-end-${idSuffix}`}
@@ -579,83 +595,77 @@ export function TraceFormDialog({
           value={endDateYmd}
           min={dateYmd || undefined}
           onChange={(e) => setEndDateYmd(e.target.value)}
-          className="rounded-lg"
         />
-      </div>
+      </FormField>
       {!trace && !anchorScreen ? (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
+        <TraceFormCoordsGrid>
+          <FormField>
             <Label htmlFor={`t-lat-${idSuffix}`}>Latitude</Label>
             <Input
               id={`t-lat-${idSuffix}`}
               value={lat}
               onChange={(e) => setLat(e.target.value)}
-              className="rounded-lg"
             />
-          </div>
-          <div className="space-y-2">
+          </FormField>
+          <FormField>
             <Label htmlFor={`t-lng-${idSuffix}`}>Longitude</Label>
             <Input
               id={`t-lng-${idSuffix}`}
               value={lng}
               onChange={(e) => setLng(e.target.value)}
-              className="rounded-lg"
             />
-          </div>
-        </div>
+          </FormField>
+        </TraceFormCoordsGrid>
       ) : null}
       {!trace ? (
-        <div className="space-y-2">
+        <FormField>
           <Label>Place</Label>
-          <p className="text-muted-foreground min-h-[1.35rem] text-sm leading-snug">
-            {locationLookupPending ? (
-              <span className="opacity-70">Looking up address…</span>
-            ) : locationLabel ? (
-              locationLabel
-            ) : (
-              <span className="opacity-70">No place name yet…</span>
-            )}
-          </p>
-        </div>
+          <TraceFormPlaceText pending={locationLookupPending}>
+            {locationLookupPending
+              ? "Looking up address…"
+              : locationLabel
+                ? locationLabel
+                : "No place name yet…"}
+          </TraceFormPlaceText>
+        </FormField>
       ) : (
         <>
-          <div className="space-y-2">
+          <FormField>
             <Label>Photos</Label>
-            <div className="flex flex-wrap gap-2">
+            <TraceFormPhotoGrid>
               {photos.map((p) => {
                 const url = signedUrlByPhotoId[p.id];
                 return url ? (
-                  <TracePhotoThumb
-                    key={p.id}
-                    url={url}
-                    className="border-border size-24 shrink-0 overflow-hidden rounded-md border"
-                    onOpen={() => setPhotoLightbox({ photoId: p.id })}
-                  />
+                  <TraceFormPhotoThumb key={p.id}>
+                    <TracePhotoThumb
+                      url={url}
+                      onOpen={() => setPhotoLightbox({ photoId: p.id })}
+                    />
+                  </TraceFormPhotoThumb>
                 ) : (
-                  <div
-                    key={p.id}
-                    className="border-border bg-muted text-muted-foreground flex size-24 shrink-0 items-center justify-center rounded-md border text-xs"
-                  >
+                  <TraceFormPhotoPlaceholder key={p.id}>
                     …
-                  </div>
+                  </TraceFormPhotoPlaceholder>
                 );
               })}
               {photos.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No photos yet.</p>
+                <FormMutedText>No photos yet.</FormMutedText>
               ) : null}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-                <Upload className="size-4" />
+            </TraceFormPhotoGrid>
+            <TraceFormUploadRow>
+              <TraceFormUploadLabel
+                input={
+                  <TraceFormUploadInput
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => void onUploadPhotos(e.target.files)}
+                  />
+                }
+              >
+                <Upload aria-hidden />
                 <span>Upload photos</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="sr-only"
-                  onChange={(e) => void onUploadPhotos(e.target.files)}
-                />
-              </label>
+              </TraceFormUploadLabel>
               {pluginList.map((p) => {
                 const Slot = p.TracePhotoImportSlot;
                 if (!Slot) return null;
@@ -671,22 +681,19 @@ export function TraceFormDialog({
                   />
                 );
               })}
-            </div>
-          </div>
-          <div className="space-y-2">
+            </TraceFormUploadRow>
+          </FormField>
+          <FormField>
             <Label>Links</Label>
             <TraceLinksEditor traceId={trace.id} journalId={journalId} />
-          </div>
+          </FormField>
         </>
       )}
-      <div className="space-y-2">
+      <FormField>
         <Label>Tags</Label>
-        <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-border/80 p-2">
+        <TraceFormTagBox>
           {(tagsQuery.data ?? []).map((tag) => (
-            <label
-              key={tag.id}
-              className="flex cursor-pointer items-center gap-2 text-sm"
-            >
+            <TraceFormTagOption key={tag.id}>
               <Checkbox
                 checked={selectedTags.has(tag.id)}
                 onCheckedChange={(c) => {
@@ -700,26 +707,25 @@ export function TraceFormDialog({
               />
               <span>{tag.icon_emoji}</span>
               <span>{tag.name}</span>
-            </label>
+            </TraceFormTagOption>
           ))}
           {tagsQuery.data?.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
+            <FormMutedText>
               No tags yet — add one from the Tags menu.
-            </p>
+            </FormMutedText>
           ) : null}
-        </div>
-      </div>
+        </TraceFormTagBox>
+      </FormField>
       {trace ? (
-        <div className="mt-4 border-t border-border/40 pt-4">
+        <TraceFormDangerZone>
           <CautionPanel
             title="Danger zone"
             description="Move this trace to another journal or delete it permanently."
           >
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <TraceFormDangerActions>
               <Button
                 type="button"
                 variant="secondary"
-                className="rounded-xl"
                 disabled={otherJournals.length === 0}
                 onClick={() => {
                   setMoveTargetJournalId("");
@@ -730,59 +736,40 @@ export function TraceFormDialog({
               </Button>
               <Button
                 type="button"
-                variant="outline"
-                className="rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10"
+                variant="destructive"
                 onClick={() => setDeleteOpen(true)}
               >
-                <Trash2 className="size-4" aria-hidden />
+                <Trash2 aria-hidden />
                 Delete trace
               </Button>
-            </div>
+            </TraceFormDangerActions>
             {otherJournals.length === 0 ? (
-              <p className="text-muted-foreground mt-2 text-[11px] leading-snug">
+              <TraceFormDangerHint>
                 No other journals to move to.
-              </p>
+              </TraceFormDangerHint>
             ) : null}
           </CautionPanel>
-        </div>
+        </TraceFormDangerZone>
       ) : null}
-      {error ? <p className="text-destructive text-sm">{error}</p> : null}
-    </div>
+      {error ? <FormErrorText>{error}</FormErrorText> : null}
+    </TraceFormGrid>
   );
 
   const footerActions = (
     <>
-      <Button
-        variant="outline"
-        className="rounded-xl"
-        onClick={() => onOpenChange(false)}
-      >
+      <Button variant="outline" onClick={() => onOpenChange(false)}>
         Cancel
       </Button>
-      <Button
-        disabled={saving}
-        className="rounded-xl"
-        onClick={() => void save()}
-      >
+      <Button disabled={saving} onClick={() => void save()}>
         Save
       </Button>
     </>
   );
 
   const formShell = (
-    <Card className="border-[var(--panel-border)] bg-[var(--panel-bg)] gap-0 py-0 shadow-[var(--panel-shadow)] backdrop-blur-xl">
-      <CardHeader className="gap-1 border-b border-border/50 px-4 pb-3 pt-4">
-        <CardTitle className="font-display text-xl font-normal tracking-tight">
-          {dialogTitle}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="max-h-[min(70vh,32rem)] min-h-0 overflow-y-auto px-4 pt-4 pb-2">
-        {formFields}
-      </CardContent>
-      <CardFooter className="flex flex-col-reverse gap-2 px-4 py-4 sm:flex-row sm:justify-end">
-        {footerActions}
-      </CardFooter>
-    </Card>
+    <TraceFormPanelCard title={dialogTitle} footer={footerActions}>
+      {formFields}
+    </TraceFormPanelCard>
   );
 
   const photoLightboxOverlay = trace ? (
@@ -804,18 +791,16 @@ export function TraceFormDialog({
         if (!moving) setMoveOpen(next);
       }}
     >
-      <DialogContent className="border-[var(--panel-border)] bg-[var(--panel-bg)] backdrop-blur-xl sm:max-w-md">
+      <PanelDialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display text-xl font-normal">
-            Move trace to another journal
-          </DialogTitle>
-          <DialogDescription className="sr-only">
+          <PanelDialogTitle>Move trace to another journal</PanelDialogTitle>
+          <DialogDescription>
             Tags will be removed. If you choose a shared journal, other members
             may see this trace. Pick a destination journal below.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-3">
-          <ul className="text-muted-foreground list-disc space-y-1.5 pl-4 text-sm">
+        <PanelDialogFormStack>
+          <TraceFormMoveList>
             <li>
               All tags will be removed from this trace. Tags belong to a journal
               and do not carry over.
@@ -826,8 +811,8 @@ export function TraceFormDialog({
                 may be able to see this trace.
               </li>
             ) : null}
-          </ul>
-          <div className="space-y-2">
+          </TraceFormMoveList>
+          <PanelDialogField>
             <Label htmlFor="move-trace-journal">Destination journal</Label>
             <Select
               modal={false}
@@ -835,12 +820,9 @@ export function TraceFormDialog({
               onValueChange={(v) => setMoveTargetJournalId(v ?? "")}
               items={journalSelectItems}
             >
-              <SelectTrigger
-                id="move-trace-journal"
-                className="w-full rounded-xl"
-              >
+              <FormSelectTriggerFull id="move-trace-journal">
                 <SelectValue placeholder="Choose a journal" />
-              </SelectTrigger>
+              </FormSelectTriggerFull>
               <SelectContent alignItemWithTrigger={false}>
                 {otherJournals.map((j) => (
                   <SelectItem key={j.id} value={j.id}>
@@ -849,13 +831,12 @@ export function TraceFormDialog({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-        </div>
-        <DialogFooter className="gap-2 sm:justify-end">
+          </PanelDialogField>
+        </PanelDialogFormStack>
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl"
             disabled={moving}
             onClick={() => setMoveOpen(false)}
           >
@@ -863,14 +844,13 @@ export function TraceFormDialog({
           </Button>
           <Button
             type="button"
-            className="rounded-xl"
             disabled={moving || !moveTargetJournalId}
             onClick={() => void confirmMoveTrace()}
           >
             {moving ? "Moving…" : "Move trace"}
           </Button>
         </DialogFooter>
-      </DialogContent>
+      </PanelDialogContent>
     </Dialog>
   ) : null;
 
@@ -882,23 +862,17 @@ export function TraceFormDialog({
         setDeleteOpen(next);
       }}
     >
-      <DialogContent
-        showCloseButton={!deleting}
-        className="border-[var(--panel-border)] bg-[var(--panel-bg)] backdrop-blur-xl sm:max-w-md"
-      >
+      <PanelDialogContent showCloseButton={!deleting}>
         <DialogHeader>
-          <DialogTitle className="font-display text-xl font-normal">
-            Delete trace?
-          </DialogTitle>
+          <PanelDialogTitle>Delete trace?</PanelDialogTitle>
           <DialogDescription>
             This removes the trace from your journal. This cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="border-border/40 gap-2 sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl"
             disabled={deleting}
             onClick={() => setDeleteOpen(false)}
           >
@@ -907,30 +881,22 @@ export function TraceFormDialog({
           <Button
             type="button"
             variant="destructive"
-            className="rounded-xl"
             disabled={deleting}
             onClick={() => void confirmDeleteTrace()}
           >
             {deleting ? "Deleting…" : "Delete trace"}
           </Button>
         </DialogFooter>
-      </DialogContent>
+      </PanelDialogContent>
     </Dialog>
   ) : null;
 
   if (floatingNew && anchorScreen) {
     return (
       <>
-        <div
-          ref={floatingRef}
-          className="pointer-events-none z-[45] w-max min-w-0"
-        >
-          <div className="pointer-events-auto relative min-w-[288px] max-w-sm rounded-2xl">
-            <div className="max-h-[min(92dvh,44rem)] min-h-0 overflow-hidden rounded-2xl ring-1 ring-[var(--panel-border)]">
-              {formShell}
-            </div>
-          </div>
-        </div>
+        <TraceFormFloatingHost hostRef={floatingRef}>
+          {formShell}
+        </TraceFormFloatingHost>
         {photoLightboxOverlay}
       </>
     );
@@ -939,9 +905,7 @@ export function TraceFormDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] gap-0 overflow-hidden border-[var(--panel-border)] bg-transparent p-0 shadow-none sm:max-w-md [&>button]:z-50">
-          {formShell}
-        </DialogContent>
+        <TraceFormModalContent>{formShell}</TraceFormModalContent>
       </Dialog>
       {photoLightboxOverlay}
       {moveTraceDialog}
@@ -954,7 +918,7 @@ type TraceFormDialogTriggerProps = {
   journalId: string;
   trace: Trace;
   label?: string;
-} & Pick<ComponentProps<typeof Button>, "variant" | "size" | "className">;
+} & Pick<ComponentProps<typeof Button>, "variant" | "size">;
 
 /** Opens {@link TraceFormDialog} — use instead of an external Edit control. */
 export function TraceFormDialogTrigger({
@@ -963,7 +927,6 @@ export function TraceFormDialogTrigger({
   label = "Edit",
   variant = "outline",
   size = "sm",
-  className,
 }: TraceFormDialogTriggerProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   return (
@@ -972,10 +935,9 @@ export function TraceFormDialogTrigger({
         type="button"
         variant={variant}
         size={size}
-        className={cn("rounded-xl", className)}
         onClick={() => setDialogOpen(true)}
       >
-        <Pencil className="size-4" aria-hidden />
+        <Pencil aria-hidden />
         {label}
       </Button>
       <TraceFormDialog

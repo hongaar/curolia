@@ -1,0 +1,36 @@
+.positioner {
+  isolation: isolate;
+  z-index: 110;
+}
+
+.content {
+  z-index: 110;
+  display: flex;
+  width: 18rem;
+  flex-direction: column;
+  gap: 0.625rem;
+  border-radius: var(--radius-lg);
+  background: var(--popover);
+  padding: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--popover-foreground);
+  box-shadow:
+    0 4px 6px -1px color-mix(in oklch, var(--foreground) 8%, transparent),
+    0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
+  outline: none;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.875rem;
+}
+
+.title {
+  font-weight: 500;
+}
+
+.description {
+  color: var(--muted-foreground);
+}

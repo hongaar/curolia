@@ -1,0 +1,18 @@
+:global([data-sonner-toaster]) {
+  --normal-bg: var(--popover);
+  --normal-text: var(--popover-foreground);
+  --normal-border: var(--border);
+  --border-radius: var(--radius);
+}
+
+:global([data-sonner-toast].curoliaToast) {
+  background: var(--normal-bg);
+  color: var(--normal-text);
+  border: 1px solid var(--normal-border);
+  border-radius: var(--border-radius);
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+}

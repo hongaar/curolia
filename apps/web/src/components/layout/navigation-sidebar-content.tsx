@@ -1,33 +1,39 @@
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
-import { sidebarPickerTriggerClass } from "@/components/layout/sidebar-dropdown-triggers";
 import { SidebarTagsFilterDropdown } from "@/components/layout/sidebar-tags-filter-dropdown";
 import { journalSwitchHref, journalViewHref } from "@/lib/app-paths";
-import { DROPDOWN_PANEL_WIDE_CLASS } from "@/lib/dropdown-panel";
 import { defaultJournalIcon } from "@/lib/journal-display-icon";
-import { cn } from "@/lib/utils";
 import { useJournal } from "@/providers/journal-provider";
 import { useRegisteredTagSidebar } from "@/providers/tag-sidebar-provider";
 import type { Journal } from "@/types/database";
-import { Button, buttonVariants } from "@curolia/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@curolia/ui/dropdown-menu";
 import { Separator } from "@curolia/ui/separator";
 import { BookOpen, Check, ChevronDown, Map, Pencil, Plus } from "lucide-react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-
-const navRowClass = ({ isActive }: { isActive: boolean }) =>
-  cn(
-    buttonVariants({ variant: "ghost", size: "sm" }),
-    "text-foreground hover:bg-foreground/[0.06] h-11 w-full justify-start gap-2 rounded-xl px-3 font-normal",
-    isActive && "bg-foreground/10 font-medium",
-  );
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  JournalDropdownEditButton,
+  JournalDropdownRow,
+  NavigationSidebarHint,
+  NavigationSidebarIcon,
+  NavigationSidebarLabel,
+  NavigationSidebarNavLink,
+  NavigationSidebarRoot,
+  NavigationSidebarSection,
+  SidebarCheckIcon,
+  SidebarCheckSpacer,
+  SidebarDropdownContent,
+  SidebarDropdownMenuItem,
+  SidebarJournalEmoji,
+  SidebarJournalName,
+  SidebarPickerChevron,
+  SidebarPickerLabel,
+  SidebarPickerTrigger,
+} from "@curolia/ui/curolia/navigation-sidebar";
 
 function journalEmoji(journal: Journal) {
   return journal.icon_emoji ?? defaultJournalIcon(journal.is_personal);
@@ -56,124 +62,107 @@ export function NavigationSidebarContent({
     : "/";
 
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-6 pt-[calc(var(--app-toolbar-h)+0.5rem)]">
-      <div className="flex flex-col gap-1">
-        <div className="text-muted-foreground px-3 pt-2 text-xs font-medium tracking-wide uppercase">
-          View
-        </div>
-        <NavLink to={mapTo} className={navRowClass} end>
-          <Map className="size-4 opacity-80" />
+    <NavigationSidebarRoot>
+      <NavigationSidebarSection>
+        <NavigationSidebarLabel spaced>View</NavigationSidebarLabel>
+        <NavigationSidebarNavLink
+          to={mapTo}
+          end
+          icon={
+            <NavigationSidebarIcon>
+              <Map aria-hidden />
+            </NavigationSidebarIcon>
+          }
+        >
           Map
-        </NavLink>
-        <NavLink to={blogTo} className={navRowClass}>
-          <BookOpen className="size-4 opacity-80" />
+        </NavigationSidebarNavLink>
+        <NavigationSidebarNavLink
+          to={blogTo}
+          icon={
+            <NavigationSidebarIcon>
+              <BookOpen aria-hidden />
+            </NavigationSidebarIcon>
+          }
+        >
           Blog
-        </NavLink>
-      </div>
+        </NavigationSidebarNavLink>
+      </NavigationSidebarSection>
 
       <Separator />
 
-      <div className="flex flex-col gap-2">
-        <span className="text-muted-foreground px-3 text-xs font-medium tracking-wide uppercase">
-          Journal
-        </span>
+      <NavigationSidebarSection gap="lg">
+        <NavigationSidebarLabel>Journal</NavigationSidebarLabel>
         <DropdownMenu>
-          <DropdownMenuTrigger className={sidebarPickerTriggerClass()}>
-            <span className="flex min-w-0 flex-1 items-center gap-2">
-              {activeJournal ? (
-                <>
-                  <span className="text-base leading-none shrink-0" aria-hidden>
-                    {journalEmoji(activeJournal)}
-                  </span>
-                  <span className="truncate">{activeJournal.name}</span>
-                </>
-              ) : (
-                <span className="truncate">Select journal</span>
-              )}
-            </span>
-            <ChevronDown className="size-4 shrink-0 opacity-60" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            sideOffset={6}
-            className={DROPDOWN_PANEL_WIDE_CLASS}
-          >
+          <SidebarPickerTrigger>
+            <SidebarPickerLabel
+              emoji={
+                activeJournal ? (
+                  <span aria-hidden>{journalEmoji(activeJournal)}</span>
+                ) : undefined
+              }
+            >
+              {activeJournal?.name ?? "Select journal"}
+            </SidebarPickerLabel>
+            <SidebarPickerChevron>
+              <ChevronDown aria-hidden />
+            </SidebarPickerChevron>
+          </SidebarPickerTrigger>
+          <SidebarDropdownContent align="start" sideOffset={6}>
             <DropdownMenuGroup>
               <DropdownMenuLabel>Journals</DropdownMenuLabel>
               {journals.map((j) => {
                 const selected = j.id === activeJournal?.id;
                 return (
-                  <div
-                    key={j.id}
-                    className="flex items-center gap-0.5 rounded-md"
-                  >
-                    <DropdownMenuItem
-                      className="min-w-0 flex-1 gap-1.5 pr-2"
+                  <JournalDropdownRow key={j.id}>
+                    <SidebarDropdownMenuItem
                       onClick={() => {
                         navigate(journalSwitchHref(j, pathname, search));
                       }}
                     >
-                      <span
-                        className="text-base shrink-0 leading-none"
-                        aria-hidden
-                      >
+                      <SidebarJournalEmoji>
                         {journalEmoji(j)}
-                      </span>
-                      <span
-                        className={cn(
-                          "min-w-0 flex-1 truncate",
-                          selected && "font-medium",
-                        )}
+                      </SidebarJournalEmoji>
+                      <SidebarJournalName
+                        selected={selected}
+                        personal={j.is_personal}
                       >
                         {j.name}
-                        {j.is_personal ? (
-                          <span className="text-muted-foreground ml-1 text-xs font-normal">
-                            (personal)
-                          </span>
-                        ) : null}
-                      </span>
+                      </SidebarJournalName>
                       {selected ? (
-                        <Check
-                          className="text-foreground ml-auto size-4 shrink-0"
-                          aria-hidden
-                        />
+                        <SidebarCheckIcon>
+                          <Check aria-hidden />
+                        </SidebarCheckIcon>
                       ) : (
-                        <span className="ml-auto size-4 shrink-0" aria-hidden />
+                        <SidebarCheckSpacer />
                       )}
-                    </DropdownMenuItem>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
+                    </SidebarDropdownMenuItem>
+                    <JournalDropdownEditButton
                       title="Edit journal"
-                      className="text-muted-foreground hover:text-foreground size-8 shrink-0 rounded-md"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         onOpenJournalSettings(j.id);
                       }}
                     >
-                      <Pencil className="size-4" aria-hidden />
-                    </Button>
-                  </div>
+                      <Pencil aria-hidden />
+                    </JournalDropdownEditButton>
+                  </JournalDropdownRow>
                 );
               })}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => openNewJournalDialog()}>
-              <Plus className="size-4" />
+              <Plus aria-hidden />
               New journal…
             </DropdownMenuItem>
-          </DropdownMenuContent>
+          </SidebarDropdownContent>
         </DropdownMenu>
-      </div>
+      </NavigationSidebarSection>
 
       <Separator />
 
-      <div className="flex flex-col gap-2">
-        <span className="text-muted-foreground px-3 text-xs font-medium tracking-wide uppercase">
-          Tags & filters
-        </span>
+      <NavigationSidebarSection gap="lg">
+        <NavigationSidebarLabel>Tags & filters</NavigationSidebarLabel>
         {tagSidebar ? (
           <SidebarTagsFilterDropdown
             tags={tagSidebar.tags}
@@ -183,23 +172,21 @@ export function NavigationSidebarContent({
             onEditTag={tagSidebar.onEditTag}
           />
         ) : (
-          <p className="text-muted-foreground px-3 text-sm">
+          <NavigationSidebarHint>
             Open Map or Blog to filter traces by tags.
-          </p>
+          </NavigationSidebarHint>
         )}
-      </div>
+      </NavigationSidebarSection>
 
       {userId ? (
         <>
           <Separator />
-          <div className="flex flex-col gap-2">
-            <span className="text-muted-foreground px-3 text-xs font-medium tracking-wide uppercase">
-              Activity
-            </span>
+          <NavigationSidebarSection gap="lg">
+            <NavigationSidebarLabel>Activity</NavigationSidebarLabel>
             <NotificationsPopover variant="sidebar-row" userId={userId} />
-          </div>
+          </NavigationSidebarSection>
         </>
       ) : null}
-    </div>
+    </NavigationSidebarRoot>
   );
 }

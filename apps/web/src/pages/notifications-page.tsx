@@ -2,10 +2,19 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import { PageBackButton } from "@/components/layout/page-back-button";
-import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/types/database";
+import {
+  AppPageLayout,
+  PageDisplayTitle,
+  PageLead,
+  PagePanel,
+} from "@curolia/ui/curolia/page";
+import {
+  BorderedList,
+  ListEmptyItem,
+  NotificationListButton,
+} from "@curolia/ui/curolia/list-ui";
 
 export function NotificationsPage() {
   const { user } = useAuth();
@@ -48,63 +57,33 @@ export function NotificationsPage() {
   const items = listQuery.data ?? [];
 
   return (
-    <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-      <div className="mx-auto max-w-lg space-y-4">
-        <PageBackButton />
-        <FloatingPanel className="p-5 sm:p-6">
-          <h1 className="font-display text-foreground text-2xl font-normal tracking-tight">
-            Notifications
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Opens are marked as read. Email and push use your settings.
-          </p>
+    <AppPageLayout>
+      <PageBackButton />
+      <PagePanel>
+        <PageDisplayTitle>Notifications</PageDisplayTitle>
+        <PageLead>
+          Opens are marked as read. Email and push use your settings.
+        </PageLead>
 
-          <ul className="mt-6 divide-y divide-border/60 rounded-xl border border-border/60">
-            {listQuery.isLoading ? (
-              <li className="text-muted-foreground px-3 py-4 text-sm">
-                Loading…
-              </li>
-            ) : items.length === 0 ? (
-              <li className="text-muted-foreground px-3 py-4 text-sm">
-                Nothing here yet.
-              </li>
-            ) : (
-              items.map((n) => (
-                <li key={n.id}>
-                  <button
-                    type="button"
-                    className={cn(
-                      "hover:bg-foreground/5 flex w-full gap-3 px-3 py-3 text-left text-sm transition-colors",
-                      !n.read_at && "bg-primary/5",
-                    )}
-                    onClick={() => void openOne(n)}
-                  >
-                    {!n.read_at ? (
-                      <span
-                        className="bg-primary mt-1.5 size-1.5 shrink-0 rounded-full"
-                        aria-hidden
-                      />
-                    ) : (
-                      <span className="size-1.5 shrink-0" aria-hidden />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="font-medium">{n.title}</span>
-                      {n.body ? (
-                        <span className="text-muted-foreground mt-0.5 block text-xs leading-relaxed">
-                          {n.body}
-                        </span>
-                      ) : null}
-                      <span className="text-muted-foreground mt-1 block text-[10px] opacity-80">
-                        {new Date(n.created_at).toLocaleString()}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        </FloatingPanel>
-      </div>
-    </div>
+        <BorderedList>
+          {listQuery.isLoading ? (
+            <ListEmptyItem>Loading…</ListEmptyItem>
+          ) : items.length === 0 ? (
+            <ListEmptyItem>Nothing here yet.</ListEmptyItem>
+          ) : (
+            items.map((n) => (
+              <NotificationListButton
+                key={n.id}
+                unread={!n.read_at}
+                onClick={() => void openOne(n)}
+                title={n.title}
+                body={n.body ?? undefined}
+                meta={new Date(n.created_at).toLocaleString()}
+              />
+            ))
+          )}
+        </BorderedList>
+      </PagePanel>
+    </AppPageLayout>
   );
 }

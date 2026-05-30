@@ -1,10 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  TracePhotoLightbox,
-  TracePhotoThumb,
-} from "@/components/traces/trace-photo-lightbox";
-import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useJournal } from "@/providers/journal-provider";
@@ -15,13 +10,35 @@ import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
 import { TraceFormDialogTrigger } from "@/components/traces/trace-form-dialog";
 import { TraceLinksList } from "@/components/traces/trace-links-list";
 import { PageBackButton } from "@/components/layout/page-back-button";
-import { buttonVariants } from "@curolia/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@curolia/ui/card";
-import { Badge } from "@curolia/ui/badge";
 import { formatTraceDateRange } from "@/lib/trace-dates";
 import { TraceMetadataFooter } from "@/components/traces/trace-metadata-footer";
 import { journalViewHref } from "@/lib/app-paths";
-import { contrastingForeground } from "@/lib/utils";
+import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
+import { contrastingForeground } from "@curolia/ui";
+import { Button } from "@curolia/ui/button";
+import {
+  AppPageLayout,
+  PageCenteredError,
+  PageCenteredLoading,
+} from "@curolia/ui/curolia/page";
+import {
+  TraceDetailActions,
+  TraceDetailCard,
+  TraceDetailContent,
+  TraceDetailDescription,
+  TraceDetailHeader,
+  TraceDetailPhotoPlaceholder,
+  TraceDetailPhotoRow,
+  TraceDetailSubtitle,
+  TraceDetailTagBadge,
+  TraceDetailTagRow,
+  TraceDetailTitle,
+} from "@curolia/ui/curolia/trace-detail-ui";
+import {
+  TracePhotoLightbox,
+  TracePhotoThumb,
+} from "@curolia/ui/curolia/trace-photo-lightbox";
+
 type TraceRow = Trace & {
   trace_tags?: {
     tag_id: string;
@@ -103,142 +120,125 @@ export function TraceDetailPage() {
   );
 
   if (traceQuery.isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center p-6">
-        <p className="text-muted-foreground text-sm">Loading trace…</p>
-      </div>
-    );
+    return <PageCenteredLoading>Loading trace…</PageCenteredLoading>;
   }
 
   if (!trace || wrongJournal) {
     return (
-      <div className="flex h-full flex-col items-start gap-4 px-4 pt-[4.75rem] pb-8 sm:px-6 sm:pt-[5.25rem]">
-        <p className="text-muted-foreground text-sm">
-          Trace not found or not in this journal.
-        </p>
-        <button
-          type="button"
-          className={buttonVariants({
-            variant: "outline",
-            className: "inline-flex gap-1 rounded-xl",
-          })}
-          onClick={() => {
-            const fromTrace =
-              trace &&
-              journals.find((x) => x.id === trace.journal_id)?.slug?.trim();
-            const slug =
-              fromTrace ||
-              journals.find((x) => x.id === activeJournalId)?.slug?.trim();
-            navigate(slug ? journalViewHref("map", slug) : "/");
-          }}
-        >
-          Home
-        </button>
-      </div>
+      <PageCenteredError
+        actions={
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const fromTrace =
+                trace &&
+                journals.find((x) => x.id === trace.journal_id)?.slug?.trim();
+              const slug =
+                fromTrace ||
+                journals.find((x) => x.id === activeJournalId)?.slug?.trim();
+              navigate(slug ? journalViewHref("map", slug) : "/");
+            }}
+          >
+            Home
+          </Button>
+        }
+      >
+        Trace not found or not in this journal.
+      </PageCenteredError>
     );
   }
 
   const traceDateSubtitle = formatTraceDateRange(trace.date, trace.end_date);
 
   return (
-    <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-      <div className="mx-auto max-w-2xl space-y-4">
-        <PageBackButton />
-        <Card className="border-[var(--panel-border)] bg-[var(--panel-bg)] shadow-[var(--panel-shadow)] backdrop-blur-xl">
-          <CardHeader className="flex flex-row items-start justify-between gap-2">
-            <div>
-              <CardTitle className="font-display text-2xl font-normal tracking-tight">
-                {trace.title || "Untitled place"}
-              </CardTitle>
-              {traceDateSubtitle ? (
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {traceDateSubtitle}
-                </p>
-              ) : null}
-              <div className="mt-2 flex flex-wrap gap-1">
-                {tagBadges.map((t) => (
-                  <Badge
-                    key={t.id}
-                    variant="secondary"
-                    className="border-0"
-                    style={{
-                      backgroundColor: t.color,
-                      color: contrastingForeground(t.color),
-                    }}
-                  >
-                    {t.icon_emoji} {t.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-start">
-              <TraceFormDialogTrigger
-                journalId={trace.journal_id}
-                trace={trace}
-                variant="outline"
-                size="sm"
-                className="rounded-xl"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {trace.description ? (
-              <p className="text-sm whitespace-pre-wrap">{trace.description}</p>
+    <AppPageLayout width="2xl">
+      <PageBackButton />
+      <TraceDetailCard>
+        <TraceDetailHeader>
+          <div>
+            <TraceDetailTitle>
+              {trace.title || "Untitled place"}
+            </TraceDetailTitle>
+            {traceDateSubtitle ? (
+              <TraceDetailSubtitle>{traceDateSubtitle}</TraceDetailSubtitle>
             ) : null}
-            <div className="flex flex-wrap gap-2">
-              {photos.map((p) => {
-                const url = signedUrlByPhotoId[p.id];
-                return url ? (
-                  <TracePhotoThumb
-                    key={p.id}
-                    url={url}
-                    className="h-24 w-24 shrink-0 overflow-hidden rounded-md border"
-                    onOpen={() => setPhotoLightbox({ photoId: p.id })}
-                  />
-                ) : (
-                  <div
-                    key={p.id}
-                    className="text-muted-foreground flex h-24 w-24 items-center justify-center rounded-md border text-xs"
-                  >
-                    …
-                  </div>
-                );
-              })}
-            </div>
-            <TraceLinksList traceId={trace.id} />
-            {pluginList.map((p) => {
-              const Section = p.TraceDetailSection;
-              if (!Section) return null;
-              return (
-                <Section
-                  key={`detail-${p.id}`}
-                  supabase={supabase}
-                  userId={user?.id}
-                  traceId={trace.id}
-                  journalId={trace.journal_id}
-                  traceDate={trace.date}
-                  traceEndDate={trace.end_date}
+            <TraceDetailTagRow>
+              {tagBadges.map((t) => (
+                <TraceDetailTagBadge
+                  key={t.id}
+                  style={{
+                    backgroundColor: t.color,
+                    color: contrastingForeground(t.color),
+                  }}
+                >
+                  {t.icon_emoji} {t.name}
+                </TraceDetailTagBadge>
+              ))}
+            </TraceDetailTagRow>
+          </div>
+          <TraceDetailActions>
+            <TraceFormDialogTrigger
+              journalId={trace.journal_id}
+              trace={trace}
+              variant="outline"
+              size="sm"
+            />
+          </TraceDetailActions>
+        </TraceDetailHeader>
+        <TraceDetailContent>
+          {trace.description ? (
+            <TraceDetailDescription>{trace.description}</TraceDetailDescription>
+          ) : null}
+          <TraceDetailPhotoRow>
+            {photos.map((p) => {
+              const url = signedUrlByPhotoId[p.id];
+              return url ? (
+                <TracePhotoThumb
+                  key={p.id}
+                  url={url}
+                  onOpen={() => setPhotoLightbox({ photoId: p.id })}
                 />
+              ) : (
+                <TraceDetailPhotoPlaceholder key={p.id}>
+                  …
+                </TraceDetailPhotoPlaceholder>
               );
             })}
-            <TraceMetadataFooter
-              createdAt={trace.created_at}
-              updatedAt={trace.updated_at}
-              creatorDisplayName={trace.creator?.display_name}
-              modifierDisplayName={trace.modifier?.display_name}
-            />
-          </CardContent>
-        </Card>
-        <TracePhotoLightbox
-          open={photoLightbox !== null}
-          onOpenChange={(o) => {
-            if (!o) setPhotoLightbox(null);
-          }}
-          items={lightboxItems}
-          initialPhotoId={photoLightbox?.photoId ?? null}
-          title={trace.title?.trim() || "Untitled place"}
-        />
-      </div>
-    </div>
+          </TraceDetailPhotoRow>
+          <TraceLinksList traceId={trace.id} />
+          {pluginList.map((p) => {
+            const Section = p.TraceDetailSection;
+            if (!Section) return null;
+            return (
+              <Section
+                key={`detail-${p.id}`}
+                supabase={supabase}
+                userId={user?.id}
+                traceId={trace.id}
+                journalId={trace.journal_id}
+                traceDate={trace.date}
+                traceEndDate={trace.end_date}
+              />
+            );
+          })}
+          <TraceMetadataFooter
+            createdAt={trace.created_at}
+            updatedAt={trace.updated_at}
+            creatorDisplayName={trace.creator?.display_name}
+            modifierDisplayName={trace.modifier?.display_name}
+          />
+        </TraceDetailContent>
+      </TraceDetailCard>
+      <TracePhotoLightbox
+        open={photoLightbox !== null}
+        onOpenChange={(o) => {
+          if (!o) setPhotoLightbox(null);
+        }}
+        items={lightboxItems}
+        initialPhotoId={photoLightbox?.photoId ?? null}
+        title={trace.title?.trim() || "Untitled place"}
+      />
+    </AppPageLayout>
   );
 }

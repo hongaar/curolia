@@ -1,46 +1,28 @@
 import { useEffect, useState } from "react";
-import { UserCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { UserAvatar as UiUserAvatar } from "@curolia/ui/curolia/user-avatar";
 import { getGravatarUrl } from "@/lib/gravatar";
 
-/** 0 = custom URL, 1 = Gravatar, 2 = give up (placeholder). */
-type Attempt = 0 | 1 | 2;
-
 export type UserAvatarProps = {
-  /** Custom URL from profile (upload or legacy pasted URL). */
   storedAvatarUrl: string | null | undefined;
   email: string | null | undefined;
-  /** Pixel size requested from Gravatar (display CSS may differ). */
   gravatarSize?: number;
-  className?: string;
-  imgClassName?: string;
-  /** Accessible label when showing the photo. */
   label?: string;
-  /** Unread notifications indicator (dot only, no count). */
   showUnreadDot?: boolean;
+  size?: "sm" | "md" | "lg" | "full";
 };
 
 export function UserAvatar({
   storedAvatarUrl,
   email,
   gravatarSize = 160,
-  className,
-  imgClassName,
   label = "",
   showUnreadDot = false,
+  size = "md",
 }: UserAvatarProps) {
-  const stored = storedAvatarUrl?.trim() || null;
-  const [attempt, setAttempt] = useState<Attempt>(() => (stored ? 0 : 1));
   const [gravatar, setGravatar] = useState<string | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset fallback chain when photo or email identity changes
-    setAttempt(stored ? 0 : 1);
-  }, [stored, email]);
-
-  useEffect(() => {
     if (!email?.trim()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- clear resolved URL when email is absent
       setGravatar(null);
       return;
     }
@@ -53,46 +35,14 @@ export function UserAvatar({
     };
   }, [email, gravatarSize]);
 
-  const tryStored = attempt === 0;
-  const tryGravatar = attempt === 1;
-  const src =
-    tryStored && stored ? stored : tryGravatar && gravatar ? gravatar : null;
-
-  const inner = !src ? (
-    <span
-      className={cn("text-muted-foreground inline-flex", className)}
-      aria-hidden
-    >
-      <UserCircle className={cn("size-7", imgClassName)} />
-    </span>
-  ) : (
-    <span className={cn("inline-flex shrink-0", className)}>
-      <img
-        src={src}
-        alt={label}
-        className={cn(
-          "size-8 rounded-full object-cover ring-1 ring-foreground/15",
-          imgClassName,
-        )}
-        referrerPolicy="no-referrer"
-        onError={() => {
-          setAttempt((a) => (a < 2 ? ((a + 1) as Attempt) : 2));
-        }}
-      />
-    </span>
-  );
-
-  if (!showUnreadDot) {
-    return inner;
-  }
-
   return (
-    <span className="relative inline-flex shrink-0">
-      {inner}
-      <span
-        className="bg-primary absolute top-0 right-0 size-2 rounded-full ring-2 ring-[var(--panel-bg)]"
-        aria-hidden
-      />
-    </span>
+    <UiUserAvatar
+      storedAvatarUrl={storedAvatarUrl}
+      email={email}
+      gravatarUrl={gravatar}
+      size={size}
+      label={label}
+      showUnreadDot={showUnreadDot}
+    />
   );
 }

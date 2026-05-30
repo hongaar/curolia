@@ -2,12 +2,19 @@ import type { TracePhotoImportSlotProps } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
 } from "@curolia/ui/dialog";
+import {
+  PanelDialogContent,
+  PanelDialogFooterRow,
+  PanelDialogMonoBox,
+  PanelDialogTitle,
+  panelDialogIconSmClass,
+  panelDialogImportButtonClass,
+  panelDialogRoundedButtonClass,
+} from "@curolia/ui/curolia/panel-dialog";
 import {
   keepPreviousData,
   useMutation,
@@ -179,49 +186,49 @@ export function GooglePhotosTracePhotoImportSlot({
   return (
     <>
       <Dialog open={pickPrepOpen} onOpenChange={setPickPrepOpen}>
-        <DialogContent className="max-w-md">
+        <PanelDialogContent size="md">
           <DialogHeader>
-            <DialogTitle>Search in Google Photos</DialogTitle>
+            <PanelDialogTitle>Search in Google Photos</PanelDialogTitle>
             <DialogDescription>
               Copy this line, open Google Photos, paste it into search, then
               pick the photos you want.
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-muted/50 rounded-lg border px-3 py-2 font-mono text-sm break-words">
-            {searchPasteLine}
-          </div>
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-xl"
-              onClick={() => openPickerOnly()}
-            >
-              Open only
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="rounded-xl"
-              onClick={() => void copySearchPasteAndStartPicker()}
-            >
-              Copy & open Google Photos
-            </Button>
+          <PanelDialogMonoBox>{searchPasteLine}</PanelDialogMonoBox>
+          <DialogFooter>
+            <PanelDialogFooterRow>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={panelDialogRoundedButtonClass}
+                onClick={() => openPickerOnly()}
+              >
+                Open only
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className={panelDialogRoundedButtonClass}
+                onClick={() => void copySearchPasteAndStartPicker()}
+              >
+                Copy & open Google Photos
+              </Button>
+            </PanelDialogFooterRow>
           </DialogFooter>
-        </DialogContent>
+        </PanelDialogContent>
       </Dialog>
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="rounded-xl gap-2"
+        className={panelDialogImportButtonClass}
         disabled={busy}
         onClick={() => setPickPrepOpen(true)}
         aria-label={label}
       >
-        {busy ? <Loader2 className="size-4 shrink-0 animate-spin" /> : null}
-        <GooglePhotosIcon className="size-4 shrink-0" />
+        {busy ? <Loader2 className={`${panelDialogIconSmClass} spin`} /> : null}
+        <GooglePhotosIcon size={4} />
         <span>{label}</span>
       </Button>
     </>

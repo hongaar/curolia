@@ -20,13 +20,7 @@ import { TraceFormDialog } from "@/components/traces/trace-form-dialog";
 import { TraceMapQuickAddDialog } from "@/components/traces/trace-map-quick-add-dialog";
 import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
 import { Button } from "@curolia/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@curolia/ui/dialog";
+import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { PresetColorPicker } from "@/components/traces/preset-color-picker";
@@ -52,7 +46,23 @@ import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
-import { cn } from "@/lib/utils";
+import {
+  MapControlsBottomRight,
+  MapControlsLayer,
+  MapControlsTopRight,
+  MapHost,
+  MapLayer,
+  MapPageRoot,
+  MapPlacementHint,
+  MapSidebarDismiss,
+  MapVignette,
+} from "@curolia/ui/curolia/map-ui";
+import {
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFormStack,
+  PanelDialogTitle,
+} from "@curolia/ui/curolia/panel-dialog";
 import type { Tag, Trace } from "@/types/database";
 import { toast } from "sonner";
 import { useJournalSlugRouteSync } from "@/hooks/use-journal-slug-route-sync";
@@ -406,68 +416,53 @@ export function MapPage() {
   }
 
   return (
-    <div className="relative h-full w-full">
-      <div className="absolute inset-0 z-0">
-        <div
-          className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_45%,oklch(0.35_0.04_260/0.12)_100%)]"
-          aria-hidden
-        />
-        <TraceMap
-          ref={mapRef}
-          traces={traces}
-          selectedTagIds={filterTagIds}
-          selectedTraceId={sidebarTraceId}
-          previewPin={null}
-          onSelectTrace={onSelectTrace}
-          placementMode={placementActive}
-          onPlacementClick={onPlacementClick}
-          initialCamera={resolvedInitialCamera}
-          initialBbox={bboxFromUrl}
-          cameraSyncKey={cameraSyncKey}
-          onCameraIdle={onCameraIdle}
-          onMapBackgroundClick={
-            sidebarTraceId ? onCloseTraceMapPopover : undefined
-          }
-          className="absolute inset-0 z-0 min-h-0"
-        />
-        {/* Stack under mobile nav-dismiss overlay so controls dim + deactivate with the map */}
-        <div className="pointer-events-none absolute inset-0 z-[8]">
-          <MapControlsToolbar
-            mapRef={mapRef}
-            className="pointer-events-auto absolute top-[calc(var(--app-toolbar-h)+0.75rem)] right-3 sm:right-4 sm:top-[calc(var(--app-toolbar-h)+1rem)]"
+    <MapPageRoot>
+      <MapLayer>
+        <MapVignette />
+        <MapHost>
+          <TraceMap
+            ref={mapRef}
+            traces={traces}
+            selectedTagIds={filterTagIds}
+            selectedTraceId={sidebarTraceId}
+            previewPin={null}
+            onSelectTrace={onSelectTrace}
+            placementMode={placementActive}
+            onPlacementClick={onPlacementClick}
+            initialCamera={resolvedInitialCamera}
+            initialBbox={bboxFromUrl}
+            cameraSyncKey={cameraSyncKey}
+            onCameraIdle={onCameraIdle}
+            onMapBackgroundClick={
+              sidebarTraceId ? onCloseTraceMapPopover : undefined
+            }
           />
-        </div>
-        <div className="pointer-events-none absolute inset-0 z-[8]">
-          <div className="pointer-events-auto absolute right-4 bottom-6 sm:right-6">
+        </MapHost>
+        <MapControlsLayer>
+          <MapControlsTopRight>
+            <MapControlsToolbar mapRef={mapRef} />
+          </MapControlsTopRight>
+        </MapControlsLayer>
+        <MapControlsLayer>
+          <MapControlsBottomRight>
             <AddTraceFab
               active={placementActive}
               onClick={toggleAddTracePlacement}
             />
-          </div>
-        </div>
+          </MapControlsBottomRight>
+        </MapControlsLayer>
         {isMobile ? (
-          <button
-            type="button"
-            tabIndex={sidebarOpen ? 0 : -1}
-            className={cn(
-              "absolute inset-0 z-[25] border-0 bg-black/45 p-0 transition-opacity duration-200 outline-none touch-none",
-              sidebarOpen
-                ? "cursor-default opacity-100"
-                : "pointer-events-none cursor-default opacity-0",
-            )}
-            aria-hidden={!sidebarOpen}
-            aria-label={sidebarOpen ? "Dismiss navigation sidebar" : undefined}
-            onClick={sidebarOpen ? () => setSidebarOpen(false) : undefined}
+          <MapSidebarDismiss
+            open={sidebarOpen}
+            onDismiss={() => setSidebarOpen(false)}
           />
         ) : null}
-      </div>
+      </MapLayer>
 
       {placementActive ? (
-        <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 flex max-w-[min(calc(100vw-2rem),22rem)] -translate-x-1/2 justify-center px-4">
-          <p className="border-border/50 bg-background/92 text-foreground supports-backdrop-filter:backdrop-blur-sm rounded-xl border px-4 py-2.5 text-center text-xs leading-snug font-medium shadow-lg">
-            Tap the map to add a trace · Esc or Stop adding to cancel
-          </p>
-        </div>
+        <MapPlacementHint>
+          Tap the map to add a trace · Esc or Stop adding to cancel
+        </MapPlacementHint>
       ) : null}
 
       {sidebarTraceId ? (
@@ -523,21 +518,21 @@ export function MapPage() {
           if (!open) setTagEditTarget(null);
         }}
       >
-        <DialogContent className="border-[var(--panel-border)] bg-[var(--panel-bg)] backdrop-blur-xl sm:max-w-md">
+        <PanelDialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-normal">
+            <PanelDialogTitle>
               {tagEditTarget ? "Edit tag" : "New tag"}
-            </DialogTitle>
+            </PanelDialogTitle>
           </DialogHeader>
-          <div className="grid gap-3 py-2">
-            <div className="space-y-2">
+          <PanelDialogFormStack>
+            <PanelDialogField>
               <Label htmlFor="tag-name">Name</Label>
               <Input
                 id="tag-name"
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
               />
-            </div>
+            </PanelDialogField>
             <PresetColorPicker
               id="tag-color"
               label="Color"
@@ -550,7 +545,7 @@ export function MapPage() {
               value={newTagEmoji}
               onChange={setNewTagEmoji}
             />
-          </div>
+          </PanelDialogFormStack>
           <DialogFooter>
             <Button
               variant="outline"
@@ -565,8 +560,8 @@ export function MapPage() {
               {tagEditTarget ? "Save tag" : "Create tag"}
             </Button>
           </DialogFooter>
-        </DialogContent>
+        </PanelDialogContent>
       </Dialog>
-    </div>
+    </MapPageRoot>
   );
 }

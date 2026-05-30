@@ -1,0 +1,47 @@
+.root {
+  position: relative;
+  display: flex;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--input);
+  transition:
+    background-color 150ms,
+    border-color 150ms;
+  outline: none;
+  cursor: pointer;
+}
+
+.root:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+.root:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.root:global([data-checked]) {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+:global(.dark) .root {
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+}
+
+.indicator {
+  display: grid;
+  place-content: center;
+  color: currentColor;
+}
+
+.indicator svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}

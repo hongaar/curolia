@@ -9,15 +9,28 @@ import {
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
-import { buttonVariants } from "@curolia/ui/button";
-import { Input } from "@curolia/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTitle,
-  PopoverTrigger,
-} from "@curolia/ui/popover";
-import { cn } from "@/lib/utils";
+  GlobalSearchEmptyHint,
+  GlobalSearchFooter,
+  GlobalSearchHeader,
+  GlobalSearchIcon,
+  GlobalSearchInput,
+  GlobalSearchKbd,
+  GlobalSearchLabel,
+  GlobalSearchPopoverContent,
+  GlobalSearchPopoverTitle,
+  GlobalSearchPopoverTrigger,
+  GlobalSearchResultBody,
+  GlobalSearchResultIcon,
+  GlobalSearchResultRow,
+  GlobalSearchResults,
+  GlobalSearchResultSubtitle,
+  GlobalSearchResultTitle,
+  GlobalSearchSectionLabel,
+  GlobalSearchSpinner,
+  GlobalSearchStatusText,
+} from "@curolia/ui/curolia/global-search-ui";
+import { Popover } from "@curolia/ui/popover";
 import {
   applyMapBboxToSearchParams,
   applyMapCameraToSearchParams,
@@ -67,39 +80,19 @@ type ResultButtonProps = {
 
 function ResultRow({ icon, title, subtitle, onPick }: ResultButtonProps) {
   return (
-    <button
-      type="button"
-      onClick={onPick}
-      className={cn(
-        buttonVariants({ variant: "ghost", size: "sm" }),
-        "h-auto min-h-9 w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left font-normal",
-      )}
-    >
-      <span className="text-muted-foreground shrink-0">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-foreground text-sm leading-tight">
-          {title}
-        </span>
+    <GlobalSearchResultRow onClick={onPick}>
+      <GlobalSearchResultIcon>{icon}</GlobalSearchResultIcon>
+      <GlobalSearchResultBody>
+        <GlobalSearchResultTitle>{title}</GlobalSearchResultTitle>
         {subtitle ? (
-          <span className="text-muted-foreground mt-0.5 block truncate text-xs leading-tight">
-            {subtitle}
-          </span>
+          <GlobalSearchResultSubtitle>{subtitle}</GlobalSearchResultSubtitle>
         ) : null}
-      </span>
-    </button>
-  );
-}
-
-function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <div className="text-muted-foreground px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider">
-      {children}
-    </div>
+      </GlobalSearchResultBody>
+    </GlobalSearchResultRow>
   );
 }
 
 type GlobalSearchProps = {
-  /** Borderless opener that grows to fill a toolbar row beside other controls. */
   toolbarEmbed?: boolean;
 };
 
@@ -187,8 +180,6 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   }
 
   function onPickTrace(t: TraceSearchRow) {
-    // Commit journal before updating the URL so MapPage never sees ?trace= for another journal
-    // while traces are still scoped to the previous activeJournalId (would clear trace from URL).
     flushSync(() => {
       setActiveJournalId(t.journal_id);
     });
@@ -264,82 +255,57 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
         }
       }}
     >
-      <PopoverTrigger
-        type="button"
-        className={
-          toolbarEmbed
-            ? cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "text-muted-foreground min-h-11 w-full min-w-0 flex-1 justify-start gap-2 rounded-xl border-0 bg-transparent px-3 font-normal shadow-none ring-offset-0",
-                "hover:bg-foreground/[0.04] hover:text-foreground",
-                "focus-visible:bg-foreground/[0.06] focus-visible:ring-2 focus-visible:ring-ring/35",
-              )
-            : cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "h-9 gap-1.5 rounded-xl border-[var(--panel-border)] bg-background/80 px-2.5 shadow-sm backdrop-blur-md sm:px-3",
-              )
-        }
+      <GlobalSearchPopoverTrigger
+        toolbarEmbed={toolbarEmbed}
         title="Search (Ctrl+K)"
       >
-        <Search className="size-4 shrink-0 opacity-80" />
-        <span
-          className={cn(
-            "truncate text-left text-sm",
-            toolbarEmbed
-              ? "text-muted-foreground min-w-0 flex-1"
-              : "text-muted-foreground hidden sm:inline max-w-[10rem]",
-          )}
-        >
+        <GlobalSearchIcon>
+          <Search />
+        </GlobalSearchIcon>
+        <GlobalSearchLabel toolbarEmbed={toolbarEmbed}>
           Search…
-        </span>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={8}
-        className="w-[min(calc(100vw-1.5rem),22rem)] gap-0 border-[var(--panel-border)] bg-[var(--panel-bg)] p-0 shadow-xl backdrop-blur-xl"
-      >
-        <PopoverTitle className="sr-only">
+        </GlobalSearchLabel>
+      </GlobalSearchPopoverTrigger>
+      <GlobalSearchPopoverContent>
+        <GlobalSearchPopoverTitle>
           Search journals and traces
-        </PopoverTitle>
-        <div className="border-border/60 flex items-center gap-2 border-b px-2 py-2">
-          <Search
-            className="text-muted-foreground size-4 shrink-0"
-            aria-hidden
-          />
-          <Input
+        </GlobalSearchPopoverTitle>
+        <GlobalSearchHeader>
+          <GlobalSearchIcon>
+            <Search aria-hidden />
+          </GlobalSearchIcon>
+          <GlobalSearchInput
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Journals, traces…"
-            className="border-0 bg-transparent shadow-none focus-visible:ring-0"
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
           />
           {busy ? (
-            <Loader2
-              className="text-muted-foreground size-4 shrink-0 animate-spin"
-              aria-hidden
-            />
+            <GlobalSearchSpinner>
+              <Loader2 aria-hidden />
+            </GlobalSearchSpinner>
           ) : null}
-        </div>
+        </GlobalSearchHeader>
 
-        <div className="max-h-[min(50vh,300px)] overflow-y-auto px-1 pb-2">
+        <GlobalSearchResults>
           {debounced.length === 0 ? (
-            <p className="text-muted-foreground px-2 py-3 text-center text-xs">
+            <GlobalSearchEmptyHint>
               Search journals by name. Type two or more characters to find
               traces
               {isMapRoute ? " and map places" : ""}.
-            </p>
+            </GlobalSearchEmptyHint>
           ) : null}
 
           {debounced.length >= 1 && journalMatches.length > 0 ? (
             <>
-              <SectionLabel>Journals</SectionLabel>
+              <GlobalSearchSectionLabel>Journals</GlobalSearchSectionLabel>
               {journalMatches.map((j) => (
                 <ResultRow
                   key={j.id}
-                  icon={<Notebook className="size-4" />}
+                  icon={<Notebook />}
                   title={j.name}
                   subtitle={j.is_personal ? "Personal" : undefined}
                   onPick={() => onPickJournal(j)}
@@ -351,32 +317,30 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
           {debounced.length >= 1 &&
           journalMatches.length === 0 &&
           debounced.length < 2 ? (
-            <p className="text-muted-foreground px-2 py-2 text-xs">
+            <GlobalSearchStatusText>
               No journals match. Add another letter to search traces
               {isMapRoute ? " and places" : ""}.
-            </p>
+            </GlobalSearchStatusText>
           ) : null}
 
           {showTraces ? (
             <>
-              <SectionLabel>Traces</SectionLabel>
+              <GlobalSearchSectionLabel>Traces</GlobalSearchSectionLabel>
               {tracesQuery.isError ? (
-                <p className="text-muted-foreground px-2 py-1 text-xs">
+                <GlobalSearchStatusText>
                   Could not load traces.
-                </p>
+                </GlobalSearchStatusText>
               ) : tracesQuery.isFetching && tracesSorted.length === 0 ? (
-                <p className="text-muted-foreground px-2 py-1 text-xs">
-                  Searching…
-                </p>
+                <GlobalSearchStatusText>Searching…</GlobalSearchStatusText>
               ) : tracesSorted.length === 0 ? (
-                <p className="text-muted-foreground px-2 py-1 text-xs">
+                <GlobalSearchStatusText>
                   No matching traces.
-                </p>
+                </GlobalSearchStatusText>
               ) : (
                 tracesSorted.map((t) => (
                   <ResultRow
                     key={t.id}
-                    icon={<MapPin className="size-4" />}
+                    icon={<MapPin />}
                     title={tracePrimaryLabel(t)}
                     subtitle={journalTitle(t, journalById)}
                     onPick={() => onPickTrace(t)}
@@ -388,20 +352,18 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
           {showPlaces ? (
             <>
-              <SectionLabel>Places</SectionLabel>
+              <GlobalSearchSectionLabel>Places</GlobalSearchSectionLabel>
               {placesQuery.isError ? (
-                <p className="text-muted-foreground px-2 py-1 text-xs">
+                <GlobalSearchStatusText>
                   Could not load places.
-                </p>
+                </GlobalSearchStatusText>
               ) : placesQuery.isFetching &&
                 (placesQuery.data?.length ?? 0) === 0 ? (
-                <p className="text-muted-foreground px-2 py-1 text-xs">
-                  Searching…
-                </p>
+                <GlobalSearchStatusText>Searching…</GlobalSearchStatusText>
               ) : (placesQuery.data?.length ?? 0) === 0 ? (
-                <p className="text-muted-foreground px-2 py-1 text-xs">
+                <GlobalSearchStatusText>
                   No matching places.
-                </p>
+                </GlobalSearchStatusText>
               ) : (
                 (placesQuery.data ?? []).map((p) => {
                   const primary = p.primaryName.trim();
@@ -410,7 +372,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
                   return (
                     <ResultRow
                       key={p.id}
-                      icon={<MapIcon className="size-4" />}
+                      icon={<MapIcon />}
                       title={primary || full || "Place"}
                       subtitle={subtitle}
                       onPick={() => onPickPlace(p)}
@@ -420,14 +382,14 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
               )}
             </>
           ) : null}
-        </div>
+        </GlobalSearchResults>
 
-        <div className="text-muted-foreground border-border/60 hidden border-t px-2 py-1.5 text-[10px] sm:block">
-          <kbd className="rounded border px-1 py-px font-mono">Ctrl</kbd>{" "}
-          <kbd className="rounded border px-1 py-px font-mono">K</kbd> to open ·
-          Trace results prefer the active journal
-        </div>
-      </PopoverContent>
+        <GlobalSearchFooter>
+          <GlobalSearchKbd>Ctrl</GlobalSearchKbd>{" "}
+          <GlobalSearchKbd>K</GlobalSearchKbd> to open · Trace results prefer
+          the active journal
+        </GlobalSearchFooter>
+      </GlobalSearchPopoverContent>
     </Popover>
   );
 }

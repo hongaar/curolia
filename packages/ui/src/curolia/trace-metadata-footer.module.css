@@ -1,0 +1,12 @@
+.footer {
+  margin-top: 1rem;
+  border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  padding-top: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.625;
+  color: var(--muted-foreground);
+}
+
+.modified {
+  margin-top: 0.25rem;
+}

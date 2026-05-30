@@ -36,6 +36,14 @@
 
   before `npm run functions:start -w @curolia/supabase` / remote `supabase functions deploy`.
 
-  **`functions:sync`** also runs **`packages/supabase/scripts/extract-plugin-oauth-registry.ts`** (via **`tsx`**) so **`scopes-registry.gen.ts`** is built from each plugin package’s **`pluginManifest.contributions.oauth`**. Companion scopes merged at authorize time (e.g. Google OIDC `openid` / `email` / `profile`) live in **`@curolia/plugin-oauth`** (**`oauth-companion-scopes.ts`**); Strip step in the extractor must match that module.
+  **`functions:sync`** also runs **`packages/supabase/scripts/extract-plugin-oauth-registry.ts`** (via **`tsx`**) so **`scopes-registry.gen.ts`** is built from each plugin’s **`src/oauth-registry.ts`** (preferred; no React/CSS) or **`pluginManifest.contributions.oauth`** in **`src/index.ts`**. Companion scopes merged at authorize time (e.g. Google OIDC `openid` / `email` / `profile`) live in **`@curolia/plugin-oauth`** (**`oauth-companion-scopes.ts`**); the extractor’s strip step must match that module.
 
 - **Web UI** may stay in `apps/web` initially; packages should still export **manifest + config parsers** so behavior and declarations stay with the plugin. Prefer moving React panels into the plugin package when they stabilize (with `react` as a `peerDependency`).
+
+## Web styling (`@curolia/ui`)
+
+- **Design tokens and global CSS** live in **`packages/ui/src/styles/`** (import **`@curolia/ui/styles`** from `apps/web` `main.tsx`). Do not add Tailwind or app-local component CSS in **`apps/web`** or **`packages/plugins`**.
+- **Primitives** (`Button`, `Dialog`, …) use **CSS modules** + **Base UI** under **`packages/ui/src/components/`**.
+- **Product chrome** (app shell, login layout, map toolbar, forms, etc.) lives under **`packages/ui/src/curolia/`** and **`packages/ui/src/layout/`** (`Stack`, `Box`, `Text`).
+- **`apps/web`** and **`packages/plugins`** compose UI via **`@curolia/ui` props and named components only**—no inline `className` utility strings (ESLint enforces this in `apps/web`). Plugins may pass **CSS module class exports** from `@curolia/ui` to primitives (e.g. `className={pluginAccountButtonClass}`).
+- After changing plugin-owned UI, no `functions:sync` change is needed; run **`npx turbo run typecheck`** / **`build`** as usual.

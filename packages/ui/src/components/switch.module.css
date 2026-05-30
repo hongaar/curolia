@@ -1,0 +1,76 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  transition: all 150ms;
+  outline: none;
+  cursor: pointer;
+}
+
+.root[data-size="default"] {
+  width: 32px;
+  height: 18.4px;
+}
+
+.root[data-size="sm"] {
+  width: 24px;
+  height: 14px;
+}
+
+.root:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+.root:global([data-checked]) {
+  background: var(--primary);
+}
+
+.root:global([data-unchecked]) {
+  background: var(--input);
+}
+
+:global(.dark) .root:global([data-unchecked]) {
+  background: color-mix(in oklch, var(--input) 80%, transparent);
+}
+
+.root:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.thumb {
+  pointer-events: none;
+  display: block;
+  border-radius: 9999px;
+  background: var(--background);
+  transition: transform 150ms;
+}
+
+.root[data-size="default"] .thumb {
+  width: 1rem;
+  height: 1rem;
+}
+
+.root[data-size="sm"] .thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.root[data-size="default"]:global([data-checked]) .thumb {
+  transform: translateX(calc(100% - 2px));
+}
+
+.root[data-size="sm"]:global([data-checked]) .thumb {
+  transform: translateX(calc(100% - 2px));
+}
+
+:global(.dark) .root:global([data-checked]) .thumb {
+  background: var(--primary-foreground);
+}
+
+:global(.dark) .root:global([data-unchecked]) .thumb {
+  background: var(--foreground);
+}

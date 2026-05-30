@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+}
+
+.fill {
+  min-height: 100svh;
+}
+
+.logoWrap {
+  display: flex;
+  width: 6rem;
+  height: 6rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 6rem;
+  height: 6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoMotion {
+    opacity: 0.9;
+  }
+}

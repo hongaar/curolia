@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@curolia/ui/button";
+import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@curolia/ui/dialog";
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFormStack,
+  PanelDialogTitle,
+} from "@curolia/ui/curolia/panel-dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { EmojiPicker } from "@/components/traces/emoji-picker";
@@ -52,14 +52,12 @@ export function NewJournalDialog({
         }
       }}
     >
-      <DialogContent className="border-[var(--panel-border)] bg-[var(--panel-bg)] backdrop-blur-xl">
+      <PanelDialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display text-xl font-normal">
-            New journal
-          </DialogTitle>
+          <PanelDialogTitle>New journal</PanelDialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
+        <PanelDialogFormStack>
+          <PanelDialogField>
             <Label htmlFor="jn">Name</Label>
             <Input
               id="jn"
@@ -67,14 +65,14 @@ export function NewJournalDialog({
               onChange={(e) => setName(e.target.value)}
               placeholder="Family trips"
             />
-          </div>
+          </PanelDialogField>
           <EmojiPicker
             id="jn-icon"
             label="Icon"
             value={icon}
             onChange={setIcon}
           />
-        </div>
+        </PanelDialogFormStack>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
@@ -83,7 +81,7 @@ export function NewJournalDialog({
             Create
           </Button>
         </DialogFooter>
-      </DialogContent>
+      </PanelDialogContent>
     </Dialog>
   );
 }

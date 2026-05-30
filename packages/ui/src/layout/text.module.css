@@ -1,0 +1,61 @@
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--foreground);
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  color: var(--foreground);
+}
+
+.title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.titleLg {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.body {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.muted {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.mutedXs {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.medium {
+  font-weight: 500;
+}
+
+.destructive {
+  color: var(--destructive);
+}
+
+.center {
+  text-align: center;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

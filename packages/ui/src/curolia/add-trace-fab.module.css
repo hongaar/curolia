@@ -1,0 +1,21 @@
+.root {
+  height: 3.5rem;
+  flex-shrink: 0;
+  gap: 0.75rem;
+  border-radius: 9999px;
+  padding-inline: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px
+    color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+.rootActive {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+.icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+}

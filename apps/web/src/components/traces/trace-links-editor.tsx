@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,6 +13,17 @@ import {
 import { LinkFavicon } from "@/components/traces/trace-links-list";
 import { useTraceLinks } from "@/lib/use-trace-links";
 import type { TraceLink } from "@/types/database";
+import { FormMutedText } from "@curolia/ui/curolia/form-layout";
+import {
+  TraceLinkRowBody,
+  TraceLinkRowDomain,
+  TraceLinkRowEditor,
+  TraceLinkRowTitleLink,
+  TraceLinksEditorAddRow,
+  TraceLinksEditorList,
+  TraceLinksEditorRoot,
+  TraceLinksSpinnerIcon,
+} from "@curolia/ui/curolia/trace-links-ui";
 
 type TraceLinksEditorProps = {
   traceId: string;
@@ -89,8 +100,8 @@ export function TraceLinksEditor({
   }
 
   return (
-    <div className="min-w-0 space-y-2">
-      <div className="min-w-0 space-y-2">
+    <TraceLinksEditorRoot>
+      <TraceLinksEditorList>
         {links.map((link) => (
           <TraceLinkEditorRow
             key={link.id}
@@ -102,10 +113,10 @@ export function TraceLinksEditor({
           />
         ))}
         {links.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No links yet.</p>
+          <FormMutedText>No links yet.</FormMutedText>
         ) : null}
-      </div>
-      <div className="flex min-w-0 gap-2">
+      </TraceLinksEditorList>
+      <TraceLinksEditorAddRow>
         <Input
           type="url"
           inputMode="url"
@@ -118,23 +129,19 @@ export function TraceLinksEditor({
               submit();
             }
           }}
-          className="rounded-lg"
           disabled={addMutation.isPending}
         />
         <Button
           type="button"
           variant="outline"
-          className="rounded-lg"
           onClick={submit}
           disabled={addMutation.isPending || draftUrl.trim().length === 0}
         >
-          {addMutation.isPending ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden />
-          ) : null}
+          {addMutation.isPending ? <TraceLinksSpinnerIcon /> : null}
           Add
         </Button>
-      </div>
-    </div>
+      </TraceLinksEditorAddRow>
+    </TraceLinksEditorRoot>
   );
 }
 
@@ -152,35 +159,24 @@ function TraceLinkEditorRow({
   const domain = link.url ? linkDisplayDomain(link.url) : "";
   const title = (link.title ?? "").trim() || domain || link.url;
   return (
-    <div className="border-border/60 bg-background/40 flex min-w-0 items-center gap-3 overflow-hidden rounded-lg border px-3 py-2">
+    <TraceLinkRowEditor>
       <LinkFavicon faviconUrl={link.favicon_url} domain={domain} />
-      <div className="min-w-0 flex-1">
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block truncate text-sm font-medium leading-tight hover:underline"
-          title={link.url}
-        >
+      <TraceLinkRowBody>
+        <TraceLinkRowTitleLink href={link.url} title={link.url}>
           {title}
-        </a>
-        {domain ? (
-          <p className="text-muted-foreground truncate text-xs leading-tight">
-            {domain}
-          </p>
-        ) : null}
-      </div>
+        </TraceLinkRowTitleLink>
+        {domain ? <TraceLinkRowDomain>{domain}</TraceLinkRowDomain> : null}
+      </TraceLinkRowBody>
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="text-destructive hover:text-destructive size-8 shrink-0 rounded-lg p-0"
         onClick={onRemove}
         disabled={removing}
         aria-label="Remove link"
       >
-        <Trash2 className="size-4" aria-hidden />
+        <Trash2 aria-hidden />
       </Button>
-    </div>
+    </TraceLinkRowEditor>
   );
 }

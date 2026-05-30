@@ -1,0 +1,220 @@
+.root {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 150ms ease;
+  outline: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.root:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+.root:active:not([aria-haspopup]) {
+  transform: translateY(1px);
+}
+
+.root:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.root[aria-invalid="true"] {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+:global(.dark) .root[aria-invalid="true"] {
+  border-color: color-mix(in oklch, var(--destructive) 50%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+}
+
+.root svg {
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.root svg:not([class*="size-"]) {
+  width: 1rem;
+  height: 1rem;
+}
+
+.variantDefault {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.variantDefault:hover {
+  background: color-mix(in oklch, var(--primary) 80%, transparent);
+}
+
+.variantOutline {
+  border-color: var(--border);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.variantOutline:hover,
+.variantOutline[aria-expanded="true"] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+:global(.dark) .variantOutline {
+  border-color: var(--input);
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+}
+
+:global(.dark) .variantOutline:hover,
+:global(.dark) .variantOutline[aria-expanded="true"] {
+  background: color-mix(in oklch, var(--input) 50%, transparent);
+}
+
+.variantSecondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.variantSecondary:hover,
+.variantSecondary[aria-expanded="true"] {
+  background: color-mix(in oklch, var(--secondary) 80%, transparent);
+}
+
+.variantGhost {
+  background: transparent;
+  color: var(--foreground);
+}
+
+.variantGhost:hover,
+.variantGhost[aria-expanded="true"] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+:global(.dark) .variantGhost:hover,
+:global(.dark) .variantGhost[aria-expanded="true"] {
+  background: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+
+.variantDestructive {
+  background: color-mix(in oklch, var(--destructive) 10%, transparent);
+  color: var(--destructive);
+}
+
+.variantDestructive:hover {
+  background: color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+.variantDestructive:focus-visible {
+  border-color: color-mix(in oklch, var(--destructive) 40%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+:global(.dark) .variantDestructive {
+  background: color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+:global(.dark) .variantDestructive:hover {
+  background: color-mix(in oklch, var(--destructive) 30%, transparent);
+}
+
+.variantLink {
+  background: transparent;
+  color: var(--primary);
+  text-underline-offset: 4px;
+}
+
+.variantLink:hover {
+  text-decoration: underline;
+}
+
+.sizeDefault {
+  height: 2rem;
+  gap: 0.375rem;
+  padding: 0 0.625rem;
+}
+
+.sizeXs {
+  height: 1.5rem;
+  gap: 0.25rem;
+  border-radius: min(var(--radius-md), 10px);
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+}
+
+.sizeXs svg:not([class*="size-"]) {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.sizeSm {
+  height: 1.75rem;
+  gap: 0.25rem;
+  border-radius: min(var(--radius-md), 12px);
+  padding: 0 0.625rem;
+  font-size: 0.8rem;
+}
+
+.sizeSm svg:not([class*="size-"]) {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.sizeLg {
+  height: 2.25rem;
+  gap: 0.375rem;
+  padding: 0 0.625rem;
+}
+
+.sizeIcon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+.sizeIconXs {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border-radius: min(var(--radius-md), 10px);
+}
+
+.sizeIconXs svg:not([class*="size-"]) {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.sizeIconSm {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: min(var(--radius-md), 12px);
+}
+
+.sizeIconLg {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+}
+
+.closeAbsolute {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.sheetCloseAbsolute {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}

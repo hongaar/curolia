@@ -2,6 +2,7 @@ import {
   formatTraceMetadataTimestamp,
   traceWasModifiedAfterCreate,
 } from "@/lib/trace-dates";
+import { TraceMetadataFooter as UiTraceMetadataFooter } from "@curolia/ui/curolia/trace-metadata-footer";
 
 type TraceMetadataFooterProps = {
   createdAt: string;
@@ -19,18 +20,23 @@ export function TraceMetadataFooter({
   const byCreator = creatorDisplayName?.trim();
   const byModifier = modifierDisplayName?.trim();
   const showModified = traceWasModifiedAfterCreate(createdAt, updatedAt);
+
   return (
-    <footer className="text-muted-foreground border-border/60 mt-4 border-t pt-3 text-xs leading-relaxed">
-      <p>
-        Created {formatTraceMetadataTimestamp(createdAt)}
-        {byCreator ? ` by ${byCreator}` : null}
-      </p>
-      {showModified ? (
-        <p className="mt-1">
-          Modified {formatTraceMetadataTimestamp(updatedAt)}
-          {byModifier ? ` by ${byModifier}` : null}
-        </p>
-      ) : null}
-    </footer>
+    <UiTraceMetadataFooter
+      createdLine={
+        <>
+          Created {formatTraceMetadataTimestamp(createdAt)}
+          {byCreator ? ` by ${byCreator}` : null}
+        </>
+      }
+      modifiedLine={
+        showModified ? (
+          <>
+            Modified {formatTraceMetadataTimestamp(updatedAt)}
+            {byModifier ? ` by ${byModifier}` : null}
+          </>
+        ) : undefined
+      }
+    />
   );
 }

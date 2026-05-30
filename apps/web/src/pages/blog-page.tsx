@@ -4,10 +4,6 @@ import { AddTraceFab } from "@/components/traces/add-trace-fab";
 import { EmojiPicker } from "@/components/traces/emoji-picker";
 import { PresetColorPicker } from "@/components/traces/preset-color-picker";
 import { TraceFormDialog } from "@/components/traces/trace-form-dialog";
-import {
-  TracePhotoLightbox,
-  TracePhotoThumb,
-} from "@/components/traces/trace-photo-lightbox";
 import { useBlogTraceListOrder } from "@/hooks/use-blog-trace-list-order";
 import { orderedBlogTraceList } from "@/lib/blog-trace-list-order";
 import { DEFAULT_TRACE_TAG_COLOR } from "@/lib/preset-trace-tag-colors";
@@ -16,18 +12,12 @@ import { formatTraceDateRange } from "@/lib/trace-dates";
 import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
 import { filterTracesByTags, type TraceWithTags } from "@/lib/trace-with-tags";
 import { useJournalTracesPhotosSignedUrls } from "@/lib/use-trace-photos";
-import { cn, contrastingForeground } from "@/lib/utils";
+import { contrastingForeground } from "@curolia/ui";
 import { useJournal } from "@/providers/journal-provider";
 import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
 import type { Tag } from "@/types/database";
-import { Button, buttonVariants } from "@curolia/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@curolia/ui/dialog";
+import { Button } from "@curolia/ui/button";
+import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +29,41 @@ import {
 } from "@curolia/ui/dropdown-menu";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
+import {
+  BlogContent,
+  BlogEmptyPanel,
+  BlogFabSlot,
+  BlogHeader,
+  BlogKicker,
+  BlogLead,
+  BlogPageRoot,
+  BlogPhotoCell,
+  BlogPhotoGrid,
+  BlogPhotoSkeleton,
+  BlogScroll,
+  BlogSortChevron,
+  BlogSortTrigger,
+  BlogTagBadge,
+  BlogTagRow,
+  BlogTitle,
+  BlogTraceActions,
+  BlogTraceDate,
+  BlogTraceDescription,
+  BlogTraceList,
+  BlogTraceTitle,
+  BlogTraceTitleLink,
+} from "@curolia/ui/curolia/blog-ui";
+import { PageMuted } from "@curolia/ui/curolia/page";
+import {
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFormStack,
+  PanelDialogTitle,
+} from "@curolia/ui/curolia/panel-dialog";
+import {
+  TracePhotoLightbox,
+  TracePhotoThumb,
+} from "@curolia/ui/curolia/trace-photo-lightbox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
@@ -231,45 +256,40 @@ export function BlogPage() {
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <div className="pointer-events-none absolute right-4 bottom-6 z-10 sm:right-6">
+    <BlogPageRoot>
+      <BlogFabSlot>
         <AddTraceFab onClick={() => setFormOpen(true)} />
-      </div>
+      </BlogFabSlot>
 
-      <div className="text-foreground h-full overflow-y-auto px-3 pt-[calc(var(--app-toolbar-h)+0.75rem)] pb-20 sm:px-6 sm:pt-[calc(var(--app-toolbar-h)+1rem)] sm:pb-24">
-        <div className="mx-auto max-w-[40rem]">
-          <header className="border-border/40 mb-10 border-b pb-8">
-            <p className="text-muted-foreground font-display text-sm font-normal tracking-wide uppercase">
-              Journal
-            </p>
-            <h1 className="font-display mt-2 text-3xl font-normal tracking-tight sm:text-4xl">
+      <BlogScroll>
+        <BlogContent>
+          <BlogHeader>
+            <BlogKicker>Journal</BlogKicker>
+            <BlogTitle>
               {activeJournal?.name.trim() || journalSlug || "Journal"}
-            </h1>
-            <p className="text-muted-foreground mt-3 max-w-lg text-sm leading-relaxed">
+            </BlogTitle>
+            <BlogLead>
               Traces are listed in{" "}
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  type="button"
-                  className={cn(
-                    "text-foreground decoration-border/60 underline-offset-2",
-                    "hover:text-primary focus-visible:ring-ring inline-flex cursor-pointer items-center gap-1 font-medium underline",
-                    "focus-visible:rounded-sm focus-visible:ring-2 focus-visible:outline-none",
-                  )}
-                  aria-label={
-                    blogListOrder === "chronological"
-                      ? "Trace list order: chronological — change sorting"
-                      : "Trace list order: alphabetical — change sorting"
+                  render={
+                    <BlogSortTrigger
+                      aria-label={
+                        blogListOrder === "chronological"
+                          ? "Trace list order: chronological — change sorting"
+                          : "Trace list order: alphabetical — change sorting"
+                      }
+                    />
                   }
                 >
                   {blogListOrder === "chronological"
                     ? "chronological order"
                     : "alphabetical order"}
-                  <ChevronDown
-                    className="size-3.5 shrink-0 opacity-70"
-                    aria-hidden
-                  />
+                  <BlogSortChevron>
+                    <ChevronDown aria-hidden />
+                  </BlogSortChevron>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[13rem]">
+                <DropdownMenuContent align="start">
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>List order</DropdownMenuLabel>
                     <DropdownMenuRadioGroup
@@ -291,19 +311,21 @@ export function BlogPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               .
-            </p>
-          </header>
+            </BlogLead>
+          </BlogHeader>
 
           {visible.length === 0 ? (
-            <FloatingPanel className="p-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                {traces.length === 0
-                  ? "No traces yet — add one from the toolbar."
-                  : "No traces match the current filters."}
-              </p>
+            <FloatingPanel>
+              <BlogEmptyPanel>
+                <PageMuted>
+                  {traces.length === 0
+                    ? "No traces yet — add one from the toolbar."
+                    : "No traces match the current filters."}
+                </PageMuted>
+              </BlogEmptyPanel>
             </FloatingPanel>
           ) : (
-            <ul className="flex flex-col gap-12 sm:gap-16">
+            <BlogTraceList>
               {orderedVisible.map((t) => {
                 const tagRows = (t.trace_tags ?? [])
                   .map((tt) => tt.tags)
@@ -314,37 +336,27 @@ export function BlogPage() {
                   icon_emoji: string;
                 }[];
                 const tracePhotos = photosByTraceId.get(t.id) ?? [];
+                const detailHref = blogJournalSlug
+                  ? traceDetailHref(blogJournalSlug, t.slug)
+                  : "#";
                 return (
                   <li key={t.id}>
                     <article>
                       {t.date ? (
-                        <time
-                          className="text-muted-foreground font-display text-sm font-normal tracking-wide"
-                          dateTime={t.date}
-                        >
+                        <BlogTraceDate dateTime={t.date}>
                           {formatTraceDateRange(t.date, t.end_date)}
-                        </time>
+                        </BlogTraceDate>
                       ) : null}
-                      <h2
-                        className={`font-display text-2xl font-normal tracking-tight sm:text-[1.75rem] ${t.date ? "mt-2" : ""}`}
-                      >
-                        <Link
-                          to={
-                            blogJournalSlug
-                              ? traceDetailHref(blogJournalSlug, t.slug)
-                              : "#"
-                          }
-                          className="hover:text-primary decoration-border/60 underline-offset-4 transition-colors hover:underline"
-                        >
+                      <BlogTraceTitle spaced={Boolean(t.date)}>
+                        <BlogTraceTitleLink to={detailHref}>
                           {t.title?.trim() || "Untitled trace"}
-                        </Link>
-                      </h2>
+                        </BlogTraceTitleLink>
+                      </BlogTraceTitle>
                       {tagRows.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <BlogTagRow>
                           {tagRows.map((tag) => (
-                            <span
+                            <BlogTagBadge
                               key={tag.id}
-                              className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium"
                               style={{
                                 backgroundColor: tag.color,
                                 color: contrastingForeground(tag.color),
@@ -352,27 +364,24 @@ export function BlogPage() {
                             >
                               <span>{tag.icon_emoji}</span>
                               {tag.name}
-                            </span>
+                            </BlogTagBadge>
                           ))}
-                        </div>
+                        </BlogTagRow>
                       ) : null}
                       {t.description?.trim() ? (
-                        <p className="text-muted-foreground mt-4 text-base leading-relaxed">
+                        <BlogTraceDescription>
                           {t.description.trim()}
-                        </p>
+                        </BlogTraceDescription>
                       ) : null}
                       {tracePhotos.length > 0 ? (
-                        <ul className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        <BlogPhotoGrid>
                           {tracePhotos.map((p) => {
                             const url = signedUrlByPhotoId[p.id];
                             return url ? (
-                              <li
-                                key={p.id}
-                                className="overflow-hidden rounded-xl border"
-                              >
+                              <BlogPhotoCell key={p.id}>
                                 <TracePhotoThumb
                                   url={url}
-                                  className="aspect-square size-full"
+                                  size="square"
                                   onOpen={() =>
                                     setPhotoLightbox({
                                       traceId: t.id,
@@ -380,39 +389,36 @@ export function BlogPage() {
                                     })
                                   }
                                 />
-                              </li>
+                              </BlogPhotoCell>
                             ) : (
-                              <li key={p.id}>
-                                <div className="bg-muted aspect-square animate-pulse rounded-xl border" />
-                              </li>
+                              <BlogPhotoSkeleton key={p.id} />
                             );
                           })}
-                        </ul>
+                        </BlogPhotoGrid>
                       ) : null}
-                      <div className="mt-5">
-                        <Link
-                          to={
-                            blogJournalSlug
-                              ? traceDetailHref(blogJournalSlug, t.slug)
-                              : "#"
+                      <BlogTraceActions>
+                        <Button
+                          variant="secondary"
+                          render={
+                            <Link
+                              to={detailHref}
+                              onClick={(e) => {
+                                if (detailHref === "#") e.preventDefault();
+                              }}
+                            />
                           }
-                          className={buttonVariants({
-                            variant: "secondary",
-                            size: "default",
-                            className: "rounded-xl",
-                          })}
                         >
                           View trace
-                        </Link>
-                      </div>
+                        </Button>
+                      </BlogTraceActions>
                     </article>
                   </li>
                 );
               })}
-            </ul>
+            </BlogTraceList>
           )}
-        </div>
-      </div>
+        </BlogContent>
+      </BlogScroll>
 
       <TracePhotoLightbox
         open={photoLightbox !== null}
@@ -441,21 +447,21 @@ export function BlogPage() {
           if (!open) setTagEditTarget(null);
         }}
       >
-        <DialogContent className="border-[var(--panel-border)] bg-[var(--panel-bg)] backdrop-blur-xl sm:max-w-md">
+        <PanelDialogContent>
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-normal">
+            <PanelDialogTitle>
               {tagEditTarget ? "Edit tag" : "New tag"}
-            </DialogTitle>
+            </PanelDialogTitle>
           </DialogHeader>
-          <div className="grid gap-3 py-2">
-            <div className="space-y-2">
+          <PanelDialogFormStack>
+            <PanelDialogField>
               <Label htmlFor="blog-tag-name">Name</Label>
               <Input
                 id="blog-tag-name"
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
               />
-            </div>
+            </PanelDialogField>
             <PresetColorPicker
               id="blog-tag-color"
               label="Color"
@@ -468,7 +474,7 @@ export function BlogPage() {
               value={newTagEmoji}
               onChange={setNewTagEmoji}
             />
-          </div>
+          </PanelDialogFormStack>
           <DialogFooter>
             <Button
               variant="outline"
@@ -483,8 +489,8 @@ export function BlogPage() {
               {tagEditTarget ? "Save tag" : "Create tag"}
             </Button>
           </DialogFooter>
-        </DialogContent>
+        </PanelDialogContent>
       </Dialog>
-    </div>
+    </BlogPageRoot>
   );
 }

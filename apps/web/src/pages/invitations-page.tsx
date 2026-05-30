@@ -5,9 +5,17 @@ import { supabase } from "@/lib/supabase";
 import { journalViewHref } from "@/lib/app-paths";
 import { useAuth } from "@/providers/auth-provider";
 import { useJournal } from "@/providers/journal-provider";
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { Button } from "@curolia/ui/button";
+import {
+  AppPageLayout,
+  PageDisplayTitle,
+  PageErrorTextSpaced,
+  PageInlineActions,
+  PageLead,
+  PageMuted,
+  PagePanel,
+} from "@curolia/ui/curolia/page";
 
 export function InvitationsPage() {
   const [params] = useSearchParams();
@@ -91,55 +99,45 @@ export function InvitationsPage() {
 
   if (!token) {
     return (
-      <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-        <div className="mx-auto max-w-lg space-y-4">
-          <PageBackButton />
-          <FloatingPanel className="p-6">
-            <p className="text-muted-foreground text-sm">
-              Missing invitation link. Open the link from your email or
-              notification.
-            </p>
-          </FloatingPanel>
-        </div>
-      </div>
+      <AppPageLayout>
+        <PageBackButton />
+        <PagePanel>
+          <PageMuted>
+            Missing invitation link. Open the link from your email or
+            notification.
+          </PageMuted>
+        </PagePanel>
+      </AppPageLayout>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto px-3 pt-[4.75rem] pb-10 sm:px-6 sm:pt-[5.25rem]">
-      <div className="mx-auto max-w-lg space-y-4">
-        <PageBackButton />
-        <FloatingPanel className="p-6">
-          <h1 className="font-display text-foreground text-2xl font-normal tracking-tight">
-            Curolia journal invitation
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-            {ready
-              ? "You can accept to join this journal or decline."
-              : "Loading…"}
-          </p>
-          {error ? (
-            <p className="text-destructive mt-3 text-sm">{error}</p>
-          ) : null}
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Button
-              className="rounded-xl"
-              disabled={!ready || busy !== null}
-              onClick={() => void accept()}
-            >
-              {busy === "accept" ? "Accepting…" : "Accept"}
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-xl"
-              disabled={!ready || busy !== null}
-              onClick={() => void decline()}
-            >
-              {busy === "decline" ? "Declining…" : "Decline"}
-            </Button>
-          </div>
-        </FloatingPanel>
-      </div>
-    </div>
+    <AppPageLayout>
+      <PageBackButton />
+      <PagePanel>
+        <PageDisplayTitle>Curolia journal invitation</PageDisplayTitle>
+        <PageLead>
+          {ready
+            ? "You can accept to join this journal or decline."
+            : "Loading…"}
+        </PageLead>
+        {error ? <PageErrorTextSpaced>{error}</PageErrorTextSpaced> : null}
+        <PageInlineActions>
+          <Button
+            disabled={!ready || busy !== null}
+            onClick={() => void accept()}
+          >
+            {busy === "accept" ? "Accepting…" : "Accept"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!ready || busy !== null}
+            onClick={() => void decline()}
+          >
+            {busy === "decline" ? "Declining…" : "Decline"}
+          </Button>
+        </PageInlineActions>
+      </PagePanel>
+    </AppPageLayout>
   );
 }
