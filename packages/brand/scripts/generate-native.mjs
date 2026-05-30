@@ -1,6 +1,6 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const brandPkgRoot = path.resolve(
@@ -13,16 +13,15 @@ const mobileRoot = path.join(repoRoot, "apps", "mobile");
 const configPath = path.join(brandPkgRoot, "app-assets.config.json");
 const config = JSON.parse(await fs.readFile(configPath, "utf8"));
 
-const logoSourcePath = path.join(brandPkgRoot, "icon.svg");
-const logoSvg = await fs.readFile(logoSourcePath, "utf8");
+const logoSourcePath = path.join(brandPkgRoot, "icon.png");
 
 const assetInputDirRel = ".asset-input";
 const assetInputDir = path.join(mobileRoot, assetInputDirRel);
 await fs.rm(assetInputDir, { recursive: true, force: true });
 await fs.mkdir(assetInputDir, { recursive: true });
 
-await fs.writeFile(path.join(assetInputDir, "icon.svg"), logoSvg);
-await fs.writeFile(path.join(assetInputDir, "icon-dark.svg"), logoSvg);
+await fs.copyFile(logoSourcePath, path.join(assetInputDir, "icon.png"));
+await fs.copyFile(logoSourcePath, path.join(assetInputDir, "icon-dark.png"));
 
 const capacitorAssetsBin = path.join(
   repoRoot,

@@ -32,10 +32,10 @@ export function CuroliaLoadingSplash({
       <div className={styles.logoWrap}>
         {showLogo ? (
           <img
-            src="/favicon.svg"
+            src="/favicon.png"
             alt=""
             width={96}
-            height={92}
+            height={96}
             decoding="async"
             className={cn(styles.logo, styles.logoMotion, "splashPulse")}
             aria-hidden

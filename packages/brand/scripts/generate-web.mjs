@@ -11,17 +11,20 @@ const repoRoot = path.resolve(brandPkgRoot, "..", "..");
 const configPath = path.join(brandPkgRoot, "app-assets.config.json");
 const config = JSON.parse(await fs.readFile(configPath, "utf8"));
 
-const logoSourcePath = path.join(brandPkgRoot, "icon.svg");
-const logoSvg = await fs.readFile(logoSourcePath, "utf8");
+const logoSourcePath = path.join(brandPkgRoot, "icon.png");
 
 const webPublicDir = path.join(repoRoot, "apps", "web", "public");
 await fs.mkdir(webPublicDir, { recursive: true });
 
-const faviconOutputPath = path.join(webPublicDir, "favicon.svg");
-const iconsOutputPath = path.join(webPublicDir, "icons.svg");
+const faviconOutputPath = path.join(webPublicDir, "favicon.png");
+const iconsOutputPath = path.join(webPublicDir, "icon.png");
 
-await fs.writeFile(faviconOutputPath, logoSvg);
-await fs.writeFile(iconsOutputPath, logoSvg);
+await fs.copyFile(logoSourcePath, faviconOutputPath);
+await fs.copyFile(logoSourcePath, iconsOutputPath);
+
+for (const legacyAsset of ["favicon.svg", "icons.svg"]) {
+  await fs.rm(path.join(webPublicDir, legacyAsset), { force: true });
+}
 
 const manifestOutputPath = path.join(webPublicDir, "site.webmanifest");
 
@@ -36,15 +39,15 @@ const manifest = {
   start_url: "/",
   icons: [
     {
-      src: "/icons.svg",
-      sizes: "any",
-      type: "image/svg+xml",
+      src: "/icon.png",
+      sizes: "714x714",
+      type: "image/png",
       purpose: "any",
     },
     {
-      src: "/icons.svg",
-      sizes: "any",
-      type: "image/svg+xml",
+      src: "/icon.png",
+      sizes: "714x714",
+      type: "image/png",
       purpose: "maskable",
     },
   ],
@@ -71,4 +74,4 @@ const nextIndexHtml = indexHtml.replace(
 
 await fs.writeFile(indexHtmlPath, nextIndexHtml);
 
-console.log("Generated web assets (favicon/icons/manifest/theme-color).");
+console.log("Generated web assets (favicon/icon/manifest/theme-color).");

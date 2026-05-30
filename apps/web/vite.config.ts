@@ -1,8 +1,8 @@
+import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
-import react from "@vitejs/plugin-react";
-import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const repoRoot = path.resolve(__dirname, "../..");
 const appAssetsConfig = JSON.parse(
@@ -17,7 +17,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg", "icons.svg"],
+      includeAssets: ["favicon.png", "icon.png"],
       manifest: {
         name: appAssetsConfig.web.name,
         short_name: appAssetsConfig.web.shortName,
@@ -29,15 +29,15 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "/icons.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/icon.png",
+            sizes: "714x714",
+            type: "image/png",
             purpose: "any",
           },
           {
-            src: "/icons.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/icon.png",
+            sizes: "714x714",
+            type: "image/png",
             purpose: "maskable",
           },
         ],

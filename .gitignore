@@ -26,9 +26,9 @@ apps/mobile/android/app/src/main/res/**/splash.png
 apps/mobile/android/app/src/main/res/mipmap-*/*.png
 apps/mobile/ios/App/App/Assets.xcassets/**/*.png
 
-# Generated web branding (from @curolia/brand, source: packages/brand/icon.svg)
-apps/web/public/favicon.svg
-apps/web/public/icons.svg
+# Generated web branding (from @curolia/brand, source: packages/brand/icon.png)
+apps/web/public/favicon.png
+apps/web/public/icon.png
 apps/web/public/site.webmanifest
 
 # Supabase CLI (local) — canonical project lives in packages/supabase/supabase/
