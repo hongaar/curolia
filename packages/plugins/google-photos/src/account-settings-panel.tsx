@@ -1,15 +1,14 @@
 import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button } from "@curolia/ui/button";
 import {
   PluginAccountBody,
+  PluginAccountButton,
   PluginAccountHeading,
   PluginAccountMuted,
   PluginAccountName,
   PluginAccountPanel,
   PluginAccountRow,
-  pluginAccountButtonClass,
 } from "@curolia/ui/plugin-account";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export function GooglePhotosAccountSettingsPanel(
@@ -88,31 +87,22 @@ export function GooglePhotosAccountSettingsPanel(
               {accountLabel ?? "Google account"}
             </PluginAccountName>
           </PluginAccountBody>
-          <Button
+          <PluginAccountButton
             type="button"
-            variant="outline"
-            size="sm"
-            className={pluginAccountButtonClass}
             disabled={unlinkMut.isPending}
             onClick={() => unlinkMut.mutate()}
           >
             Unlink Google Photos
-          </Button>
+          </PluginAccountButton>
         </PluginAccountRow>
       ) : (
         <PluginAccountRow gap="sm">
           <PluginAccountMuted>
             Connect your library to search and import photos on traces.
           </PluginAccountMuted>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={pluginAccountButtonClass}
-            onClick={() => void onLink()}
-          >
+          <PluginAccountButton type="button" onClick={() => void onLink()}>
             Link Google Photos
-          </Button>
+          </PluginAccountButton>
         </PluginAccountRow>
       )}
     </PluginAccountPanel>

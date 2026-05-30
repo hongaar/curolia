@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Music } from "lucide-react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
-import { Loader2, Music } from "lucide-react";
-import { Button } from "../button";
 import { StoryFrame, storyFrameStyles } from "../../storybook/story-frame";
+import { Button } from "../button";
 import { PluginIconFrame } from "../plugin-icon-frame";
 import {
   PluginTraceCard,
@@ -12,7 +12,6 @@ import {
   PluginTraceLink,
   PluginTraceLinkMeta,
   PluginTraceList,
-  PluginTraceMuted,
   PluginTraceMutedStack,
   PluginTraceMutedXs,
   PluginTraceSpinner,
@@ -80,12 +79,7 @@ export const Loading: Story = {
           />
         </PluginTraceHeader>
         <PluginTraceContent>
-          <PluginTraceSpinner>
-            <Loader2
-              className={`${storyFrameStyles.iconSm} spin`}
-              aria-hidden
-            />
-          </PluginTraceSpinner>
+          <PluginTraceSpinner />
           <PluginTraceMutedXs>Loading suggestions…</PluginTraceMutedXs>
         </PluginTraceContent>
       </PluginTraceCard>

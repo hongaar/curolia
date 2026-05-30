@@ -1,7 +1,9 @@
+import { Loader2 } from "lucide-react";
 import type * as React from "react";
 
-import { DialogContent, DialogTitle } from "../dialog";
 import { cn } from "../../lib/utils";
+import { Button } from "../button";
+import { DialogContent, DialogTitle } from "../dialog";
 import styles from "./panel-dialog.module.css";
 
 export function PanelDialogContent({
@@ -57,6 +59,36 @@ export function PanelDialogFooterRow({
   return <div className={styles.footerRow}>{children}</div>;
 }
 
-export const panelDialogRoundedButtonClass = styles.roundedButton;
-export const panelDialogImportButtonClass = styles.importButton;
-export const panelDialogIconSmClass = styles.iconSm;
+export function PanelDialogRoundedButton({
+  size = "sm",
+  className,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Button
+      size={size}
+      className={cn(styles.roundedButton, className)}
+      {...props}
+    />
+  );
+}
+
+export function PanelDialogImportButton({
+  variant = "outline",
+  size = "sm",
+  className,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      className={cn(styles.importButton, className)}
+      {...props}
+    />
+  );
+}
+
+export function PanelDialogSpinner() {
+  return <Loader2 className={cn(styles.iconSm, "spin")} aria-hidden />;
+}

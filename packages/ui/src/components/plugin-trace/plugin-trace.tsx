@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import type * as React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
@@ -40,12 +41,12 @@ export function PluginTraceTitleRow({
   );
 }
 
-export function PluginTraceSpinner({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <span className={styles.spinner}>{children}</span>;
+export function PluginTraceSpinner() {
+  return (
+    <span className={styles.spinner} aria-hidden>
+      <Loader2 className={styles.spinnerIcon} />
+    </span>
+  );
 }
 
 export function PluginTraceContent({

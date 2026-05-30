@@ -1,5 +1,4 @@
 import type { TracePhotoImportSlotProps } from "@curolia/plugin-contract";
-import { Button } from "@curolia/ui/button";
 import {
   Dialog,
   DialogDescription,
@@ -9,11 +8,11 @@ import {
 import {
   PanelDialogContent,
   PanelDialogFooterRow,
+  PanelDialogImportButton,
   PanelDialogMonoBox,
+  PanelDialogRoundedButton,
+  PanelDialogSpinner,
   PanelDialogTitle,
-  panelDialogIconSmClass,
-  panelDialogImportButtonClass,
-  panelDialogRoundedButtonClass,
 } from "@curolia/ui/panel-dialog";
 import {
   keepPreviousData,
@@ -21,7 +20,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -197,40 +195,33 @@ export function GooglePhotosTracePhotoImportSlot({
           <PanelDialogMonoBox>{searchPasteLine}</PanelDialogMonoBox>
           <DialogFooter>
             <PanelDialogFooterRow>
-              <Button
+              <PanelDialogRoundedButton
                 type="button"
                 variant="outline"
-                size="sm"
-                className={panelDialogRoundedButtonClass}
                 onClick={() => openPickerOnly()}
               >
                 Open only
-              </Button>
-              <Button
+              </PanelDialogRoundedButton>
+              <PanelDialogRoundedButton
                 type="button"
-                size="sm"
-                className={panelDialogRoundedButtonClass}
                 onClick={() => void copySearchPasteAndStartPicker()}
               >
                 Copy & open Google Photos
-              </Button>
+              </PanelDialogRoundedButton>
             </PanelDialogFooterRow>
           </DialogFooter>
         </PanelDialogContent>
       </Dialog>
-      <Button
+      <PanelDialogImportButton
         type="button"
-        variant="outline"
-        size="sm"
-        className={panelDialogImportButtonClass}
         disabled={busy}
         onClick={() => setPickPrepOpen(true)}
         aria-label={label}
       >
-        {busy ? <Loader2 className={`${panelDialogIconSmClass} spin`} /> : null}
+        {busy ? <PanelDialogSpinner /> : null}
         <GooglePhotosIcon size={4} />
         <span>{label}</span>
-      </Button>
+      </PanelDialogImportButton>
     </>
   );
 }
