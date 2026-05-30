@@ -1,15 +1,14 @@
 import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button } from "@curolia/ui/button";
 import {
   PluginAccountBody,
+  PluginAccountButton,
   PluginAccountHeading,
   PluginAccountMuted,
   PluginAccountName,
   PluginAccountPanel,
   PluginAccountRow,
-  pluginAccountButtonClass,
 } from "@curolia/ui/plugin-account";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
@@ -80,16 +79,13 @@ export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
             Linked as{" "}
             <PluginAccountName>{accountLabel ?? "Spotify"}</PluginAccountName>
           </PluginAccountBody>
-          <Button
+          <PluginAccountButton
             type="button"
-            variant="outline"
-            size="sm"
-            className={pluginAccountButtonClass}
             disabled={unlinkMut.isPending}
             onClick={() => unlinkMut.mutate()}
           >
             Unlink Spotify
-          </Button>
+          </PluginAccountButton>
         </PluginAccountRow>
       ) : (
         <PluginAccountRow gap="sm">
@@ -97,15 +93,9 @@ export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
             Connect Spotify to add top tracks you listened to during each
             trace&apos;s dates (as links).
           </PluginAccountMuted>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={pluginAccountButtonClass}
-            onClick={() => void onLink()}
-          >
+          <PluginAccountButton type="button" onClick={() => void onLink()}>
             Link Spotify
-          </Button>
+          </PluginAccountButton>
         </PluginAccountRow>
       )}
     </PluginAccountPanel>

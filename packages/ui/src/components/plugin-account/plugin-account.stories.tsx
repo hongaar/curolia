@@ -1,22 +1,24 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
-import { Button } from "../button";
 import { StoryFrame } from "../../storybook/story-frame";
 import {
   PluginAccountBody,
+  PluginAccountButton,
   PluginAccountHeading,
+  PluginAccountInput,
+  PluginAccountInputDescription,
+  PluginAccountInputRow,
   PluginAccountMuted,
   PluginAccountName,
   PluginAccountPanel,
   PluginAccountRow,
-  pluginAccountButtonClass,
 } from "./plugin-account";
 
 const meta = {
   title: "Components/Plugin Account",
   ...componentStoryMeta(
     `OAuth account panel layout for plugin settings.`,
-    `Wrap plugin-specific copy in \`PluginAccountPanel\`. Use \`pluginAccountButtonClass\` on outline buttons.`,
+    `Wrap plugin-specific copy in \`PluginAccountPanel\`. Use \`PluginAccountButton\` for actions.`,
   ),
   component: PluginAccountPanel,
 } satisfies Meta;
@@ -34,14 +36,7 @@ export const Default: Story = {
           <PluginAccountBody>
             Signed in as <PluginAccountName>demo_user</PluginAccountName>
           </PluginAccountBody>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={pluginAccountButtonClass}
-          >
-            Disconnect
-          </Button>
+          <PluginAccountButton type="button">Disconnect</PluginAccountButton>
         </PluginAccountRow>
       </PluginAccountPanel>
     </StoryFrame>
@@ -59,15 +54,33 @@ export const Unlinked: Story = {
             Connect Spotify to add top tracks you listened to during each
             trace&apos;s dates (as links).
           </PluginAccountMuted>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={pluginAccountButtonClass}
-          >
-            Link Spotify
-          </Button>
+          <PluginAccountButton type="button">Link Spotify</PluginAccountButton>
         </PluginAccountRow>
+      </PluginAccountPanel>
+    </StoryFrame>
+  ),
+};
+
+export const UsernameField: Story = {
+  parameters: storyDocs("Manual username entry (e.g. Last.fm)."),
+  render: () => (
+    <StoryFrame width="md">
+      <PluginAccountPanel>
+        <PluginAccountHeading>Account</PluginAccountHeading>
+        <PluginAccountInputDescription>
+          <PluginAccountMuted>
+            Enter your public Last.fm username. Scrobbles are read from
+            Last.fm&apos;s API.
+          </PluginAccountMuted>
+        </PluginAccountInputDescription>
+        <PluginAccountInputRow>
+          <PluginAccountInput
+            type="text"
+            autoComplete="off"
+            placeholder="Last.fm username"
+          />
+          <PluginAccountButton type="button">Save</PluginAccountButton>
+        </PluginAccountInputRow>
       </PluginAccountPanel>
     </StoryFrame>
   ),

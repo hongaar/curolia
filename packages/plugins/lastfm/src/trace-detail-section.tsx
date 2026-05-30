@@ -1,12 +1,5 @@
 import type { TraceContextProps } from "@curolia/plugin-contract";
 import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { Loader2, Music } from "lucide-react";
-import { useEffect, useMemo } from "react";
-import {
   PluginTraceCard,
   PluginTraceContent,
   PluginTraceError,
@@ -21,17 +14,24 @@ import {
   PluginTraceTitleRow,
 } from "@curolia/ui/plugin-trace";
 import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { Music } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import {
   LASTFM_SYNC_STALE_TIME_MS,
   LASTFM_TOP_TRACKS_LIMIT,
 } from "./constants";
 import { LastfmIcon } from "./icon";
+import { lastfmSyncTraceListening } from "./lastfm-edge";
+import { parseLastfmTracePayload } from "./lastfm-trace-data";
 import { lastfmPluginMeta } from "./plugin-meta";
 import {
   lastfmTraceSyncQueryKey,
   pluginEntityDataRowQueryKey,
 } from "./query-keys";
-import { lastfmSyncTraceListening } from "./lastfm-edge";
-import { parseLastfmTracePayload } from "./lastfm-trace-data";
 
 function hasLastfmUsername(config: unknown): boolean {
   if (!config || typeof config !== "object") return false;
@@ -144,11 +144,7 @@ export function LastfmTraceDetailSection({
     <PluginTraceCard>
       <PluginTraceHeader between>
         <PluginTraceTitleRow icon={<LastfmIcon />} title="Last.fm" />
-        {busy ? (
-          <PluginTraceSpinner>
-            <Loader2 className="spin" />
-          </PluginTraceSpinner>
-        ) : null}
+        {busy ? <PluginTraceSpinner /> : null}
       </PluginTraceHeader>
       <PluginTraceContent>
         {syncFailed ? (

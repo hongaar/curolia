@@ -1,16 +1,14 @@
 import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
-import { useMutation } from "@tanstack/react-query";
-import { Button } from "@curolia/ui/button";
-import { Input } from "@curolia/ui/input";
 import {
+  PluginAccountButton,
   PluginAccountHeading,
+  PluginAccountInput,
+  PluginAccountInputDescription,
   PluginAccountInputRow,
   PluginAccountMuted,
   PluginAccountPanel,
-  pluginAccountButtonClass,
-  pluginAccountInputClass,
-  pluginAccountInputDescriptionClass,
 } from "@curolia/ui/plugin-account";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -88,33 +86,29 @@ export function LastfmAccountSettingsPanel(props: PluginAccountPanelProps) {
   return (
     <PluginAccountPanel>
       <PluginAccountHeading>Account</PluginAccountHeading>
-      <div className={pluginAccountInputDescriptionClass}>
+      <PluginAccountInputDescription>
         <PluginAccountMuted>
           Enter your public Last.fm username. Scrobbles are read from
           Last.fm&apos;s API (full history for the trace dates, subject to API
           limits).
         </PluginAccountMuted>
-      </div>
+      </PluginAccountInputDescription>
       <PluginAccountInputRow>
-        <Input
+        <PluginAccountInput
           id={`lastfm-user-${pluginTypeId}`}
           type="text"
           autoComplete="off"
           placeholder="Last.fm username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className={pluginAccountInputClass}
         />
-        <Button
+        <PluginAccountButton
           type="button"
-          variant="outline"
-          size="sm"
-          className={pluginAccountButtonClass}
           disabled={saveMut.isPending}
           onClick={() => saveMut.mutate()}
         >
           Save
-        </Button>
+        </PluginAccountButton>
       </PluginAccountInputRow>
     </PluginAccountPanel>
   );
