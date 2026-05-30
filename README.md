@@ -44,7 +44,7 @@ For iOS development, install Xcode + CocoaPods. For Android, install Android Stu
 
 ### Mobile CI/CD offload
 
-Native builds are integrated into `.github/workflows/build-and-deploy.yml`:
+Native builds are integrated into `.github/workflows/test.yml`:
 
 - `android` job (Linux): `gradlew` under `apps/mobile/android`
 - `ios` job (macOS): simulator `xcodebuild` under `apps/mobile/ios/App` (no signing)
@@ -165,12 +165,12 @@ Link the CLI from `apps/web` (creates `apps/web/.vercel/`) if you deploy locally
 
 ### Production: Supabase (GitHub Actions) + web (Vercel Git)
 
-Production web deploy is orchestrated by GitHub Actions (`.github/workflows/build-and-deploy.yml`) from **`apps/web`** using the `vercel` npm scripts (`vercel pull` / `vercel build` / `vercel deploy --prebuilt`).
-Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEnabled: false`) so deployments happen only through the CI/CD workflow.
+Production web deploy is orchestrated by GitHub Actions (`.github/workflows/deploy.yml`) from **`apps/web`** using the `vercel` npm scripts (`vercel pull` / `vercel build` / `vercel deploy --prebuilt`).
+Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEnabled: false`) so deployments happen only through the deploy workflow.
 
-The [`.github/workflows/build-and-deploy.yml`](.github/workflows/build-and-deploy.yml) workflow also runs, after CI: **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy --use-api`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
+The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow runs after [`.github/workflows/test.yml`](.github/workflows/test.yml) succeeds on a push to `main`. It runs **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy --use-api`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
 
-`supabase` deploy runs before the `vercel` job in CI/CD so database/functions are updated before the production web deployment.
+`supabase` deploy runs before the `vercel` job so database/functions are updated before the production web deployment.
 
 GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. The database password is the Supabase project **Database** password (Settings → Database).
 
