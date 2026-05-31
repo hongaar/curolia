@@ -53,6 +53,51 @@ Both jobs depend on the main `ci` job, then run **`npx turbo run sync --filter=@
 
 **GitHub Actions APK/IPA:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are injected per job (see workflow `ci`, `android`, `ios`). They must point at your **hosted** Supabase project (not `127.0.0.1`). Those jobs use **`environment: production`** so **GitHub environment secrets** work; a workflow-wide `env` block **cannot** read environment-only secrets. If the `production` environment limits which branches may deploy, pull-request runs might not see those secrets — use repository secrets for PR CI, relax the rule, or add a separate environment for builds.
 
+### Google Play (automated beta / internal testing)
+
+After [`.github/workflows/test.yml`](.github/workflows/test.yml) passes on a push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds a signed **Android App Bundle** and publishes it to Google Play. By default the track is **`internal`** (Play Console → **Testing → Internal testing**). Set repository variable **`PLAY_STORE_TRACK`** to `alpha`, `beta`, or `production` to change the target.
+
+The job runs after Supabase deploy (alongside Vercel). Each deploy uses **`versionCode = github.run_number`** (plus optional **`ANDROID_VERSION_CODE_OFFSET`** if you already shipped higher version codes manually). **`versionName`** is `1.0.<run_number>`.
+
+#### One-time Play Console setup
+
+1. Create the app in [Google Play Console](https://play.google.com/console) with package name **`com.curolia.app`** and complete the initial store listing / content rating / data safety requirements so the app can accept uploads.
+2. In [Google Cloud Console](https://console.cloud.google.com/), enable **Google Play Android Developer API** for the project linked to Play Console.
+3. Create a **service account**, download its JSON key, and in Play Console → **Users and permissions** → **Invite new users**, grant the service account **Release to testing tracks** (and **Release apps to production** only if you later point CI at production).
+4. Generate an upload keystore (keep it safe — you cannot replace it after the first Play upload):
+
+   ```bash
+   keytool -genkeypair -v \
+     -keystore curolia-release.keystore \
+     -alias curolia \
+     -keyalg RSA -keysize 2048 -validity 10000
+   base64 -i curolia-release.keystore | pbcopy   # paste into GitHub secret
+   ```
+
+5. Optional: for FCM push in release builds, base64-encode your Firebase **`google-services.json`** (`base64 -i google-services.json | pbcopy`).
+
+#### GitHub `production` environment secrets
+
+Add these alongside the existing deploy secrets:
+
+| Secret                             | Purpose                                               |
+| ---------------------------------- | ----------------------------------------------------- |
+| `ANDROID_KEYSTORE_BASE64`          | Base64-encoded upload keystore (`.jks` / `.keystore`) |
+| `ANDROID_KEYSTORE_PASSWORD`        | Keystore password                                     |
+| `ANDROID_KEY_ALIAS`                | Key alias (e.g. `curolia`)                            |
+| `ANDROID_KEY_PASSWORD`             | Key password (often same as keystore password)        |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Full JSON key for the Play Console service account    |
+| `GOOGLE_SERVICES_JSON_BASE64`      | _(optional)_ Firebase config for push notifications   |
+
+Optional repository **variables**:
+
+| Variable                      | Default    | Purpose                                                                            |
+| ----------------------------- | ---------- | ---------------------------------------------------------------------------------- |
+| `PLAY_STORE_TRACK`            | `internal` | Play track: `internal`, `alpha`, `beta`, or `production`                           |
+| `ANDROID_VERSION_CODE_OFFSET` | _(none)_   | Added to `github.run_number` when manual uploads already used higher version codes |
+
+Promote a tested build to production from Play Console, or set `PLAY_STORE_TRACK=production` when you are ready for CI to ship production releases.
+
 ## Supabase (local, recommended for now)
 
 Prerequisites: [Docker](https://docs.docker.com/get-docker/) (or another engine the [Supabase CLI](https://supabase.com/docs/guides/cli/getting-started) can use).
@@ -170,7 +215,7 @@ Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEn
 
 The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow runs after [`.github/workflows/test.yml`](.github/workflows/test.yml) succeeds on a push to `main`. It runs **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy --use-api`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
 
-`supabase` deploy runs before the `vercel` job so database/functions are updated before the production web deployment.
+`supabase` deploy runs before the `vercel` and **`play-store`** jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile).
 
 GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. The database password is the Supabase project **Database** password (Settings → Database).
 
@@ -189,6 +234,13 @@ Create a GitHub Actions environment named `production` and add these secrets bef
 - Frontend runtime/build env (mirrored from Vercel Production env):
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+- Google Play deploy (see **Google Play** under Hybrid Mobile):
+  - `ANDROID_KEYSTORE_BASE64`
+  - `ANDROID_KEYSTORE_PASSWORD`
+  - `ANDROID_KEY_ALIAS`
+  - `ANDROID_KEY_PASSWORD`
+  - `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+  - `GOOGLE_SERVICES_JSON_BASE64` _(optional, for FCM push in release builds)_
 
 Optional hardening:
 
