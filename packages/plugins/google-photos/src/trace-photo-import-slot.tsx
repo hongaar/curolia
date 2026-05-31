@@ -32,6 +32,39 @@ import { googlePhotosLibrarySearchPasteLine } from "./google-photos-search-paste
 import { GooglePhotosIcon } from "./icon";
 import { googlePhotosPluginMeta } from "./plugin-meta";
 
+function toastGooglePhotosImportResult(result: {
+  importedIds: string[];
+  skippedAlreadyOnTrace: string[];
+  downloadFailed: string[];
+}) {
+  const imported = result.importedIds.length;
+  const already = result.skippedAlreadyOnTrace.length;
+  const denied = result.downloadFailed.length;
+
+  if (imported > 0) {
+    toast.success(
+      imported === 1 ? "Imported 1 photo." : `Imported ${imported} photos.`,
+    );
+  }
+  if (already > 0) {
+    toast.message(
+      already === 1
+        ? "That photo is already on this trace."
+        : `${already} photos are already on this trace.`,
+    );
+  }
+  if (denied > 0) {
+    toast.error(
+      denied === 1
+        ? "Google denied download for 1 photo."
+        : `Google denied download for ${denied} photos.`,
+    );
+  }
+  if (imported === 0 && already === 0 && denied === 0) {
+    toast.message("Nothing imported.");
+  }
+}
+
 export function GooglePhotosTracePhotoImportSlot({
   supabase,
   userId,
@@ -107,39 +140,23 @@ export function GooglePhotosTracePhotoImportSlot({
       if (ids.length === 0) {
         return { kind: "none_selected" as const };
       }
-      const importedIds = await googlePhotosImport(
+      const importResult = await googlePhotosImport(
         supabase,
         traceId,
         ids,
         sessionId,
       );
-      return { kind: "imported" as const, importedIds };
+      return { kind: "imported" as const, ...importResult };
     },
-    onSuccess: async (result) => {
+    onSuccess: (result) => {
       if (!result || result.kind === "none_selected") {
         toast.message("No photos selected.");
         return;
       }
-      const { importedIds } = result;
-      if (importedIds.length === 0) {
-        toast.message(
-          "Nothing imported. If files already exist or Google denied download, choose different items.",
-        );
-      } else {
-        toast.success(
-          importedIds.length === 1
-            ? "Imported 1 photo."
-            : `Imported ${importedIds.length} photos.`,
-        );
-      }
-      await qc.invalidateQueries({ queryKey: ["photos", traceId] });
-      await qc.invalidateQueries({ queryKey: ["photo-urls", traceId] });
-      await qc.invalidateQueries({
-        queryKey: ["journal-trace-photos", journalId],
-      });
-      await qc.refetchQueries({ queryKey: ["photos", traceId] });
-      await qc.refetchQueries({ queryKey: ["photo-urls", traceId] });
-      await qc.refetchQueries({
+      toastGooglePhotosImportResult(result);
+      void qc.invalidateQueries({ queryKey: ["photos", traceId] });
+      void qc.invalidateQueries({ queryKey: ["photo-urls", traceId] });
+      void qc.invalidateQueries({
         queryKey: ["journal-trace-photos", journalId],
       });
     },

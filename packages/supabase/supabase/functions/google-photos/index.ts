@@ -305,8 +305,12 @@ async function listPickerMediaPage(
   const json = (await res.json()) as {
     mediaItems?: PickerMediaItem[];
     nextPageToken?: string;
+    error?: { status?: string; message?: string };
   };
   if (!res.ok) {
+    if (json.error?.status === "FAILED_PRECONDITION") {
+      throw new Error("picker_not_ready");
+    }
     console.error("picker mediaItems.list failed", json);
     throw new Error("picker_list_failed");
   }
@@ -558,7 +562,16 @@ Deno.serve(async (req: Request) => {
     let items: PickerMediaItem[];
     try {
       items = await listAllPickerMedia(accessToken, body.sessionId);
-    } catch {
+    } catch (e) {
+      if (e instanceof Error && e.message === "picker_not_ready") {
+        return new Response(
+          JSON.stringify({ suggestions: [], pending: true }),
+          {
+            status: 200,
+            headers: { ...cors(), "Content-Type": "application/json" },
+          },
+        );
+      }
       return new Response(
         JSON.stringify({
           error: "picker_list_failed",
@@ -666,6 +679,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const imported: string[] = [];
+    const skippedAlreadyOnTrace: string[] = [];
+    const downloadFailed: string[] = [];
     let sort =
       (
         await admin
@@ -676,6 +691,20 @@ Deno.serve(async (req: Request) => {
           .limit(1)
           .maybeSingle()
       ).data?.sort_order ?? -1;
+
+    const { data: existingRows } = await admin
+      .from("photos")
+      .select("external_ref")
+      .eq("trace_id", t.id)
+      .eq("source_plugin_id", "google_photos");
+
+    const existingMediaIds = new Set<string>();
+    for (const row of existingRows ?? []) {
+      const ref = row.external_ref as { mediaItemId?: unknown } | null;
+      if (typeof ref?.mediaItemId === "string") {
+        existingMediaIds.add(ref.mediaItemId);
+      }
+    }
 
     const pickerSessionId = body.pickerSessionId;
     if (
@@ -716,6 +745,11 @@ Deno.serve(async (req: Request) => {
     }
 
     for (const mediaId of body.mediaItemIds) {
+      if (existingMediaIds.has(mediaId)) {
+        skippedAlreadyOnTrace.push(mediaId);
+        continue;
+      }
+
       let buf: Uint8Array | null = null;
       let mime = "image/jpeg";
       let ext = "jpg";
@@ -728,7 +762,10 @@ Deno.serve(async (req: Request) => {
 
       const picked = pickerById.get(mediaId);
       const mf = picked?.mediaFile;
-      if (!mf?.baseUrl) continue;
+      if (!mf?.baseUrl) {
+        downloadFailed.push(mediaId);
+        continue;
+      }
       capturedAt = picked?.createTime ?? null;
 
       const isVideo = picked?.type === "VIDEO";
@@ -738,7 +775,10 @@ Deno.serve(async (req: Request) => {
         const vidRes = await fetch(`${mf.baseUrl}=dv`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        if (!vidRes.ok) continue;
+        if (!vidRes.ok) {
+          downloadFailed.push(mediaId);
+          continue;
+        }
         buf = new Uint8Array(await vidRes.arrayBuffer());
       } else {
         mime = mf.mimeType ?? "image/jpeg";
@@ -750,7 +790,10 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      if (!buf) continue;
+      if (!buf) {
+        downloadFailed.push(mediaId);
+        continue;
+      }
 
       const path = `${t.journal_id}/${t.id}/gp-${mediaId}.${ext}`;
 
@@ -761,7 +804,15 @@ Deno.serve(async (req: Request) => {
           upsert: false,
         });
       if (upErr) {
-        console.error(upErr);
+        const duplicate =
+          upErr.message?.toLowerCase().includes("already exists") ||
+          (upErr as { statusCode?: string }).statusCode === "409";
+        if (duplicate) {
+          skippedAlreadyOnTrace.push(mediaId);
+        } else {
+          console.error(upErr);
+          downloadFailed.push(mediaId);
+        }
         continue;
       }
 
@@ -781,17 +832,30 @@ Deno.serve(async (req: Request) => {
         .select("id")
         .single();
 
-      if (!insErr && ins?.id) imported.push(ins.id as string);
+      if (insErr || !ins?.id) {
+        console.error(insErr);
+        downloadFailed.push(mediaId);
+        continue;
+      }
+      imported.push(ins.id as string);
+      existingMediaIds.add(mediaId);
     }
 
     if (pickerSessionId) {
       await deletePickerSession(accessToken, pickerSessionId);
     }
 
-    return new Response(JSON.stringify({ importedIds: imported }), {
-      status: 200,
-      headers: { ...cors(), "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        importedIds: imported,
+        skippedAlreadyOnTrace,
+        downloadFailed,
+      }),
+      {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      },
+    );
   }
 
   return new Response(JSON.stringify({ error: "unknown_action" }), {

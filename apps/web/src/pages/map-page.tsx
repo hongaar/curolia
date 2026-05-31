@@ -347,6 +347,7 @@ export function MapPage() {
 
   useEffect(() => {
     if (!addTraceFromUrl) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- latch placement from one-shot ?add= URL deep link
     setPlacementActive(true);
     setSearchParams(
       (prev) =>

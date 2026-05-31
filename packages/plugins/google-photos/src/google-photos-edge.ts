@@ -169,29 +169,15 @@ export async function googlePhotosWaitForPickerSelection(
   supabase: SupabaseClient,
   sessionId: string,
   expireTime: string | null,
-  /** When set, detect tab closed — `/autoclose` may finish before `mediaItemsSet` polls true. */
+  /** When set, poll faster after the picker tab closes (`/autoclose` on Done). */
   pickerWindow: Window | null = null,
 ): Promise<boolean> {
   const start = Date.now();
   const maxMs = 15 * 60 * 1000;
-  let intervalMs = 2000;
+  /** Browsers may report `closed` briefly while the picker tab loads. */
+  const trustClosedAfter = start + 1500;
 
   while (Date.now() - start < maxMs) {
-    if (pickerWindow?.closed) {
-      await new Promise((r) => {
-        window.setTimeout(r, 700);
-      });
-      const late = await googlePhotosPickerSession(supabase, sessionId);
-      if (late.mediaItemsSet === true) {
-        await new Promise((r) => {
-          window.setTimeout(r, 400);
-        });
-        return true;
-      }
-      // Picker tab closed; mediaItems.list is authoritative (may lag mediaItemsSet).
-      return true;
-    }
-
     const s = await googlePhotosPickerSession(supabase, sessionId);
     if (s.mediaItemsSet === true) {
       await new Promise((r) => {
@@ -199,9 +185,18 @@ export async function googlePhotosWaitForPickerSelection(
       });
       return true;
     }
+
     const exp = expireTime ?? s.expireTime;
     if (exp && new Date(exp).getTime() < Date.now()) return false;
-    intervalMs = parseDurationMs(s.pollingConfig?.pollInterval);
+
+    const pickerClosed =
+      pickerWindow != null &&
+      pickerWindow.closed &&
+      Date.now() >= trustClosedAfter;
+    const intervalMs = pickerClosed
+      ? 500
+      : parseDurationMs(s.pollingConfig?.pollInterval);
+
     await new Promise((r) => {
       window.setTimeout(r, intervalMs);
     });
@@ -209,14 +204,22 @@ export async function googlePhotosWaitForPickerSelection(
   return false;
 }
 
+export type GooglePhotosImportResult = {
+  importedIds: string[];
+  skippedAlreadyOnTrace: string[];
+  downloadFailed: string[];
+};
+
 export async function googlePhotosImport(
   supabase: SupabaseClient,
   traceId: string,
   mediaItemIds: string[],
   pickerSessionId: string,
-): Promise<string[]> {
+): Promise<GooglePhotosImportResult> {
   const { data, error } = await supabase.functions.invoke<{
     importedIds?: string[];
+    skippedAlreadyOnTrace?: string[];
+    downloadFailed?: string[];
     error?: string;
     message?: string;
   }>("google-photos", {
@@ -229,5 +232,9 @@ export async function googlePhotosImport(
   });
   if (error) throw error;
   if (data?.error) throw new Error(data.message ?? data.error);
-  return data?.importedIds ?? [];
+  return {
+    importedIds: data?.importedIds ?? [],
+    skippedAlreadyOnTrace: data?.skippedAlreadyOnTrace ?? [],
+    downloadFailed: data?.downloadFailed ?? [],
+  };
 }

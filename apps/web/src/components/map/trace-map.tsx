@@ -740,7 +740,12 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
 
       applyMarkerHoverStack(latestTraceHoverIdRef.current);
       // Recreate markers only when the filtered trace set changes.
-    }, [filtered]);
+    }, [
+      filtered,
+      applyMarkerHoverStack,
+      cancelHidePreview,
+      requestHidePreview,
+    ]);
 
     useEffect(() => {
       const map = mapRef.current;
