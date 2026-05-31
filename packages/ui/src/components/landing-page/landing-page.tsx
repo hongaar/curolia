@@ -12,13 +12,13 @@ import { Link } from "react-router-dom";
 import { buttonClassName } from "../button";
 import styles from "./landing-page.module.css";
 
-export type MarketingLinkProps = {
+type MarketingLinkProps = {
   to: string;
   children: React.ReactNode;
   className?: string;
 };
 
-export type LandingFeature = {
+type LandingFeature = {
   id: string;
   title: string;
   description: string;
@@ -27,7 +27,7 @@ export type LandingFeature = {
   icon: React.ReactNode;
 };
 
-export type LandingPageProps = {
+type LandingPageProps = {
   heroImageSrc: string;
   heroImageAlt?: string;
   features: LandingFeature[];
@@ -35,7 +35,7 @@ export type LandingPageProps = {
 };
 
 /** Local landing photography under `apps/web/public/landing/`. */
-export const defaultLandingImages = {
+const defaultLandingImages = {
   hero: {
     src: "/landing/hero.jpg",
     alt: "Sunset over terraced rice fields",
@@ -130,7 +130,7 @@ function MarketingButtonLink({
   );
 }
 
-export function MarketingLayout({ children }: { children: React.ReactNode }) {
+function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={styles.page}>
       <div className={styles.backdrop} aria-hidden />
@@ -139,11 +139,7 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function MarketingHeader({
-  logoSrc = "/icon.png",
-}: {
-  logoSrc?: string;
-}) {
+function MarketingHeader({ logoSrc = "/icon.png" }: { logoSrc?: string }) {
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
@@ -172,7 +168,7 @@ export function MarketingHeader({
   );
 }
 
-export function MarketingFooter() {
+function MarketingFooter() {
   return (
     <footer className={styles.footer}>
       <div className={styles.footerInner}>
@@ -195,7 +191,7 @@ export function MarketingFooter() {
   );
 }
 
-export function LandingHero({
+function LandingHero({
   heroImageSrc,
   heroImageAlt = "Curolia map and journal preview",
 }: Pick<LandingPageProps, "heroImageSrc" | "heroImageAlt">) {
@@ -242,7 +238,7 @@ export function LandingHero({
   );
 }
 
-export function LandingFeatures({
+function LandingFeatures({
   features = defaultFeatures,
 }: {
   features?: LandingFeature[];
@@ -286,7 +282,7 @@ export function LandingFeatures({
   );
 }
 
-export function LandingOpenSource({
+function LandingOpenSource({
   githubUrl = "https://github.com/hongaar/curolia",
 }: {
   githubUrl?: string;
@@ -329,7 +325,7 @@ export function LandingOpenSource({
   );
 }
 
-export function LandingCta() {
+function LandingCta() {
   return (
     <section className={styles.cta} aria-labelledby="landing-cta-title">
       <div className={styles.ctaPanel}>

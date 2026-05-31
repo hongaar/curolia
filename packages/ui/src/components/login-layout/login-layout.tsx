@@ -58,7 +58,7 @@ export function LoginHeader({
   );
 }
 
-export function LoginFormStack({ children }: { children: React.ReactNode }) {
+function LoginFormStack({ children }: { children: React.ReactNode }) {
   return (
     <Stack gap="md" className={styles.formSection}>
       {children}
@@ -130,12 +130,4 @@ export function LoginFooterLink({
 
 export function LoginInlineCode({ children }: { children: React.ReactNode }) {
   return <code className={styles.inlineCode}>{children}</code>;
-}
-
-export function loginTabsListClassName() {
-  return styles.tabsList;
-}
-
-export function loginTabTriggerClassName() {
-  return styles.tabTrigger;
 }

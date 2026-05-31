@@ -1,1 +1,1 @@
-export * from "./landing-page";
+export { ContactPageContent, LandingPage } from "./landing-page";
