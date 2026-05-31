@@ -1,14 +1,11 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: [Test]
-    types: [completed]
-    branches: [main]
+  workflow_call:
 
 jobs:
   supabase:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    name: Deploy (Supabase)
     runs-on: ubuntu-latest
     concurrency:
       group: production-supabase
@@ -16,8 +13,6 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -43,8 +38,8 @@ jobs:
           npx supabase functions deploy --use-api --yes
 
   vercel:
+    name: Deploy (Vercel)
     needs: supabase
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -57,8 +52,6 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v4
         with:

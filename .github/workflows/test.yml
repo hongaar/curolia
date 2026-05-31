@@ -30,7 +30,6 @@ jobs:
     name: Android (Linux)
     needs: ci
     runs-on: ubuntu-latest
-    environment: production
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
@@ -68,7 +67,6 @@ jobs:
     name: iOS (macOS)
     needs: ci
     runs-on: macos-latest
-    environment: production
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
@@ -101,3 +99,10 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+  deploy:
+    name: Deploy
+    needs: [ci, android, ios]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
