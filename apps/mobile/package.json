@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "sync": "cap sync",
+    "sync:android": "cap sync android",
+    "sync:ios": "cap sync ios",
     "copy": "cap copy",
     "open:ios": "cap open ios",
     "open:android": "cap open android"

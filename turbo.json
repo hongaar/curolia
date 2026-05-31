@@ -12,6 +12,10 @@
       "dependsOn": ["codegen"],
       "outputs": ["dist/**"]
     },
+    "@curolia/web#build:prod": {
+      "dependsOn": ["codegen"],
+      "outputs": ["dist/**"]
+    },
     "@curolia/web#lint": {
       "dependsOn": ["codegen"]
     },

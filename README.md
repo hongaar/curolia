@@ -36,9 +36,16 @@ The production **Vercel** job runs **`npx turbo run codegen`** after install, th
 - Web app ships as a PWA (installable + offline static shell caching).
 - Native shells live under **`apps/mobile/ios`** and **`apps/mobile/android`** and reuse **`apps/web/dist`** (`capacitor.config.json` is next to those folders).
 - From the repo root, let Turbo prepare mobile prerequisites:
-  - `npx turbo run sync --filter=@curolia/mobile` — builds web, regenerates native icons/splash, and runs `cap sync`
+  - `npx turbo run sync --filter=@curolia/mobile` — builds web with `apps/web/.env`, regenerates native icons/splash, and runs `cap sync`
   - `npm run open:ios -w @curolia/mobile`
   - `npm run open:android -w @curolia/mobile`
+- **Android emulator / screenshots (hosted Supabase):** create `apps/web/.env.prod`, then:
+
+  ```bash
+  npm run build:prod -w @curolia/web
+  npm run sync:android -w @curolia/mobile
+  npm run open:android -w @curolia/mobile
+  ```
 
 For iOS development, install Xcode + CocoaPods. For Android, install Android Studio SDK tools.
 

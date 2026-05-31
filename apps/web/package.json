@@ -8,6 +8,7 @@
     "codegen": "npm run plugins:sync",
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:prod": "tsc -b && vite build --mode prod",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc -b",
