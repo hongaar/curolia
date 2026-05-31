@@ -9,10 +9,24 @@ major_version = 17
 
 [auth]
 enabled = true
+# App origin for auth emails and redirect allow-list (match your Vite dev URL).
+site_url = "http://127.0.0.1:5173"
+# Exact URLs allowed for resetPasswordForEmail / signUp redirectTo (must match client origin + path).
+additional_redirect_urls = [
+  "http://127.0.0.1:5173/reset-password",
+  "http://127.0.0.1:3000/reset-password",
+  "http://localhost:5173/reset-password",
+  "http://localhost:3000/reset-password",
+]
 
 # Local dev: sign up without confirming email in Mailpit (optional).
 [auth.email]
 enable_confirmations = false
+
+# SPA recovery: link to the app with token_hash (not the API /verify route).
+[auth.email.template.recovery]
+subject = "Reset your Curolia password"
+content_path = "./supabase/templates/recovery.html"
 
 # Public iCalendar fetch (token in query); no Authorization header from calendar clients.
 [functions.ical-feed]

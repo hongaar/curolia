@@ -1,1 +1,6 @@
-export { ContactPageContent, LandingPage } from "./landing-page";
+export {
+  ContactPageContent,
+  LandingPage,
+  PrivacyPolicyPageContent,
+  TermsPageContent,
+} from "./landing-page";

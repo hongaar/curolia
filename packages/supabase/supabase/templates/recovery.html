@@ -1,0 +1,11 @@
+<h2>Reset your password</h2>
+<p>
+  We received a request to reset your Curolia password. Follow the link below to
+  choose a new one.
+</p>
+<p>
+  <a
+    href="{{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/reset-password{{ end }}?token_hash={{ .TokenHash }}&amp;type=recovery"
+    >Reset password</a
+  >
+</p>

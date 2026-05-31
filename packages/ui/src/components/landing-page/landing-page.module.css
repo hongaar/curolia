@@ -429,10 +429,15 @@
   color: var(--muted-foreground);
 }
 
-.contactPage {
+.contactPage,
+.legalPage {
   max-width: 42rem;
   margin: 0 auto;
   padding: 3rem 1.25rem 5rem;
+}
+
+.legalPage {
+  max-width: 48rem;
 }
 
 .contactPanel {
@@ -469,6 +474,83 @@
 }
 
 .contactEmail:hover {
+  text-decoration: underline;
+}
+
+.contactLegalNote {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.legalPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-radius: var(--radius-2xl);
+  padding: 1.75rem;
+  border: 1px solid color-mix(in oklch, var(--border) 75%, transparent);
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+  box-shadow: var(--panel-shadow);
+}
+
+.legalTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.legalEffective {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.legalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.legalSection {
+  margin-top: 1.5rem;
+}
+
+.legalSectionTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.legalParagraph {
+  margin: 0;
+  font-size: 0.975rem;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+
+.legalList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.975rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.legalInlineLink {
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--primary);
+}
+
+.legalInlineLink:hover {
   text-decoration: underline;
 }
 

@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { AppSettingsPage } from "@/pages/app-settings-page";
 import { BlogPage } from "@/pages/blog-page";
+import { ForgotPasswordPage } from "@/pages/forgot-password-page";
 import { BlogHomeRedirectPage } from "@/pages/home-redirect-page";
 import { InvitationsPage } from "@/pages/invitations-page";
 import { JournalSettingsPage } from "@/pages/journal-settings-page";
@@ -9,11 +10,16 @@ import { MapPage } from "@/pages/map-page";
 import { NotificationsPage } from "@/pages/notifications-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
+import { ResetPasswordPage } from "@/pages/reset-password-page";
 import { RootPage } from "@/pages/root-page";
 import { TraceDetailPage } from "@/pages/trace-detail-page";
 import { TraceLegacyRedirectPage } from "@/pages/trace-legacy-redirect-page";
 import { ProtectedLayout } from "@/routes/protected-layout";
-import { ContactPageContent } from "@curolia/ui/landing-page";
+import {
+  ContactPageContent,
+  PrivacyPolicyPageContent,
+  TermsPageContent,
+} from "@curolia/ui/landing-page";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 export default function App() {
@@ -21,7 +27,11 @@ export default function App() {
     <Routes>
       <Route path="/" element={<RootPage />} />
       <Route path="/contact" element={<ContactPageContent />} />
+      <Route path="/privacy" element={<PrivacyPolicyPageContent />} />
+      <Route path="/terms" element={<TermsPageContent />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/signup"
         element={<Navigate to="/login?tab=signup" replace />}

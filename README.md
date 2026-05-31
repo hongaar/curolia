@@ -227,6 +227,33 @@ Production checklist:
 3. **`config.toml`**: `plugin-oauth` keeps **`verify_jwt = false`** (browser redirect has no JWT); other functions verify JWT in the handler if needed.
 4. Deploy: GitHub workflow runs **`functions:sync`**, **`supabase db push`**, **`supabase functions deploy --use-api`**, then Vercel prebuilt deploy.
 
+## TODO
+
+### Dead code / unused exports cleanup
+
+A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root) flagged likely leftovers from refactors. Nothing is wired into CI yet — add a root **`knip.json`** (workspace entry points + ignore patterns) before treating output as authoritative.
+
+**Likely safe to remove (verify first):**
+
+- `apps/web/src/components/layout/curolia-loading-splash.tsx` — unused re-export; callers use `@curolia/ui/loading-splash` directly
+- `apps/web/src/components/map/map-toolbar.tsx` — unused re-export; callers use `@curolia/ui/map-toolbar` directly
+- `apps/web/src/components/traces/trace-photo-lightbox.tsx` — unused re-export; callers use `@curolia/ui/trace-photo-lightbox` directly
+
+**Review before deleting (may be intentional public API or stale helpers):**
+
+- Unused exports in `apps/web/src/lib/` (e.g. `map-view-params.ts`, `trace-dates.ts`, `photon-geocode.ts`, `trace-text-search.ts`, …)
+- Unused exports in `apps/web/src/components/traces/trace-links-list.tsx`, `apps/web/src/plugins/registry.ts`, Storybook helpers under `packages/ui/src/storybook/`
+
+**Expected Knip false positives (ignore or configure out):**
+
+- Supabase Edge Function entrypoints under `packages/supabase/supabase/functions/` and synced copies under `packages/plugins/*/supabase/functions/`
+- Codegen / script entrypoints (e.g. `packages/supabase/scripts/extract-plugin-oauth-registry.ts`, plugin `oauth-registry.ts` sources)
+- `apps/web/src/curolia-ui-styles.d.ts` — TypeScript module shim for `import "@curolia/ui/styles"`, not a runtime import
+- Storybook-only files and tests
+- “Unused dependencies” for side-effect imports (e.g. `@fontsource-variable/geist`) until Knip is configured per workspace
+
+**Already cleaned up:** Vite starter files in `apps/web/src/assets/`, thin landing-page route wrappers, unused `@curolia/ui/landing-page` and `login-layout` exports.
+
 ## Roadmap
 
 - **Public HTTP API** — service role + API keys behind a small Node layer or Edge Functions when you need non-Supabase clients.

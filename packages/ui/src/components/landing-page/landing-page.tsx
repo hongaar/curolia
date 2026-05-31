@@ -11,12 +11,12 @@ import { Link } from "react-router-dom";
 
 import { buttonClassName } from "../button";
 import styles from "./landing-page.module.css";
-
-type MarketingLinkProps = {
-  to: string;
-  children: React.ReactNode;
-  className?: string;
-};
+import {
+  MarketingButtonLink,
+  MarketingFooter,
+  MarketingHeader,
+  MarketingLayout,
+} from "./marketing-shell";
 
 type LandingFeature = {
   id: string;
@@ -96,100 +96,6 @@ const defaultFeatures: LandingFeature[] = [
     icon: <Plug aria-hidden size={20} />,
   },
 ];
-
-function MarketingLink({ to, children, className }: MarketingLinkProps) {
-  return (
-    <Link to={to} className={className}>
-      {children}
-    </Link>
-  );
-}
-
-function MarketingButtonLink({
-  to,
-  children,
-  variant = "default",
-  size = "default",
-}: {
-  to: string;
-  children: React.ReactNode;
-  variant?: "default" | "outline" | "secondary" | "ghost";
-  size?: "default" | "sm" | "lg";
-}) {
-  return (
-    <Link
-      to={to}
-      className={buttonClassName({
-        variant,
-        size,
-        className: styles.buttonLink,
-      })}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function MarketingLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className={styles.page}>
-      <div className={styles.backdrop} aria-hidden />
-      <div className={styles.content}>{children}</div>
-    </div>
-  );
-}
-
-function MarketingHeader({ logoSrc = "/icon.png" }: { logoSrc?: string }) {
-  return (
-    <header className={styles.header}>
-      <div className={styles.headerInner}>
-        <MarketingLink to="/" className={styles.brand}>
-          <img
-            className={styles.brandLogo}
-            src={logoSrc}
-            alt=""
-            width={36}
-            height={36}
-            decoding="async"
-          />
-          <p className={styles.brandName}>Curolia</p>
-        </MarketingLink>
-
-        <div className={styles.headerActions}>
-          <MarketingButtonLink to="/login" variant="ghost" size="sm">
-            Log in
-          </MarketingButtonLink>
-          <MarketingButtonLink to="/signup" size="sm">
-            Sign up
-          </MarketingButtonLink>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function MarketingFooter() {
-  return (
-    <footer className={styles.footer}>
-      <div className={styles.footerInner}>
-        <div className={styles.footerLinks}>
-          <MarketingLink to="/contact" className={styles.footerLink}>
-            Contact
-          </MarketingLink>
-          <MarketingLink to="/login" className={styles.footerLink}>
-            Log in
-          </MarketingLink>
-          <MarketingLink to="/signup" className={styles.footerLink}>
-            Sign up
-          </MarketingLink>
-        </div>
-        <p className={styles.footerNote}>
-          Curolia — your field journal for places and travels.
-        </p>
-      </div>
-    </footer>
-  );
-}
 
 function LandingHero({
   heroImageSrc,
@@ -380,7 +286,7 @@ export function ContactPageContent({
   return (
     <MarketingLayout>
       <MarketingHeader logoSrc={logoSrc} />
-      <main className={styles.contactPage}>
+      <main className={styles.legalPage}>
         <div className={styles.contactPanel}>
           <h1 className={styles.contactTitle}>Get in touch</h1>
           <p className={styles.contactLead}>
@@ -390,9 +296,22 @@ export function ContactPageContent({
           <a className={styles.contactEmail} href={`mailto:${contactEmail}`}>
             {contactEmail}
           </a>
+          <p className={styles.contactLegalNote}>
+            See our{" "}
+            <Link className={styles.legalInlineLink} to="/privacy">
+              Privacy Policy
+            </Link>{" "}
+            and{" "}
+            <Link className={styles.legalInlineLink} to="/terms">
+              Terms and Conditions
+            </Link>
+            .
+          </p>
         </div>
       </main>
       <MarketingFooter />
     </MarketingLayout>
   );
 }
+
+export { PrivacyPolicyPageContent, TermsPageContent } from "./legal-pages";

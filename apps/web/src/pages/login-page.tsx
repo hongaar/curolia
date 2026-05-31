@@ -6,7 +6,9 @@ import {
   LoginActions,
   LoginError,
   LoginField,
+  LoginFieldLabelRow,
   LoginFooterLink,
+  LoginFormLink,
   LoginHeader,
   LoginLayout,
   LoginTabPanel,
@@ -76,7 +78,12 @@ export function LoginPage() {
             />
           </LoginField>
           <LoginField>
-            <Label htmlFor="password">Password</Label>
+            <LoginFieldLabelRow>
+              <Label htmlFor="password">Password</Label>
+              <LoginFormLink to="/forgot-password">
+                Forgot password?
+              </LoginFormLink>
+            </LoginFieldLabelRow>
             <Input
               id="password"
               type="password"

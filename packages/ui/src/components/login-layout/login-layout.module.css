@@ -79,6 +79,27 @@
   gap: 0.5rem;
 }
 
+.fieldLabelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.formLink {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--muted-foreground);
+  transition: color 160ms ease;
+}
+
+.formLink:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}
+
 .error {
   font-size: 0.875rem;
   color: var(--destructive);

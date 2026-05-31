@@ -1,3 +1,5 @@
+import { enableNativePushIfEligible } from "@/lib/native-push";
+import { supabase } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
 import {
   createContext,
@@ -8,8 +10,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { supabase } from "@/lib/supabase";
-import { enableNativePushIfEligible } from "@/lib/native-push";
 
 type AuthContextValue = {
   user: User | null;
@@ -17,8 +17,14 @@ type AuthContextValue = {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 };
+
+function authRedirectUrl(path: string): string {
+  return `${window.location.origin}${path}`;
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -87,6 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirectUrl("/reset-password"),
+    });
+    return { error: error as Error | null };
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error: error as Error | null };
+  }, []);
+
   const signOut = useCallback(async () => {
     setStoredActiveJournalId(null);
     await supabase.auth.signOut();
@@ -99,9 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signIn,
       signUp,
+      resetPassword,
+      updatePassword,
       signOut,
     }),
-    [session, loading, signIn, signUp, signOut],
+    [session, loading, signIn, signUp, resetPassword, updatePassword, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

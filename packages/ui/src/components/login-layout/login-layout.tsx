@@ -70,6 +70,28 @@ export function LoginField({ children }: { children: React.ReactNode }) {
   return <div className={styles.field}>{children}</div>;
 }
 
+export function LoginFieldLabelRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.fieldLabelRow}>{children}</div>;
+}
+
+export function LoginFormLink({
+  to,
+  children,
+}: {
+  to: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link to={to} className={styles.formLink}>
+      {children}
+    </Link>
+  );
+}
+
 export function LoginError({ children }: { children: React.ReactNode }) {
   return <p className={styles.error}>{children}</p>;
 }
