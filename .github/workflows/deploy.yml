@@ -1,11 +1,24 @@
 name: Deploy
 
 on:
-  workflow_call:
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
+    branches: [main]
 
 jobs:
+  eligible:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Test passed on main; proceeding with deploy."
+
   supabase:
     name: Deploy (Supabase)
+    needs: eligible
     runs-on: ubuntu-latest
     concurrency:
       group: production-supabase
@@ -13,6 +26,8 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -52,6 +67,8 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: actions/setup-node@v4
         with:

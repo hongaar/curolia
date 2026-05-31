@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +28,7 @@ jobs:
         run: npx turbo run lint typecheck test build
 
   android:
-    name: Android (Linux)
+    name: Android
     needs: ci
     runs-on: ubuntu-latest
     env:
@@ -64,7 +65,7 @@ jobs:
           if-no-files-found: error
 
   ios:
-    name: iOS (macOS)
+    name: iOS
     needs: ci
     runs-on: macos-latest
     env:
@@ -99,10 +100,3 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build
-
-  deploy:
-    name: Deploy
-    needs: [ci, android, ios]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/deploy.yml
-    secrets: inherit
