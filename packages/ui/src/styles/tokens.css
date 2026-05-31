@@ -15,6 +15,14 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --app-toolbar-h: 4.75rem;
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --safe-bottom: var(
+    --safe-area-inset-bottom,
+    env(safe-area-inset-bottom, 0px)
+  );
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --app-chrome-top: calc(var(--app-toolbar-h) + var(--safe-top));
 
   --background: oklch(0.955 0.018 88);
   --foreground: oklch(0.22 0.045 260);

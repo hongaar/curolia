@@ -10,8 +10,8 @@
     "copy": "cap copy",
     "open:ios": "cap open ios",
     "open:android": "cap open android",
-    "dev:android": "cap run android -l --forwardPorts 5173:5173",
-    "dev:ios": "cap run ios -l"
+    "dev:android": "cap run android -l --forwardPorts 5173:5173 --port 5173 --host localhost",
+    "dev:ios": "cap run ios -l --port 5173 --host localhost"
   },
   "dependencies": {
     "@capacitor/core": "^8.3.1",

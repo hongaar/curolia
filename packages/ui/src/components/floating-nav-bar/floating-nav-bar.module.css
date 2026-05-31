@@ -9,7 +9,9 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: var(--nav-shell-pad);
+  padding: calc(var(--nav-shell-pad) + var(--safe-top))
+    calc(var(--nav-shell-pad) + var(--safe-right)) var(--nav-shell-pad)
+    calc(var(--nav-shell-pad) + var(--safe-left));
 }
 
 @media (min-width: 40rem) {

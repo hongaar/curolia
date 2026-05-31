@@ -1,7 +1,7 @@
 [data-curolia-trace-map] .maplibregl-ctrl-bottom-right {
   margin: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  right: var(--safe-right) !important;
+  bottom: var(--safe-bottom) !important;
 }
 
 [data-curolia-trace-map] .maplibregl-ctrl-attrib {

@@ -4,7 +4,8 @@
   flex-direction: column;
   gap: 1rem;
   overflow-y: auto;
-  padding: calc(var(--app-toolbar-h) + 0.5rem) 1rem 1.5rem;
+  padding: calc(var(--app-chrome-top) + 0.5rem) calc(1rem + var(--safe-right))
+    calc(1.5rem + var(--safe-bottom)) calc(1rem + var(--safe-left));
 }
 
 .section {

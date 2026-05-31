@@ -6,7 +6,8 @@
   justify-content: center;
   overflow: hidden;
   background: var(--background);
-  padding: 1rem;
+  padding: calc(1rem + var(--safe-top)) calc(1rem + var(--safe-right))
+    calc(1rem + var(--safe-bottom)) calc(1rem + var(--safe-left));
 }
 
 .backdrop {

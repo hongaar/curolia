@@ -11,15 +11,14 @@ html {
   font-family: var(--font-sans);
 }
 
-/* Capacitor native shells: keep content below status bar / above gesture nav. */
+/* Capacitor native shells: render edge-to-edge; UI chrome reads safe-area vars. */
 html.native-app {
-  padding-top: var(--safe-area-inset-top, env(safe-area-inset-top, 24px));
-  padding-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
-  padding-bottom: var(
-    --safe-area-inset-bottom,
-    env(safe-area-inset-bottom, 0px)
-  );
-  padding-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  background-color: var(--background);
+  min-height: 100%;
+}
+
+html.native-app body {
+  min-height: 100%;
 }
 
 body {
