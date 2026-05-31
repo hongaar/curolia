@@ -10,6 +10,7 @@ const meta = {
     `Use \`variant\` and \`size\` for hierarchy. For links styled as buttons, use \`variant="link"\`. Icon-only actions use \`size="icon"\` variants. Compose with \`render\` when wrapping a custom element.`,
   ),
   component: Button,
+  args: { children: "Button" },
 } satisfies Meta<typeof Button>;
 
 export default meta;
@@ -17,17 +18,36 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   parameters: storyDocs("Primary button with default variant and size."),
-  args: {
-    children: "Button",
-  },
 };
 
 export const Outline: Story = {
-  parameters: storyDocs("Secondary action with outline styling."),
-  args: {
-    children: "Outline",
-    variant: "outline",
-  },
+  parameters: storyDocs('`variant="outline"` for secondary actions.'),
+  args: { variant: "outline" },
+};
+
+export const Secondary: Story = {
+  parameters: storyDocs('`variant="secondary"` for lower-emphasis actions.'),
+  args: { variant: "secondary" },
+};
+
+export const Ghost: Story = {
+  parameters: storyDocs('`variant="ghost"` on tinted surfaces.'),
+  args: { variant: "ghost" },
+};
+
+export const Destructive: Story = {
+  parameters: storyDocs('`variant="destructive"` for irreversible actions.'),
+  args: { variant: "destructive" },
+};
+
+export const Link: Story = {
+  parameters: storyDocs('`variant="link"` for inline text actions.'),
+  args: { variant: "link" },
+};
+
+export const Disabled: Story = {
+  parameters: storyDocs("Disabled state blocks interaction."),
+  args: { disabled: true },
 };
 
 export const Sizes: Story = {

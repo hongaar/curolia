@@ -39,12 +39,12 @@
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
 }
 
-.root svg {
+.root > svg {
   pointer-events: none;
   flex-shrink: 0;
 }
 
-.root svg:not([class*="size-"]) {
+.root > svg:not([class*="size-"]) {
   width: 1rem;
   height: 1rem;
 }
@@ -152,7 +152,7 @@
   font-size: 0.75rem;
 }
 
-.sizeXs svg:not([class*="size-"]) {
+.sizeXs > svg:not([class*="size-"]) {
   width: 0.75rem;
   height: 0.75rem;
 }
@@ -165,7 +165,7 @@
   font-size: 0.8rem;
 }
 
-.sizeSm svg:not([class*="size-"]) {
+.sizeSm > svg:not([class*="size-"]) {
   width: 0.875rem;
   height: 0.875rem;
 }
@@ -189,7 +189,7 @@
   border-radius: min(var(--radius-md), 10px);
 }
 
-.sizeIconXs svg:not([class*="size-"]) {
+.sizeIconXs > svg:not([class*="size-"]) {
   width: 0.75rem;
   height: 0.75rem;
 }

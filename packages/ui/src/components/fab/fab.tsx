@@ -1,8 +1,19 @@
 import type * as React from "react";
 
-import { Button } from "../button";
 import { cn } from "../../lib/utils";
+import { Button } from "../button";
 import styles from "./fab.module.css";
+
+export type FabButtonProps = {
+  /** Pressed state for toggle-style FAB (secondary variant). */
+  active?: boolean;
+  /** Native `title` tooltip on the button. */
+  title: string;
+  onClick: () => void;
+  icon: React.ReactNode;
+  /** Visible label beside the icon. */
+  label: string;
+};
 
 export function FabButton({
   active,
@@ -10,13 +21,7 @@ export function FabButton({
   onClick,
   icon,
   label,
-}: {
-  active?: boolean;
-  title: string;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
+}: FabButtonProps) {
   return (
     <Button
       type="button"

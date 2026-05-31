@@ -1,51 +1,47 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type SetStateAction,
-} from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useJournal } from "@/providers/journal-provider";
+import { JournalViewInitialLoader } from "@/components/layout/journal-view-initial-loader";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
-import { AddTraceFab } from "@/components/traces/add-trace-fab";
-import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
 import { TraceMap, type TraceMapHandle } from "@/components/map/trace-map";
-import type { TraceWithTags } from "@/lib/trace-with-tags";
 import { TraceMapSidebar } from "@/components/map/trace-map-sidebar";
+import { AddTraceFab } from "@/components/traces/add-trace-fab";
+import { EmojiPicker } from "@/components/traces/emoji-picker";
+import { PresetColorPicker } from "@/components/traces/preset-color-picker";
 import { TraceFormDialog } from "@/components/traces/trace-form-dialog";
 import { TraceMapQuickAddDialog } from "@/components/traces/trace-map-quick-add-dialog";
-import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
-import { Button } from "@curolia/ui/button";
-import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
-import { PresetColorPicker } from "@/components/traces/preset-color-picker";
-import { EmojiPicker } from "@/components/traces/emoji-picker";
-import { DEFAULT_TRACE_TAG_COLOR } from "@/lib/preset-trace-tag-colors";
-import { JournalViewInitialLoader } from "@/components/layout/journal-view-initial-loader";
+import { useJournalSlugRouteSync } from "@/hooks/use-journal-slug-route-sync";
+import { useMaxSm } from "@/hooks/use-max-sm";
 import {
+  readStoredMapCamera,
+  writeStoredMapCamera,
+} from "@/lib/map-camera-storage";
+import {
+  applyAddTraceToSearchParams,
   applyFilterTagsToSearchParams,
   applyMapCameraToSearchParams,
   applySelectedTraceToSearchParams,
   bboxToSyncKey,
   cameraToSyncKey,
   normalizeCameraForUrl,
-  resolveFilterTagIdsFromSearchParams,
+  parseAddTraceFromSearchParams,
   parseMapBboxFromSearchParams,
   parseMapCameraFromSearchParams,
   parseSelectedTraceTokenFromSearchParams,
+  resolveFilterTagIdsFromSearchParams,
   resolveTraceIdFromMapToken,
   stripMapBboxFromSearchParams,
   type MapCamera,
 } from "@/lib/map-view-params";
-import {
-  readStoredMapCamera,
-  writeStoredMapCamera,
-} from "@/lib/map-camera-storage";
+import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
+import { DEFAULT_TRACE_TAG_COLOR } from "@/lib/preset-trace-tag-colors";
+import { supabase } from "@/lib/supabase";
+import type { TraceWithTags } from "@/lib/trace-with-tags";
+import { useJournal } from "@/providers/journal-provider";
+import { useNavigationShell } from "@/providers/navigation-shell-provider";
+import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
+import type { Tag, Trace } from "@/types/database";
+import { Button } from "@curolia/ui/button";
+import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
+import { Input } from "@curolia/ui/input";
+import { Label } from "@curolia/ui/label";
 import {
   MapControlsBottomRight,
   MapControlsLayer,
@@ -63,11 +59,17 @@ import {
   PanelDialogFormStack,
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
-import type { Tag, Trace } from "@/types/database";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type SetStateAction,
+} from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useJournalSlugRouteSync } from "@/hooks/use-journal-slug-route-sync";
-import { useMaxSm } from "@/hooks/use-max-sm";
-import { useNavigationShell } from "@/providers/navigation-shell-provider";
 
 export function MapPage() {
   const qc = useQueryClient();
@@ -83,6 +85,10 @@ export function MapPage() {
   );
   const cameraFromUrl = useMemo(
     () => parseMapCameraFromSearchParams(searchParams),
+    [searchParams],
+  );
+  const addTraceFromUrl = useMemo(
+    () => parseAddTraceFromSearchParams(searchParams),
     [searchParams],
   );
   const {
@@ -340,13 +346,31 @@ export function MapPage() {
   }, [quickAddTrace]);
 
   useEffect(() => {
+    if (!addTraceFromUrl) return;
+    setPlacementActive(true);
+    setSearchParams(
+      (prev) =>
+        applyAddTraceToSearchParams(
+          applySelectedTraceToSearchParams(prev, null),
+          false,
+        ),
+      { replace: true },
+    );
+  }, [addTraceFromUrl, setSearchParams]);
+
+  useEffect(() => {
     if (!placementActive) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPlacementActive(false);
+      if (e.key === "Escape") {
+        setPlacementActive(false);
+        setSearchParams((prev) => applyAddTraceToSearchParams(prev, false), {
+          replace: true,
+        });
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [placementActive]);
+  }, [placementActive, setSearchParams]);
 
   useEffect(() => {
     if (!sidebarTraceToken) return;
@@ -397,11 +421,18 @@ export function MapPage() {
 
   function toggleAddTracePlacement() {
     setPlacementActive((prev) => {
-      if (prev) return false;
-      setSearchParams((p) => applySelectedTraceToSearchParams(p, null), {
-        replace: true,
-      });
-      return true;
+      const next = !prev;
+      setSearchParams(
+        (p) => {
+          let params = applyAddTraceToSearchParams(p, false);
+          if (next) {
+            params = applySelectedTraceToSearchParams(params, null);
+          }
+          return params;
+        },
+        { replace: true },
+      );
+      return next;
     });
   }
 

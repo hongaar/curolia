@@ -18,3 +18,16 @@ export const Default: Story = {
   parameters: storyDocs("Multi-line text input."),
   args: { placeholder: "Write a description…" },
 };
+
+export const Disabled: Story = {
+  parameters: storyDocs("Disabled state blocks editing."),
+  args: { placeholder: "Cannot edit", disabled: true },
+};
+
+export const Invalid: Story = {
+  parameters: storyDocs("`aria-invalid` shows error styling."),
+  args: {
+    placeholder: "Description required",
+    "aria-invalid": true,
+  },
+};

@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
-import { StoryRow } from "../../storybook/story-frame";
 import { PluginIconFrame } from "./plugin-icon-frame";
 
 const icon = <span aria-hidden>📍</span>;
@@ -12,23 +11,23 @@ const meta = {
     `Set \`size\` to \`4\`, \`5\`, or \`6\` (rem-based). Place icon markup in \`children\`.`,
   ),
   component: PluginIconFrame,
-  args: { children: icon, size: 4 as const },
-} satisfies Meta;
+  args: { children: icon },
+} satisfies Meta<typeof PluginIconFrame>;
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  parameters: storyDocs("Default icon frame (size 4)."),
+export const Size4: Story = {
+  parameters: storyDocs("`size={4}` — default list icon frame."),
+  args: { size: 4 },
 };
 
-export const Sizes: Story = {
-  parameters: storyDocs("Icon frame size tokens 4, 5, and 6."),
-  render: () => (
-    <StoryRow>
-      <PluginIconFrame size={4}>{icon}</PluginIconFrame>
-      <PluginIconFrame size={5}>{icon}</PluginIconFrame>
-      <PluginIconFrame size={6}>{icon}</PluginIconFrame>
-    </StoryRow>
-  ),
+export const Size5: Story = {
+  parameters: storyDocs("`size={5}` — medium icon frame."),
+  args: { size: 5 },
+};
+
+export const Size6: Story = {
+  parameters: storyDocs("`size={6}` — large icon frame."),
+  args: { size: 6 },
 };

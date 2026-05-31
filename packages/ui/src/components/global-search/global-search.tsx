@@ -1,20 +1,24 @@
 import type * as React from "react";
 
+import { cn } from "../../lib/utils";
 import { buttonClassName } from "../button";
 import { Input } from "../input";
 import { PopoverContent, PopoverTitle, PopoverTrigger } from "../popover";
-import { cn } from "../../lib/utils";
 import styles from "./global-search.module.css";
+
+export type GlobalSearchPopoverTriggerProps = {
+  /** When true, uses ghost styling for the main toolbar slot; otherwise outline standalone. */
+  toolbarEmbed?: boolean;
+  /** Native `title` tooltip on the search trigger button. */
+  title?: string;
+  children: React.ReactNode;
+};
 
 export function GlobalSearchPopoverTrigger({
   toolbarEmbed,
   title,
   children,
-}: {
-  toolbarEmbed?: boolean;
-  title?: string;
-  children: React.ReactNode;
-}) {
+}: GlobalSearchPopoverTriggerProps) {
   return (
     <PopoverTrigger
       type="button"

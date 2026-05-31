@@ -1,5 +1,5 @@
-import { Button } from "../button";
 import { ChevronLeft } from "lucide-react";
+import { Button } from "../button";
 import styles from "./page-back-button.module.css";
 
 export type PageBackButtonProps = {

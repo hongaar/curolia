@@ -22,6 +22,12 @@ import {
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFormStack,
+  PanelDialogTitle,
+} from "@curolia/ui/panel-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,17 +35,10 @@ import {
 } from "@curolia/ui/select";
 import { Textarea } from "@curolia/ui/textarea";
 import {
-  PanelDialogContent,
-  PanelDialogField,
-  PanelDialogFormStack,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
-import {
   FormErrorText,
   FormField,
   FormMutedText,
   FormSelectTriggerFull,
-  TraceFormCoordsGrid,
   TraceFormDangerActions,
   TraceFormDangerHint,
   TraceFormDangerZone,
@@ -597,26 +596,6 @@ export function TraceFormDialog({
           onChange={(e) => setEndDateYmd(e.target.value)}
         />
       </FormField>
-      {!trace && !anchorScreen ? (
-        <TraceFormCoordsGrid>
-          <FormField>
-            <Label htmlFor={`t-lat-${idSuffix}`}>Latitude</Label>
-            <Input
-              id={`t-lat-${idSuffix}`}
-              value={lat}
-              onChange={(e) => setLat(e.target.value)}
-            />
-          </FormField>
-          <FormField>
-            <Label htmlFor={`t-lng-${idSuffix}`}>Longitude</Label>
-            <Input
-              id={`t-lng-${idSuffix}`}
-              value={lng}
-              onChange={(e) => setLng(e.target.value)}
-            />
-          </FormField>
-        </TraceFormCoordsGrid>
-      ) : null}
       {!trace ? (
         <FormField>
           <Label>Place</Label>

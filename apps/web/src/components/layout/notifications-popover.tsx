@@ -1,10 +1,10 @@
-import * as React from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { Popover } from "@curolia/ui/popover";
 import type { AppNotification } from "@/types/database";
+import { FormMutedText } from "@curolia/ui/form-layout";
+import {
+  NavigationSidebarIcon,
+  SidebarPopoverPickerTrigger,
+} from "@curolia/ui/navigation-sidebar";
 import {
   NotificationsIconPopoverTrigger,
   NotificationsPopoverContent,
@@ -12,10 +12,12 @@ import {
   NotificationsPopoverItem,
   NotificationsPopoverScroll,
   NotificationsSeeAllButton,
-  NotificationsSidebarPopoverTrigger,
-  NotificationsSidebarTriggerInner,
 } from "@curolia/ui/notifications-popover";
-import { FormMutedText } from "@curolia/ui/form-layout";
+import { Popover } from "@curolia/ui/popover";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell } from "lucide-react";
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 type NotificationsPopoverProps = {
   userId: string;
@@ -71,15 +73,16 @@ export function NotificationsPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       {variant === "sidebar-row" ? (
-        <NotificationsSidebarPopoverTrigger
+        <SidebarPopoverPickerTrigger
           title="Notifications"
           aria-label="Notifications"
-        >
-          <NotificationsSidebarTriggerInner
-            icon={<Bell aria-hidden />}
-            label="Notifications"
-          />
-        </NotificationsSidebarPopoverTrigger>
+          icon={
+            <NavigationSidebarIcon>
+              <Bell aria-hidden />
+            </NavigationSidebarIcon>
+          }
+          label="Notifications"
+        />
       ) : (
         <NotificationsIconPopoverTrigger
           title="Notifications"

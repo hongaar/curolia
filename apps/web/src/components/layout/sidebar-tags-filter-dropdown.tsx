@@ -1,4 +1,4 @@
-import type { SetStateAction } from "react";
+import type { Tag } from "@/types/database";
 import {
   DropdownMenu,
   DropdownMenuGroup,
@@ -6,7 +6,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@curolia/ui/dropdown-menu";
-import type { Tag } from "@/types/database";
 import {
   JournalDropdownEditButton,
   NavigationSidebarIcon,
@@ -15,13 +14,12 @@ import {
   SidebarDropdownContent,
   SidebarDropdownMenuItem,
   SidebarDropdownRow,
-  SidebarPickerChevron,
-  SidebarPickerLabel,
   SidebarPickerTrigger,
   SidebarTagIconWrap,
   SidebarTagName,
 } from "@curolia/ui/navigation-sidebar";
-import { Check, ChevronDown, Pencil, Plus, Tag as TagIcon } from "lucide-react";
+import { Check, Pencil, Plus, Tag as TagIcon } from "lucide-react";
+import type { SetStateAction } from "react";
 
 type SidebarTagsFilterDropdownProps = {
   tags: Tag[];
@@ -40,22 +38,17 @@ export function SidebarTagsFilterDropdown({
 }: SidebarTagsFilterDropdownProps) {
   return (
     <DropdownMenu>
-      <SidebarPickerTrigger active={filterTagIds.size > 0}>
-        <SidebarPickerLabel
-          emoji={
-            <SidebarTagIconWrap active={filterTagIds.size > 0}>
-              <NavigationSidebarIcon>
-                <TagIcon aria-hidden />
-              </NavigationSidebarIcon>
-            </SidebarTagIconWrap>
-          }
-        >
-          Tags
-        </SidebarPickerLabel>
-        <SidebarPickerChevron>
-          <ChevronDown aria-hidden />
-        </SidebarPickerChevron>
-      </SidebarPickerTrigger>
+      <SidebarPickerTrigger
+        active={filterTagIds.size > 0}
+        icon={
+          <SidebarTagIconWrap active={filterTagIds.size > 0}>
+            <NavigationSidebarIcon>
+              <TagIcon aria-hidden />
+            </NavigationSidebarIcon>
+          </SidebarTagIconWrap>
+        }
+        label="Tags"
+      />
       <SidebarDropdownContent side="bottom" align="start" sideOffset={6}>
         <DropdownMenuGroup>
           <DropdownMenuLabel>Tags</DropdownMenuLabel>

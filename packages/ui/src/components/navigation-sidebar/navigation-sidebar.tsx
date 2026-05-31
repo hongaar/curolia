@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import type * as React from "react";
 import { NavLink } from "react-router-dom";
 
@@ -8,9 +9,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import { PopoverTrigger } from "../popover";
 import styles from "./navigation-sidebar.module.css";
 
-export const navigationSidebarStyles = styles;
+type SidebarPickerRowProps = {
+  icon?: React.ReactNode;
+  label: React.ReactNode;
+};
+
+type SidebarPickerTriggerProps = SidebarPickerRowProps & {
+  active?: boolean;
+};
 
 export function NavigationSidebarRoot({
   children,
@@ -69,52 +78,69 @@ export function NavigationSidebarNavLink({
         cn(styles.navRow, isActive && styles.navRowActive)
       }
     >
-      <span className={styles.navIcon}>{icon}</span>
+      {icon}
       {children}
     </NavLink>
   );
 }
 
+export function SidebarPickerRow({ icon, label }: SidebarPickerRowProps) {
+  return (
+    <>
+      <span className={styles.pickerLead}>
+        {icon}
+        <span className={styles.pickerName}>{label}</span>
+      </span>
+      <NavigationSidebarIcon>
+        <ChevronDown aria-hidden />
+      </NavigationSidebarIcon>
+    </>
+  );
+}
+
 export function SidebarPickerTrigger({
-  children,
+  icon,
+  label,
   active = false,
   ...props
-}: React.ComponentProps<typeof DropdownMenuTrigger> & { active?: boolean }) {
+}: Omit<React.ComponentProps<typeof DropdownMenuTrigger>, "children"> &
+  SidebarPickerTriggerProps) {
   return (
     <DropdownMenuTrigger
-      className={
-        active
-          ? `${styles.pickerTrigger} ${styles.pickerTriggerActive}`
-          : styles.pickerTrigger
-      }
+      className={cn(styles.pickerTrigger, active && styles.pickerTriggerActive)}
       {...props}
     >
-      {children}
+      <SidebarPickerRow icon={icon} label={label} />
     </DropdownMenuTrigger>
   );
 }
 
-export function SidebarPickerLabel({
-  emoji,
-  children,
-}: {
-  emoji?: React.ReactNode;
-  children: React.ReactNode;
-}) {
+export function SidebarPopoverPickerTrigger({
+  icon,
+  label,
+  active = false,
+  ...props
+}: Omit<React.ComponentProps<typeof PopoverTrigger>, "children"> &
+  SidebarPickerTriggerProps) {
   return (
-    <span className={styles.pickerLabel}>
-      {emoji ? <span className={styles.pickerEmoji}>{emoji}</span> : null}
-      <span className={styles.pickerName}>{children}</span>
-    </span>
+    <PopoverTrigger
+      className={cn(styles.pickerTrigger, active && styles.pickerTriggerActive)}
+      {...props}
+    >
+      <SidebarPickerRow icon={icon} label={label} />
+    </PopoverTrigger>
   );
 }
 
-export function SidebarPickerChevron({
+export function NavigationSidebarEmoji({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <span className={styles.pickerChevron}>{children}</span>;
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span className={styles.sidebarEmoji} {...props}>
+      {children}
+    </span>
+  );
 }
 
 export function JournalDropdownRow({
@@ -273,8 +299,4 @@ export function SidebarJournalEmoji({
       {children}
     </span>
   );
-}
-
-export function dropdownPanelWideClassName() {
-  return styles.dropdownWide;
 }

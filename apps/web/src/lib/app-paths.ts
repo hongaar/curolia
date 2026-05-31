@@ -1,5 +1,9 @@
+import {
+  applyAddTraceToSearchParams,
+  applySelectedTraceToSearchParams,
+  MAP_VIEW_PARAM,
+} from "@/lib/map-view-params";
 import type { Journal } from "@/types/database";
-import { MAP_VIEW_PARAM } from "@/lib/map-view-params";
 
 export type JournalViewSegment = "map" | "blog";
 
@@ -34,6 +38,7 @@ export function journalSwitchHref(
   p.delete("filter");
   p.delete("tags");
   p.delete(MAP_VIEW_PARAM.trace);
+  p.delete(MAP_VIEW_PARAM.add);
   const q = p.toString();
   const base = journalViewHref(segment, slug);
   return q ? `${base}?${q}` : base;
@@ -57,6 +62,26 @@ export function mapHrefWithSearch(
       : searchParamsStr,
   );
   const q = p.toString();
+  const base = journalViewHref("map", journalSlug);
+  return q ? `${base}?${q}` : base;
+}
+
+/** Map with add-trace placement mode enabled (preserves unrelated search params). */
+export function mapAddTraceHref(
+  journalSlug: string,
+  searchParams: URLSearchParams | string = "",
+): string {
+  const p =
+    typeof searchParams === "string"
+      ? new URLSearchParams(
+          searchParams.startsWith("?") ? searchParams.slice(1) : searchParams,
+        )
+      : new URLSearchParams(searchParams);
+  const next = applyAddTraceToSearchParams(
+    applySelectedTraceToSearchParams(p, null),
+    true,
+  );
+  const q = next.toString();
   const base = journalViewHref("map", journalSlug);
   return q ? `${base}?${q}` : base;
 }

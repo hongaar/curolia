@@ -1,9 +1,7 @@
-import { ChevronDown } from "lucide-react";
 import type * as React from "react";
 
 import { buttonClassName } from "../button";
 import { PopoverContent, PopoverTrigger } from "../popover";
-import { navigationSidebarStyles } from "../navigation-sidebar";
 import styles from "./notifications-popover.module.css";
 
 export function NotificationsPopoverContent({
@@ -107,40 +105,6 @@ export function NotificationsPopoverItem({
         </span>
       </button>
     </li>
-  );
-}
-
-export function NotificationsSidebarPopoverTrigger({
-  children,
-  ...props
-}: React.ComponentProps<typeof PopoverTrigger>) {
-  return (
-    <PopoverTrigger
-      className={navigationSidebarStyles.pickerTrigger}
-      {...props}
-    >
-      {children}
-    </PopoverTrigger>
-  );
-}
-
-export function NotificationsSidebarTriggerInner({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode;
-  label: React.ReactNode;
-}) {
-  return (
-    <>
-      <span className={styles.sidebarTriggerInner}>
-        <span className={styles.iconSm}>{icon}</span>
-        <span className={styles.sidebarTriggerLabel}>{label}</span>
-      </span>
-      <span className={styles.chevronWrap}>
-        <ChevronDown className={styles.chevron} aria-hidden />
-      </span>
-    </>
   );
 }
 

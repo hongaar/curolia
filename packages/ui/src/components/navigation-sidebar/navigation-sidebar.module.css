@@ -56,9 +56,18 @@
 }
 
 .navIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 1rem;
   height: 1rem;
   opacity: 0.8;
+}
+
+.navIcon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .pickerTrigger {
@@ -82,7 +91,7 @@
   background: color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
-.pickerLabel {
+.pickerLead {
   display: flex;
   min-width: 0;
   flex: 1;
@@ -90,8 +99,13 @@
   gap: 0.5rem;
 }
 
-.pickerEmoji {
+.sidebarEmoji {
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
   font-size: 1rem;
   line-height: 1;
 }
@@ -100,13 +114,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.pickerChevron {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-  opacity: 0.6;
 }
 
 .journalRow {
@@ -149,11 +156,19 @@
 }
 
 .checkIcon {
+  display: inline-flex;
   margin-left: auto;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 1rem;
   height: 1rem;
-  flex-shrink: 0;
   color: var(--foreground);
+}
+
+.checkIcon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .checkSpacer {

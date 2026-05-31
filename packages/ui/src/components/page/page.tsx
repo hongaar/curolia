@@ -291,9 +291,13 @@ export function PageCenteredLoading({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.centeredLoading}>
-      <p className={styles.muted}>{children}</p>
-    </div>
+    <Page>
+      <PageScroll underNav>
+        <div className={styles.centeredLoading}>
+          <p className={styles.muted}>{children}</p>
+        </div>
+      </PageScroll>
+    </Page>
   );
 }
 
@@ -305,10 +309,14 @@ export function PageCenteredError({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className={styles.centeredError}>
-      <p className={styles.muted}>{children}</p>
-      {actions}
-    </div>
+    <Page>
+      <PageScroll underNav>
+        <div className={styles.centeredError}>
+          <p className={styles.muted}>{children}</p>
+          {actions}
+        </div>
+      </PageScroll>
+    </Page>
   );
 }
 

@@ -37,10 +37,18 @@
 }
 
 .searchIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 1rem;
   height: 1rem;
-  flex-shrink: 0;
   opacity: 0.8;
+}
+
+.searchIcon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .searchLabelEmbed {
@@ -193,11 +201,19 @@
 }
 
 .spinner {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 1rem;
   height: 1rem;
-  flex-shrink: 0;
   color: var(--muted-foreground);
   animation: spin 1s linear infinite;
+}
+
+.spinner svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 @keyframes spin {

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryColumn, StoryFrame } from "../../storybook/story-frame";
+import { Checkbox } from "../checkbox";
 import { Input } from "../input";
 import { Label } from "./label";
 
@@ -11,13 +12,13 @@ const meta = {
     `Set \`htmlFor\` to the control \`id\`. Can wrap inputs for checkbox/switch rows.`,
   ),
   component: Label,
-} satisfies Meta;
+} satisfies Meta<typeof Label>;
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  parameters: storyDocs("Label associated with a text input."),
+export const HtmlFor: Story = {
+  parameters: storyDocs("`htmlFor` associates the label with a control `id`."),
   render: () => (
     <StoryFrame width="sm">
       <StoryColumn>
@@ -28,6 +29,18 @@ export const Default: Story = {
           placeholder="you@example.com"
         />
       </StoryColumn>
+    </StoryFrame>
+  ),
+};
+
+export const WrappingControl: Story = {
+  parameters: storyDocs("Label wrapping a control for checkbox/switch rows."),
+  render: () => (
+    <StoryFrame width="sm">
+      <Label>
+        <Checkbox defaultChecked={false} />
+        Remember me
+      </Label>
     </StoryFrame>
   ),
 };

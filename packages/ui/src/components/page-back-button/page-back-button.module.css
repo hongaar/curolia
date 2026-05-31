@@ -1,5 +1,5 @@
 .root {
-  margin-left: -0.5rem;
+  align-self: flex-start;
 }
 
 .icon {

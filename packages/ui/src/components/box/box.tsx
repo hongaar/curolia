@@ -59,6 +59,7 @@ const variantClass: Record<BoxVariant, string> = {
 };
 
 export type BoxProps = React.ComponentProps<"div"> & {
+  /** Named layout/surface token, or array of tokens composed together. */
   variant?: BoxVariant | BoxVariant[];
 };
 

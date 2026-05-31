@@ -12,12 +12,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@curolia/ui/dropdown-menu";
-import { Separator } from "@curolia/ui/separator";
-import { BookOpen, Check, ChevronDown, Map, Pencil, Plus } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
 import {
   JournalDropdownEditButton,
   JournalDropdownRow,
+  NavigationSidebarEmoji,
   NavigationSidebarHint,
   NavigationSidebarIcon,
   NavigationSidebarLabel,
@@ -30,10 +28,11 @@ import {
   SidebarDropdownMenuItem,
   SidebarJournalEmoji,
   SidebarJournalName,
-  SidebarPickerChevron,
-  SidebarPickerLabel,
   SidebarPickerTrigger,
 } from "@curolia/ui/navigation-sidebar";
+import { Separator } from "@curolia/ui/separator";
+import { BookOpen, Check, Map, Pencil, Plus } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function journalEmoji(journal: Journal) {
   return journal.icon_emoji ?? defaultJournalIcon(journal.is_personal);
@@ -93,20 +92,16 @@ export function NavigationSidebarContent({
       <NavigationSidebarSection gap="lg">
         <NavigationSidebarLabel>Journal</NavigationSidebarLabel>
         <DropdownMenu>
-          <SidebarPickerTrigger>
-            <SidebarPickerLabel
-              emoji={
-                activeJournal ? (
-                  <span aria-hidden>{journalEmoji(activeJournal)}</span>
-                ) : undefined
-              }
-            >
-              {activeJournal?.name ?? "Select journal"}
-            </SidebarPickerLabel>
-            <SidebarPickerChevron>
-              <ChevronDown aria-hidden />
-            </SidebarPickerChevron>
-          </SidebarPickerTrigger>
+          <SidebarPickerTrigger
+            icon={
+              activeJournal ? (
+                <NavigationSidebarEmoji aria-hidden>
+                  {journalEmoji(activeJournal)}
+                </NavigationSidebarEmoji>
+              ) : null
+            }
+            label={activeJournal?.name ?? "Select journal"}
+          />
           <SidebarDropdownContent align="start" sideOffset={6}>
             <DropdownMenuGroup>
               <DropdownMenuLabel>Journals</DropdownMenuLabel>

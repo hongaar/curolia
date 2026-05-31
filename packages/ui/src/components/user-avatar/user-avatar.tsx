@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { UserCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { cn } from "../../lib/utils";
 import styles from "./user-avatar.module.css";
@@ -7,14 +7,21 @@ import styles from "./user-avatar.module.css";
 /** 0 = custom URL, 1 = Gravatar, 2 = give up (placeholder). */
 type Attempt = 0 | 1 | 2;
 
+/** `sm` 1.5rem · `md` 2rem · `lg` 6rem · `full` fills the parent. */
 export type UserAvatarSize = "sm" | "md" | "lg" | "full";
 
 export type UserAvatarProps = {
+  /** User-uploaded avatar URL; tried before Gravatar. */
   storedAvatarUrl: string | null | undefined;
+  /** Account email for Gravatar fallback and alt text. */
   email: string | null | undefined;
+  /** Optional precomputed Gravatar URL. */
   gravatarUrl?: string | null;
+  /** Display size token. */
   size?: UserAvatarSize;
+  /** Accessible name when the image is decorative. */
   label?: string;
+  /** Notification dot overlay. */
   showUnreadDot?: boolean;
 };
 
@@ -67,9 +74,10 @@ export function UserAvatar({
   );
 
   const iconClass = cn(
+    size === "sm" && styles.iconSm,
+    size === "md" && styles.iconMd,
     size === "lg" && styles.iconLg,
     size === "full" && styles.iconFull,
-    (size === "sm" || size === "md") && styles.iconSm,
   );
 
   const inner = !src ? (
@@ -91,11 +99,15 @@ export function UserAvatar({
   );
 
   if (!showUnreadDot) {
-    return <span className={styles.root}>{inner}</span>;
+    return (
+      <span className={cn(styles.root, size === "full" && styles.rootFull)}>
+        {inner}
+      </span>
+    );
   }
 
   return (
-    <span className={styles.root}>
+    <span className={cn(styles.root, size === "full" && styles.rootFull)}>
       {inner}
       <span className={styles.unreadDot} aria-hidden />
     </span>

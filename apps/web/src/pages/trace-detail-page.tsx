@@ -1,19 +1,23 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useJournal } from "@/providers/journal-provider";
-import { useAuth } from "@/providers/auth-provider";
-import { pluginList } from "@/plugins/registry";
-import type { Trace } from "@/types/database";
-import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
+import { PageBackButton } from "@/components/layout/page-back-button";
+import { TraceDetailInsetMapView } from "@/components/traces/trace-detail-inset-map";
 import { TraceFormDialogTrigger } from "@/components/traces/trace-form-dialog";
 import { TraceLinksList } from "@/components/traces/trace-links-list";
-import { PageBackButton } from "@/components/layout/page-back-button";
-import { formatTraceDateRange } from "@/lib/trace-dates";
 import { TraceMetadataFooter } from "@/components/traces/trace-metadata-footer";
-import { journalViewHref } from "@/lib/app-paths";
+import { journalViewHref, mapHrefWithSearch } from "@/lib/app-paths";
+import {
+  applyMapCameraToSearchParams,
+  applySelectedTraceToSearchParams,
+  normalizeCameraForUrl,
+  TRACE_FOCUS_ZOOM,
+} from "@/lib/map-view-params";
+import { supabase } from "@/lib/supabase";
+import { formatTraceDateRange } from "@/lib/trace-dates";
 import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
+import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
+import { pluginList } from "@/plugins/registry";
+import { useAuth } from "@/providers/auth-provider";
+import { useJournal } from "@/providers/journal-provider";
+import type { Trace } from "@/types/database";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import {
@@ -38,6 +42,9 @@ import {
   TracePhotoLightbox,
   TracePhotoThumb,
 } from "@curolia/ui/trace-photo-lightbox";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 type TraceRow = Trace & {
   trace_tags?: {
@@ -151,6 +158,32 @@ export function TraceDetailPage() {
 
   const traceDateSubtitle = formatTraceDateRange(trace.date, trace.end_date);
 
+  const journalSlugForMap =
+    journalForRoute?.slug?.trim() ?? journalSlug?.trim();
+  const mapHref =
+    journalSlugForMap != null && journalSlugForMap !== ""
+      ? mapHrefWithSearch(
+          journalSlugForMap,
+          (() => {
+            const withTrace = applySelectedTraceToSearchParams(
+              new URLSearchParams(),
+              trace.slug,
+            );
+            const params = applyMapCameraToSearchParams(
+              withTrace,
+              normalizeCameraForUrl({
+                lat: trace.lat,
+                lng: trace.lng,
+                zoom: TRACE_FOCUS_ZOOM,
+              }),
+            );
+            return `?${params.toString()}`;
+          })(),
+        )
+      : null;
+
+  const insetMarkerTag = tagBadges[0] ?? null;
+
   return (
     <AppPageLayout width="2xl">
       <PageBackButton />
@@ -187,6 +220,16 @@ export function TraceDetailPage() {
           </TraceDetailActions>
         </TraceDetailHeader>
         <TraceDetailContent>
+          {mapHref ? (
+            <TraceDetailInsetMapView
+              lng={trace.lng}
+              lat={trace.lat}
+              markerEmoji={insetMarkerTag?.icon_emoji ?? "📍"}
+              markerColor={insetMarkerTag?.color ?? null}
+              mapHref={mapHref}
+              mapAriaLabel="Open this trace on the map"
+            />
+          ) : null}
           {trace.description ? (
             <TraceDetailDescription>{trace.description}</TraceDetailDescription>
           ) : null}

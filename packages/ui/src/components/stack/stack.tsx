@@ -39,12 +39,19 @@ const paddingClass: Record<StackPadding, string> = {
 };
 
 export type StackProps = React.ComponentProps<"div"> & {
+  /** Flex direction: vertical (`column`) or horizontal (`row`). */
   direction?: "row" | "column";
+  /** Spacing between children using design tokens. */
   gap?: StackGap;
+  /** Cross-axis alignment (`align-items`). */
   align?: StackAlign;
+  /** Main-axis distribution (`justify-content`). */
   justify?: StackJustify;
+  /** Inner padding on the stack container. */
   padding?: StackPadding;
+  /** When true, stack grows to fill available flex space. */
   fill?: boolean;
+  /** Allow flex items to wrap to the next line. */
   wrap?: boolean;
 };
 

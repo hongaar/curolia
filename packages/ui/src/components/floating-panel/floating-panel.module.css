@@ -4,10 +4,17 @@
   border-radius: 1rem;
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
-  padding: 1rem;
   color: var(--panel-fg);
   box-shadow: var(--panel-shadow);
   backdrop-filter: blur(24px) saturate(1.5);
+}
+
+.paddingDefault {
+  padding: 1rem;
+}
+
+.paddingNone {
+  padding: 0;
 }
 
 .paddingLg {

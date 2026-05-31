@@ -1,4 +1,5 @@
 import type * as React from "react";
+import { Link } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import styles from "./trace-detail.module.css";
@@ -78,6 +79,44 @@ export function TraceDetailTagBadge({
     <span className={styles.badgePlain} style={style}>
       {children}
     </span>
+  );
+}
+
+export function TraceDetailInsetMapLink({
+  to,
+  children,
+  ariaLabel,
+}: {
+  to: string;
+  children: React.ReactNode;
+  ariaLabel: string;
+}) {
+  return (
+    <Link to={to} className={styles.insetMapLink} aria-label={ariaLabel}>
+      {children}
+    </Link>
+  );
+}
+
+export function TraceDetailInsetMap({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.insetMap}>{children}</div>;
+}
+
+export function TraceDetailInsetMapCanvas({
+  containerRef,
+}: {
+  containerRef?: React.Ref<HTMLDivElement>;
+}) {
+  return (
+    <div
+      ref={containerRef}
+      data-curolia-trace-map
+      className={styles.insetMapCanvas}
+    />
   );
 }
 

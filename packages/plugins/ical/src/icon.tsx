@@ -9,7 +9,7 @@ export function IcalIcon({
   return (
     <PluginIconFrame size={size}>
       <svg viewBox="0 0 55 60" aria-hidden="true" width="100%" height="100%">
-        <g clip-path="url(#clip0_5_419)">
+        <g clipPath="url(#clip0_5_419)">
           <path
             d="M52 60H3C1.34 60 0 58.66 0 57V5.87C0 4.21 1.34 2.87 3 2.87H52C53.66 2.87 55 4.21 55 5.87V57C55 58.66 53.66 60 52 60Z"
             fill="url(#paint0_linear_5_419)"
@@ -77,9 +77,9 @@ export function IcalIcon({
             width="41"
             height="31.16"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feBlend
               mode="normal"
               in="SourceGraphic"
@@ -113,8 +113,8 @@ export function IcalIcon({
             y2="70.5007"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stop-color="#34ACE3" />
-            <stop offset="1" stop-color="#2778BD" />
+            <stop stopColor="#34ACE3" />
+            <stop offset="1" stopColor="#2778BD" />
           </linearGradient>
           <linearGradient
             id="paint1_linear_5_419"
@@ -124,8 +124,8 @@ export function IcalIcon({
             y2="30.6111"
             gradientUnits="userSpaceOnUse"
           >
-            <stop stop-color="#2371B8" />
-            <stop offset="1" stop-color="#0F579F" />
+            <stop stopColor="#2371B8" />
+            <stop offset="1" stopColor="#0F579F" />
           </linearGradient>
           <clipPath id="clip0_5_419">
             <rect width="55" height="60" fill="white" />

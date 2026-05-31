@@ -1,13 +1,13 @@
 import type * as React from "react";
 
-import { Button } from "../button";
 import { cn } from "../../lib/utils";
+import { Button } from "../button";
 import { FloatingPanel } from "../floating-panel";
 import styles from "./main-toolbar-panel.module.css";
 
 export function MainToolbarShell({ children }: { children: React.ReactNode }) {
   return (
-    <FloatingPanel elevated className={styles.panel}>
+    <FloatingPanel elevated padding="none" className={styles.panel}>
       {children}
     </FloatingPanel>
   );
@@ -22,7 +22,7 @@ export function MainToolbarMenuButton({
     <Button
       type="button"
       variant="ghost"
-      size="icon"
+      size="icon-lg"
       className={cn(styles.menuButton, className)}
       {...props}
     >

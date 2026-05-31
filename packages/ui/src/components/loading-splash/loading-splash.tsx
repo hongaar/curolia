@@ -6,7 +6,9 @@ import styles from "./loading-splash.module.css";
 const SHOW_LOGO_AFTER_MS = 200;
 
 export type CuroliaLoadingSplashProps = {
+  /** Screen-reader status message while loading. */
   statusLabel?: string;
+  /** When true, splash fills the parent viewport instead of inline. */
   fill?: boolean;
 };
 

@@ -11,23 +11,43 @@ const meta = {
     `Pass \`title\` and optional \`description\`; place the primary action in \`children\` (e.g. a destructive Button).`,
   ),
   component: CautionPanel,
-} satisfies Meta;
+  decorators: [
+    (Story) => (
+      <StoryFrame width="md">
+        <Story />
+      </StoryFrame>
+    ),
+  ],
+} satisfies Meta<typeof CautionPanel>;
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   parameters: storyDocs(
-    "Warning panel for destructive or irreversible actions.",
+    "Warning panel with title, description, and destructive action.",
   ),
-  render: () => (
-    <StoryFrame width="md">
-      <CautionPanel
-        title="Delete journal"
-        description="All traces in this journal will be permanently removed."
-      >
-        <Button variant="destructive">Delete journal</Button>
-      </CautionPanel>
-    </StoryFrame>
-  ),
+  args: {
+    title: "Delete journal",
+    description: "All traces in this journal will be permanently removed.",
+    children: <Button variant="destructive">Delete journal</Button>,
+  },
+};
+
+export const TitleOnly: Story = {
+  parameters: storyDocs("`description` omitted — heading and action only."),
+  args: {
+    title: "Remove plugin",
+    description: undefined,
+    children: <Button variant="destructive">Remove</Button>,
+  },
+};
+
+export const WithDescription: Story = {
+  parameters: storyDocs("Supporting copy via `description`."),
+  args: {
+    title: "Delete journal",
+    description: "All traces in this journal will be permanently removed.",
+    children: <Button variant="destructive">Delete journal</Button>,
+  },
 };

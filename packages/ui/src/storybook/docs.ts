@@ -25,6 +25,16 @@ export function storyDocs(description: string) {
   };
 }
 
+/** Per-control descriptions for the docs prop table when docgen has none. */
+export function storyArgTypes(descriptions: Record<string, string>): ArgTypes {
+  return Object.fromEntries(
+    Object.entries(descriptions).map(([name, description]) => [
+      name,
+      { description },
+    ]),
+  );
+}
+
 /** Meta spread: autodocs tag, component description, optional argTypes. */
 export function componentStoryMeta(
   summary: string,

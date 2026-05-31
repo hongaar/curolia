@@ -3,9 +3,13 @@ import * as React from "react";
 import { cn } from "../../lib/utils";
 import styles from "./caution-panel.module.css";
 
-type CautionPanelProps = React.ComponentProps<"div"> & {
+export type CautionPanelProps = React.ComponentProps<"div"> & {
+  /** Warning heading shown above the description. */
   title: React.ReactNode;
+  /** Optional supporting copy; omitted when not set. */
   description?: React.ReactNode;
+  /** Primary action row (e.g. destructive button). */
+  children?: React.ReactNode;
 };
 
 function CautionPanel({
@@ -30,4 +34,4 @@ function CautionPanel({
   );
 }
 
-export { CautionPanel, type CautionPanelProps };
+export { CautionPanel };

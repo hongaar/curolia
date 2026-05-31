@@ -19,7 +19,21 @@ export const Default: Story = {
   args: { placeholder: "Enter text…" },
 };
 
+export const TypeEmail: Story = {
+  parameters: storyDocs('Native `type="email"` for email fields.'),
+  args: { type: "email", placeholder: "you@example.com" },
+};
+
 export const Disabled: Story = {
-  parameters: storyDocs("Disabled story."),
+  parameters: storyDocs("Disabled state blocks editing."),
   args: { placeholder: "Cannot edit", disabled: true },
+};
+
+export const Invalid: Story = {
+  parameters: storyDocs("`aria-invalid` shows error styling."),
+  args: {
+    placeholder: "Required",
+    "aria-invalid": true,
+    defaultValue: "",
+  },
 };
