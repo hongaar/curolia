@@ -1,13 +1,18 @@
+import { AuthProvider } from "@/providers/auth-provider";
+import { Capacitor } from "@capacitor/core";
+import { Toaster } from "@curolia/ui/sonner";
+import "@curolia/ui/styles";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/providers/auth-provider";
-import { Toaster } from "@curolia/ui/sonner";
-import App from "./App.tsx";
-import "@curolia/ui/styles";
 import { registerSW } from "virtual:pwa-register";
+import App from "./App.tsx";
+
+if (Capacitor.isNativePlatform()) {
+  document.documentElement.classList.add("native-app");
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

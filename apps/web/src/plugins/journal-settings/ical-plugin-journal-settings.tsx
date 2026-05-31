@@ -1,16 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Json } from "@/lib/database.types";
-import { supabase } from "@/lib/supabase";
 import { icalFeedPublicUrl } from "@/lib/ical-feed-url";
+import { resolveSupabaseUrl } from "@/lib/resolve-supabase-url";
+import { supabase } from "@/lib/supabase";
+import type { JournalPlugin } from "@/types/database";
 import {
   journalPluginConfigRecord,
   mergeJournalPluginConfig,
 } from "@curolia/plugin-contract";
 import { ICAL_PLUGIN_ID, parseIcalJournalConfig } from "@curolia/plugin-ical";
-import type { JournalPlugin } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { Label } from "@curolia/ui/label";
-import { Switch } from "@curolia/ui/switch";
 import {
   PluginFeedCode,
   PluginFeedLabel,
@@ -21,10 +20,12 @@ import {
   PluginSettingsTitle,
   PluginStatusText,
 } from "@curolia/ui/plugin-panel";
+import { Switch } from "@curolia/ui/switch";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "";
+const supabaseUrl = resolveSupabaseUrl(import.meta.env.VITE_SUPABASE_URL ?? "");
 
 async function ensureIcalFeedToken(journalId: string): Promise<string> {
   const first = await supabase

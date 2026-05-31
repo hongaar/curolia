@@ -9,14 +9,18 @@
     "sync:ios": "cap sync ios",
     "copy": "cap copy",
     "open:ios": "cap open ios",
-    "open:android": "cap open android"
+    "open:android": "cap open android",
+    "dev:android": "cap run android -l --forwardPorts 5173:5173",
+    "dev:ios": "cap run ios -l"
   },
   "dependencies": {
-    "@capacitor/core": "^7.4.3"
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/device": "^8.0.2",
+    "@capacitor/push-notifications": "^8.0.3"
   },
   "devDependencies": {
-    "@capacitor/android": "^7.4.3",
-    "@capacitor/cli": "^7.4.3",
-    "@capacitor/ios": "^7.4.3"
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/ios": "^8.3.1"
   }
 }

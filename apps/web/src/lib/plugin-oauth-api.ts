@@ -1,3 +1,4 @@
+import { resolveSupabaseUrl } from "@/lib/resolve-supabase-url";
 import { supabase } from "@/lib/supabase";
 
 async function pluginOAuthFetch(
@@ -8,7 +9,9 @@ async function pluginOAuthFetch(
   } = await supabase.auth.getSession();
   if (!session) throw new Error("sign_in_required");
 
-  const base = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const base = resolveSupabaseUrl(
+    import.meta.env.VITE_SUPABASE_URL ?? "",
+  ).replace(/\/$/, "");
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
   return fetch(`${base}/functions/v1/plugin-oauth`, {
     method: "POST",

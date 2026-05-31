@@ -39,15 +39,21 @@ The production **Vercel** job runs **`npx turbo run codegen`** after install, th
   - `npx turbo run sync --filter=@curolia/mobile` — builds web with `apps/web/.env`, regenerates native icons/splash, and runs `cap sync`
   - `npm run open:ios -w @curolia/mobile`
   - `npm run open:android -w @curolia/mobile`
-- **Android emulator / screenshots (hosted Supabase):** create `apps/web/.env.prod`, then:
-
-  ```bash
-  npm run build:prod -w @curolia/web
-  npm run sync:android -w @curolia/mobile
-  npm run open:android -w @curolia/mobile
-  ```
 
 For iOS development, install Xcode + CocoaPods. For Android, install Android Studio SDK tools.
+
+### Native emulator / simulator (local Supabase + live reload)
+
+Native shells use the **Vite dev server** with the same `apps/web/.env` as the browser (`127.0.0.1:54321`). On **Android emulators**, the app rewrites that to `10.0.2.2` at runtime — no separate env file or dev script.
+
+Start local Supabase first (`npm run dev` from repo root, or `npm run db:start -w @curolia/supabase`).
+
+```bash
+npm run dev -w @curolia/web              # terminal 1
+npm run dev:android -w @curolia/mobile   # or dev:ios — terminal 2
+```
+
+Save a file in the editor and the WebView reloads automatically.
 
 ### Mobile CI/CD offload
 
