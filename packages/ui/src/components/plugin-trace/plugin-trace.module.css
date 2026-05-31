@@ -20,17 +20,33 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.25;
 }
 
 .iconMuted {
-  color: var(--muted-foreground);
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.125em;
+  height: 1.125em;
+  color: var(--muted-foreground);
+}
+
+.iconMuted > * {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
 }
 
 .title {
+  margin: 0;
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: inherit;
   font-weight: 400;
+  line-height: inherit;
   letter-spacing: -0.025em;
 }
 
@@ -94,7 +110,8 @@
 
 .trackLink {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
+  line-height: 1.25;
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -108,11 +125,19 @@
 }
 
 .trackIcon {
-  margin-top: 0.125rem;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 1rem;
   height: 1rem;
-  flex-shrink: 0;
   color: var(--muted-foreground);
+}
+
+.trackIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .trackMeta {
