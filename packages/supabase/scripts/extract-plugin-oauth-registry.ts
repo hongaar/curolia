@@ -8,13 +8,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import type { PluginPackageManifest } from "../../plugin-contract/src/index.ts";
 import { OAUTH_COMPANION_SCOPES_BY_PROVIDER } from "../../plugins/oauth/src/oauth-companion-scopes.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** Repository root (`curolia-v2/`) — `scripts/` → .. → .. → repo */
 const repoRoot = path.resolve(__dirname, "../../..");
 const pluginsRoot = path.join(repoRoot, "packages", "plugins");
+
+/** Kept in repo but not registered for OAuth (see plugin README). */
+const DISABLED_PLUGIN_PACKAGE_DIRS = new Set(["spotify"]);
+
 const registryOutPath = path.join(
   pluginsRoot,
   "oauth",
@@ -31,6 +34,7 @@ async function collectFromManifests(): Promise<ByPluginMap> {
 
   for (const ent of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
     if (!ent.isDirectory()) continue;
+    if (DISABLED_PLUGIN_PACKAGE_DIRS.has(ent.name)) continue;
     const pkgDir = path.join(pluginsRoot, ent.name);
     const oauthRegistryTs = path.join(pkgDir, "src", "oauth-registry.ts");
     if (!fs.existsSync(oauthRegistryTs)) continue;

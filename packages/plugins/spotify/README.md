@@ -1,5 +1,7 @@
 # Spotify plugin (`@curolia/plugin-spotify`)
 
+> **Disabled in the app** (package kept in the monorepo). Spotify’s Web API only exposes a shallow **recently played** feed (roughly the last few days), which cannot satisfy trace **date-range** listening history. Re-enable by setting `implemented: true` in `src/plugin-meta.ts`, restoring `@curolia/plugin-spotify` in `apps/web/package.json`, and removing `spotify` from `DISABLED_PLUGIN_PACKAGE_DIRS` in `packages/supabase/scripts/sync-plugins.mjs` and `extract-plugin-oauth-registry.ts`, then run `plugins:sync` and `functions:sync`.
+
 Resolves **top streamed tracks** (by replay count in your Spotify **recently played** history) that fall within each trace’s **date range**, stores them in **`public.plugin_entity_data`**, and renders a **Spotify** card on the **trace detail** page. OAuth uses the shared **`plugin-oauth`** Edge Function (PKCE).
 
 ## Prerequisites

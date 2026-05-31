@@ -20,9 +20,6 @@ const PLUGIN_OAUTH_SCOPES_BY_PROVIDER: Record<
       "https://www.googleapis.com/auth/photospicker.mediaitems.readonly",
     ],
   },
-  spotify: {
-    spotify: ["user-read-recently-played"],
-  },
 };
 
 /** OAuth provider ids declared for a plugin (manifest contributions.oauth). */

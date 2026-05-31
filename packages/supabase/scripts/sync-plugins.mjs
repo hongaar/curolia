@@ -20,6 +20,9 @@ const repoRoot = path.resolve(supabasePkgRoot, "..", "..");
 const pluginsRoot = path.join(repoRoot, "packages", "plugins");
 const destRoot = path.join(supabasePkgRoot, "supabase", "functions");
 
+/** Kept under `packages/plugins/` but not deployed (see each plugin README). */
+const DISABLED_PLUGIN_PACKAGE_DIRS = new Set(["spotify"]);
+
 function resolveTsxBin(root) {
   const binDir = path.join(root, "node_modules", ".bin");
   const tsx = path.join(binDir, "tsx");
@@ -71,6 +74,27 @@ runPluginOauthRegistryExtract();
 let count = 0;
 for (const pkg of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
   if (!pkg.isDirectory()) continue;
+  if (DISABLED_PLUGIN_PACKAGE_DIRS.has(pkg.name)) {
+    const disabledFnRoot = path.join(
+      pluginsRoot,
+      pkg.name,
+      "supabase",
+      "functions",
+    );
+    if (fs.existsSync(disabledFnRoot)) {
+      for (const slug of fs.readdirSync(disabledFnRoot, {
+        withFileTypes: true,
+      })) {
+        if (!slug.isDirectory()) continue;
+        const dest = path.join(destRoot, slug.name);
+        rmrf(dest);
+        console.log(
+          `sync-plugins: removed disabled function "${slug.name}" (plugin "${pkg.name}")`,
+        );
+      }
+    }
+    continue;
+  }
   const fnRoot = path.join(pluginsRoot, pkg.name, "supabase", "functions");
   if (!fs.existsSync(fnRoot)) continue;
 
