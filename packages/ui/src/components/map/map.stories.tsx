@@ -1,42 +1,42 @@
-import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Layers, MapPin, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { storyFrameStyles } from "../../storybook/story-frame";
 import { Badge } from "../badge";
 import { Button } from "../button";
 import { FloatingPanel } from "../floating-panel";
+import { MapFloatingAnchor, MapFloatingPanel } from "../map-floating";
 import {
+  MapMarkerPopoverActions,
+  MapMarkerPopoverBody,
+  MapMarkerPopoverDescription,
+  MapMarkerPopoverHeader,
+  MapMarkerPopoverHeaderActions,
+  MapMarkerPopoverPhotoSkeleton,
+  MapMarkerPopoverPhotoStrip,
+  MapMarkerPopoverStatus,
+  MapMarkerPopoverTagRow,
+} from "../map-marker-popover";
+import { MapToolbar, MapToolbarButton } from "../map-toolbar";
+import {
+  MapCanvas,
   MapControlsBottomRight,
   MapControlsLayer,
   MapControlsTopRight,
   MapHost,
   MapLayer,
+  MapOverlayDismiss,
   MapPageRoot,
   MapPlacementHint,
-  MapSidebarDismiss,
-  MapToolbarGroup,
-  MapToolbarIconButton,
   MapVignette,
-  TraceMapContainer,
-  TraceMapFloatingHost,
-  TraceMapFloatingPanel,
-  TraceMapSidebarActions,
-  TraceMapSidebarBody,
-  TraceMapSidebarDescription,
-  TraceMapSidebarHeader,
-  TraceMapSidebarHeaderActions,
-  TraceMapSidebarPhotoSkeleton,
-  TraceMapSidebarPhotoStrip,
-  TraceMapSidebarStatus,
-  TraceMapSidebarTagRow,
 } from "./map";
 
 const meta = {
-  title: "Components/Map",
+  title: "Map",
   ...componentStoryMeta(
-    `Map page layers, controls, trace sidebar, markers, and mobile sheet.`,
-    `Structure: \`MapPageRoot\` → \`MapLayer\` / \`MapControlsLayer\`. Use trace sidebar primitives for the selected trace panel.`,
+    `Map page shell: layers, controls, canvas, and marker popover layout.`,
+    `Use \`@curolia/ui/map-toolbar\`, \`map-marker-popover\`, \`map-floating\`, and \`map-marker\` for composed pieces.`,
   ),
   component: MapPageRoot,
 } satisfies Meta;
@@ -50,11 +50,10 @@ function MockMapSurface() {
 
 export const Default: Story = {
   parameters: storyDocs(
-    "Full map page with toolbar, FAB, and trace sidebar panel.",
+    "Map page with toolbar, FAB, and marker popover beside the canvas.",
   ),
   render: () => {
-    const [layersOpen, setLayersOpen] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [popoverOpen, setPopoverOpen] = useState(true);
     return (
       <div style={{ height: "100svh", width: "100%" }}>
         <MapPageRoot>
@@ -64,29 +63,23 @@ export const Default: Story = {
             </MapHost>
             <MapVignette />
           </MapLayer>
-          <MapSidebarDismiss
-            open={sidebarOpen}
-            onDismiss={() => setSidebarOpen(false)}
+          <MapOverlayDismiss
+            open={popoverOpen}
+            onDismiss={() => setPopoverOpen(false)}
           />
           <MapControlsLayer>
             <MapControlsTopRight>
-              <MapToolbarGroup>
-                <MapToolbarIconButton
+              <MapToolbar>
+                <MapToolbarButton
                   icon={
-                    <Layers className={storyFrameStyles.iconSm} aria-hidden />
+                    <span className={storyFrameStyles.iconSm} aria-hidden>
+                      ⊞
+                    </span>
                   }
                   label="Layers"
-                  active={layersOpen}
-                  onClick={() => setLayersOpen((v) => !v)}
-                />
-                <MapToolbarIconButton
-                  icon={
-                    <MapPin className={storyFrameStyles.iconSm} aria-hidden />
-                  }
-                  label="Fit bounds"
                   onClick={() => undefined}
                 />
-              </MapToolbarGroup>
+              </MapToolbar>
             </MapControlsTopRight>
             <MapControlsBottomRight>
               <Button size="icon" aria-label="Add trace">
@@ -94,7 +87,7 @@ export const Default: Story = {
               </Button>
             </MapControlsBottomRight>
           </MapControlsLayer>
-          {sidebarOpen ? (
+          {popoverOpen ? (
             <FloatingPanel
               elevated
               style={{
@@ -107,36 +100,36 @@ export const Default: Story = {
                 overflow: "auto",
               }}
             >
-              <TraceMapSidebarBody>
-                <TraceMapSidebarHeader
+              <MapMarkerPopoverBody>
+                <MapMarkerPopoverHeader
                   title="Café de Flore"
                   actions={
-                    <TraceMapSidebarHeaderActions>
+                    <MapMarkerPopoverHeaderActions>
                       <Button size="sm" variant="outline">
                         Edit
                       </Button>
-                    </TraceMapSidebarHeaderActions>
+                    </MapMarkerPopoverHeaderActions>
                   }
                 />
-                <TraceMapSidebarDescription>
+                <MapMarkerPopoverDescription>
                   Morning coffee before exploring Saint-Germain.
-                </TraceMapSidebarDescription>
-                <TraceMapSidebarTagRow>
+                </MapMarkerPopoverDescription>
+                <MapMarkerPopoverTagRow>
                   <Badge variant="secondary">Food</Badge>
                   <Badge variant="outline">Paris</Badge>
-                </TraceMapSidebarTagRow>
-                <TraceMapSidebarPhotoStrip>
-                  <TraceMapSidebarPhotoSkeleton />
-                  <TraceMapSidebarPhotoSkeleton />
-                  <TraceMapSidebarPhotoSkeleton />
-                </TraceMapSidebarPhotoStrip>
-                <TraceMapSidebarStatus>
+                </MapMarkerPopoverTagRow>
+                <MapMarkerPopoverPhotoStrip>
+                  <MapMarkerPopoverPhotoSkeleton />
+                  <MapMarkerPopoverPhotoSkeleton />
+                  <MapMarkerPopoverPhotoSkeleton />
+                </MapMarkerPopoverPhotoStrip>
+                <MapMarkerPopoverStatus>
                   3 photos · 2 links
-                </TraceMapSidebarStatus>
-                <TraceMapSidebarActions>
+                </MapMarkerPopoverStatus>
+                <MapMarkerPopoverActions>
                   <Button size="sm">Open trace</Button>
-                </TraceMapSidebarActions>
-              </TraceMapSidebarBody>
+                </MapMarkerPopoverActions>
+              </MapMarkerPopoverBody>
             </FloatingPanel>
           ) : null}
         </MapPageRoot>
@@ -151,7 +144,7 @@ export const PlacementMode: Story = {
     <div style={{ height: "24rem", width: "100%", position: "relative" }}>
       <MapPageRoot>
         <MapLayer>
-          <TraceMapContainer placementMode />
+          <MapCanvas placementMode />
           <MapPlacementHint>Click the map to place this trace</MapPlacementHint>
         </MapLayer>
       </MapPageRoot>
@@ -159,8 +152,10 @@ export const PlacementMode: Story = {
   ),
 };
 
-export const FloatingTraceCard: Story = {
-  parameters: storyDocs("Anchored floating card for a map marker."),
+export const FloatingMarkerPopover: Story = {
+  parameters: storyDocs(
+    "Marker-anchored popover (desktop Floating UI placement).",
+  ),
   render: () => (
     <div
       style={{
@@ -171,20 +166,16 @@ export const FloatingTraceCard: Story = {
       }}
     >
       <MockMapSurface />
-      <TraceMapFloatingHost ready>
-        <TraceMapFloatingPanel anchored>
-          <p style={{ margin: 0, fontWeight: 500 }}>Louvre Museum</p>
-          <p
-            style={{
-              margin: "0.25rem 0 0",
-              fontSize: "0.75rem",
-              color: "var(--muted-foreground)",
-            }}
-          >
-            Tap to open trace
-          </p>
-        </TraceMapFloatingPanel>
-      </TraceMapFloatingHost>
+      <MapFloatingAnchor ready>
+        <MapFloatingPanel anchored>
+          <FloatingPanel padding="default">
+            <MapMarkerPopoverBody>
+              <MapMarkerPopoverHeader title="Louvre Museum" />
+              <MapMarkerPopoverStatus>Tap to open trace</MapMarkerPopoverStatus>
+            </MapMarkerPopoverBody>
+          </FloatingPanel>
+        </MapFloatingPanel>
+      </MapFloatingAnchor>
     </div>
   ),
 };

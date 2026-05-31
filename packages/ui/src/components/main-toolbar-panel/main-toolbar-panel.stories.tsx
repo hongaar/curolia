@@ -11,7 +11,7 @@ import {
 } from "./main-toolbar-panel";
 
 const meta = {
-  title: "Components/Main Toolbar",
+  title: "Main Toolbar",
   ...componentStoryMeta(
     `Floating toolbar shell: menu, brand, search slot.`,
     `Compose \`MainToolbarShell\` with menu button, \`MainToolbarBrand\`, and \`MainToolbarSearchSlot\`.`,

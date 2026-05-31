@@ -8,7 +8,7 @@ import { FormField } from "../form-layout";
 import { TraceFormPanelCard } from "./trace-form";
 
 const meta = {
-  title: "Components/Trace Form",
+  title: "Trace Form",
   ...componentStoryMeta(
     `Trace create/edit dialog layout and field groups.`,
     `Compose inside \`PanelDialogContent\` for add/edit trace flows.`,

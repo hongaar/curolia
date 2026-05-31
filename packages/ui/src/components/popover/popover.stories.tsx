@@ -11,7 +11,7 @@ import {
 } from "./popover";
 
 const meta = {
-  title: "Components/Popover",
+  title: "Popover",
   ...componentStoryMeta(
     `Non-modal floating panel anchored to a trigger.`,
     `Use for compact forms, pickers, and menus that should not block the page. Position via props on \`PopoverContent\`.`,

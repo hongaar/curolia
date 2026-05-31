@@ -4,7 +4,7 @@ import { StoryFrame } from "../../storybook/story-frame";
 import { TraceMetadataFooter } from "./trace-metadata-footer";
 
 const meta = {
-  title: "Components/Trace Metadata Footer",
+  title: "Trace Metadata Footer",
   ...componentStoryMeta(
     `Footer strip for trace dates, source, and compact metadata.`,
     `Place below trace content in sidebar or detail views.`,

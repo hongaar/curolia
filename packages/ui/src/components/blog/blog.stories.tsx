@@ -12,7 +12,7 @@ import {
 } from "./blog";
 
 const meta = {
-  title: "Components/Blog",
+  title: "Blog",
   ...componentStoryMeta(
     `Layout helpers for the journal blog timeline and entries.`,
     `Compose blog list rows and metadata from exported primitives in \`blog.tsx\`.`,

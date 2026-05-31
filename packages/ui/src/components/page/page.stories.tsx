@@ -11,7 +11,7 @@ import {
 } from "./page";
 
 const meta = {
-  title: "Components/Page",
+  title: "Page",
   ...componentStoryMeta(
     `Settings and content page shell with floating panel width tokens.`,
     `Use \`PageRoot\`, \`PageHeader\`, \`PageTitle\`, and \`PageMuted\` for consistent settings pages.`,

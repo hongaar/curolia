@@ -14,7 +14,7 @@ import {
 } from "./panel-dialog";
 
 const meta = {
-  title: "Components/Panel Dialog",
+  title: "Panel Dialog",
   ...componentStoryMeta(
     `Wide dialog variant for trace forms and journal actions.`,
     `Use exported \`PanelDialogContent\` wrappers instead of raw \`DialogContent\` sizing.`,

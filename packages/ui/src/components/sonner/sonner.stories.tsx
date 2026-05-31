@@ -6,7 +6,7 @@ import { Button } from "../button";
 import { Toaster } from "./sonner";
 
 const meta = {
-  title: "Components/Sonner Toaster",
+  title: "Sonner Toaster",
   ...componentStoryMeta(
     `Global toast host; call \`toast()\` from app code.`,
     `Mount \`<Toaster />\` once near the app root. Trigger with \`toast.success\`, \`toast.error\`, etc.`,

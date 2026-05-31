@@ -15,7 +15,7 @@ import {
 } from "./plugin-account";
 
 const meta = {
-  title: "Components/Plugin Account",
+  title: "Plugin Account",
   ...componentStoryMeta(
     `OAuth account panel layout for plugin settings.`,
     `Wrap plugin-specific copy in \`PluginAccountPanel\`. Use \`PluginAccountButton\` for actions.`,

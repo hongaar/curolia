@@ -15,7 +15,7 @@ type EmojiPickerDemoArgs = {
 };
 
 const meta = {
-  title: "Components/Emoji Picker",
+  title: "Emoji Picker",
   ...componentStoryMeta(
     `Frimousse-based emoji selector with search and footer.`,
     `Compose \`EmojiPicker\` with \`EmojiPickerSearch\`, \`EmojiPickerContent\`, and \`EmojiPickerFooter\`. Handle selection in \`onEmojiSelect\`.`,

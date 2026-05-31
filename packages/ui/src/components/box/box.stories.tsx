@@ -5,7 +5,7 @@ import { Text } from "../text";
 import { Box } from "./box";
 
 const meta = {
-  title: "Components/Box",
+  title: "Box",
   ...componentStoryMeta(
     `Layout container applying named surface and sizing variants.`,
     `Pass \`variant\` as a token or array (e.g. \`bgBackground\`, \`maxWidthMd\`). Avoid ad-hoc \`className\` in app code.`,

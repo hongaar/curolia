@@ -7,7 +7,7 @@ import { StoryFrame } from "../../storybook/story-frame";
 import { FormActions, FormField, FormGrid2, FormSection } from "./form-layout";
 
 const meta = {
-  title: "Components/Form Layout",
+  title: "Form Layout",
   ...componentStoryMeta(
     `Form spacing primitives: fields, grids, actions, muted help text.`,
     `Wrap each control in \`FormField\`. Use \`FormGrid2\` for two columns and \`FormActions\` for button rows.`,

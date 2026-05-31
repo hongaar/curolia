@@ -11,7 +11,7 @@ import {
 import { MainToolbarBrand, MainToolbarShell } from "../main-toolbar-panel";
 
 const meta = {
-  title: "Components/Floating Nav Bar",
+  title: "Floating Nav Bar",
   ...componentStoryMeta(
     `Top header row hosting toolbar and account menu slots.`,
     `Pass \`toolbar\` (usually \`MainToolbarShell\`) and wrap \`accountMenu\` in \`DropdownMenu\` with \`AccountMenuTrigger\` / \`AccountMenuContent\`.`,

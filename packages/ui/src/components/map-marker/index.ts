@@ -1,9 +1,9 @@
 export {
-  TraceMapMarker,
-  applyTraceMapMarkerFace,
-  createTraceMapMarkerMount,
-  traceMapMarkerFaceClassName,
-  type TraceMapMarkerMount,
-  type TraceMapMarkerMountOptions,
-  type TraceMapMarkerProps,
-} from "./trace-map-marker";
+  MapMarker,
+  applyMapMarkerFace,
+  createMapMarkerMount,
+  mapMarkerFaceClassName,
+  type MapMarkerMount,
+  type MapMarkerMountOptions,
+  type MapMarkerProps,
+} from "./map-marker";

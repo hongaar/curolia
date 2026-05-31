@@ -1,0 +1,23 @@
+.host {
+  pointer-events: none;
+  z-index: 45;
+  max-width: min(16rem, calc(100vw - 2rem));
+  min-width: 0;
+}
+
+.content {
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--muted) 95%, transparent);
+  padding: 0.25rem 0.625rem;
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(4px);
+}
+
+.title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.375;
+}

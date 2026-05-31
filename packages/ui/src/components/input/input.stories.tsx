@@ -3,7 +3,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Input } from "./input";
 
 const meta = {
-  title: "Components/Input",
+  title: "Input",
   ...componentStoryMeta(
     `Single-line text field with focus ring and invalid styling.`,
     `Always associate with \`Label\` via \`id\` / \`htmlFor\`. Use native \`type\` for email, password, etc.`,

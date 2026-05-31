@@ -19,7 +19,7 @@ import {
 } from "./plugin-trace";
 
 const meta = {
-  title: "Components/Plugin Trace",
+  title: "Plugin Trace",
   ...componentStoryMeta(
     `Trace detail card chrome for plugin contributions.`,
     `Use \`PluginTraceCard\` with header/title row and \`PluginTraceLink\` list items for external links.`,

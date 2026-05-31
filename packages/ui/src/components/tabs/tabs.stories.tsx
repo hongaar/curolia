@@ -5,7 +5,7 @@ import { LoginTabTrigger, LoginTabsList } from "../login-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 
 const meta = {
-  title: "Components/Tabs",
+  title: "Tabs",
   ...componentStoryMeta(
     `Tabbed regions with keyboard support via Base UI.`,
     `Match \`value\` on \`TabsTrigger\` and \`TabsContent\`. Use \`TabsList variant="line"\` for underline style. Login uses \`LoginTabsList\` / \`LoginTabTrigger\` for segmented pills.`,

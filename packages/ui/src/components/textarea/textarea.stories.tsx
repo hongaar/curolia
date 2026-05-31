@@ -3,7 +3,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Textarea } from "./textarea";
 
 const meta = {
-  title: "Components/Textarea",
+  title: "Textarea",
   ...componentStoryMeta(
     `Multi-line text input.`,
     `Associate with \`Label\`. Use for descriptions and long-form journal fields.`,

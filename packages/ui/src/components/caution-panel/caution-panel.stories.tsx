@@ -5,7 +5,7 @@ import { Button } from "../button";
 import { CautionPanel } from "./caution-panel";
 
 const meta = {
-  title: "Components/Caution Panel",
+  title: "Caution Panel",
   ...componentStoryMeta(
     `Highlighted warning block for destructive or irreversible actions.`,
     `Pass \`title\` and optional \`description\`; place the primary action in \`children\` (e.g. a destructive Button).`,

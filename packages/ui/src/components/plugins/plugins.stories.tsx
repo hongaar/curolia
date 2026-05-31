@@ -15,7 +15,7 @@ import {
 } from "./plugins";
 
 const meta = {
-  title: "Components/Plugins",
+  title: "Plugins",
   ...componentStoryMeta(
     `Plugin list rows for the global plugins settings page.`,
     `Each plugin is a \`PluginListRow\` with icon, title, description, and toggle or action.`,

@@ -3,7 +3,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Badge } from "./badge";
 
 const meta = {
-  title: "Components/Badge",
+  title: "Badge",
   ...componentStoryMeta(
     `Small status or category label for traces, plugins, and filters.`,
     `Use \`variant\` for semantic color. Prefer short text; pair with icons only when the meaning is not clear from the label alone.`,

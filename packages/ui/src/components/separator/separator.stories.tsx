@@ -8,7 +8,7 @@ import {
 import { Separator } from "./separator";
 
 const meta = {
-  title: "Components/Separator",
+  title: "Separator",
   ...componentStoryMeta(
     `Visual divider between sections.`,
     `Set \`orientation\` to \`horizontal\` or \`vertical\`. Decorative only—no semantics.`,

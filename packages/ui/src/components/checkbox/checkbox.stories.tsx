@@ -5,7 +5,7 @@ import { Label } from "../label";
 import { Checkbox } from "./checkbox";
 
 const meta = {
-  title: "Components/Checkbox",
+  title: "Checkbox",
   ...componentStoryMeta(
     `Boolean input with Curolia focus and invalid states.`,
     `Pair with \`Label\` and \`htmlFor\`. Use controlled mode when the parent form owns state.`,

@@ -3,7 +3,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { PageBackButton } from "./page-back-button";
 
 const meta = {
-  title: "Components/Page Back Button",
+  title: "Page Back Button",
   ...componentStoryMeta(
     `Ghost icon button for nested settings navigation.`,
     `Pass \`onClick\` to return to the parent route or panel.`,

@@ -15,7 +15,7 @@ import {
 } from "./trace-detail";
 
 const meta = {
-  title: "Components/Trace Detail",
+  title: "Trace Detail",
   ...componentStoryMeta(
     `Trace detail page badges, metadata, and section layout.`,
     `Import tag badges and detail sections for the trace page sidebar and body.`,

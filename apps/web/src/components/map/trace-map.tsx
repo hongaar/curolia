@@ -6,11 +6,12 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import { filterTracesByTags, type TraceWithTags } from "@/lib/trace-with-tags";
-import { TraceMapContainer, TraceMapHoverTooltip } from "@curolia/ui/map";
+import { MapCanvas } from "@curolia/ui/map";
 import {
-  createTraceMapMarkerMount,
-  type TraceMapMarkerMount,
+  createMapMarkerMount,
+  type MapMarkerMount,
 } from "@curolia/ui/map-marker";
+import { Tooltip, TooltipContent, TooltipTitle } from "@curolia/ui/tooltip";
 import {
   autoUpdate,
   computePosition,
@@ -165,7 +166,7 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
     );
     const appliedMapStyleUrlRef = useRef<string>("");
     const markersRef = useRef<maplibregl.Marker[]>([]);
-    const markerMountByTraceIdRef = useRef<Map<string, TraceMapMarkerMount>>(
+    const markerMountByTraceIdRef = useRef<Map<string, MapMarkerMount>>(
       new Map(),
     );
     const markerVisualByTraceIdRef = useRef(
@@ -689,7 +690,7 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
         const tag0 = t.trace_tags?.[0]?.tags;
         const fill = tag0?.color ?? null;
         const emoji = tag0?.icon_emoji ?? "📍";
-        const mount = createTraceMapMarkerMount({
+        const mount = createMapMarkerMount({
           emoji,
           fill,
           selected: t.id === selectedTraceIdRef.current,
@@ -748,7 +749,7 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       previewMarkerRef.current = null;
       if (!previewPin) return;
 
-      const mount = createTraceMapMarkerMount({
+      const mount = createMapMarkerMount({
         emoji: previewPin.icon,
         fill: previewPin.color,
         selected: false,
@@ -772,15 +773,13 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
 
     return (
       <>
-        <TraceMapContainer
-          placementMode={placementMode}
-          containerRef={containerRef}
-        />
+        <MapCanvas placementMode={placementMode} containerRef={containerRef} />
         {traceHover ? (
-          <TraceMapHoverTooltip
-            floatingRef={hoverFloatingRef}
-            title={hoverTitle}
-          />
+          <Tooltip hostRef={hoverFloatingRef}>
+            <TooltipContent>
+              <TooltipTitle>{hoverTitle}</TooltipTitle>
+            </TooltipContent>
+          </Tooltip>
         ) : null}
       </>
     );

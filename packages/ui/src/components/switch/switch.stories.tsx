@@ -6,7 +6,7 @@ import { Label } from "../label";
 import { Switch } from "./switch";
 
 const meta = {
-  title: "Components/Switch",
+  title: "Switch",
   ...componentStoryMeta(
     `Toggle for boolean settings.`,
     `Pair with \`Label\`. Prefer controlled state in settings forms.`,

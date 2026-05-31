@@ -1,7 +1,7 @@
 import { JournalViewInitialLoader } from "@/components/layout/journal-view-initial-loader";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
 import { TraceMap, type TraceMapHandle } from "@/components/map/trace-map";
-import { TraceMapSidebar } from "@/components/map/trace-map-sidebar";
+import { TraceMapMarkerPopover } from "@/components/map/trace-map-marker-popover";
 import { AddTraceFab } from "@/components/traces/add-trace-fab";
 import { EmojiPicker } from "@/components/traces/emoji-picker";
 import { PresetColorPicker } from "@/components/traces/preset-color-picker";
@@ -48,9 +48,9 @@ import {
   MapControlsTopRight,
   MapHost,
   MapLayer,
+  MapOverlayDismiss,
   MapPageRoot,
   MapPlacementHint,
-  MapSidebarDismiss,
   MapVignette,
 } from "@curolia/ui/map";
 import {
@@ -483,7 +483,7 @@ export function MapPage() {
           </MapControlsBottomRight>
         </MapControlsLayer>
         {isMobile ? (
-          <MapSidebarDismiss
+          <MapOverlayDismiss
             open={sidebarOpen}
             onDismiss={() => setSidebarOpen(false)}
           />
@@ -497,8 +497,12 @@ export function MapPage() {
       ) : null}
 
       {sidebarTraceId ? (
-        <TraceMapSidebar
-          key={isMobile ? "trace-map-sidebar-mobile" : `${sidebarTraceId}-lg`}
+        <TraceMapMarkerPopover
+          key={
+            isMobile
+              ? "trace-map-marker-popover-mobile"
+              : `${sidebarTraceId}-lg`
+          }
           traceId={sidebarTraceId}
           journalId={activeJournalId}
           journalSlug={

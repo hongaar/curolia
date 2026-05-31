@@ -4,7 +4,7 @@ import { storyWidthMd } from "../../storybook/story-frame";
 import { BorderedList, NotificationListButton } from "./list";
 
 const meta = {
-  title: "Components/List",
+  title: "List",
   ...componentStoryMeta(
     `Rows and headers for notifications, invitations, and sharing lists.`,
     `Compose \`PluginListRow\`-style patterns or list-specific exports for each page.`,

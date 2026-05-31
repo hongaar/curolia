@@ -17,7 +17,7 @@ const sampleItems = [
 ] as const;
 
 const meta = {
-  title: "Components/Trace Photo Lightbox",
+  title: "Trace Photo Lightbox",
   ...componentStoryMeta(
     `Full-screen photo viewer with prev/next and external link.`,
     `Control open state from parent; pass photo URLs and index handlers.`,

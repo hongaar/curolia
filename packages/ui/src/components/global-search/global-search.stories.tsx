@@ -38,7 +38,7 @@ const searchResults = (
 );
 
 const meta = {
-  title: "Components/Global Search",
+  title: "Global Search",
   ...componentStoryMeta(
     `Search input and result row styling for the main toolbar.`,
     `Embed inside \`MainToolbarSearchSlot\`; connect popover content to search results.`,

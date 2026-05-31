@@ -6,7 +6,7 @@ import { FabButton } from "./fab";
 const icon = <Plus aria-hidden />;
 
 const meta = {
-  title: "Components/FAB",
+  title: "FAB",
   ...componentStoryMeta(
     `Generic floating action button; pass icon and label from the app.`,
     `Place inside map or page chrome; wire \`onClick\` and supply \`icon\` / \`label\`.`,

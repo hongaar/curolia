@@ -1,40 +1,35 @@
-import { LocateFixed, Minus, Plus, Scan } from "lucide-react";
 import type { TraceMapHandle } from "@/components/map/trace-map";
-import {
-  MapToolbarGroup,
-  MapToolbarIconButton,
-} from "@/components/map/map-toolbar";
+import { MapToolbar, MapToolbarButton } from "@curolia/ui/map-toolbar";
+import { Layers, Locate, Minus, Plus } from "lucide-react";
 import type { RefObject } from "react";
 
-type MapControlsToolbarProps = {
+export function MapControlsToolbar({
+  mapRef,
+}: {
   mapRef: RefObject<TraceMapHandle | null>;
-};
-
-export function MapControlsToolbar({ mapRef }: MapControlsToolbarProps) {
+}) {
   return (
-    <MapToolbarGroup>
-      <MapToolbarIconButton
-        icon={<Scan />}
-        label="Fit traces"
-        title="Fit map to visible traces"
-        onClick={() => mapRef.current?.fitVisibleTraces()}
+    <MapToolbar>
+      <MapToolbarButton
+        icon={<Layers aria-hidden />}
+        label="Layers"
+        onClick={() => undefined}
       />
-      <MapToolbarIconButton
-        icon={<Plus />}
+      <MapToolbarButton
+        icon={<Plus aria-hidden />}
         label="Zoom in"
         onClick={() => mapRef.current?.zoomIn()}
       />
-      <MapToolbarIconButton
-        icon={<Minus />}
+      <MapToolbarButton
+        icon={<Minus aria-hidden />}
         label="Zoom out"
         onClick={() => mapRef.current?.zoomOut()}
       />
-      <MapToolbarIconButton
-        icon={<LocateFixed />}
+      <MapToolbarButton
+        icon={<Locate aria-hidden />}
         label="My location"
-        title="Find my location"
         onClick={() => mapRef.current?.triggerGeolocate()}
       />
-    </MapToolbarGroup>
+    </MapToolbar>
   );
 }

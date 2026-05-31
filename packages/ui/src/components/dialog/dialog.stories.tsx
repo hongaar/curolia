@@ -12,7 +12,7 @@ import {
 } from "./dialog";
 
 const meta = {
-  title: "Components/Dialog",
+  title: "Dialog",
   ...componentStoryMeta(
     `Modal overlay for confirmations and focused tasks.`,
     `Use \`DialogTrigger\` + \`DialogContent\`. Set \`showCloseButton\` on \`DialogContent\` when users can dismiss without choosing an action.`,

@@ -20,7 +20,7 @@ import {
 } from "./plugin-panel";
 
 const meta = {
-  title: "Components/Plugin Panel",
+  title: "Plugin Panel",
   ...componentStoryMeta(
     `Sections, settings boxes, and feed rows for plugin configuration.`,
     `Stack \`PluginSection\` blocks; use \`PluginSettingsBox\` for grouped fields and \`PluginFeedRow\` for URLs.`,

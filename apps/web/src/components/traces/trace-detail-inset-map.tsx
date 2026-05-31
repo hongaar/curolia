@@ -1,6 +1,6 @@
 import {
-  createTraceMapMarkerMount,
-  type TraceMapMarkerMount,
+  createMapMarkerMount,
+  type MapMarkerMount,
 } from "@curolia/ui/map-marker";
 import {
   TraceDetailInsetMap,
@@ -49,7 +49,7 @@ export function TraceDetailInsetMapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
-  const markerMountRef = useRef<TraceMapMarkerMount | null>(null);
+  const markerMountRef = useRef<MapMarkerMount | null>(null);
   const appliedMapStyleUrlRef = useRef("");
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export function TraceDetailInsetMapView({
     markerMountRef.current?.unmount();
     markerMountRef.current = null;
 
-    const mount = createTraceMapMarkerMount({
+    const mount = createMapMarkerMount({
       emoji: markerEmoji,
       fill: markerColor,
       selected: true,

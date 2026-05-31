@@ -10,28 +10,27 @@ import type { TraceWithTags } from "@/lib/trace-with-tags";
 import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
+import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
 import {
-  TraceMapFloatingHost,
-  TraceMapFloatingPanel,
-  TraceMapMobileSheetBody,
-  TraceMapMobileSheetContent,
-  TraceMapMobileSheetTitle,
-  TraceMapSidebarActions,
-  TraceMapSidebarBody,
-  TraceMapSidebarDescription,
-  TraceMapSidebarHeader,
-  TraceMapSidebarHeaderActions,
-  TraceMapSidebarPhotoSkeleton,
-  TraceMapSidebarPhotoStrip,
-  TraceMapSidebarStatus,
-  TraceMapSidebarTagRow,
-} from "@curolia/ui/map";
+  MapMarkerPopoverActions,
+  MapMarkerPopoverBody,
+  MapMarkerPopoverDescription,
+  MapMarkerPopoverHeader,
+  MapMarkerPopoverHeaderActions,
+  MapMarkerPopoverPhotoSkeleton,
+  MapMarkerPopoverPhotoStrip,
+  MapMarkerPopoverSheetBody,
+  MapMarkerPopoverSheetContent,
+  MapMarkerPopoverSheetTitle,
+  MapMarkerPopoverStatus,
+  MapMarkerPopoverTagRow,
+} from "@curolia/ui/map-marker-popover";
+import { Sheet } from "@curolia/ui/sheet";
 import { TraceDetailTagBadge } from "@curolia/ui/trace-detail";
 import {
   TracePhotoLightbox,
   TracePhotoThumb,
 } from "@curolia/ui/trace-photo-lightbox";
-import { Sheet } from "@curolia/ui/sheet";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
@@ -44,9 +43,9 @@ import {
 } from "react";
 import { Link } from "react-router-dom";
 
-type TraceSidebarRow = TraceWithTags;
+type TracePopoverRow = TraceWithTags;
 
-type TraceMapSidebarProps = {
+type TraceMapMarkerPopoverProps = {
   traceId: string;
   journalId: string | null;
   /** Journal URL segment for `/traces/:journalSlug/:traceSlug`. */
@@ -71,14 +70,14 @@ function validLngLat(
   return { lat, lng };
 }
 
-export function TraceMapSidebar({
+export function TraceMapMarkerPopover({
   traceId,
   journalId,
   journalSlug,
   mapRef,
   listAnchorLngLat = null,
   onClose,
-}: TraceMapSidebarProps) {
+}: TraceMapMarkerPopoverProps) {
   const isMobile = useMaxSm();
   const floatingRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -110,7 +109,7 @@ export function TraceMapSidebar({
         .eq("id", traceId)
         .maybeSingle();
       if (error) throw error;
-      return data as TraceSidebarRow | null;
+      return data as TracePopoverRow | null;
     },
     enabled: Boolean(traceId),
   });
@@ -151,7 +150,6 @@ export function TraceMapSidebar({
     let pulseRaf = 0;
     let pulseCount = 0;
 
-    /** Project marker to screen — null until TraceMap canvas is ready after navigation/remount/refresh. */
     const latestScreenAnchor = (): { x: number; y: number } | null => {
       return (
         mapRef.current?.lngLatToScreen(anchorCoords.lng, anchorCoords.lat) ??
@@ -159,7 +157,6 @@ export function TraceMapSidebar({
       );
     };
 
-    /** Never call Floating UI with a stale {0,0} anchor — that pins the panel to the top-left. */
     const run = () => {
       if (cancelled) return;
       const p = latestScreenAnchor();
@@ -253,11 +250,11 @@ export function TraceMapSidebar({
       : "#";
 
   const body = (
-    <TraceMapSidebarBody>
-      <TraceMapSidebarHeader
+    <MapMarkerPopoverBody>
+      <MapMarkerPopoverHeader
         title={titleText}
         actions={
-          <TraceMapSidebarHeaderActions>
+          <MapMarkerPopoverHeaderActions>
             <Button
               type="button"
               variant="ghost"
@@ -267,23 +264,23 @@ export function TraceMapSidebar({
             >
               <X />
             </Button>
-          </TraceMapSidebarHeaderActions>
+          </MapMarkerPopoverHeaderActions>
         }
       />
 
       {traceQuery.isLoading ? (
-        <TraceMapSidebarStatus>Fetching trace…</TraceMapSidebarStatus>
+        <MapMarkerPopoverStatus>Fetching trace…</MapMarkerPopoverStatus>
       ) : !trace || wrongJournal ? (
-        <TraceMapSidebarStatus>
+        <MapMarkerPopoverStatus>
           Trace not found or not in this journal.
-        </TraceMapSidebarStatus>
+        </MapMarkerPopoverStatus>
       ) : (
         <>
           {traceDateSubtitle ? (
-            <TraceMapSidebarStatus>{traceDateSubtitle}</TraceMapSidebarStatus>
+            <MapMarkerPopoverStatus>{traceDateSubtitle}</MapMarkerPopoverStatus>
           ) : null}
           {tagBadges.length > 0 ? (
-            <TraceMapSidebarTagRow>
+            <MapMarkerPopoverTagRow>
               {tagBadges.map((t) => (
                 <TraceDetailTagBadge
                   key={t.id}
@@ -295,15 +292,15 @@ export function TraceMapSidebar({
                   {t.icon_emoji} {t.name}
                 </TraceDetailTagBadge>
               ))}
-            </TraceMapSidebarTagRow>
+            </MapMarkerPopoverTagRow>
           ) : null}
           {trace.description ? (
-            <TraceMapSidebarDescription>
+            <MapMarkerPopoverDescription>
               {trace.description}
-            </TraceMapSidebarDescription>
+            </MapMarkerPopoverDescription>
           ) : null}
           {photos.length > 0 ? (
-            <TraceMapSidebarPhotoStrip>
+            <MapMarkerPopoverPhotoStrip>
               {photos.map((p) => {
                 const url = signedUrlByPhotoId[p.id];
                 return url ? (
@@ -314,12 +311,12 @@ export function TraceMapSidebar({
                     onOpen={() => setPhotoLightbox({ photoId: p.id })}
                   />
                 ) : (
-                  <TraceMapSidebarPhotoSkeleton key={p.id} />
+                  <MapMarkerPopoverPhotoSkeleton key={p.id} />
                 );
               })}
-            </TraceMapSidebarPhotoStrip>
+            </MapMarkerPopoverPhotoStrip>
           ) : null}
-          <TraceMapSidebarActions>
+          <MapMarkerPopoverActions>
             <Button
               variant="secondary"
               size="lg"
@@ -334,7 +331,7 @@ export function TraceMapSidebar({
             >
               View trace
             </Button>
-          </TraceMapSidebarActions>
+          </MapMarkerPopoverActions>
           <TracePhotoLightbox
             open={photoLightbox !== null}
             onOpenChange={(o) => {
@@ -346,7 +343,7 @@ export function TraceMapSidebar({
           />
         </>
       )}
-    </TraceMapSidebarBody>
+    </MapMarkerPopoverBody>
   );
 
   const desktopFallback = !isMobile && !anchorCoords;
@@ -359,10 +356,10 @@ export function TraceMapSidebar({
         disablePointerDismissal
         onOpenChange={(o) => !o && onClose()}
       >
-        <TraceMapMobileSheetContent>
-          <TraceMapMobileSheetTitle>{titleText}</TraceMapMobileSheetTitle>
-          <TraceMapMobileSheetBody>{body}</TraceMapMobileSheetBody>
-        </TraceMapMobileSheetContent>
+        <MapMarkerPopoverSheetContent>
+          <MapMarkerPopoverSheetTitle>{titleText}</MapMarkerPopoverSheetTitle>
+          <MapMarkerPopoverSheetBody>{body}</MapMarkerPopoverSheetBody>
+        </MapMarkerPopoverSheetContent>
       </Sheet>
     );
   }
@@ -374,15 +371,15 @@ export function TraceMapSidebar({
   return (
     <>
       {!desktopFallback ? (
-        <TraceMapFloatingHost ready={placementReady} hostRef={floatingRef}>
-          <TraceMapFloatingPanel anchored>
+        <MapFloatingAnchor ready={placementReady} hostRef={floatingRef}>
+          <MapFloatingPanel anchored>
             <FloatingPanel>{body}</FloatingPanel>
-          </TraceMapFloatingPanel>
-        </TraceMapFloatingHost>
+          </MapFloatingPanel>
+        </MapFloatingAnchor>
       ) : (
-        <TraceMapFloatingPanel fallback>
+        <MapFloatingPanel fallback>
           <FloatingPanel>{body}</FloatingPanel>
-        </TraceMapFloatingPanel>
+        </MapFloatingPanel>
       )}
     </>
   );

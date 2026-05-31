@@ -26,7 +26,7 @@ type DropdownMenuDemoArgs = {
 };
 
 const meta = {
-  title: "Components/Dropdown Menu",
+  title: "Dropdown Menu",
   ...componentStoryMeta(
     `Anchored menu for actions and navigation shortcuts.`,
     `Wrap the trigger with \`DropdownMenuTrigger\` and place items in \`DropdownMenuContent\`. Wrap \`DropdownMenuLabel\` in \`DropdownMenuGroup\`. Use \`align\` and \`side\` on content for positioning.`,

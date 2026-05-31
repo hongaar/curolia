@@ -1,7 +1,5 @@
 import type * as React from "react";
 
-import { cn } from "../../lib/utils";
-import { SheetContent, SheetTitle } from "../sheet";
 import styles from "./map.module.css";
 
 export function MapPageRoot({ children }: { children: React.ReactNode }) {
@@ -40,7 +38,8 @@ export function MapControlsBottomRight({
   return <div className={styles.controlsBottomRight}>{children}</div>;
 }
 
-export function MapSidebarDismiss({
+/** Full-screen dismiss overlay behind the navigation sidebar on map view. */
+export function MapOverlayDismiss({
   open,
   onDismiss,
 }: {
@@ -53,8 +52,8 @@ export function MapSidebarDismiss({
       tabIndex={open ? 0 : -1}
       className={
         open
-          ? `${styles.sidebarDismiss} ${styles.sidebarDismissOpen}`
-          : `${styles.sidebarDismiss} ${styles.sidebarDismissClosed}`
+          ? `${styles.overlayDismiss} ${styles.overlayDismissOpen}`
+          : `${styles.overlayDismiss} ${styles.overlayDismissClosed}`
       }
       aria-hidden={!open}
       aria-label={open ? "Dismiss navigation sidebar" : undefined}
@@ -71,7 +70,7 @@ export function MapPlacementHint({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function TraceMapContainer({
+export function MapCanvas({
   placementMode = false,
   containerRef,
 }: {
@@ -84,237 +83,10 @@ export function TraceMapContainer({
       data-curolia-trace-map
       className={
         placementMode
-          ? `${styles.mapContainer} ${styles.mapContainerPlacement}`
-          : styles.mapContainer
+          ? `${styles.mapCanvas} ${styles.mapCanvasPlacement}`
+          : styles.mapCanvas
       }
     />
-  );
-}
-
-export function TraceMapHoverTooltip({
-  floatingRef,
-  title,
-}: {
-  floatingRef?: React.Ref<HTMLDivElement>;
-  title: React.ReactNode;
-}) {
-  return (
-    <div ref={floatingRef} className={styles.hoverTooltipHost}>
-      <div className={styles.hoverTooltip}>
-        <p className={styles.hoverTooltipTitle}>{title}</p>
-      </div>
-    </div>
-  );
-}
-
-export function MapToolbarGroup({ children }: { children: React.ReactNode }) {
-  return <div className={styles.toolbarRoot}>{children}</div>;
-}
-
-export function MapToolbarIconButton({
-  icon,
-  label,
-  active,
-  onClick,
-  title,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-  title?: string;
-}) {
-  return (
-    <button
-      type="button"
-      title={title ?? label}
-      onClick={onClick}
-      className={
-        active
-          ? `${styles.toolbarButton} ${styles.toolbarButtonActive}`
-          : styles.toolbarButton
-      }
-    >
-      <span className={styles.toolbarIconCell}>{icon}</span>
-      <span className={styles.toolbarLabelCell}>{label}</span>
-    </button>
-  );
-}
-
-export function TraceMapSidebarBody({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.sidebarBody}>{children}</div>;
-}
-
-export function TraceMapSidebarHeader({
-  title,
-  actions,
-}: {
-  title: React.ReactNode;
-  actions?: React.ReactNode;
-}) {
-  return (
-    <div className={styles.sidebarHeader}>
-      <h2 className={styles.sidebarTitle}>{title}</h2>
-      {actions}
-    </div>
-  );
-}
-
-export function TraceMapSidebarDescription({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <p className={styles.sidebarDescription}>{children}</p>;
-}
-
-export function TraceMapSidebarPhotoStrip({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={styles.photoStrip}>
-      <div className={styles.photoStripInner}>{children}</div>
-    </div>
-  );
-}
-
-export function TraceMapSidebarActions({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.sidebarActions}>{children}</div>;
-}
-
-export function TraceMapSidebarStatus({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <p className={styles.sidebarStatus}>{children}</p>;
-}
-
-export function TraceMapSidebarTagRow({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.sidebarTagRow}>{children}</div>;
-}
-
-export function TraceMapSidebarHeaderActions({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.sidebarHeaderActions}>{children}</div>;
-}
-
-export function TraceMapSidebarPhotoSkeleton() {
-  return <div className={styles.photoSkeleton} aria-hidden />;
-}
-
-export function TraceMapFloatingHost({
-  ready,
-  hostRef,
-  children,
-}: {
-  ready: boolean;
-  hostRef?: React.Ref<HTMLDivElement>;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      ref={hostRef}
-      className={
-        ready
-          ? `${styles.floatingHost} ${styles.floatingHostReady}`
-          : `${styles.floatingHost} ${styles.floatingHostHidden}`
-      }
-    >
-      <div className={styles.floatingInner}>{children}</div>
-    </div>
-  );
-}
-
-export function TraceMapFloatingPanel({
-  children,
-  anchored = true,
-  fallback = false,
-}: {
-  children: React.ReactNode;
-  anchored?: boolean;
-  fallback?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        styles.floatingPanel,
-        anchored && styles.floatingPanelAnchored,
-        fallback && styles.floatingPanelFallback,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-export function TraceMapMobileSheetBody({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.mobileSheetBody}>{children}</div>;
-}
-
-export function TraceMapMobileSheetContent({
-  children,
-  ...props
-}: React.ComponentProps<typeof SheetContent>) {
-  return (
-    <SheetContent
-      side="bottom"
-      showCloseButton={false}
-      overlayClassName={styles.mobileSheetOverlay}
-      className={cn(styles.mobileSheetContent, props.className)}
-      {...props}
-    >
-      {children}
-    </SheetContent>
-  );
-}
-
-export function TraceMapMobileSheetTitle({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <SheetTitle className={styles.mobileSheetTitleHidden}>
-      {children}
-    </SheetTitle>
-  );
-}
-
-export function TraceQuickAddHost({
-  hostRef,
-  children,
-}: {
-  hostRef?: React.Ref<HTMLDivElement>;
-  children: React.ReactNode;
-}) {
-  return (
-    <div ref={hostRef} className={styles.quickAddHost}>
-      <div className={styles.quickAddInner}>
-        <div className={styles.quickAddShell}>{children}</div>
-      </div>
-    </div>
   );
 }
 

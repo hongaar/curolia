@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
-import { TraceMapMarker } from "./trace-map-marker";
+import { MapMarker } from "./map-marker";
 
 const meta = {
-  title: "Components/Map Marker",
-  component: TraceMapMarker,
+  title: "Map Marker",
+  component: MapMarker,
   ...componentStoryMeta(
-    "Emoji pin used on the main trace map and trace detail inset map.",
-    "Use `createTraceMapMarkerMount` when attaching markers via MapLibre GL.",
+    "Emoji pin used on the main map and trace detail inset map.",
+    "Use `createMapMarkerMount` when attaching markers via MapLibre GL.",
   ),
   args: {
     emoji: "📍",
@@ -18,7 +18,7 @@ const meta = {
     interactive: true,
     draft: false,
   },
-} satisfies Meta<typeof TraceMapMarker>;
+} satisfies Meta<typeof MapMarker>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -54,10 +54,10 @@ export const States: Story = {
   render: () => (
     <StoryFrame width="md">
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-        <TraceMapMarker emoji="🏔️" fill="#22c55e" interactive />
-        <TraceMapMarker emoji="🏔️" fill="#22c55e" selected interactive />
-        <TraceMapMarker emoji="🏔️" fill="#22c55e" hovered interactive />
-        <TraceMapMarker emoji="📍" fill={null} draft interactive={false} />
+        <MapMarker emoji="🏔️" fill="#22c55e" interactive />
+        <MapMarker emoji="🏔️" fill="#22c55e" selected interactive />
+        <MapMarker emoji="🏔️" fill="#22c55e" hovered interactive />
+        <MapMarker emoji="📍" fill={null} draft interactive={false} />
       </div>
     </StoryFrame>
   ),

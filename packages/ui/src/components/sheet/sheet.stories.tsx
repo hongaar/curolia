@@ -13,7 +13,7 @@ import {
 } from "./sheet";
 
 const meta = {
-  title: "Components/Sheet",
+  title: "Sheet",
   ...componentStoryMeta(
     `Edge-attached drawer for mobile-friendly panels.`,
     `Set \`side\` on \`SheetContent\` (\`right\`, \`left\`, \`top\`, \`bottom\`). Use \`showCloseButton\` when dismissal should be explicit.`,

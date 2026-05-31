@@ -7,7 +7,7 @@ import {
 } from "./status-center";
 
 const meta = {
-  title: "Components/Status Center",
+  title: "Status Center",
   ...componentStoryMeta(
     `Centered loading and message state over the map or app.`,
     `Use \`StatusCenterMessage\` for redirects and empty states.`,

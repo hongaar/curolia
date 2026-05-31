@@ -10,7 +10,7 @@ import {
 } from "./navigation-sidebar";
 
 const meta = {
-  title: "Components/Navigation Sidebar",
+  title: "Navigation Sidebar",
   ...componentStoryMeta(
     `Journal picker, nav links, and tag filter chrome.`,
     `Requires \`react-router\` \`NavLink\` via \`NavigationSidebarNavLink\`. Build inside \`NavigationSidebarRoot\` sections.`,

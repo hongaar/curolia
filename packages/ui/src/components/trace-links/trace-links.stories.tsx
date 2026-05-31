@@ -11,7 +11,7 @@ import {
 } from "./trace-links";
 
 const meta = {
-  title: "Components/Trace Links",
+  title: "Trace Links",
   ...componentStoryMeta(
     `Link list and editor styling on trace forms.`,
     `Use for URL rows with favicon, label, and remove actions.`,

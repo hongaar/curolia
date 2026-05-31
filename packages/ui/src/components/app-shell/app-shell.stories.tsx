@@ -1,18 +1,17 @@
-import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Map, Menu, Settings } from "lucide-react";
-import { componentStoryMeta, storyDocs } from "../../storybook/docs";
+import { useState } from "react";
 import { withMemoryRouter } from "../../storybook/decorators";
+import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { storyFrameStyles } from "../../storybook/story-frame";
 import { Button } from "../button";
 import { DropdownMenu } from "../dropdown-menu";
-import { Input } from "../input";
-import { AppShellLayout } from "./app-shell";
 import {
   AccountMenuContent,
   AccountMenuTrigger,
   FloatingNavBar,
 } from "../floating-nav-bar";
+import { Input } from "../input";
 import {
   MainToolbarBrand,
   MainToolbarMenuButton,
@@ -26,10 +25,9 @@ import {
   MapHost,
   MapLayer,
   MapPageRoot,
-  MapToolbarGroup,
-  MapToolbarIconButton,
   MapVignette,
 } from "../map";
+import { MapToolbar, MapToolbarButton } from "../map-toolbar";
 import {
   NavigationSidebarLabel,
   NavigationSidebarNavLink,
@@ -37,6 +35,7 @@ import {
   NavigationSidebarSection,
 } from "../navigation-sidebar";
 import { UserAvatar } from "../user-avatar";
+import { AppShellLayout } from "./app-shell";
 
 const appShellMeta = componentStoryMeta(
   "Authenticated layout: sidebar slot, main outlet, toolbar header.",
@@ -44,7 +43,7 @@ const appShellMeta = componentStoryMeta(
 );
 
 const meta = {
-  title: "Components/App Shell",
+  title: "App Shell",
   ...appShellMeta,
   component: AppShellLayout,
   decorators: [withMemoryRouter],
@@ -69,14 +68,14 @@ function MapChromeDemo() {
       </MapLayer>
       <MapControlsLayer>
         <MapControlsTopRight>
-          <MapToolbarGroup>
-            <MapToolbarIconButton
+          <MapToolbar>
+            <MapToolbarButton
               icon={<Map className={storyFrameStyles.iconSm} aria-hidden />}
               label="Layers"
               active={layersOpen}
               onClick={() => setLayersOpen((v) => !v)}
             />
-          </MapToolbarGroup>
+          </MapToolbar>
         </MapControlsTopRight>
       </MapControlsLayer>
     </MapPageRoot>

@@ -4,7 +4,7 @@ import { StoryFrame } from "../../storybook/story-frame";
 import { CuroliaLoadingSplash } from "./loading-splash";
 
 const meta = {
-  title: "Components/Loading Splash",
+  title: "Loading Splash",
   ...componentStoryMeta(
     `Full-viewport branded loader while auth or journal data resolves.`,
     `Render once in the protected route layout until the app is ready.`,

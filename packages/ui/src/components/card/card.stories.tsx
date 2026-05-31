@@ -13,7 +13,7 @@ import {
 } from "./card";
 
 const meta = {
-  title: "Components/Card",
+  title: "Card",
   ...componentStoryMeta(
     `Grouped content surface with header, body, and footer regions.`,
     `Compose \`Card\`, \`CardHeader\`, \`CardTitle\`, \`CardDescription\`, \`CardContent\`, and \`CardFooter\`. Use for trace panels, plugin blocks, and settings sections.`,

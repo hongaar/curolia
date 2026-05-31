@@ -5,7 +5,7 @@ import { PluginIconFrame } from "./plugin-icon-frame";
 const icon = <span aria-hidden>📍</span>;
 
 const meta = {
-  title: "Components/Plugin Icon Frame",
+  title: "Plugin Icon Frame",
   ...componentStoryMeta(
     `Sized frame for plugin SVG or emoji icons in lists.`,
     `Set \`size\` to \`4\`, \`5\`, or \`6\` (rem-based). Place icon markup in \`children\`.`,

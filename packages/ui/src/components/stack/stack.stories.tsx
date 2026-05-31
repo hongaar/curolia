@@ -6,7 +6,7 @@ import { Text } from "../text";
 import { Stack } from "./stack";
 
 const meta = {
-  title: "Components/Stack",
+  title: "Stack",
   ...componentStoryMeta(
     `Flex layout primitive for vertical or horizontal spacing.`,
     `Set \`direction\`, \`gap\`, and \`align\` instead of utility classes. Nests with \`Box\` and \`Text\` for page structure.`,

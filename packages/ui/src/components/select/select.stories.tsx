@@ -20,7 +20,7 @@ const PLUGIN_ITEMS: ComponentProps<typeof Select>["items"] = {
 };
 
 const meta = {
-  title: "Components/Select",
+  title: "Select",
   ...componentStoryMeta(
     `Single-choice dropdown built on Base UI Select.`,
     `Provide an \`items\` map (value → label) on \`Select\` so \`SelectValue\` renders labels. Group options with \`SelectGroup\` and \`SelectLabel\`.`,

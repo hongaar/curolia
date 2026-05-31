@@ -11,7 +11,7 @@ const PRESET_COLORS = [
 ] as const;
 
 const meta = {
-  title: "Components/Picker",
+  title: "Picker",
   ...componentStoryMeta(
     `Emoji and preset field pickers for trace forms.`,
     `Use \`EmojiFieldPicker\` and color preset picker in trace edit dialogs.`,

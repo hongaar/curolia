@@ -4,7 +4,7 @@ import { StoryColumn, StoryFrame } from "../../storybook/story-frame";
 import { Text } from "./text";
 
 const meta = {
-  title: "Components/Text",
+  title: "Text",
   ...componentStoryMeta(
     `Typography primitive with display, title, body, and muted variants.`,
     `Set \`as\` for semantic HTML (\`h1\`, \`p\`, …) and \`variant\` for styling. Combine variants: \`variant={["display", "titleLg", "center"]}\``,

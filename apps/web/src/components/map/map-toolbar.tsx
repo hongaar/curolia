@@ -1,1 +1,1 @@
-export { MapToolbarGroup, MapToolbarIconButton } from "@curolia/ui/map";
+export { MapToolbar, MapToolbarButton } from "@curolia/ui/map-toolbar";

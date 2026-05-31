@@ -17,7 +17,7 @@ import {
 } from "./login-layout";
 
 const meta = {
-  title: "Components/Login Layout",
+  title: "Login Layout",
   ...componentStoryMeta(
     `Centered login/sign-up card with segmented tabs.`,
     `Wrap content in \`LoginLayout\`, add \`LoginHeader\`, \`LoginTabsList\` / \`LoginTabTrigger\`, and \`LoginTabPanel\` per tab.`,

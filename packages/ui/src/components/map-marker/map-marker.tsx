@@ -1,9 +1,9 @@
 import type * as React from "react";
 
 import { cn, contrastingForeground } from "../../lib/utils";
-import styles from "./trace-map-marker.module.css";
+import styles from "./map-marker.module.css";
 
-export type TraceMapMarkerProps = {
+export type MapMarkerProps = {
   emoji: string;
   fill: string | null;
   selected?: boolean;
@@ -16,7 +16,7 @@ export type TraceMapMarkerProps = {
   onMouseLeave?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-export function traceMapMarkerFaceClassName(opts: {
+export function mapMarkerFaceClassName(opts: {
   fill: string | null;
   selected: boolean;
   hovered: boolean;
@@ -38,12 +38,9 @@ export function traceMapMarkerFaceClassName(opts: {
 }
 
 /** Imperative face update — used by MapLibre mounts to avoid React re-renders on hover/selection. */
-export function applyTraceMapMarkerFace(
-  el: HTMLElement,
-  props: TraceMapMarkerProps,
-) {
+export function applyMapMarkerFace(el: HTMLElement, props: MapMarkerProps) {
   el.textContent = props.emoji;
-  el.className = traceMapMarkerFaceClassName({
+  el.className = mapMarkerFaceClassName({
     fill: props.fill,
     selected: Boolean(props.selected),
     hovered: Boolean(props.hovered),
@@ -59,7 +56,7 @@ export function applyTraceMapMarkerFace(
   }
 }
 
-export function TraceMapMarker({
+export function MapMarker({
   emoji,
   fill,
   selected = false,
@@ -70,8 +67,8 @@ export function TraceMapMarker({
   onClick,
   onMouseEnter,
   onMouseLeave,
-}: TraceMapMarkerProps) {
-  const className = traceMapMarkerFaceClassName({
+}: MapMarkerProps) {
+  const className = mapMarkerFaceClassName({
     fill,
     selected,
     hovered,
@@ -113,22 +110,22 @@ export function TraceMapMarker({
   );
 }
 
-export type TraceMapMarkerMountOptions = TraceMapMarkerProps & {
+export type MapMarkerMountOptions = MapMarkerProps & {
   pointerEvents?: "none";
   zIndex?: string;
 };
 
-export type TraceMapMarkerMount = {
+export type MapMarkerMount = {
   /** Root element passed to `maplibregl.Marker({ element })`. */
   element: HTMLDivElement;
-  update: (patch: Partial<TraceMapMarkerMountOptions>) => void;
+  update: (patch: Partial<MapMarkerMountOptions>) => void;
   setZIndex: (zIndex: string) => void;
   unmount: () => void;
 };
 
 function syncInteractiveHandlers(
   face: HTMLButtonElement,
-  props: TraceMapMarkerMountOptions,
+  props: MapMarkerMountOptions,
 ) {
   face.onclick = props.onClick
     ? (e) => {
@@ -151,15 +148,15 @@ function syncInteractiveHandlers(
     : null;
 }
 
-export function createTraceMapMarkerMount(
-  initial: TraceMapMarkerMountOptions,
-): TraceMapMarkerMount {
+export function createMapMarkerMount(
+  initial: MapMarkerMountOptions,
+): MapMarkerMount {
   const wrapper = document.createElement("div");
   wrapper.style.display = "flex";
   wrapper.style.alignItems = "center";
   wrapper.style.justifyContent = "center";
 
-  let props: TraceMapMarkerMountOptions = { ...initial };
+  let props: MapMarkerMountOptions = { ...initial };
 
   const face = document.createElement(
     props.interactive ? "button" : "div",
@@ -183,7 +180,7 @@ export function createTraceMapMarkerMount(
   };
 
   const renderFace = () => {
-    applyTraceMapMarkerFace(face, props);
+    applyMapMarkerFace(face, props);
     if (props.interactive) {
       const btn = face as HTMLButtonElement;
       btn.setAttribute("aria-label", props.ariaLabel ?? "Open trace");

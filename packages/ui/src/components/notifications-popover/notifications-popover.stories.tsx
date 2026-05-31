@@ -10,7 +10,7 @@ import {
 } from "./notifications-popover";
 
 const meta = {
-  title: "Components/Notifications Popover",
+  title: "Notifications Popover",
   ...componentStoryMeta(
     `Popover list styling for in-app notifications.`,
     `Pair with toolbar trigger; reuse sidebar row patterns for each notification.`,

@@ -6,7 +6,7 @@ import { Input } from "../input";
 import { Label } from "./label";
 
 const meta = {
-  title: "Components/Label",
+  title: "Label",
   ...componentStoryMeta(
     `Accessible caption for form controls.`,
     `Set \`htmlFor\` to the control \`id\`. Can wrap inputs for checkbox/switch rows.`,

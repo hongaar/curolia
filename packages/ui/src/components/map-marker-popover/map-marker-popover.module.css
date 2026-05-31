@@ -1,0 +1,131 @@
+.body {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-top: 0.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.title {
+  min-width: 0;
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.description {
+  max-height: 10rem;
+  overflow-y: auto;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  color: var(--foreground);
+}
+
+.photoStrip {
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.photoStripInner {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.photoStripInner::-webkit-scrollbar {
+  display: none;
+}
+
+.actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.headerActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.photoSkeleton {
+  width: 5rem;
+  height: 5rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (min-width: 40rem) {
+  .photoSkeleton {
+    width: 6rem;
+    height: 6rem;
+  }
+}
+
+.mobileSheetBody {
+  display: flex;
+  max-height: 90dvh;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem 1rem 1.5rem;
+}
+
+.mobileSheetOverlay {
+  pointer-events: none;
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+.mobileSheetContent {
+  pointer-events: auto;
+  gap: 0;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  border: 1px solid var(--panel-border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--panel-shadow);
+  padding: 0;
+}
+
+.mobileSheetTitleHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

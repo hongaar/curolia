@@ -10,7 +10,7 @@ const defaultArgs = {
 } as const;
 
 const meta = {
-  title: "Components/User Avatar",
+  title: "User Avatar",
   ...componentStoryMeta(
     `Avatar with stored URL, Gravatar fallback, and unread dot.`,
     `Pass \`storedAvatarUrl\`, \`email\`, and optional \`gravatarUrl\`. Use in account menu and sharing UI.`,
