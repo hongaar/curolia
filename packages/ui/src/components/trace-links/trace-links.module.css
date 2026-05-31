@@ -122,11 +122,17 @@
 }
 
 .editorRoot {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .editorList {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .editorAddRow {
