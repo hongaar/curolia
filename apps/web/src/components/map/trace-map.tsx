@@ -481,7 +481,10 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
         zoom: start?.zoom ?? 1.5,
         attributionControl: false,
         maplibreLogo: false,
+        dragRotate: false,
+        touchPitch: false,
       });
+      map.touchZoomRotate.disableRotation();
       map.addControl(
         new maplibregl.AttributionControl({ compact: false }),
         "bottom-right",
@@ -637,19 +640,12 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
 
       map.on("click", onClick);
       if (placementMode) {
-        map.dragRotate.disable();
-        map.touchZoomRotate.disableRotation();
         canvas.style.cursor = "crosshair";
       } else {
-        map.dragRotate.enable();
-        map.touchZoomRotate.enable();
         canvas.style.cursor = "";
       }
       return () => {
         map.off("click", onClick);
-        map.dragPan.enable();
-        map.dragRotate.enable();
-        map.touchZoomRotate.enable();
         canvas.style.cursor = "";
       };
     }, [placementMode]);

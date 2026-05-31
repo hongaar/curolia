@@ -1,6 +1,6 @@
 import type { TraceMapHandle } from "@/components/map/trace-map";
 import { MapToolbar, MapToolbarButton } from "@curolia/ui/map-toolbar";
-import { Layers, Locate, Minus, Plus } from "lucide-react";
+import { Locate, Minus, Plus, Scan } from "lucide-react";
 import type { RefObject } from "react";
 
 export function MapControlsToolbar({
@@ -11,9 +11,10 @@ export function MapControlsToolbar({
   return (
     <MapToolbar>
       <MapToolbarButton
-        icon={<Layers aria-hidden />}
-        label="Layers"
-        onClick={() => undefined}
+        icon={<Scan aria-hidden />}
+        label="Fit traces"
+        title="Fit map to visible traces"
+        onClick={() => mapRef.current?.fitVisibleTraces()}
       />
       <MapToolbarButton
         icon={<Plus aria-hidden />}
