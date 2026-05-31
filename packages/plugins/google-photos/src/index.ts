@@ -1,2 +1,5 @@
-export { googlePhotosPluginManifest } from "./manifest";
-export { googlePhotosPluginManifest as pluginManifest } from "./manifest";
+export { googlePhotosProductUrl } from "./google-photos-product-url";
+export {
+  googlePhotosPluginManifest,
+  googlePhotosPluginManifest as pluginManifest,
+} from "./manifest";

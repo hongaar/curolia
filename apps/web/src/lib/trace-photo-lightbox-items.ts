@@ -1,4 +1,5 @@
 import type { Photo } from "@/types/database";
+import { googlePhotosProductUrl } from "@curolia/plugin-google-photos";
 
 export type TracePhotoLightboxItem = {
   id: string;
@@ -6,12 +7,21 @@ export type TracePhotoLightboxItem = {
   originalProductUrl?: string;
 };
 
-function productUrlFromRef(
+/** Deep link to the photo in its source product (Google Photos, etc.). */
+export function photoOriginalProductUrl(
   ref: Record<string, unknown> | null,
+  sourcePluginId: string | null,
 ): string | undefined {
-  if (!ref) return undefined;
-  const u = ref.productUrl;
-  return typeof u === "string" && u.length > 0 ? u : undefined;
+  if (!ref || !sourcePluginId) return undefined;
+
+  if (sourcePluginId === "google_photos") {
+    return googlePhotosProductUrl(ref);
+  }
+
+  const explicit = ref.productUrl;
+  return typeof explicit === "string" && explicit.length > 0
+    ? explicit
+    : undefined;
 }
 
 export function photosToLightboxItems(
@@ -22,7 +32,10 @@ export function photosToLightboxItems(
   for (const p of photos) {
     const url = signedUrlByPhotoId[p.id];
     if (url) {
-      const originalProductUrl = productUrlFromRef(p.external_ref);
+      const originalProductUrl = photoOriginalProductUrl(
+        p.external_ref,
+        p.source_plugin_id,
+      );
       out.push({
         id: p.id,
         url,
@@ -31,4 +44,26 @@ export function photosToLightboxItems(
     }
   }
   return out;
+}
+
+export type TracePhotoMasonrySource = {
+  originalProductUrl?: string;
+  sourcePluginId: string;
+  sourceLabel?: string;
+};
+
+export function photoMasonrySource(
+  photo: Photo,
+): TracePhotoMasonrySource | undefined {
+  if (!photo.source_plugin_id) return undefined;
+
+  const originalProductUrl = photoOriginalProductUrl(
+    photo.external_ref,
+    photo.source_plugin_id,
+  );
+
+  return {
+    sourcePluginId: photo.source_plugin_id,
+    ...(originalProductUrl ? { originalProductUrl } : {}),
+  };
 }

@@ -49,6 +49,7 @@ import {
   TraceFormPanelCard,
   TraceFormPhotoGrid,
   TraceFormPhotoPlaceholder,
+  TraceFormPhotoRemoveButton,
   TraceFormPhotoThumb,
   TraceFormPlaceText,
   TraceFormTagBox,
@@ -62,7 +63,7 @@ import {
   TracePhotoThumb,
 } from "@curolia/ui/trace-photo-lightbox";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, Upload } from "lucide-react";
 import {
   useEffect,
@@ -131,6 +132,40 @@ export function TraceFormDialog({
     () => photosToLightboxItems(photos, signedUrlByPhotoId),
     [photos, signedUrlByPhotoId],
   );
+
+  const removePhotoMut = useMutation({
+    mutationFn: async (photoId: string) => {
+      if (!trace || !journalId) throw new Error("missing_trace");
+      const photo = photos.find((p) => p.id === photoId);
+      if (!photo) throw new Error("photo_not_found");
+      const { error: dbErr } = await supabase
+        .from("photos")
+        .delete()
+        .eq("id", photoId);
+      if (dbErr) throw dbErr;
+      const path = photo.storage_path?.trim();
+      if (path) {
+        const { error: stErr } = await supabase.storage
+          .from("trace-photos")
+          .remove([path]);
+        if (stErr) console.error(stErr);
+      }
+    },
+    onSuccess: async (_data, photoId) => {
+      setPhotoLightbox((prev) => (prev?.photoId === photoId ? null : prev));
+      await qc.invalidateQueries({ queryKey: ["photos", trace?.id] });
+      await qc.invalidateQueries({ queryKey: ["photo-urls", trace?.id] });
+      await qc.invalidateQueries({
+        queryKey: ["journal-trace-photos", journalId],
+      });
+      await qc.invalidateQueries({
+        queryKey: ["photo-urls-batch", journalId],
+      });
+    },
+    onError: (e) => {
+      toast.error(e instanceof Error ? e.message : "Could not remove photo.");
+    },
+  });
 
   const floatingNew = Boolean(open && !trace && anchorScreen && !isNarrow);
 
@@ -614,8 +649,18 @@ export function TraceFormDialog({
             <TraceFormPhotoGrid>
               {photos.map((p) => {
                 const url = signedUrlByPhotoId[p.id];
+                const removing =
+                  removePhotoMut.isPending && removePhotoMut.variables === p.id;
                 return url ? (
-                  <TraceFormPhotoThumb key={p.id}>
+                  <TraceFormPhotoThumb
+                    key={p.id}
+                    removeButton={
+                      <TraceFormPhotoRemoveButton
+                        onClick={() => removePhotoMut.mutate(p.id)}
+                        disabled={removing}
+                      />
+                    }
+                  >
                     <TracePhotoThumb
                       url={url}
                       onOpen={() => setPhotoLightbox({ photoId: p.id })}

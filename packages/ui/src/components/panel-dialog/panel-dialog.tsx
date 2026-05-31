@@ -1,5 +1,5 @@
-import { Loader2 } from "lucide-react";
-import type * as React from "react";
+import { Loader2, X } from "lucide-react";
+import { useId, type ComponentProps, type ReactNode } from "react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
@@ -10,7 +10,7 @@ export function PanelDialogContent({
   children,
   size = "default",
   ...props
-}: React.ComponentProps<typeof DialogContent> & {
+}: ComponentProps<typeof DialogContent> & {
   size?: "default" | "md";
 }) {
   return (
@@ -27,35 +27,23 @@ export function PanelDialogContent({
   );
 }
 
-export function PanelDialogTitle({ children }: { children: React.ReactNode }) {
+export function PanelDialogTitle({ children }: { children: ReactNode }) {
   return <DialogTitle className={styles.panelTitle}>{children}</DialogTitle>;
 }
 
-export function PanelDialogFormStack({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PanelDialogFormStack({ children }: { children: ReactNode }) {
   return <div className={styles.formStack}>{children}</div>;
 }
 
-export function PanelDialogField({ children }: { children: React.ReactNode }) {
+export function PanelDialogField({ children }: { children: ReactNode }) {
   return <div className={styles.formField}>{children}</div>;
 }
 
-export function PanelDialogMonoBox({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PanelDialogMonoBox({ children }: { children: ReactNode }) {
   return <div className={styles.monoBox}>{children}</div>;
 }
 
-export function PanelDialogFooterRow({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function PanelDialogFooterRow({ children }: { children: ReactNode }) {
   return <div className={styles.footerRow}>{children}</div>;
 }
 
@@ -63,7 +51,7 @@ export function PanelDialogRoundedButton({
   size = "sm",
   className,
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: ComponentProps<typeof Button>) {
   return (
     <Button
       size={size}
@@ -78,7 +66,7 @@ export function PanelDialogImportButton({
   size = "sm",
   className,
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: ComponentProps<typeof Button>) {
   return (
     <Button
       variant={variant}
@@ -91,4 +79,42 @@ export function PanelDialogImportButton({
 
 export function PanelDialogSpinner() {
   return <Loader2 className={cn(styles.iconSm, "spin")} aria-hidden />;
+}
+
+/** In-form prep step (avoids stacking a second modal on trace edit). */
+export function PanelDialogInlinePrep({
+  title,
+  description,
+  onClose,
+  children,
+}: {
+  title: string;
+  description?: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  const titleId = useId();
+  return (
+    <div className={styles.inlinePrep} role="group" aria-labelledby={titleId}>
+      <div className={styles.inlinePrepHeader}>
+        <h3 id={titleId} className={styles.inlinePrepTitle}>
+          {title}
+        </h3>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={styles.inlinePrepClose}
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <X className={styles.iconSm} aria-hidden />
+        </Button>
+      </div>
+      {description ? (
+        <p className={styles.inlinePrepDescription}>{description}</p>
+      ) : null}
+      <div className={styles.inlinePrepBody}>{children}</div>
+    </div>
+  );
 }

@@ -1,8 +1,9 @@
+import { X } from "lucide-react";
 import type * as React from "react";
 
+import { cn } from "../../lib/utils";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../card";
 import { DialogContent } from "../dialog";
-import { cn } from "../../lib/utils";
 import {
   FormErrorText,
   FormField,
@@ -98,10 +99,44 @@ export function TraceFormPhotoGrid({
 
 export function TraceFormPhotoThumb({
   children,
+  removeButton,
 }: {
   children: React.ReactNode;
+  removeButton?: React.ReactNode;
 }) {
-  return <div className={styles.photoThumb}>{children}</div>;
+  return (
+    <div className={styles.photoThumb}>
+      {children}
+      {removeButton}
+    </div>
+  );
+}
+
+export function TraceFormPhotoRemoveButton({
+  onClick,
+  disabled,
+  ariaLabel = "Remove photo",
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  ariaLabel?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={styles.photoRemove}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      title="Remove photo"
+    >
+      <X className={styles.photoRemoveIcon} aria-hidden />
+    </button>
+  );
 }
 
 export function TraceFormPhotoPlaceholder({

@@ -12,9 +12,12 @@ import {
 } from "@/lib/map-view-params";
 import { supabase } from "@/lib/supabase";
 import { formatTraceDateRange } from "@/lib/trace-dates";
-import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
+import {
+  photoMasonrySource,
+  photosToLightboxItems,
+} from "@/lib/trace-photo-lightbox-items";
 import { useTracePhotosSignedUrls } from "@/lib/use-trace-photos";
-import { pluginList } from "@/plugins/registry";
+import { getPluginDefinition, pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import { useJournal } from "@/providers/journal-provider";
 import type { Trace } from "@/types/database";
@@ -31,19 +34,15 @@ import {
   TraceDetailContent,
   TraceDetailDescription,
   TraceDetailHeader,
-  TraceDetailPhotoPlaceholder,
-  TraceDetailPhotoRow,
   TraceDetailSubtitle,
   TraceDetailTagBadge,
   TraceDetailTagRow,
   TraceDetailTitle,
 } from "@curolia/ui/trace-detail";
-import {
-  TracePhotoLightbox,
-  TracePhotoThumb,
-} from "@curolia/ui/trace-photo-lightbox";
+import { TracePhotoLightbox } from "@curolia/ui/trace-photo-lightbox";
+import { TracePhotoMasonry } from "@curolia/ui/trace-photo-masonry";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 type TraceRow = Trace & {
@@ -104,8 +103,11 @@ export function TraceDetailPage() {
 
   const traceIdResolved = traceQuery.data?.id;
 
-  const { photos, signedUrlByPhotoId } =
-    useTracePhotosSignedUrls(traceIdResolved);
+  const {
+    photos,
+    signedUrlByPhotoId,
+    isLoading: photosLoading,
+  } = useTracePhotosSignedUrls(traceIdResolved);
 
   const trace = traceQuery.data;
   const wrongJournal =
@@ -125,6 +127,43 @@ export function TraceDetailPage() {
     () => photosToLightboxItems(photos, signedUrlByPhotoId),
     [photos, signedUrlByPhotoId],
   );
+
+  const masonryItems = useMemo(() => {
+    const out: Parameters<typeof TracePhotoMasonry>[0]["items"] = [];
+    for (const p of photos) {
+      const url = signedUrlByPhotoId[p.id];
+      if (!url) continue;
+      const source = photoMasonrySource(p);
+      let sourceIcon: ReactNode | undefined;
+      let sourceLabel: string | undefined;
+      if (source?.sourcePluginId) {
+        const plugin = getPluginDefinition(source.sourcePluginId);
+        if (plugin) {
+          const Icon = plugin.icon;
+          sourceIcon = <Icon size={5} />;
+          sourceLabel = `Open in ${plugin.displayName}`;
+        }
+      }
+      out.push({
+        id: p.id,
+        url,
+        ...(source?.originalProductUrl
+          ? { originalProductUrl: source.originalProductUrl }
+          : {}),
+        ...(sourceIcon ? { sourceIcon } : {}),
+        ...(sourceLabel ? { sourceLabel } : {}),
+        ...(sourceLabel
+          ? { sourceTooltip: `${sourceLabel} — opens in a new tab` }
+          : {}),
+      });
+    }
+    return out;
+  }, [photos, signedUrlByPhotoId]);
+
+  const photoPlaceholders =
+    photosLoading && photos.length > 0
+      ? Math.max(0, photos.length - masonryItems.length)
+      : 0;
 
   if (traceQuery.isLoading) {
     return <PageCenteredLoading>Loading trace…</PageCenteredLoading>;
@@ -233,22 +272,13 @@ export function TraceDetailPage() {
           {trace.description ? (
             <TraceDetailDescription>{trace.description}</TraceDetailDescription>
           ) : null}
-          <TraceDetailPhotoRow>
-            {photos.map((p) => {
-              const url = signedUrlByPhotoId[p.id];
-              return url ? (
-                <TracePhotoThumb
-                  key={p.id}
-                  url={url}
-                  onOpen={() => setPhotoLightbox({ photoId: p.id })}
-                />
-              ) : (
-                <TraceDetailPhotoPlaceholder key={p.id}>
-                  …
-                </TraceDetailPhotoPlaceholder>
-              );
-            })}
-          </TraceDetailPhotoRow>
+          {photos.length > 0 || photoPlaceholders > 0 ? (
+            <TracePhotoMasonry
+              items={masonryItems}
+              loadingPlaceholders={photoPlaceholders}
+              onOpen={(photoId) => setPhotoLightbox({ photoId })}
+            />
+          ) : null}
           <TraceLinksList traceId={trace.id} />
           {pluginList.map((p) => {
             const Section = p.TraceDetailSection;

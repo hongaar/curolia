@@ -1,9 +1,9 @@
+import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
 
-import { Button, buttonClassName } from "../button";
 import { cn } from "../../lib/utils";
+import { Button, buttonClassName } from "../button";
 import styles from "./trace-photo-lightbox.module.css";
 
 export type TracePhotoLightboxItem = {
@@ -120,6 +120,7 @@ export function TracePhotoLightbox({
                   className: styles.lightButton,
                 })}
                 aria-label="Open in Google Photos"
+                title="Open in Google Photos — new tab"
               >
                 <ExternalLink className={styles.iconMd} />
               </a>

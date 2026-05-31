@@ -64,6 +64,7 @@
     "./trace-links": "./src/components/trace-links/index.ts",
     "./trace-metadata-footer": "./src/components/trace-metadata-footer/index.ts",
     "./trace-photo-lightbox": "./src/components/trace-photo-lightbox/index.ts",
+    "./trace-photo-masonry": "./src/components/trace-photo-masonry/index.ts",
     "./user-avatar": "./src/components/user-avatar/index.ts",
     "./lib/utils": "./src/lib/utils.ts"
   },
