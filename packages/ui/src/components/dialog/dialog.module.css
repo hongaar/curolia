@@ -1,7 +1,6 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 70;
   isolation: isolate;
   background: color-mix(in oklch, black 10%, transparent);
 }
@@ -12,11 +11,20 @@
   }
 }
 
+.overlayNested {
+  background: color-mix(in oklch, black 22%, transparent);
+}
+
+@supports (backdrop-filter: blur(2px)) {
+  .overlayNested {
+    backdrop-filter: none;
+  }
+}
+
 .content {
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: 70;
   display: grid;
   width: 100%;
   max-width: calc(100% - 2rem);
@@ -29,6 +37,21 @@
   color: var(--popover-foreground);
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
   outline: none;
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease;
+}
+
+.content[data-dialog-obscured="true"] {
+  filter: blur(3px);
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+.contentNested {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent),
+    var(--shadow-xl);
 }
 
 @media (min-width: 40rem) {
@@ -88,4 +111,41 @@
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
+}
+
+/* Keep translate(-50%, -50%) in keyframes so open/close zoom does not override centering. */
+.contentOpen[data-open] {
+  animation:
+    curolia-fade-in 100ms ease-out,
+    dialog-zoom-in 100ms ease-out;
+}
+
+.contentClosed[data-closed] {
+  animation:
+    curolia-fade-out 100ms ease-in,
+    dialog-zoom-out 100ms ease-in;
+}
+
+@keyframes dialog-zoom-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes dialog-zoom-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
 }

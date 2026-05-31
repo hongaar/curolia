@@ -1,13 +1,29 @@
-import * as React from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import styles from "./dialog.module.css";
 
+const DialogDepthContext = React.createContext(0);
+const DialogOpenContext = React.createContext(false);
+
+function dialogLayerZIndex(depth: number, layer: "overlay" | "content") {
+  const base = 70 + (depth - 1) * 10;
+  return layer === "overlay" ? base : base + 1;
+}
+
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+  const parentDepth = React.useContext(DialogDepthContext);
+  const depth = parentDepth + 1;
+  return (
+    <DialogDepthContext.Provider value={depth}>
+      <DialogOpenContext.Provider value={Boolean(props.open)}>
+        <DialogPrimitive.Root data-slot="dialog" {...props} />
+      </DialogOpenContext.Provider>
+    </DialogDepthContext.Provider>
+  );
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
@@ -24,17 +40,26 @@ function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
 
 function DialogOverlay({
   className,
+  style,
   ...props
 }: DialogPrimitive.Backdrop.Props) {
+  const depth = React.useContext(DialogDepthContext);
+  const isNested = depth > 1;
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
+      data-dialog-depth={depth}
       className={cn(
         styles.overlay,
+        isNested && styles.overlayNested,
         "overlayFadeOpen",
         "overlayFadeClosed",
         className,
       )}
+      style={{
+        ...style,
+        zIndex: dialogLayerZIndex(depth, "overlay"),
+      }}
       {...props}
     />
   );
@@ -44,21 +69,49 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  style,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
 }) {
+  const depth = React.useContext(DialogDepthContext);
+  const open = React.useContext(DialogOpenContext);
+  const isNested = depth > 1;
+  const popupRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!open || !isNested) return;
+    const popups = [
+      ...document.querySelectorAll<HTMLElement>('[data-slot="dialog-content"]'),
+    ];
+    const idx = popupRef.current
+      ? popups.indexOf(popupRef.current)
+      : popups.length - 1;
+    const parent = idx > 0 ? popups[idx - 1] : null;
+    parent?.setAttribute("data-dialog-obscured", "true");
+    return () => {
+      parent?.removeAttribute("data-dialog-obscured");
+    };
+  }, [open, isNested]);
+
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
+        ref={popupRef}
         data-slot="dialog-content"
+        data-dialog-depth={depth}
         className={cn(
           styles.content,
-          "overlayOpen",
-          "overlayClosed",
+          isNested && styles.contentNested,
+          styles.contentOpen,
+          styles.contentClosed,
           className,
         )}
+        style={{
+          ...style,
+          zIndex: dialogLayerZIndex(depth, "content"),
+        }}
         {...props}
       >
         {children}
