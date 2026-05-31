@@ -39,13 +39,11 @@ export function ResetPasswordPage() {
 
   useEffect(() => {
     if (!hasRecoveryTokenInUrl()) {
-      setVerifying(false);
       return;
     }
     const params = new URLSearchParams(window.location.search);
     const token_hash = params.get("token_hash");
     if (!token_hash) {
-      setVerifying(false);
       return;
     }
     let cancelled = false;
