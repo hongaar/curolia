@@ -1,29 +1,31 @@
-import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/layout/app-shell";
-import { ProtectedLayout } from "@/routes/protected-layout";
+import { AppSettingsPage } from "@/pages/app-settings-page";
+import { BlogPage } from "@/pages/blog-page";
+import { ContactPage } from "@/pages/contact-page";
+import { BlogHomeRedirectPage } from "@/pages/home-redirect-page";
+import { InvitationsPage } from "@/pages/invitations-page";
+import { JournalSettingsPage } from "@/pages/journal-settings-page";
 import { LoginPage } from "@/pages/login-page";
 import { MapPage } from "@/pages/map-page";
-import { BlogPage } from "@/pages/blog-page";
-import { TraceDetailPage } from "@/pages/trace-detail-page";
+import { NotificationsPage } from "@/pages/notifications-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
-import { AppSettingsPage } from "@/pages/app-settings-page";
-import { JournalSettingsPage } from "@/pages/journal-settings-page";
-import { InvitationsPage } from "@/pages/invitations-page";
-import { NotificationsPage } from "@/pages/notifications-page";
-import {
-  BlogHomeRedirectPage,
-  HomeRedirectPage,
-} from "@/pages/home-redirect-page";
+import { RootPage } from "@/pages/root-page";
+import { SignupPage } from "@/pages/signup-page";
+import { TraceDetailPage } from "@/pages/trace-detail-page";
 import { TraceLegacyRedirectPage } from "@/pages/trace-legacy-redirect-page";
+import { ProtectedLayout } from "@/routes/protected-layout";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<RootPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route element={<ProtectedLayout />}>
         <Route element={<AppShell />}>
-          <Route index element={<HomeRedirectPage />} />
           <Route path="map/:journalSlug" element={<MapPage />} />
           <Route path="blog" element={<BlogHomeRedirectPage />} />
           <Route path="blog/:journalSlug" element={<BlogPage />} />

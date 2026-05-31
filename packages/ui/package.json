@@ -27,6 +27,7 @@
     "./global-search": "./src/components/global-search/index.ts",
     "./input": "./src/components/input/index.ts",
     "./label": "./src/components/label/index.ts",
+    "./landing-page": "./src/components/landing-page/index.ts",
     "./list": "./src/components/list/index.ts",
     "./loading-splash": "./src/components/loading-splash/index.ts",
     "./login-layout": "./src/components/login-layout/index.ts",

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Map feature placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8f3ec"/>
+      <stop offset="100%" stop-color="#dbe7f2"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#bg)"/>
+  <path d="M80 280 C160 220 220 300 320 250 C420 200 480 260 560 230" stroke="#7aa58c" stroke-width="10" fill="none" opacity="0.55"/>
+  <circle cx="180" cy="250" r="18" fill="#3f6f58"/>
+  <circle cx="320" cy="250" r="18" fill="#3f6f58"/>
+  <circle cx="470" cy="230" r="18" fill="#3f6f58"/>
+  <text x="36" y="56" fill="#274036" font-family="Georgia, serif" font-size="28">Map preview</text>
+</svg>

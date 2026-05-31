@@ -1,10 +1,7 @@
-import { useState } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
-import { Tabs } from "@curolia/ui/tabs";
 import {
   LoginActions,
   LoginError,
@@ -17,6 +14,9 @@ import {
   LoginTabsList,
   LoginTabTrigger,
 } from "@curolia/ui/login-layout";
+import { Tabs } from "@curolia/ui/tabs";
+import { useState } from "react";
+import { Navigate, useSearchParams } from "react-router-dom";
 
 function safeInternalPath(raw: string | null): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
@@ -27,6 +27,7 @@ export function LoginPage() {
   const { user, loading, signIn, signUp } = useAuth();
   const [params] = useSearchParams();
   const nextPath = safeInternalPath(params.get("next"));
+  const defaultTab = params.get("tab") === "signup" ? "signup" : "signin";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export function LoginPage() {
   return (
     <LoginLayout>
       <LoginHeader />
-      <Tabs defaultValue="signin">
+      <Tabs defaultValue={defaultTab}>
         <LoginTabsList>
           <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
           <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>

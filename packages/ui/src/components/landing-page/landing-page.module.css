@@ -1,0 +1,509 @@
+.page {
+  position: relative;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.backdrop {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      ellipse 120% 80% at 10% 0%,
+      oklch(0.55 0.08 158 / 0.16),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 90% 70% at 95% 20%,
+      oklch(0.55 0.06 250 / 0.12),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 50% 100%,
+      oklch(0.75 0.06 85 / 0.1),
+      transparent 45%
+    ),
+    linear-gradient(180deg, oklch(0.955 0.018 88) 0%, oklch(0.925 0.02 95) 100%);
+}
+
+:global(.dark) .backdrop {
+  background:
+    radial-gradient(
+      ellipse 120% 80% at 10% 0%,
+      oklch(0.42 0.09 158 / 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 90% 70% at 95% 20%,
+      oklch(0.45 0.06 250 / 0.16),
+      transparent 50%
+    ),
+    linear-gradient(180deg, oklch(0.19 0.035 260) 0%, oklch(0.17 0.03 260) 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  background: color-mix(in oklch, var(--background) 82%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.875rem 1.25rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brandLogo {
+  display: block;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  object-fit: contain;
+}
+
+.brandName {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttonLink {
+  text-decoration: none;
+}
+
+.hero {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 4rem;
+}
+
+.heroGrid {
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.eyebrow {
+  margin: 0;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklch, var(--primary) 18%, transparent);
+}
+
+.heroTitle {
+  margin: 0;
+  max-width: 12ch;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 4.25rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.heroLead {
+  margin: 0;
+  max-width: 38rem;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.heroVisual {
+  position: relative;
+}
+
+.heroFrame {
+  overflow: hidden;
+  border-radius: var(--radius-3xl);
+  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+  background: var(--card);
+  box-shadow: var(--panel-shadow);
+}
+
+.heroImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  object-fit: cover;
+}
+
+.heroBadge {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-xl);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--card) 88%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 12px 28px -10px color-mix(in oklch, var(--foreground) 18%, transparent),
+    inset 0 0 0 1px color-mix(in oklch, var(--border) 70%, transparent);
+}
+
+.section {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 4.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.sectionLead {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.featureGrid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.featureCard {
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  border: 1px solid color-mix(in oklch, var(--border) 75%, transparent);
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+  box-shadow: 0 18px 36px -22px
+    color-mix(in oklch, var(--foreground) 22%, transparent);
+}
+
+.featureImageWrap {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+}
+
+.featureImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.featureBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+}
+
+.featureIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-lg);
+  color: var(--primary);
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.featureTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.featureDescription {
+  margin: 0;
+  font-size: 0.975rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.cta {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+}
+
+.openSource {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 2.5rem;
+}
+
+.openSourcePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start;
+  border-radius: var(--radius-3xl);
+  padding: 2rem 1.5rem;
+  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+  box-shadow: 0 18px 36px -22px
+    color-mix(in oklch, var(--foreground) 18%, transparent);
+}
+
+.openSourceCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.openSourceIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--muted) 70%, transparent);
+}
+
+.openSourceTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.openSourceLead {
+  margin: 0;
+  max-width: 40rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.externalButtonLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.ctaPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+  border-radius: var(--radius-3xl);
+  padding: 2rem 1.5rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 22%, transparent);
+  background:
+    radial-gradient(
+      ellipse 80% 120% at 0% 0%,
+      oklch(0.55 0.08 158 / 0.14),
+      transparent 55%
+    ),
+    color-mix(in oklch, var(--card) 94%, transparent);
+  box-shadow: var(--panel-shadow);
+}
+
+.ctaTitle {
+  margin: 0;
+  max-width: 16ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.ctaLead {
+  margin: 0;
+  max-width: 36rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.footer {
+  border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  background: color-mix(in oklch, var(--card) 50%, transparent);
+}
+
+.footerInner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2rem;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.footerLink {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--muted-foreground);
+  transition: color 160ms ease;
+}
+
+.footerLink:hover {
+  color: var(--foreground);
+}
+
+.footerNote {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.contactPage {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 5rem;
+}
+
+.contactPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-radius: var(--radius-2xl);
+  padding: 1.75rem;
+  border: 1px solid color-mix(in oklch, var(--border) 75%, transparent);
+  background: color-mix(in oklch, var(--card) 92%, transparent);
+  box-shadow: var(--panel-shadow);
+}
+
+.contactTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.contactLead {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.contactEmail {
+  width: fit-content;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--primary);
+}
+
+.contactEmail:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 40rem) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 3rem;
+  }
+
+  .featureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .openSourcePanel {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2.25rem 2rem;
+  }
+
+  .ctaPanel {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2.25rem 2rem;
+  }
+
+  .footerInner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    padding-top: 5rem;
+    padding-bottom: 5.5rem;
+  }
+
+  .featureGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

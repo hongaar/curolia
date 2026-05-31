@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 660" role="img" aria-label="Placeholder hero image">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d8efe4"/>
+      <stop offset="100%" stop-color="#eef4fb"/>
+    </linearGradient>
+    <linearGradient id="land" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#9bc4aa"/>
+      <stop offset="100%" stop-color="#6f9a7d"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="660" fill="url(#sky)"/>
+  <path d="M0 420 C180 360 320 470 480 410 C640 350 780 430 960 380 L960 660 L0 660 Z" fill="url(#land)" opacity="0.85"/>
+  <g opacity="0.35" stroke="#2f4f3f" stroke-width="2" fill="none">
+    <path d="M120 520 C220 470 300 540 420 500"/>
+    <path d="M520 470 C640 430 760 500 860 460"/>
+  </g>
+  <circle cx="760" cy="120" r="48" fill="#f6e7b8" opacity="0.9"/>
+  <g fill="#ffffff" opacity="0.92">
+    <rect x="180" y="180" width="220" height="150" rx="18"/>
+    <rect x="430" y="220" width="320" height="210" rx="22"/>
+  </g>
+  <g fill="#3f6f58" opacity="0.75">
+    <circle cx="250" cy="250" r="16"/>
+    <circle cx="560" cy="310" r="20"/>
+    <circle cx="640" cy="360" r="14"/>
+  </g>
+  <text x="48" y="72" fill="#274036" font-family="Georgia, serif" font-size="34">Hero image placeholder</text>
+  <text x="48" y="108" fill="#4d6458" font-family="ui-sans-serif, sans-serif" font-size="20">Replace with product screenshot</text>
+</svg>

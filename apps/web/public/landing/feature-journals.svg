@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Journals feature placeholder">
+  <rect width="640" height="400" fill="#eef4fb"/>
+  <rect x="72" y="88" width="180" height="224" rx="20" fill="#fff" stroke="#c8d7e8"/>
+  <rect x="232" y="72" width="180" height="224" rx="20" fill="#fff" stroke="#c8d7e8"/>
+  <rect x="392" y="104" width="180" height="224" rx="20" fill="#fff" stroke="#c8d7e8"/>
+  <rect x="96" y="116" width="132" height="16" rx="8" fill="#8aa8c7"/>
+  <rect x="256" y="100" width="132" height="16" rx="8" fill="#8aa8c7"/>
+  <rect x="416" y="132" width="132" height="16" rx="8" fill="#8aa8c7"/>
+  <text x="36" y="56" fill="#274036" font-family="Georgia, serif" font-size="28">Journals preview</text>
+</svg>
