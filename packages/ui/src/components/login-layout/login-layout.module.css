@@ -105,3 +105,19 @@
   font-size: 0.7rem;
   color: var(--foreground);
 }
+
+.footerLink {
+  display: block;
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--muted-foreground);
+  transition: color 160ms ease;
+}
+
+.footerLink:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+}

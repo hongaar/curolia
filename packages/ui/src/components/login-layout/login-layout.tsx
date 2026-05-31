@@ -1,9 +1,10 @@
 import type * as React from "react";
+import { Link } from "react-router-dom";
 
-import { TabsContent, TabsList, TabsTrigger } from "../tabs";
-import { Stack } from "../stack";
-import { Text } from "../text";
 import { FloatingPanel } from "../floating-panel";
+import { Stack } from "../stack";
+import { TabsContent, TabsList, TabsTrigger } from "../tabs";
+import { Text } from "../text";
 import styles from "./login-layout.module.css";
 
 export type LoginLayoutProps = {
@@ -111,6 +112,20 @@ export function LoginTabPanel({
 
 export function LoginFooterNote({ children }: { children: React.ReactNode }) {
   return <p className={styles.footerNote}>{children}</p>;
+}
+
+export function LoginFooterLink({
+  to = "/",
+  children = "Back to homepage",
+}: {
+  to?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <Link to={to} className={styles.footerLink}>
+      {children}
+    </Link>
+  );
 }
 
 export function LoginInlineCode({ children }: { children: React.ReactNode }) {

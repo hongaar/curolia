@@ -1,4 +1,11 @@
-import { BookOpen, Compass, Github, MapPinned, Plug } from "lucide-react";
+import {
+  BookOpen,
+  Compass,
+  Github,
+  MapPinned,
+  Plug,
+  ShieldCheck,
+} from "lucide-react";
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
@@ -27,14 +34,38 @@ export type LandingPageProps = {
   contactEmail?: string;
 };
 
+/** Local landing photography under `apps/web/public/landing/`. */
+export const defaultLandingImages = {
+  hero: {
+    src: "/landing/hero.jpg",
+    alt: "Sunset over terraced rice fields",
+  },
+  map: {
+    src: "/landing/feature-map.jpg",
+    alt: "Winding river through a misty green valley",
+  },
+  traces: {
+    src: "/landing/feature-traces.jpg",
+    alt: "Mountain river valley with forest and snow peaks",
+  },
+  journals: {
+    src: "/landing/feature-journals.jpg",
+    alt: "Coastal hills with yellow wildflowers above the sea",
+  },
+  plugins: {
+    src: "/landing/feature-plugins.jpg",
+    alt: "Sunset over a savanna plain with scattered trees",
+  },
+} as const;
+
 const defaultFeatures: LandingFeature[] = [
   {
     id: "map",
     title: "Map your journeys",
     description:
       "Drop pins for every place you have been and see your travels unfold on a beautiful interactive map.",
-    imageSrc: "/landing/feature-map.svg",
-    imageAlt: "Placeholder map preview",
+    imageSrc: defaultLandingImages.map.src,
+    imageAlt: defaultLandingImages.map.alt,
     icon: <MapPinned aria-hidden size={20} />,
   },
   {
@@ -42,8 +73,8 @@ const defaultFeatures: LandingFeature[] = [
     title: "Capture traces",
     description:
       "Record visits with notes, photos, and tags. Each trace becomes a rich memory tied to a place.",
-    imageSrc: "/landing/feature-traces.svg",
-    imageAlt: "Placeholder trace journal preview",
+    imageSrc: defaultLandingImages.traces.src,
+    imageAlt: defaultLandingImages.traces.alt,
     icon: <BookOpen aria-hidden size={20} />,
   },
   {
@@ -51,8 +82,8 @@ const defaultFeatures: LandingFeature[] = [
     title: "Organize in journals",
     description:
       "Keep trips, regions, or themes in separate journals. Switch contexts without losing the thread.",
-    imageSrc: "/landing/feature-journals.svg",
-    imageAlt: "Placeholder journals preview",
+    imageSrc: defaultLandingImages.journals.src,
+    imageAlt: defaultLandingImages.journals.alt,
     icon: <Compass aria-hidden size={20} />,
   },
   {
@@ -60,8 +91,8 @@ const defaultFeatures: LandingFeature[] = [
     title: "Extend with plugins",
     description:
       "Connect Google Photos, Spotify, calendars, and more to enrich traces with the content you already have.",
-    imageSrc: "/landing/feature-plugins.svg",
-    imageAlt: "Placeholder plugins preview",
+    imageSrc: defaultLandingImages.plugins.src,
+    imageAlt: defaultLandingImages.plugins.alt,
     icon: <Plug aria-hidden size={20} />,
   },
 ];
@@ -223,11 +254,11 @@ export function LandingFeatures({
     >
       <div className={styles.sectionHeader}>
         <h2 id="landing-features-title" className={styles.sectionTitle}>
-          Built for explorers, not spreadsheets
+          Built by explorers, for explorers
         </h2>
         <p className={styles.sectionLead}>
-          Everything you need to capture where you have been — organized around
-          places, not rows and columns.
+          Everything you need to capture where you have been — you remain in
+          control and decide who gets to see it.
         </p>
       </div>
 
@@ -268,14 +299,16 @@ export function LandingOpenSource({
       <div className={styles.openSourcePanel}>
         <div className={styles.openSourceCopy}>
           <span className={styles.openSourceIcon} aria-hidden>
-            <Github size={22} />
+            <ShieldCheck size={22} />
           </span>
           <h2 id="landing-open-source-title" className={styles.openSourceTitle}>
-            Open source
+            Open and private
           </h2>
           <p className={styles.openSourceLead}>
-            Curolia is built in the open. Browse the code, open issues, or
-            contribute plugins and improvements on GitHub.
+            Curolia is built in the open. Feel free to browse the code, open
+            issues, or contribute plugins and improvements on GitHub. Your data
+            is stored in the European Union and we'll never sell it to anyone,
+            track you or train AI on it.
           </p>
         </div>
         <a
@@ -300,9 +333,9 @@ export function LandingCta() {
   return (
     <section className={styles.cta} aria-labelledby="landing-cta-title">
       <div className={styles.ctaPanel}>
-        <div>
+        <div className={styles.ctaCopy}>
           <h2 id="landing-cta-title" className={styles.ctaTitle}>
-            Ready to chart your next chapter?
+            Ready to start exploring?
           </h2>
           <p className={styles.ctaLead}>
             Create a free account and start pinning the places that matter to
@@ -318,8 +351,8 @@ export function LandingCta() {
 }
 
 export function LandingPage({
-  heroImageSrc = "/landing/hero.svg",
-  heroImageAlt,
+  heroImageSrc = defaultLandingImages.hero.src,
+  heroImageAlt = defaultLandingImages.hero.alt,
   features = defaultFeatures,
   logoSrc = "/icon.png",
   githubUrl = "https://github.com/hongaar/curolia",

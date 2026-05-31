@@ -6,9 +6,8 @@ import {
   LoginActions,
   LoginError,
   LoginField,
-  LoginFooterNote,
+  LoginFooterLink,
   LoginHeader,
-  LoginInlineCode,
   LoginLayout,
   LoginTabPanel,
   LoginTabsList,
@@ -122,12 +121,7 @@ export function LoginPage() {
           </LoginActions>
         </LoginTabPanel>
       </Tabs>
-      <LoginFooterNote>
-        Configure <LoginInlineCode>VITE_SUPABASE_URL</LoginInlineCode> and{" "}
-        <LoginInlineCode>VITE_SUPABASE_PUBLISHABLE_KEY</LoginInlineCode> in{" "}
-        <LoginInlineCode>apps/web/.env</LoginInlineCode> (see repository
-        README).
-      </LoginFooterNote>
+      <LoginFooterLink />
     </LoginLayout>
   );
 }

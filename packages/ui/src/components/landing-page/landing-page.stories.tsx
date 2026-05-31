@@ -7,7 +7,7 @@ const meta = {
   title: "Landing Page",
   ...componentStoryMeta(
     "Marketing homepage and contact layout for signed-out sessions.",
-    "Use `LandingPage` at `/` and `ContactPageContent` at `/contact`. Replace placeholder images under `apps/web/public/landing/`.",
+    "Use `LandingPage` at `/` and `ContactPageContent` at `/contact`. Images live in `apps/web/public/landing/`.",
   ),
   component: LandingPage,
   decorators: [
