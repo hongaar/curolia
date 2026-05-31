@@ -23,7 +23,6 @@ additional_redirect_urls = [
 [auth.email]
 enable_confirmations = false
 
-# SPA recovery: link to the app with token_hash (not the API /verify route).
 [auth.email.template.recovery]
 subject = "Reset your Curolia password"
 content_path = "./supabase/templates/recovery.html"

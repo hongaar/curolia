@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@curolia/ui/button";
 import { Input } from "@curolia/ui/input";
@@ -13,20 +12,8 @@ import {
 } from "@curolia/ui/login-layout";
 import { Stack } from "@curolia/ui/stack";
 import { Text } from "@curolia/ui/text";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Navigate } from "react-router-dom";
-
-function hasRecoveryTokenInUrl(): boolean {
-  const params = new URLSearchParams(window.location.search);
-  return params.has("token_hash") && params.get("type") === "recovery";
-}
-
-function stripRecoveryParamsFromUrl() {
-  const url = new URL(window.location.href);
-  url.searchParams.delete("token_hash");
-  url.searchParams.delete("type");
-  window.history.replaceState({}, "", `${url.pathname}${url.search}`);
-}
 
 export function ResetPasswordPage() {
   const { user, loading, updatePassword, signOut } = useAuth();
@@ -35,30 +22,6 @@ export function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [verifying, setVerifying] = useState(hasRecoveryTokenInUrl);
-
-  useEffect(() => {
-    if (!hasRecoveryTokenInUrl()) {
-      return;
-    }
-    const params = new URLSearchParams(window.location.search);
-    const token_hash = params.get("token_hash");
-    if (!token_hash) {
-      return;
-    }
-    let cancelled = false;
-    void supabase.auth
-      .verifyOtp({ token_hash, type: "recovery" })
-      .then(({ error: verifyError }) => {
-        if (cancelled) return;
-        stripRecoveryParamsFromUrl();
-        setVerifying(false);
-        if (verifyError) setError(verifyError.message);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   if (!loading && done) {
     return <Navigate to="/login" replace />;
@@ -85,13 +48,13 @@ export function ResetPasswordPage() {
     setDone(true);
   }
 
-  const invalidLink = !loading && !verifying && !user;
+  const invalidLink = !loading && !user;
 
   return (
     <LoginLayout>
       <LoginHeader subtitle="Choose a new password for your account." />
       <Stack gap="md">
-        {loading || verifying ? (
+        {loading ? (
           <Text variant="muted">Loading…</Text>
         ) : invalidLink ? (
           <>
@@ -134,7 +97,7 @@ export function ResetPasswordPage() {
           </>
         )}
       </Stack>
-      {!invalidLink && !loading && !verifying ? (
+      {!invalidLink && !loading ? (
         <LoginFooterLink to="/login">Back to sign in</LoginFooterLink>
       ) : null}
     </LoginLayout>
