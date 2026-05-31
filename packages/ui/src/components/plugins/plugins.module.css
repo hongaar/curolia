@@ -22,14 +22,19 @@
 }
 
 .rowInfo {
+  display: flex;
   min-width: 0;
   flex: 1;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
 .rowTitleLine {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.25;
 }
 
 .rowTitle {
@@ -38,12 +43,13 @@
 
 .rowDescription {
   font-size: 0.875rem;
+  line-height: 1.4;
   color: var(--muted-foreground);
 }
 
 .rowHint {
-  margin-top: 0.25rem;
   font-size: 0.75rem;
+  line-height: 1.4;
   color: var(--muted-foreground);
 }
 
@@ -62,9 +68,21 @@
 }
 
 .iconMuted {
-  width: 1rem;
-  height: 1rem;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
   color: var(--muted-foreground);
+}
+
+/* Match title cap height; plugin icons default to a larger PluginIconFrame size. */
+.iconMuted > * {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
 }
 
 .headerBlock {

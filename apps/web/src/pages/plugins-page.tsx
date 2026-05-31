@@ -1,20 +1,15 @@
-import { useEffect, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
-import type { PluginDefinition } from "@curolia/plugin-contract";
+import { PageBackButton } from "@/components/layout/page-back-button";
+import type { Json } from "@/lib/database.types";
 import {
   fetchPluginOAuthLinkStatus,
   unlinkPluginOAuth,
 } from "@/lib/plugin-oauth-api";
 import { startPluginOAuth } from "@/lib/plugin-oauth-start";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/providers/auth-provider";
 import { pluginList } from "@/plugins/registry";
-import { Switch } from "@curolia/ui/switch";
-import type { Json } from "@/lib/database.types";
+import { useAuth } from "@/providers/auth-provider";
 import type { UserPlugin } from "@/types/database";
-import { PageBackButton } from "@/components/layout/page-back-button";
+import type { PluginDefinition } from "@curolia/plugin-contract";
 import {
   AppPageLayout,
   PageDisplayTitle,
@@ -32,6 +27,11 @@ import {
   PluginListRowTitle,
   PluginListRowToggle,
 } from "@curolia/ui/plugins";
+import { Switch } from "@curolia/ui/switch";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 let oauthRedirectHandledSig = "";
 
@@ -87,7 +87,7 @@ function PluginRow({
           <PluginListRowTitle
             icon={
               <PluginListIcon>
-                <Icon />
+                <Icon size={4} />
               </PluginListIcon>
             }
           >

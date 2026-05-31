@@ -1,5 +1,7 @@
-import { contrastingForeground } from "@curolia/ui";
-import { traceMapMarkerFaceClass } from "@curolia/ui/map";
+import {
+  createTraceMapMarkerMount,
+  type TraceMapMarkerMount,
+} from "@curolia/ui/map-marker";
 import {
   TraceDetailInsetMap,
   TraceDetailInsetMapCanvas,
@@ -26,21 +28,6 @@ function mapStyleUrlForTheme(resolvedTheme: string | undefined): string {
   return MAP_STYLE_LIGHT;
 }
 
-function styleMarkerFace(
-  el: HTMLElement,
-  opts: { emoji: string; fill: string | null },
-) {
-  el.textContent = opts.emoji;
-  const fill = opts.fill;
-  el.className = traceMapMarkerFaceClass({
-    fill,
-    selected: true,
-    interactive: false,
-  });
-  el.style.backgroundColor = fill ?? "";
-  el.style.color = fill ? contrastingForeground(fill) : "";
-}
-
 type TraceDetailInsetMapViewProps = {
   lng: number;
   lat: number;
@@ -62,6 +49,7 @@ export function TraceDetailInsetMapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
+  const markerMountRef = useRef<TraceMapMarkerMount | null>(null);
   const appliedMapStyleUrlRef = useRef("");
 
   useEffect(() => {
@@ -95,6 +83,8 @@ export function TraceDetailInsetMapView({
     return () => {
       markerRef.current?.remove();
       markerRef.current = null;
+      markerMountRef.current?.unmount();
+      markerMountRef.current = null;
       map.remove();
       mapRef.current = null;
     };
@@ -121,24 +111,26 @@ export function TraceDetailInsetMapView({
     if (!map) return;
     markerRef.current?.remove();
     markerRef.current = null;
+    markerMountRef.current?.unmount();
+    markerMountRef.current = null;
 
-    const root = document.createElement("div");
-    root.style.display = "flex";
-    root.style.alignItems = "center";
-    root.style.justifyContent = "center";
-    root.style.pointerEvents = "none";
-    const face = document.createElement("div");
-    face.setAttribute("role", "presentation");
-    face.setAttribute("aria-hidden", "true");
-    root.appendChild(face);
-    styleMarkerFace(face, { emoji: markerEmoji, fill: markerColor });
-    const marker = new maplibregl.Marker({ element: root })
+    const mount = createTraceMapMarkerMount({
+      emoji: markerEmoji,
+      fill: markerColor,
+      selected: true,
+      interactive: false,
+      pointerEvents: "none",
+    });
+    markerMountRef.current = mount;
+    const marker = new maplibregl.Marker({ element: mount.element })
       .setLngLat([lng, lat])
       .addTo(map);
     markerRef.current = marker;
     return () => {
       marker.remove();
       if (markerRef.current === marker) markerRef.current = null;
+      mount.unmount();
+      if (markerMountRef.current === mount) markerMountRef.current = null;
     };
   }, [lng, lat, markerEmoji, markerColor]);
 

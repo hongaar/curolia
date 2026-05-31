@@ -1,15 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
-import { Button } from "../button";
-import { Switch } from "../switch";
 import { StoryFrame } from "../../storybook/story-frame";
 import { PluginIconFrame } from "../plugin-icon-frame";
+import { Switch } from "../switch";
 import {
   PluginListHeader,
   PluginListIcon,
   PluginListRow,
   PluginListRowDescription,
-  PluginListRowHint,
   PluginListRowInfo,
   PluginListRowMain,
   PluginListRowTitle,
@@ -35,13 +33,18 @@ export const Default: Story = {
       <PluginListHeader>Plugins</PluginListHeader>
       <PluginListRow>
         <PluginListRowMain>
-          <PluginListIcon>
-            <PluginIconFrame size={5}>
-              <span aria-hidden>🎵</span>
-            </PluginIconFrame>
-          </PluginListIcon>
           <PluginListRowInfo>
-            <PluginListRowTitle>Spotify</PluginListRowTitle>
+            <PluginListRowTitle
+              icon={
+                <PluginListIcon>
+                  <PluginIconFrame size={4}>
+                    <span aria-hidden>🎵</span>
+                  </PluginIconFrame>
+                </PluginListIcon>
+              }
+            >
+              Spotify
+            </PluginListRowTitle>
             <PluginListRowDescription>
               Add top tracks for each trace&apos;s dates.
             </PluginListRowDescription>

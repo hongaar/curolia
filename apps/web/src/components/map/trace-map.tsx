@@ -6,12 +6,11 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import { filterTracesByTags, type TraceWithTags } from "@/lib/trace-with-tags";
-import { contrastingForeground } from "@curolia/ui";
+import { TraceMapContainer, TraceMapHoverTooltip } from "@curolia/ui/map";
 import {
-  TraceMapContainer,
-  TraceMapHoverTooltip,
-  traceMapMarkerFaceClass,
-} from "@curolia/ui/map";
+  createTraceMapMarkerMount,
+  type TraceMapMarkerMount,
+} from "@curolia/ui/map-marker";
 import {
   autoUpdate,
   computePosition,
@@ -118,32 +117,6 @@ function geolocationToastMessage(err: unknown): string {
   return "Could not get your location.";
 }
 
-function styleTraceMarkerFace(
-  el: HTMLElement,
-  opts: {
-    emoji: string;
-    fill: string | null;
-    selected: boolean;
-    hovered?: boolean;
-    interactive: boolean;
-    draft?: boolean;
-  },
-) {
-  el.textContent = opts.emoji;
-  const fill = opts.fill;
-  const draft = Boolean(opts.draft);
-  const hovered = Boolean(opts.hovered);
-  el.className = traceMapMarkerFaceClass({
-    fill,
-    selected: opts.selected,
-    hovered,
-    interactive: opts.interactive,
-    draft,
-  });
-  el.style.backgroundColor = fill ?? "";
-  el.style.color = fill ? contrastingForeground(fill) : "";
-}
-
 function cameraCloseEnough(map: maplibregl.Map, target: MapCamera) {
   const cur = map.getCenter();
   return (
@@ -192,13 +165,18 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
     );
     const appliedMapStyleUrlRef = useRef<string>("");
     const markersRef = useRef<maplibregl.Marker[]>([]);
-    /** Inner face element (MapLibre marker root is a wrapper we never className-replace). */
-    const markerElByTraceIdRef = useRef<Map<string, HTMLElement>>(new Map());
-    const markerRootByTraceIdRef = useRef<Map<string, HTMLDivElement>>(
+    const markerMountByTraceIdRef = useRef<Map<string, TraceMapMarkerMount>>(
       new Map(),
+    );
+    const markerVisualByTraceIdRef = useRef(
+      new Map<
+        string,
+        { selected: boolean; hovered: boolean; zIndex: string }
+      >(),
     );
     const previewMarkerRef = useRef<maplibregl.Marker | null>(null);
     const onPlacementClickRef = useRef(onPlacementClick);
+    const onSelectTraceRef = useRef(onSelectTrace);
     const onCameraIdleRef = useRef(onCameraIdle);
     const onMapBackgroundClickRef = useRef(onMapBackgroundClick);
     /** Last `cameraSyncKey` we applied from props (URL / deep link), not user idle echo. */
@@ -221,6 +199,7 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
 
     useLayoutEffect(() => {
       onPlacementClickRef.current = onPlacementClick;
+      onSelectTraceRef.current = onSelectTrace;
       onCameraIdleRef.current = onCameraIdle;
       onMapBackgroundClickRef.current = onMapBackgroundClick;
       filteredRef.current = filtered;
@@ -228,6 +207,7 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       latestTraceHoverIdRef.current = traceHover?.trace.id ?? null;
     }, [
       onPlacementClick,
+      onSelectTrace,
       onCameraIdle,
       onMapBackgroundClick,
       filtered,
@@ -237,23 +217,37 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
 
     const applyMarkerHoverStack = useCallback((hoveredId: string | null) => {
       for (const t of filteredRef.current) {
-        const face = markerElByTraceIdRef.current.get(t.id);
-        const root = markerRootByTraceIdRef.current.get(t.id);
-        if (!face || !root) continue;
+        const mount = markerMountByTraceIdRef.current.get(t.id);
+        if (!mount) continue;
+        const selected = t.id === selectedTraceIdRef.current;
+        const hovered = hoveredId !== null && t.id === hoveredId;
+        const zIndex = selected || hovered ? "3" : "1";
+
+        const prev = markerVisualByTraceIdRef.current.get(t.id);
+        if (
+          prev?.selected === selected &&
+          prev?.hovered === hovered &&
+          prev?.zIndex === zIndex
+        ) {
+          continue;
+        }
+        markerVisualByTraceIdRef.current.set(t.id, {
+          selected,
+          hovered,
+          zIndex,
+        });
+        mount.setZIndex(zIndex);
+
         const tag0 = t.trace_tags?.[0]?.tags;
         const fill = tag0?.color ?? null;
         const emoji = tag0?.icon_emoji ?? "📍";
-        styleTraceMarkerFace(face, {
+        mount.update({
           emoji,
           fill,
-          selected: t.id === selectedTraceIdRef.current,
-          hovered: hoveredId !== null && t.id === hoveredId,
+          selected,
+          hovered,
           interactive: true,
         });
-        const raised =
-          t.id === selectedTraceIdRef.current ||
-          (hoveredId !== null && t.id === hoveredId);
-        root.style.zIndex = raised ? "3" : "1";
       }
     }, []);
 
@@ -323,6 +317,10 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
     useLayoutEffect(() => {
       applyMarkerHoverStack(traceHover?.trace.id ?? null);
     }, [traceHover, applyMarkerHoverStack]);
+
+    useLayoutEffect(() => {
+      applyMarkerHoverStack(latestTraceHoverIdRef.current);
+    }, [selectedTraceId, applyMarkerHoverStack]);
 
     useLayoutEffect(() => {
       if (!traceHover) {
@@ -679,54 +677,55 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       const map = mapRef.current;
       if (!map) return;
 
+      for (const mount of markerMountByTraceIdRef.current.values()) {
+        mount.unmount();
+      }
+      markerMountByTraceIdRef.current.clear();
+      markerVisualByTraceIdRef.current.clear();
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
-      markerElByTraceIdRef.current.clear();
-      markerRootByTraceIdRef.current.clear();
 
       for (const t of filtered) {
         const tag0 = t.trace_tags?.[0]?.tags;
         const fill = tag0?.color ?? null;
         const emoji = tag0?.icon_emoji ?? "📍";
-        const root = document.createElement("div");
-        root.style.display = "flex";
-        root.style.alignItems = "center";
-        root.style.justifyContent = "center";
-        const face = document.createElement("button");
-        face.type = "button";
-        face.setAttribute("aria-label", t.title?.trim() || "Open trace");
-        root.appendChild(face);
-        styleTraceMarkerFace(face, {
+        const mount = createTraceMapMarkerMount({
           emoji,
           fill,
-          selected: t.id === selectedTraceId,
+          selected: t.id === selectedTraceIdRef.current,
           hovered: false,
           interactive: true,
+          ariaLabel: t.title?.trim() || "Open trace",
+          onClick: (e) => {
+            e.stopPropagation();
+            onSelectTraceRef.current(t.id);
+          },
+          onMouseEnter: () => {
+            cancelHidePreview();
+            const mapInst = mapRef.current;
+            const wrap = containerRef.current;
+            let x = 0;
+            let y = 0;
+            if (mapInst && wrap) {
+              const p = mapInst.project([t.lng, t.lat]);
+              const r = wrap.getBoundingClientRect();
+              x = r.left + p.x;
+              y = r.top + p.y;
+            }
+            setTraceHover({ trace: t, lng: t.lng, lat: t.lat, x, y });
+          },
+          onMouseLeave: () => {
+            requestHidePreview();
+          },
         });
-        markerElByTraceIdRef.current.set(t.id, face);
-        markerRootByTraceIdRef.current.set(t.id, root);
-        face.addEventListener("click", (e) => {
-          e.stopPropagation();
-          onSelectTrace(t.id);
+        markerMountByTraceIdRef.current.set(t.id, mount);
+        const initialSelected = t.id === selectedTraceIdRef.current;
+        markerVisualByTraceIdRef.current.set(t.id, {
+          selected: initialSelected,
+          hovered: false,
+          zIndex: initialSelected ? "3" : "1",
         });
-        face.addEventListener("mouseenter", () => {
-          cancelHidePreview();
-          const mapInst = mapRef.current;
-          const wrap = containerRef.current;
-          let x = 0;
-          let y = 0;
-          if (mapInst && wrap) {
-            const p = mapInst.project([t.lng, t.lat]);
-            const r = wrap.getBoundingClientRect();
-            x = r.left + p.x;
-            y = r.top + p.y;
-          }
-          setTraceHover({ trace: t, lng: t.lng, lat: t.lat, x, y });
-        });
-        face.addEventListener("mouseleave", () => {
-          requestHidePreview();
-        });
-        const marker = new maplibregl.Marker({ element: root })
+        const marker = new maplibregl.Marker({ element: mount.element })
           .setLngLat([t.lng, t.lat])
           .addTo(map);
         markersRef.current.push(marker);
@@ -739,14 +738,8 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       });
 
       applyMarkerHoverStack(latestTraceHoverIdRef.current);
-    }, [
-      filtered,
-      onSelectTrace,
-      selectedTraceId,
-      applyMarkerHoverStack,
-      cancelHidePreview,
-      requestHidePreview,
-    ]);
+      // Recreate markers only when the filtered trace set changes.
+    }, [filtered]);
 
     useEffect(() => {
       const map = mapRef.current;
@@ -755,29 +748,22 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       previewMarkerRef.current = null;
       if (!previewPin) return;
 
-      const root = document.createElement("div");
-      root.style.display = "flex";
-      root.style.alignItems = "center";
-      root.style.justifyContent = "center";
-      root.style.pointerEvents = "none";
-      root.style.zIndex = "5";
-      const face = document.createElement("div");
-      face.setAttribute("role", "presentation");
-      face.setAttribute("aria-hidden", "true");
-      root.appendChild(face);
-      styleTraceMarkerFace(face, {
+      const mount = createTraceMapMarkerMount({
         emoji: previewPin.icon,
         fill: previewPin.color,
         selected: false,
         interactive: false,
         draft: true,
+        pointerEvents: "none",
+        zIndex: "5",
       });
-      const marker = new maplibregl.Marker({ element: root })
+      const marker = new maplibregl.Marker({ element: mount.element })
         .setLngLat([previewPin.lng, previewPin.lat])
         .addTo(map);
       previewMarkerRef.current = marker;
       return () => {
         marker.remove();
+        mount.unmount();
         previewMarkerRef.current = null;
       };
     }, [previewPin]);

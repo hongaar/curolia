@@ -1,0 +1,61 @@
+.face {
+  display: flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid rgb(255 255 255 / 0.8);
+  font-size: 1.125rem;
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow 150ms,
+    filter 150ms;
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+.interactive:hover {
+  box-shadow: var(--shadow-lg);
+  filter: brightness(1.05);
+}
+
+.interactive:active {
+  filter: brightness(0.95);
+}
+
+.defaultFill {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.draft {
+  box-shadow: var(--shadow-lg);
+  outline: 3px dashed var(--primary);
+  outline-offset: 2px;
+}
+
+.selected {
+  box-shadow: var(--shadow-lg);
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.hovered {
+  box-shadow: var(--shadow-lg);
+  outline: 3px solid var(--map-marker-ring);
+  outline-offset: 2px;
+}
+
+.defaultRing {
+  outline: 2px solid
+    color-mix(in oklch, var(--map-marker-ring) 40%, transparent);
+  outline-offset: 0;
+}
+
+.defaultRing:hover {
+  outline-color: color-mix(in oklch, var(--map-marker-ring) 55%, transparent);
+  box-shadow: var(--shadow-lg);
+}

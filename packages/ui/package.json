@@ -32,6 +32,7 @@
     "./login-layout": "./src/components/login-layout/index.ts",
     "./main-toolbar-panel": "./src/components/main-toolbar-panel/index.ts",
     "./map": "./src/components/map/index.ts",
+    "./map-marker": "./src/components/map-marker/index.ts",
     "./navigation-sidebar": "./src/components/navigation-sidebar/index.ts",
     "./notifications-popover": "./src/components/notifications-popover/index.ts",
     "./page": "./src/components/page/index.ts",

@@ -1,7 +1,7 @@
 import type * as React from "react";
 
-import { SheetContent, SheetTitle } from "../sheet";
 import { cn } from "../../lib/utils";
+import { SheetContent, SheetTitle } from "../sheet";
 import styles from "./map.module.css";
 
 export function MapPageRoot({ children }: { children: React.ReactNode }) {
@@ -316,28 +316,6 @@ export function TraceQuickAddHost({
       </div>
     </div>
   );
-}
-
-export function traceMapMarkerFaceClass(opts: {
-  fill: string | null;
-  selected: boolean;
-  hovered?: boolean;
-  interactive: boolean;
-  draft?: boolean;
-}) {
-  const classes = [styles.markerFace];
-  if (opts.interactive) classes.push(styles.markerInteractive);
-  if (!opts.fill) classes.push(styles.markerDefaultFill);
-  if (opts.draft) {
-    classes.push(styles.markerDraft);
-  } else if (opts.selected) {
-    classes.push(styles.markerSelected);
-  } else if (opts.hovered) {
-    classes.push(styles.markerHovered);
-  } else {
-    classes.push(styles.markerDefaultRing);
-  }
-  return classes.join(" ");
 }
 
 export const mapStyles = styles;
