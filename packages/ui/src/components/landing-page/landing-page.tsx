@@ -375,7 +375,7 @@ export function LandingPage({
 }
 
 export function ContactPageContent({
-  contactEmail = "hello@curolia.app",
+  contactEmail = "hello@curolia.com",
   logoSrc = "/icon.png",
 }: {
   contactEmail?: string;
