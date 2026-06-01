@@ -99,36 +99,18 @@ export function MapPage() {
     loading: journalLoading,
   } = useJournal();
   const prevJournalIdRef = useRef<string | null>(null);
-  const [awaitingJournalFit, setAwaitingJournalFit] = useState(false);
+  const [journalFitGeneration, setJournalFitGeneration] = useState(0);
+  const [journalFitResolvedGeneration, setJournalFitResolvedGeneration] =
+    useState(0);
 
   useLayoutEffect(() => {
     const prev = prevJournalIdRef.current;
     if (prev !== null && activeJournalId !== null && prev !== activeJournalId) {
-      setAwaitingJournalFit(true);
+      setJournalFitGeneration((g) => g + 1);
     }
     prevJournalIdRef.current = activeJournalId;
   }, [activeJournalId]);
 
-  const resolvedInitialCamera = useMemo((): MapCamera | null => {
-    if (awaitingJournalFit) return null;
-    if (cameraFromUrl) return cameraFromUrl;
-    if (bboxFromUrl) {
-      return normalizeCameraForUrl({
-        lat: (bboxFromUrl.south + bboxFromUrl.north) / 2,
-        lng: (bboxFromUrl.west + bboxFromUrl.east) / 2,
-        zoom: 10,
-      });
-    }
-    return readStoredMapCamera(activeJournalId);
-  }, [awaitingJournalFit, cameraFromUrl, bboxFromUrl, activeJournalId]);
-  const cameraSyncKey = useMemo(() => {
-    if (awaitingJournalFit) return "";
-    if (bboxFromUrl) return `url:bbox:${bboxToSyncKey(bboxFromUrl)}`;
-    if (cameraFromUrl) return `url:${cameraToSyncKey(cameraFromUrl)}`;
-    if (resolvedInitialCamera)
-      return `init:${cameraToSyncKey(resolvedInitialCamera)}`;
-    return "";
-  }, [awaitingJournalFit, bboxFromUrl, cameraFromUrl, resolvedInitialCamera]);
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -247,30 +229,57 @@ export function MapPage() {
 
   const traces = useMemo(() => tracesQuery.data ?? [], [tracesQuery.data]);
 
+  const tracesReadyForJournalFit =
+    Boolean(activeJournalId) && !journalLoading && !tracesQuery.isPending;
+  const visibleTracesForFit = useMemo(
+    () => filterTracesByTags(traces, filterTagIds),
+    [traces, filterTagIds],
+  );
+
+  const journalFitPending = journalFitGeneration > journalFitResolvedGeneration;
+  const journalFitCanResolve =
+    Boolean(cameraFromUrl) ||
+    (tracesReadyForJournalFit && visibleTracesForFit.length === 0);
+  const awaitingJournalFit = journalFitPending && !journalFitCanResolve;
+
+  useEffect(() => {
+    if (!journalFitPending || !journalFitCanResolve) return;
+    queueMicrotask(() => {
+      setJournalFitResolvedGeneration(journalFitGeneration);
+    });
+  }, [journalFitPending, journalFitCanResolve, journalFitGeneration]);
+
+  const resolvedInitialCamera = useMemo((): MapCamera | null => {
+    if (awaitingJournalFit) return null;
+    if (cameraFromUrl) return cameraFromUrl;
+    if (bboxFromUrl) {
+      return normalizeCameraForUrl({
+        lat: (bboxFromUrl.south + bboxFromUrl.north) / 2,
+        lng: (bboxFromUrl.west + bboxFromUrl.east) / 2,
+        zoom: 10,
+      });
+    }
+    return readStoredMapCamera(activeJournalId);
+  }, [awaitingJournalFit, cameraFromUrl, bboxFromUrl, activeJournalId]);
+  const cameraSyncKey = useMemo(() => {
+    if (awaitingJournalFit) return "";
+    if (bboxFromUrl) return `url:bbox:${bboxToSyncKey(bboxFromUrl)}`;
+    if (cameraFromUrl) return `url:${cameraToSyncKey(cameraFromUrl)}`;
+    if (resolvedInitialCamera)
+      return `init:${cameraToSyncKey(resolvedInitialCamera)}`;
+    return "";
+  }, [awaitingJournalFit, bboxFromUrl, cameraFromUrl, resolvedInitialCamera]);
+
   useEffect(() => {
     if (!awaitingJournalFit) return;
-    if (journalLoading || !activeJournalId || tracesQuery.isPending) return;
-
-    const visible = filterTracesByTags(traces, filterTagIds);
+    if (!tracesReadyForJournalFit) return;
+    if (visibleTracesForFit.length === 0) return;
     mapRef.current?.fitVisibleTraces();
-
-    if (visible.length === 0) {
-      setAwaitingJournalFit(false);
-    }
   }, [
     awaitingJournalFit,
-    journalLoading,
-    activeJournalId,
-    tracesQuery.isPending,
-    traces,
-    filterTagIds,
+    tracesReadyForJournalFit,
+    visibleTracesForFit.length,
   ]);
-
-  useEffect(() => {
-    if (!awaitingJournalFit) return;
-    if (!cameraFromUrl) return;
-    setAwaitingJournalFit(false);
-  }, [awaitingJournalFit, cameraFromUrl]);
 
   const sidebarTraceToken = useMemo(
     () => parseSelectedTraceTokenFromSearchParams(searchParams),
