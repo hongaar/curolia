@@ -503,14 +503,14 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
   const admin = createClient(supabaseUrl, serviceKey);
 
   if (err) {
-    return redirectBack(`${defaultOrigin}/settings/plugins`, {
+    return redirectBack(`${defaultOrigin}/plugins`, {
       plugin_oauth: "error",
       reason: err,
     });
   }
 
   if (!code || !state) {
-    return redirectBack(`${defaultOrigin}/settings/plugins`, {
+    return redirectBack(`${defaultOrigin}/plugins`, {
       plugin_oauth: "error",
       reason: "missing_code_or_state",
     });
@@ -523,7 +523,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
     .maybeSingle();
 
   if (pe || !pending) {
-    return redirectBack(`${defaultOrigin}/settings/plugins`, {
+    return redirectBack(`${defaultOrigin}/plugins`, {
       plugin_oauth: "error",
       reason: "invalid_state",
     });
@@ -531,7 +531,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
 
   if (new Date((pending as { expires_at: string }).expires_at) < new Date()) {
     await admin.from("plugin_oauth_pending").delete().eq("state", state);
-    return redirectBack(`${defaultOrigin}/settings/plugins`, {
+    return redirectBack(`${defaultOrigin}/plugins`, {
       plugin_oauth: "error",
       reason: "expired",
     });
@@ -547,7 +547,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
   const oauthProviderId = oauthProviderForPlugin(p.plugin_type_id);
   if (!oauthProviderId) {
     await admin.from("plugin_oauth_pending").delete().eq("state", state);
-    return redirectBack(`${defaultOrigin}/settings/plugins`, {
+    return redirectBack(`${defaultOrigin}/plugins`, {
       plugin_oauth: "error",
       reason: "unsupported_plugin",
     });
@@ -593,7 +593,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
     tokenJson = (await tokenRes.json()) as Record<string, unknown>;
   } else {
     await admin.from("plugin_oauth_pending").delete().eq("state", state);
-    return redirectBack(`${defaultOrigin}/settings/plugins`, {
+    return redirectBack(`${defaultOrigin}/plugins`, {
       plugin_oauth: "error",
       reason: "oauth_provider_not_implemented",
     });
@@ -602,7 +602,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
   if (!tokenRes.ok) {
     console.error("oauth token error", oauthProviderId, tokenJson);
     await admin.from("plugin_oauth_pending").delete().eq("state", state);
-    const base = p.redirect_after ?? `${defaultOrigin}/settings/plugins`;
+    const base = p.redirect_after ?? `${defaultOrigin}/plugins`;
     return redirectBack(base, {
       plugin_oauth: "error",
       reason: "token_exchange_failed",
@@ -615,7 +615,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
 
   if (!refreshToken) {
     await admin.from("plugin_oauth_pending").delete().eq("state", state);
-    const base = p.redirect_after ?? `${defaultOrigin}/settings/plugins`;
+    const base = p.redirect_after ?? `${defaultOrigin}/plugins`;
     return redirectBack(base, {
       plugin_oauth: "error",
       reason: "missing_refresh_token_retry_consent",
@@ -648,7 +648,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
   if (tokErr) {
     console.error(tokErr);
     await admin.from("plugin_oauth_pending").delete().eq("state", state);
-    const base = p.redirect_after ?? `${defaultOrigin}/settings/plugins`;
+    const base = p.redirect_after ?? `${defaultOrigin}/plugins`;
     return redirectBack(base, {
       plugin_oauth: "error",
       reason: "db_token_store_failed",
@@ -724,7 +724,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
 
   await admin.from("plugin_oauth_pending").delete().eq("state", state);
 
-  const base = p.redirect_after ?? `${defaultOrigin}/settings/plugins`;
+  const base = p.redirect_after ?? `${defaultOrigin}/plugins`;
   return redirectBack(base, { plugin_oauth: "success" });
 }
 

@@ -1,10 +1,10 @@
-import { isMobileStackRoute } from "@/lib/mobile-stack-routes";
+import { isStackRoute } from "@/lib/stack-routes";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-/** Android hardware back: pop stack screens or exit on root routes. */
+/** Android hardware back: pop stack screens or exit on base routes. */
 export function useNativeBackButton() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export function useNativeBackButton() {
     let remove: (() => void) | undefined;
 
     void App.addListener("backButton", () => {
-      if (isMobileStackRoute(pathname)) {
+      if (isStackRoute(pathname)) {
         navigate(-1);
         return;
       }

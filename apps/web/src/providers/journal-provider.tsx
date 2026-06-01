@@ -1,3 +1,11 @@
+/* eslint-disable react-refresh/only-export-components -- Provider module also exports useJournal */
+/* eslint-disable react-hooks/set-state-in-effect -- hydrate active journal from storage/profile when journals load */
+import {
+  defaultJournalIcon,
+  normalizeJournalIconForPersist,
+} from "@/lib/journal-display-icon";
+import { supabase } from "@/lib/supabase";
+import type { Journal } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
@@ -9,15 +17,9 @@ import {
   type ReactNode,
 } from "react";
 import {
-  defaultJournalIcon,
-  normalizeJournalIconForPersist,
-} from "@/lib/journal-display-icon";
-import { supabase } from "@/lib/supabase";
-import type { Journal } from "@/types/database";
-import {
-  useAuth,
   getStoredActiveJournalId,
   setStoredActiveJournalId,
+  useAuth,
 } from "./auth-provider";
 
 type JournalContextValue = {

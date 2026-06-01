@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components -- Provider module exports hooks and filter helpers */
+import type { Tag } from "@/types/database";
 import {
   createContext,
   useContext,
@@ -8,7 +10,6 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import type { Tag } from "@/types/database";
 
 export type TagSidebarRegistration = {
   tags: Tag[];

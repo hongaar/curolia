@@ -37,7 +37,7 @@ export function GooglePhotosAccountSettingsPanel(
   async function onLink() {
     if (!oauth) return;
     try {
-      await oauth.startOAuth(`${window.location.origin}/settings/plugins`);
+      await oauth.startOAuth(`${window.location.origin}/plugins`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "OAuth failed");
     }

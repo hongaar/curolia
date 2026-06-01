@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- reset form fields when dialog opens/closes */
 import { TraceLinksEditor } from "@/components/traces/trace-links-editor";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { journalViewHref, traceDetailHref } from "@/lib/app-paths";

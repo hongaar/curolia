@@ -82,7 +82,7 @@ export function FloatingNav() {
                   </AccountMenuItemIcon>
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/settings/plugins")}>
+                <DropdownMenuItem onClick={() => navigate("/plugins")}>
                   <AccountMenuItemIcon>
                     <Plug />
                   </AccountMenuItemIcon>

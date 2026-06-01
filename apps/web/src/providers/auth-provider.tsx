@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- Provider module also exports storage helpers and useAuth */
 import { enableNativePushIfEligible } from "@/lib/native-push";
 import { supabase } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";

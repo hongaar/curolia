@@ -1,3 +1,6 @@
+/* eslint-disable react-refresh/only-export-components -- Provider module also exports useNavigationShell */
+import { NewJournalDialog } from "@/components/layout/new-journal-dialog";
+import { NAV_SIDEBAR_OPEN_STORAGE_KEY } from "@/lib/navigation-shell-layout";
 import {
   createContext,
   useCallback,
@@ -9,8 +12,6 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import { NewJournalDialog } from "@/components/layout/new-journal-dialog";
-import { NAV_SIDEBAR_OPEN_STORAGE_KEY } from "@/lib/navigation-shell-layout";
 
 export type NavigationShellContextValue = {
   sidebarOpen: boolean;

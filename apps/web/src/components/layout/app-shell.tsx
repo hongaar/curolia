@@ -1,11 +1,11 @@
 import { FloatingNav } from "@/components/layout/floating-nav";
-import { MobileStackOutlet } from "@/components/layout/mobile-stack-outlet";
 import { NavigationSidebarColumn } from "@/components/layout/navigation-sidebar-column";
 import { NotificationsRealtimeSync } from "@/components/layout/notifications-realtime-sync";
-import { useMobileStackLayout } from "@/hooks/use-mobile-stack-layout";
 import { useNativeBackButton } from "@/hooks/use-native-back-button";
+import { useShellChromePathname } from "@/hooks/use-shell-chrome-pathname";
+import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { isMapFullscreenPathname } from "@/lib/app-paths";
-import { isMobileStackRoute } from "@/lib/mobile-stack-routes";
+import { isStackRoute } from "@/lib/stack-routes";
 import { NAV_SIDEBAR_LAYOUT_FLUSH_EVENT } from "@/lib/navigation-shell-layout";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -14,15 +14,16 @@ import {
 } from "@/providers/navigation-shell-provider";
 import { TagSidebarProvider } from "@/providers/tag-sidebar-provider";
 import { AppShellLayout } from "@curolia/ui/app-shell";
-import { useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 function AppShellInner() {
   const { user } = useAuth();
   const { sidebarOpen } = useNavigationShell();
   const { pathname } = useLocation();
-  const sidebarOverlaysMain = isMapFullscreenPathname(pathname);
-  const useStackLayout = useMobileStackLayout();
-  const showFloatingNav = !useStackLayout || !isMobileStackRoute(pathname);
+  const chromePathname = useShellChromePathname();
+  const stackTransitions = useStackTransitions();
+  const sidebarOverlaysMain = isMapFullscreenPathname(chromePathname);
+  const showFloatingNav = !stackTransitions || !isStackRoute(pathname);
 
   useNativeBackButton();
 
@@ -45,7 +46,7 @@ function AppShellInner() {
       }
       header={showFloatingNav ? <FloatingNav /> : undefined}
     >
-      <MobileStackOutlet />
+      <Outlet />
     </AppShellLayout>
   );
 }

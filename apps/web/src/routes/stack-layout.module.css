@@ -1,0 +1,74 @@
+.root {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.baseLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.baseLayerCovered {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.stackLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.stackLayerCovered {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.stackLayerPushEnter {
+  animation: stackPushIn 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.stackLayerPopExit {
+  animation: stackPopOut 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes stackPushIn {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes stackPopOut {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stackLayerPushEnter,
+  .stackLayerPopExit {
+    animation: none;
+  }
+}
