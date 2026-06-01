@@ -39,6 +39,7 @@ The production **Vercel** job runs **`npx turbo run codegen`** after install, th
   - `npx turbo run sync --filter=@curolia/mobile` — builds web with `apps/web/.env`, regenerates native icons/splash, and runs `cap sync`
   - `npm run open:ios -w @curolia/mobile`
   - `npm run open:android -w @curolia/mobile`
+- On Capacitor and **mobile viewports** (below Tailwind `sm` / 640px), secondary screens (settings, profile, notifications, trace detail, etc.) use **push/pop slide transitions** (`MobileStackOutlet`); wider desktop browser windows keep instant route swaps. Android hardware back pops the stack or exits on map/blog roots.
 
 For iOS development, install **Xcode 26+** (required by Capacitor 8) and CocoaPods. For Android, install Android Studio SDK tools.
 
