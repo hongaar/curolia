@@ -6,9 +6,19 @@ import { mergeConfig } from "vite";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(dirname, "../../..");
 
+const brandDir = path.resolve(repoRoot, "packages/brand");
+
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],
+  staticDirs: [{ from: brandDir, to: "/" }],
   addons: ["@storybook/addon-docs"],
+  previewHead: (head) => `${head}
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Faculty+Glyphic:wght@400&display=swap"
+  rel="stylesheet"
+/>`,
   framework: {
     name: "@storybook/react-vite",
     options: {},

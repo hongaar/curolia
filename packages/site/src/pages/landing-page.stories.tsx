@@ -14,9 +14,12 @@ const meta = {
   title: "Site",
   ...componentStoryMeta(
     "Marketing homepage and public legal pages for signed-out sessions.",
-    "Mounted at `/`, `/contact`, `/privacy`, `/terms`, and `/licenses` from apps/web via `@curolia/site/pages`.",
+    "Mounted at `/`, `/contact`, `/privacy`, `/terms`, and `/licenses` from apps/web via `@curolia/site/pages`. Preview uses fullscreen layout and the same display font as apps/web.",
   ),
   component: LandingPage,
+  parameters: {
+    layout: "fullscreen",
+  },
   decorators: [
     (Story) => (
       <MemoryRouter>

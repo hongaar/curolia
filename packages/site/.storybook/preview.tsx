@@ -31,7 +31,8 @@ const preview: Preview = {
     },
   ],
   parameters: {
-    layout: "padded",
+    /** Marketing pages are full-viewport; padded layout skews breakpoints vs apps/web. */
+    layout: "fullscreen",
     backgrounds: {
       options: curoliaBackgrounds,
     },
