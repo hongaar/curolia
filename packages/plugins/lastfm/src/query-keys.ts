@@ -1,20 +1,20 @@
 import { lastfmPluginMeta } from "./plugin-meta";
 
 /**
- * React Query key for Last.fm Edge sync. Includes trace dates so a new fetch runs when
+ * React Query key for Last.fm Edge sync. Includes pin dates so a new fetch runs when
  * the shell passes updated dates after save.
  */
-export function lastfmTraceSyncQueryKey(
-  traceId: string,
-  traceDate: string | null | undefined,
-  traceEndDate: string | null | undefined,
+export function lastfmPinSyncQueryKey(
+  pinId: string,
+  pinDate: string | null | undefined,
+  pinEndDate: string | null | undefined,
 ) {
   return [
-    "lastfm_trace_sync",
+    "lastfm_pin_sync",
     lastfmPluginMeta.typeId,
-    traceId,
-    traceDate ?? "",
-    traceEndDate ?? "",
+    pinId,
+    pinDate ?? "",
+    pinEndDate ?? "",
   ] as const;
 }
 

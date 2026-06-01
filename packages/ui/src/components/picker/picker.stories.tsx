@@ -13,8 +13,8 @@ const PRESET_COLORS = [
 const meta = {
   title: "Picker",
   ...componentStoryMeta(
-    `Emoji and preset field pickers for trace forms.`,
-    `Use \`EmojiFieldPicker\` and color preset picker in trace edit dialogs.`,
+    `Emoji and preset field pickers for pin forms.`,
+    `Use \`EmojiFieldPicker\` and color preset picker in pin edit dialogs.`,
   ),
   component: PresetColorPicker,
   decorators: [storyWidthSm],
@@ -29,7 +29,7 @@ type PresetColorArgs = Omit<
 >;
 
 export const Default: Story = {
-  parameters: storyDocs("Preset swatch grid for trace tag colors."),
+  parameters: storyDocs("Preset swatch grid for pin tag colors."),
   args: {
     label: "Tag color",
     value: "#3b82f6",
@@ -50,7 +50,7 @@ export const Default: Story = {
 type EmojiFieldArgs = Omit<ComponentProps<typeof EmojiFieldPicker>, "onChange">;
 
 export const EmojiField: StoryObj = {
-  parameters: storyDocs("Emoji picker field for trace icons."),
+  parameters: storyDocs("Emoji picker field for pin icons."),
   args: {
     label: "Icon",
     value: "📍",

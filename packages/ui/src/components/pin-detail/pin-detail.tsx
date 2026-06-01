@@ -1,0 +1,103 @@
+import type * as React from "react";
+import { Link } from "react-router-dom";
+
+import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import styles from "./pin-detail.module.css";
+
+export function PinDetailCard({ children }: { children: React.ReactNode }) {
+  return <Card className={styles.detailCard}>{children}</Card>;
+}
+
+export function PinDetailHeader({ children }: { children: React.ReactNode }) {
+  return <CardHeader className={styles.detailHeader}>{children}</CardHeader>;
+}
+
+export function PinDetailTitle({ children }: { children: React.ReactNode }) {
+  return <CardTitle className={styles.detailTitle}>{children}</CardTitle>;
+}
+
+export function PinDetailSubtitle({ children }: { children: React.ReactNode }) {
+  return <p className={styles.detailSubtitle}>{children}</p>;
+}
+
+export function PinDetailTagRow({ children }: { children: React.ReactNode }) {
+  return <div className={styles.tagRow}>{children}</div>;
+}
+
+export function PinDetailActions({ children }: { children: React.ReactNode }) {
+  return <div className={styles.detailActions}>{children}</div>;
+}
+
+export function PinDetailContent({ children }: { children: React.ReactNode }) {
+  return <CardContent className={styles.detailContent}>{children}</CardContent>;
+}
+
+export function PinDetailDescription({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.description}>{children}</p>;
+}
+
+export function PinDetailPhotoRow({ children }: { children: React.ReactNode }) {
+  return <div className={styles.photoRow}>{children}</div>;
+}
+
+export function PinDetailPhotoPlaceholder({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.photoPlaceholder}>{children}</div>;
+}
+
+export function PinDetailTagBadge({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <span className={styles.badgePlain} style={style}>
+      {children}
+    </span>
+  );
+}
+
+export function PinDetailInsetMapLink({
+  to,
+  children,
+  ariaLabel,
+}: {
+  to: string;
+  children: React.ReactNode;
+  ariaLabel: string;
+}) {
+  return (
+    <Link to={to} className={styles.insetMapLink} aria-label={ariaLabel}>
+      {children}
+    </Link>
+  );
+}
+
+export function PinDetailInsetMap({ children }: { children: React.ReactNode }) {
+  return <div className={styles.insetMap}>{children}</div>;
+}
+
+export function PinDetailInsetMapCanvas({
+  containerRef,
+}: {
+  containerRef?: React.Ref<HTMLDivElement>;
+}) {
+  return (
+    <div
+      ref={containerRef}
+      data-curolia-pin-map
+      className={styles.insetMapCanvas}
+    />
+  );
+}
+
+export const pinDetailStyles = styles;

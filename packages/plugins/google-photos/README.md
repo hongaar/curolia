@@ -1,6 +1,6 @@
 # Google Photos plugin (`@curolia/plugin-google-photos`)
 
-Imports photos into traces via the Google Photos Picker and stores OAuth tokens through the shared **`plugin-oauth`** Edge Function.
+Imports photos into pins via the Google Photos Picker and stores OAuth tokens through the shared **`plugin-oauth`** Edge Function.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ Scopes are declared in the plugin manifest and merged with companion OIDC scopes
 ## App usage
 
 1. **Settings → Plugins**: enable **Google Photos**, then **Link Google Photos** (OAuth).
-2. Edit a trace → **Photos** → use **Select from Google Photos** (picker / import flow).
+2. Edit a pin → **Photos** → use **Select from Google Photos** (picker / import flow).
 
 ## Troubleshooting
 

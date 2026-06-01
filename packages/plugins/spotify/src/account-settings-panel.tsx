@@ -91,7 +91,7 @@ export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
         <PluginAccountRow gap="sm">
           <PluginAccountMuted>
             Connect Spotify to add top tracks you listened to during each
-            trace&apos;s dates (as links).
+            pin&apos;s dates (as links).
           </PluginAccountMuted>
           <PluginAccountButton type="button" onClick={() => void onLink()}>
             Link Spotify

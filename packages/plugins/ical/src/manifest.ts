@@ -4,11 +4,11 @@ import { IcalIcon } from "./icon";
 export const icalPluginManifest: PluginPackageManifest = {
   id: "ical",
   displayName: "iCalendar",
-  description: "Publish traces as iCalendar (.ics) files.",
+  description: "Publish pins as iCalendar (.ics) files.",
   icon: IcalIcon,
   implemented: true,
   contributions: {
-    journalSettings: {
+    mapSettings: {
       panel: "inline",
       title: "iCalendar feed",
     },

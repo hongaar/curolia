@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { journalViewHref } from "@/lib/app-paths";
+import { mapViewHref } from "@/lib/app-paths";
 import { useAuth } from "@/providers/auth-provider";
-import { useJournal } from "@/providers/journal-provider";
+import { useMap } from "@/providers/map-provider";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { Button } from "@curolia/ui/button";
 import {
@@ -21,7 +21,7 @@ export function InvitationsPage() {
   const [params] = useSearchParams();
   const token = params.get("token");
   const { user } = useAuth();
-  const { activeJournal } = useJournal();
+  const { activeMap } = useMap();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [busy, setBusy] = useState<"accept" | "decline" | null>(null);
@@ -52,8 +52,8 @@ export function InvitationsPage() {
     if (!token) return;
     setBusy("accept");
     setError(null);
-    const { data: journalId, error: err } = await supabase.rpc(
-      "accept_journal_invitation",
+    const { data: mapId, error: err } = await supabase.rpc(
+      "accept_map_invitation",
       {
         p_token: token,
       },
@@ -63,20 +63,20 @@ export function InvitationsPage() {
       setError(err.message);
       return;
     }
-    void qc.invalidateQueries({ queryKey: ["journals", user?.id] });
+    void qc.invalidateQueries({ queryKey: ["maps", user?.id] });
     void qc.invalidateQueries({ queryKey: ["notifications", user?.id] });
     void qc.invalidateQueries({ queryKey: ["notifications_unread", user?.id] });
-    if (journalId && typeof journalId === "string") {
+    if (mapId && typeof mapId === "string") {
       void qc.invalidateQueries({
-        queryKey: ["journal_members_detail", journalId],
+        queryKey: ["map_members_detail", mapId],
       });
       void qc.invalidateQueries({
-        queryKey: ["journal_invitations", journalId],
+        queryKey: ["map_invitations", mapId],
       });
-      navigate(`/journals/${journalId}/settings`, { replace: true });
+      navigate(`/maps/${mapId}/settings`, { replace: true });
     } else {
-      const slug = activeJournal?.slug?.trim();
-      navigate(slug ? journalViewHref("map", slug) : "/", { replace: true });
+      const slug = activeMap?.slug?.trim();
+      navigate(slug ? mapViewHref("map", slug) : "/", { replace: true });
     }
   }
 
@@ -84,7 +84,7 @@ export function InvitationsPage() {
     if (!token) return;
     setBusy("decline");
     setError(null);
-    const { error: err } = await supabase.rpc("decline_journal_invitation", {
+    const { error: err } = await supabase.rpc("decline_map_invitation", {
       p_token: token,
     });
     setBusy(null);
@@ -115,11 +115,9 @@ export function InvitationsPage() {
     <AppPageLayout>
       <PageBackButton />
       <PagePanel>
-        <PageDisplayTitle>Curolia journal invitation</PageDisplayTitle>
+        <PageDisplayTitle>Curolia map invitation</PageDisplayTitle>
         <PageLead>
-          {ready
-            ? "You can accept to join this journal or decline."
-            : "Loading…"}
+          {ready ? "You can accept to join this map or decline." : "Loading…"}
         </PageLead>
         {error ? <PageErrorTextSpaced>{error}</PageErrorTextSpaced> : null}
         <PageInlineActions>

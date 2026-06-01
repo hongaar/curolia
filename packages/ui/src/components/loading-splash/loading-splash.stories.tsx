@@ -6,7 +6,7 @@ import { CuroliaLoadingSplash } from "./loading-splash";
 const meta = {
   title: "Loading Splash",
   ...componentStoryMeta(
-    `Full-viewport branded loader while auth or journal data resolves.`,
+    `Full-viewport branded loader while auth or map data resolves.`,
     `Render once in the protected route layout until the app is ready.`,
   ),
   component: CuroliaLoadingSplash,
@@ -21,7 +21,7 @@ export const Default: Story = {
 
 export const StatusLabel: Story = {
   parameters: storyDocs("Custom `statusLabel` for screen readers."),
-  args: { statusLabel: "Loading your journal" },
+  args: { statusLabel: "Loading your map" },
 };
 
 export const Fill: Story = {

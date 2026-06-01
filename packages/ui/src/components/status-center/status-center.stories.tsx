@@ -20,15 +20,15 @@ type Story = StoryObj;
 
 export const Default: Story = {
   parameters: storyDocs("Centered muted text for redirects and empty states."),
-  render: () => <StatusCenterMessage>Opening trace…</StatusCenterMessage>,
+  render: () => <StatusCenterMessage>Opening pin…</StatusCenterMessage>,
 };
 
 export const Panel: Story = {
   parameters: storyDocs("Message inside a floating panel."),
-  render: () => <StatusCenterPanel>Journal not found.</StatusCenterPanel>,
+  render: () => <StatusCenterPanel>Map not found.</StatusCenterPanel>,
 };
 
 export const Loader: Story = {
-  parameters: storyDocs("Branded splash used while journal data loads."),
-  render: () => <StatusCenterLoader label="Loading journal" minHeight />,
+  parameters: storyDocs("Branded splash used while map data loads."),
+  render: () => <StatusCenterLoader label="Loading map" minHeight />,
 };

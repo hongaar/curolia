@@ -34,42 +34,42 @@ export type Database = {
   };
   public: {
     Tables: {
-      journal_ical_feed_tokens: {
+      map_ical_feed_tokens: {
         Row: {
           created_at: string;
-          journal_id: string;
+          map_id: string;
           token: string;
         };
         Insert: {
           created_at?: string;
-          journal_id: string;
+          map_id: string;
           token?: string;
         };
         Update: {
           created_at?: string;
-          journal_id?: string;
+          map_id?: string;
           token?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "journal_ical_feed_tokens_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "map_ical_feed_tokens_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: true;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
       };
-      journal_invitations: {
+      map_invitations: {
         Row: {
           created_at: string;
           expires_at: string;
           id: string;
           invited_by_user_id: string;
-          invited_role: Database["public"]["Enums"]["journal_member_role"];
+          invited_role: Database["public"]["Enums"]["map_member_role"];
           invitee_email: string;
-          journal_id: string;
-          status: Database["public"]["Enums"]["journal_invitation_status"];
+          map_id: string;
+          status: Database["public"]["Enums"]["map_invitation_status"];
           token: string;
         };
         Insert: {
@@ -77,10 +77,10 @@ export type Database = {
           expires_at?: string;
           id?: string;
           invited_by_user_id: string;
-          invited_role: Database["public"]["Enums"]["journal_member_role"];
+          invited_role: Database["public"]["Enums"]["map_member_role"];
           invitee_email: string;
-          journal_id: string;
-          status?: Database["public"]["Enums"]["journal_invitation_status"];
+          map_id: string;
+          status?: Database["public"]["Enums"]["map_invitation_status"];
           token?: string;
         };
         Update: {
@@ -88,58 +88,58 @@ export type Database = {
           expires_at?: string;
           id?: string;
           invited_by_user_id?: string;
-          invited_role?: Database["public"]["Enums"]["journal_member_role"];
+          invited_role?: Database["public"]["Enums"]["map_member_role"];
           invitee_email?: string;
-          journal_id?: string;
-          status?: Database["public"]["Enums"]["journal_invitation_status"];
+          map_id?: string;
+          status?: Database["public"]["Enums"]["map_invitation_status"];
           token?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "journal_invitations_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "map_invitations_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
       };
-      journal_members: {
+      map_members: {
         Row: {
           created_at: string;
-          journal_id: string;
-          role: Database["public"]["Enums"]["journal_member_role"];
+          map_id: string;
+          role: Database["public"]["Enums"]["map_member_role"];
           user_id: string;
         };
         Insert: {
           created_at?: string;
-          journal_id: string;
-          role?: Database["public"]["Enums"]["journal_member_role"];
+          map_id: string;
+          role?: Database["public"]["Enums"]["map_member_role"];
           user_id: string;
         };
         Update: {
           created_at?: string;
-          journal_id?: string;
-          role?: Database["public"]["Enums"]["journal_member_role"];
+          map_id?: string;
+          role?: Database["public"]["Enums"]["map_member_role"];
           user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "journal_members_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "map_members_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
       };
-      journal_plugins: {
+      map_plugins: {
         Row: {
           config: Json;
           created_at: string;
           enabled: boolean;
           id: string;
-          journal_id: string;
+          map_id: string;
           plugin_type_id: string;
           status: Database["public"]["Enums"]["plugin_link_status"];
           updated_at: string;
@@ -149,7 +149,7 @@ export type Database = {
           created_at?: string;
           enabled?: boolean;
           id?: string;
-          journal_id: string;
+          map_id: string;
           plugin_type_id: string;
           status?: Database["public"]["Enums"]["plugin_link_status"];
           updated_at?: string;
@@ -159,22 +159,22 @@ export type Database = {
           created_at?: string;
           enabled?: boolean;
           id?: string;
-          journal_id?: string;
+          map_id?: string;
           plugin_type_id?: string;
           status?: Database["public"]["Enums"]["plugin_link_status"];
           updated_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "journal_connectors_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "map_connectors_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
       };
-      journals: {
+      maps: {
         Row: {
           created_at: string;
           created_by_user_id: string;
@@ -249,47 +249,201 @@ export type Database = {
           created_at: string;
           external_ref: Json | null;
           id: string;
-          journal_id: string;
+          map_id: string;
+          pin_id: string;
           sort_order: number;
           source_plugin_id: string | null;
           storage_path: string | null;
-          trace_id: string;
         };
         Insert: {
           captured_at?: string | null;
           created_at?: string;
           external_ref?: Json | null;
           id?: string;
-          journal_id: string;
+          map_id: string;
+          pin_id: string;
           sort_order?: number;
           source_plugin_id?: string | null;
           storage_path?: string | null;
-          trace_id: string;
         };
         Update: {
           captured_at?: string | null;
           created_at?: string;
           external_ref?: Json | null;
           id?: string;
-          journal_id?: string;
+          map_id?: string;
+          pin_id?: string;
           sort_order?: number;
           source_plugin_id?: string | null;
           storage_path?: string | null;
-          trace_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "photos_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "photos_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "photos_trace_id_fkey";
-            columns: ["trace_id"];
+            foreignKeyName: "photos_pin_id_fkey";
+            columns: ["pin_id"];
             isOneToOne: false;
-            referencedRelation: "traces";
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pin_links: {
+        Row: {
+          created_at: string;
+          favicon_url: string | null;
+          id: string;
+          map_id: string;
+          pin_id: string;
+          sort_order: number;
+          title: string | null;
+          updated_at: string;
+          url: string;
+        };
+        Insert: {
+          created_at?: string;
+          favicon_url?: string | null;
+          id?: string;
+          map_id: string;
+          pin_id: string;
+          sort_order?: number;
+          title?: string | null;
+          updated_at?: string;
+          url: string;
+        };
+        Update: {
+          created_at?: string;
+          favicon_url?: string | null;
+          id?: string;
+          map_id?: string;
+          pin_id?: string;
+          sort_order?: number;
+          title?: string | null;
+          updated_at?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pin_links_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pin_links_pin_id_fkey";
+            columns: ["pin_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pin_tags: {
+        Row: {
+          pin_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          pin_id: string;
+          tag_id: string;
+        };
+        Update: {
+          pin_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pin_tags_pin_id_fkey";
+            columns: ["pin_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pin_tags_tag_id_fkey";
+            columns: ["tag_id"];
+            isOneToOne: false;
+            referencedRelation: "tags";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pins: {
+        Row: {
+          created_at: string;
+          created_by_user_id: string | null;
+          date: string | null;
+          description: string | null;
+          end_date: string | null;
+          id: string;
+          lat: number;
+          lng: number;
+          location_label: string | null;
+          map_id: string;
+          modified_by_user_id: string | null;
+          slug: string;
+          title: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_user_id?: string | null;
+          date?: string | null;
+          description?: string | null;
+          end_date?: string | null;
+          id?: string;
+          lat: number;
+          lng: number;
+          location_label?: string | null;
+          map_id: string;
+          modified_by_user_id?: string | null;
+          slug?: string;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by_user_id?: string | null;
+          date?: string | null;
+          description?: string | null;
+          end_date?: string | null;
+          id?: string;
+          lat?: number;
+          lng?: number;
+          location_label?: string | null;
+          map_id?: string;
+          modified_by_user_id?: string | null;
+          slug?: string;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pins_created_by_user_id_fkey";
+            columns: ["created_by_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pins_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pins_modified_by_user_id_fkey";
+            columns: ["modified_by_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -301,7 +455,7 @@ export type Database = {
           entity_id: string;
           entity_type: string;
           id: string;
-          journal_id: string;
+          map_id: string;
           plugin_type_id: string;
           updated_at: string;
         };
@@ -311,7 +465,7 @@ export type Database = {
           entity_id: string;
           entity_type: string;
           id?: string;
-          journal_id: string;
+          map_id: string;
           plugin_type_id: string;
           updated_at?: string;
         };
@@ -321,16 +475,16 @@ export type Database = {
           entity_id?: string;
           entity_type?: string;
           id?: string;
-          journal_id?: string;
+          map_id?: string;
           plugin_type_id?: string;
           updated_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "plugin_entity_data_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "plugin_entity_data_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
@@ -369,7 +523,7 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           created_at: string;
-          default_journal_id: string | null;
+          default_map_id: string | null;
           display_name: string | null;
           id: string;
           notification_email_enabled: boolean;
@@ -379,7 +533,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null;
           created_at?: string;
-          default_journal_id?: string | null;
+          default_map_id?: string | null;
           display_name?: string | null;
           id: string;
           notification_email_enabled?: boolean;
@@ -389,7 +543,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null;
           created_at?: string;
-          default_journal_id?: string | null;
+          default_map_id?: string | null;
           display_name?: string | null;
           id?: string;
           notification_email_enabled?: boolean;
@@ -398,10 +552,10 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "profiles_default_journal_fk";
-            columns: ["default_journal_id"];
+            foreignKeyName: "profiles_default_map_fk";
+            columns: ["default_map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
@@ -510,7 +664,7 @@ export type Database = {
           created_at: string;
           icon_emoji: string;
           id: string;
-          journal_id: string;
+          map_id: string;
           name: string;
           slug: string;
           updated_at: string;
@@ -520,7 +674,7 @@ export type Database = {
           created_at?: string;
           icon_emoji?: string;
           id?: string;
-          journal_id: string;
+          map_id: string;
           name: string;
           slug?: string;
           updated_at?: string;
@@ -530,171 +684,17 @@ export type Database = {
           created_at?: string;
           icon_emoji?: string;
           id?: string;
-          journal_id?: string;
+          map_id?: string;
           name?: string;
           slug?: string;
           updated_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "tags_journal_id_fkey";
-            columns: ["journal_id"];
+            foreignKeyName: "tags_map_id_fkey";
+            columns: ["map_id"];
             isOneToOne: false;
-            referencedRelation: "journals";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      trace_links: {
-        Row: {
-          created_at: string;
-          favicon_url: string | null;
-          id: string;
-          journal_id: string;
-          sort_order: number;
-          title: string | null;
-          trace_id: string;
-          updated_at: string;
-          url: string;
-        };
-        Insert: {
-          created_at?: string;
-          favicon_url?: string | null;
-          id?: string;
-          journal_id: string;
-          sort_order?: number;
-          title?: string | null;
-          trace_id: string;
-          updated_at?: string;
-          url: string;
-        };
-        Update: {
-          created_at?: string;
-          favicon_url?: string | null;
-          id?: string;
-          journal_id?: string;
-          sort_order?: number;
-          title?: string | null;
-          trace_id?: string;
-          updated_at?: string;
-          url?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "trace_links_journal_id_fkey";
-            columns: ["journal_id"];
-            isOneToOne: false;
-            referencedRelation: "journals";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "trace_links_trace_id_fkey";
-            columns: ["trace_id"];
-            isOneToOne: false;
-            referencedRelation: "traces";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      trace_tags: {
-        Row: {
-          tag_id: string;
-          trace_id: string;
-        };
-        Insert: {
-          tag_id: string;
-          trace_id: string;
-        };
-        Update: {
-          tag_id?: string;
-          trace_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "trace_tags_tag_id_fkey";
-            columns: ["tag_id"];
-            isOneToOne: false;
-            referencedRelation: "tags";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "trace_tags_trace_id_fkey";
-            columns: ["trace_id"];
-            isOneToOne: false;
-            referencedRelation: "traces";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      traces: {
-        Row: {
-          created_at: string;
-          created_by_user_id: string | null;
-          date: string | null;
-          description: string | null;
-          end_date: string | null;
-          id: string;
-          journal_id: string;
-          lat: number;
-          lng: number;
-          location_label: string | null;
-          modified_by_user_id: string | null;
-          slug: string;
-          title: string | null;
-          updated_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          created_by_user_id?: string | null;
-          date?: string | null;
-          description?: string | null;
-          end_date?: string | null;
-          id?: string;
-          journal_id: string;
-          lat: number;
-          lng: number;
-          location_label?: string | null;
-          modified_by_user_id?: string | null;
-          slug?: string;
-          title?: string | null;
-          updated_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          created_by_user_id?: string | null;
-          date?: string | null;
-          description?: string | null;
-          end_date?: string | null;
-          id?: string;
-          journal_id?: string;
-          lat?: number;
-          lng?: number;
-          location_label?: string | null;
-          modified_by_user_id?: string | null;
-          slug?: string;
-          title?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "traces_created_by_user_id_fkey";
-            columns: ["created_by_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "traces_journal_id_fkey";
-            columns: ["journal_id"];
-            isOneToOne: false;
-            referencedRelation: "journals";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "traces_modified_by_user_id_fkey";
-            columns: ["modified_by_user_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "maps";
             referencedColumns: ["id"];
           },
         ];
@@ -776,33 +776,27 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      accept_journal_invitation: { Args: { p_token: string }; Returns: string };
-      cancel_journal_invitation: {
+      accept_map_invitation: { Args: { p_token: string }; Returns: string };
+      cancel_map_invitation: {
         Args: { p_invitation_id: string };
         Returns: undefined;
       };
-      decline_journal_invitation: {
-        Args: { p_token: string };
-        Returns: undefined;
-      };
-      invite_journal_member: {
+      decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
+      invite_map_member: {
         Args: {
-          p_invited_role: Database["public"]["Enums"]["journal_member_role"];
+          p_invited_role: Database["public"]["Enums"]["map_member_role"];
           p_invitee_email: string;
-          p_journal_id: string;
+          p_map_id: string;
         };
         Returns: string;
       };
-      is_journal_member: { Args: { p_journal_id: string }; Returns: boolean };
-      is_journal_owner: { Args: { p_journal_id: string }; Returns: boolean };
-      journal_claim_slug: {
-        Args: { p_desired: string; p_journal_id: string };
+      is_map_member: { Args: { p_map_id: string }; Returns: boolean };
+      is_map_owner: { Args: { p_map_id: string }; Returns: boolean };
+      map_claim_slug: {
+        Args: { p_desired: string; p_map_id: string };
         Returns: string;
       };
-      journal_member_can_edit: {
-        Args: { p_journal_id: string };
-        Returns: boolean;
-      };
+      map_member_can_edit: { Args: { p_map_id: string }; Returns: boolean };
       mark_notification_read: {
         Args: { p_notification_id: string };
         Returns: undefined;
@@ -811,6 +805,11 @@ export type Database = {
         Args: { p_invitation_token: string };
         Returns: undefined;
       };
+      pin_claim_slug: {
+        Args: { p_desired: string; p_map_id: string; p_pin_id: string };
+        Returns: string;
+      };
+      pin_map_id: { Args: { p_pin_id: string }; Returns: string };
       register_push_token: {
         Args: {
           p_device_id?: string;
@@ -820,44 +819,35 @@ export type Database = {
         };
         Returns: undefined;
       };
-      remove_journal_member: {
-        Args: { p_journal_id: string; p_user_id: string };
+      remove_map_member: {
+        Args: { p_map_id: string; p_user_id: string };
         Returns: undefined;
       };
       slugify_text: { Args: { p_raw: string }; Returns: string };
       tag_claim_slug: {
-        Args: { p_desired: string; p_journal_id: string; p_tag_id: string };
+        Args: { p_desired: string; p_map_id: string; p_tag_id: string };
         Returns: string;
       };
-      trace_claim_slug: {
-        Args: { p_desired: string; p_journal_id: string; p_trace_id: string };
-        Returns: string;
-      };
-      trace_journal_id: { Args: { p_trace_id: string }; Returns: string };
-      transfer_journal_ownership: {
-        Args: { p_journal_id: string; p_new_owner_user_id: string };
+      transfer_map_ownership: {
+        Args: { p_map_id: string; p_new_owner_user_id: string };
         Returns: undefined;
       };
-      update_journal_member_role: {
+      update_map_member_role: {
         Args: {
-          p_journal_id: string;
-          p_role: Database["public"]["Enums"]["journal_member_role"];
+          p_map_id: string;
+          p_role: Database["public"]["Enums"]["map_member_role"];
           p_user_id: string;
         };
         Returns: undefined;
       };
     };
     Enums: {
-      journal_invitation_status:
-        | "pending"
-        | "accepted"
-        | "declined"
-        | "cancelled";
-      journal_member_role: "owner" | "editor" | "viewer";
+      map_invitation_status: "pending" | "accepted" | "declined" | "cancelled";
+      map_member_role: "owner" | "editor" | "viewer";
       notification_type:
-        | "journal_invitation"
-        | "journal_invitation_accepted"
-        | "journal_ownership_received";
+        | "map_invitation"
+        | "map_invitation_accepted"
+        | "map_ownership_received";
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
       push_delivery_status: "pending" | "sent" | "failed";
     };
@@ -993,17 +983,12 @@ export const Constants = {
   },
   public: {
     Enums: {
-      journal_invitation_status: [
-        "pending",
-        "accepted",
-        "declined",
-        "cancelled",
-      ],
-      journal_member_role: ["owner", "editor", "viewer"],
+      map_invitation_status: ["pending", "accepted", "declined", "cancelled"],
+      map_member_role: ["owner", "editor", "viewer"],
       notification_type: [
-        "journal_invitation",
-        "journal_invitation_accepted",
-        "journal_ownership_received",
+        "map_invitation",
+        "map_invitation_accepted",
+        "map_ownership_received",
       ],
       plugin_link_status: ["disabled", "pending", "error", "connected"],
       push_delivery_status: ["pending", "sent", "failed"],

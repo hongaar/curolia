@@ -1,38 +1,34 @@
-import { JournalViewInitialLoader } from "@/components/layout/journal-view-initial-loader";
-import { journalViewHref } from "@/lib/app-paths";
-import { useJournal } from "@/providers/journal-provider";
+import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
+import { mapViewHref } from "@/lib/app-paths";
+import { useMap } from "@/providers/map-provider";
 import { Navigate } from "react-router-dom";
 
-/** `/` — redirect to the user's map URL for the active journal. */
+/** `/` — redirect to the user's map URL for the active map. */
 export function HomeRedirectPage() {
-  const { journals, activeJournal, loading } = useJournal();
-  const journal = activeJournal ?? journals[0];
+  const { maps, activeMap, loading } = useMap();
+  const map = activeMap ?? maps[0];
 
   if (loading) {
-    return <JournalViewInitialLoader />;
+    return <MapViewInitialLoader />;
   }
-  if (!journal?.slug) {
-    return (
-      <JournalViewInitialLoader label="No journal available." busy={false} />
-    );
+  if (!map?.slug) {
+    return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
-  return <Navigate to={journalViewHref("map", journal.slug)} replace />;
+  return <Navigate to={mapViewHref("map", map.slug)} replace />;
 }
 
-/** Legacy `/blog` — redirect using the active journal slug. */
+/** Legacy `/blog` — redirect using the active map slug. */
 export function BlogHomeRedirectPage() {
-  const { journals, activeJournal, loading } = useJournal();
-  const journal = activeJournal ?? journals[0];
+  const { maps, activeMap, loading } = useMap();
+  const map = activeMap ?? maps[0];
 
   if (loading) {
-    return <JournalViewInitialLoader />;
+    return <MapViewInitialLoader />;
   }
-  if (!journal?.slug) {
-    return (
-      <JournalViewInitialLoader label="No journal available." busy={false} />
-    );
+  if (!map?.slug) {
+    return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
-  return <Navigate to={journalViewHref("blog", journal.slug)} replace />;
+  return <Navigate to={mapViewHref("blog", map.slug)} replace />;
 }

@@ -1,18 +1,18 @@
 import { FloatingPanel } from "@/components/layout/floating-panel";
-import { JournalViewInitialLoader } from "@/components/layout/journal-view-initial-loader";
-import { AddTraceFab } from "@/components/traces/add-trace-fab";
-import { EmojiPicker } from "@/components/traces/emoji-picker";
-import { PresetColorPicker } from "@/components/traces/preset-color-picker";
-import { useBlogTraceListOrder } from "@/hooks/use-blog-trace-list-order";
-import { mapAddTraceHref } from "@/lib/app-paths";
-import { orderedBlogTraceList } from "@/lib/blog-trace-list-order";
-import { DEFAULT_TRACE_TAG_COLOR } from "@/lib/preset-trace-tag-colors";
+import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
+import { AddPinFab } from "@/components/pins/add-pin-fab";
+import { EmojiPicker } from "@/components/pins/emoji-picker";
+import { PresetColorPicker } from "@/components/pins/preset-color-picker";
+import { useBlogPinListOrder } from "@/hooks/use-blog-pin-list-order";
+import { mapAddPinHref } from "@/lib/app-paths";
+import { orderedBlogPinList } from "@/lib/blog-pin-list-order";
+import { formatPinDateRange } from "@/lib/pin-dates";
+import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
+import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
+import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
-import { formatTraceDateRange } from "@/lib/trace-dates";
-import { photosToLightboxItems } from "@/lib/trace-photo-lightbox-items";
-import { filterTracesByTags, type TraceWithTags } from "@/lib/trace-with-tags";
-import { useJournalTracesPhotosSignedUrls } from "@/lib/use-trace-photos";
-import { useJournal } from "@/providers/journal-provider";
+import { useMapPinsPhotosSignedUrls } from "@/lib/use-pin-photos";
+import { useMap } from "@/providers/map-provider";
 import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
 import type { Tag } from "@/types/database";
 import { contrastingForeground } from "@curolia/ui";
@@ -27,18 +27,18 @@ import {
   BlogPhotoCell,
   BlogPhotoGrid,
   BlogPhotoSkeleton,
+  BlogPinActions,
+  BlogPinDate,
+  BlogPinDescription,
+  BlogPinList,
+  BlogPinTitle,
+  BlogPinTitleLink,
   BlogScroll,
   BlogSortChevron,
   BlogSortTrigger,
   BlogTagBadge,
   BlogTagRow,
   BlogTitle,
-  BlogTraceActions,
-  BlogTraceDate,
-  BlogTraceDescription,
-  BlogTraceList,
-  BlogTraceTitle,
-  BlogTraceTitleLink,
 } from "@curolia/ui/blog";
 import { Button } from "@curolia/ui/button";
 import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
@@ -61,9 +61,9 @@ import {
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
 import {
-  TracePhotoLightbox,
-  TracePhotoThumb,
-} from "@curolia/ui/trace-photo-lightbox";
+  PinPhotoLightbox,
+  PinPhotoThumb,
+} from "@curolia/ui/pin-photo-lightbox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
@@ -74,8 +74,8 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
-import { useJournalSlugRouteSync } from "@/hooks/use-journal-slug-route-sync";
-import { traceDetailHref } from "@/lib/app-paths";
+import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { pinDetailHref } from "@/lib/app-paths";
 import {
   applyFilterTagsToSearchParams,
   resolveFilterTagIdsFromSearchParams,
@@ -84,59 +84,54 @@ import {
 export function BlogPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { journalSlug } = useParams<{ journalSlug: string }>();
-  useJournalSlugRouteSync(journalSlug);
+  const { mapSlug } = useParams<{ mapSlug: string }>();
+  useMapSlugRouteSync(mapSlug);
   const [searchParams, setSearchParams] = useSearchParams();
-  const {
-    activeJournalId,
-    activeJournal,
-    loading: journalLoading,
-  } = useJournal();
+  const { activeMapId, activeMap, loading: mapLoading } = useMap();
   const { order: blogListOrder, setOrder: setBlogListOrder } =
-    useBlogTraceListOrder(activeJournalId);
+    useBlogPinListOrder(activeMapId);
 
-  const blogJournalSlug =
-    journalSlug?.trim() || activeJournal?.slug?.trim() || "";
+  const blogMapSlug = mapSlug?.trim() || activeMap?.slug?.trim() || "";
   const [photoLightbox, setPhotoLightbox] = useState<{
-    traceId: string;
+    pinId: string;
     photoId: string;
   } | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState(DEFAULT_TRACE_TAG_COLOR);
+  const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
   const [newTagEmoji, setNewTagEmoji] = useState("📍");
-  const tracesQuery = useQuery({
-    queryKey: ["traces", activeJournalId, "blog"],
+  const pinsQuery = useQuery({
+    queryKey: ["pins", activeMapId, "blog"],
     queryFn: async () => {
-      if (!activeJournalId) return [];
+      if (!activeMapId) return [];
       const { data, error } = await supabase
-        .from("traces")
+        .from("pins")
         .select(
           `*,
-          trace_tags ( tag_id, tags ( id, name, color, icon_emoji ) )`,
+          pin_tags ( tag_id, tags ( id, name, color, icon_emoji ) )`,
         )
-        .eq("journal_id", activeJournalId)
+        .eq("map_id", activeMapId)
         .order("date", { ascending: true, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as TraceWithTags[];
+      return (data ?? []) as PinWithTags[];
     },
-    enabled: Boolean(activeJournalId) && !journalLoading,
+    enabled: Boolean(activeMapId) && !mapLoading,
   });
 
   const tagsQuery = useQuery({
-    queryKey: ["tags", activeJournalId],
+    queryKey: ["tags", activeMapId],
     queryFn: async () => {
-      if (!activeJournalId) return [];
+      if (!activeMapId) return [];
       const { data, error } = await supabase
         .from("tags")
         .select("*")
-        .eq("journal_id", activeJournalId)
+        .eq("map_id", activeMapId)
         .order("name");
       if (error) throw error;
       return data ?? [];
     },
-    enabled: Boolean(activeJournalId) && !journalLoading,
+    enabled: Boolean(activeMapId) && !mapLoading,
   });
 
   const tags = useMemo(() => tagsQuery.data ?? [], [tagsQuery.data]);
@@ -165,7 +160,7 @@ export function BlogPage() {
     onNewTag: () => {
       setTagEditTarget(null);
       setNewTagName("");
-      setNewTagColor(DEFAULT_TRACE_TAG_COLOR);
+      setNewTagColor(DEFAULT_PIN_TAG_COLOR);
       setNewTagEmoji("📍");
       setTagDialogOpen(true);
     },
@@ -178,39 +173,38 @@ export function BlogPage() {
     },
   });
 
-  const traces = useMemo(() => tracesQuery.data ?? [], [tracesQuery.data]);
+  const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
   const visible = useMemo(
-    () => filterTracesByTags(traces, filterTagIds),
-    [traces, filterTagIds],
+    () => filterPinsByTags(pins, filterTagIds),
+    [pins, filterTagIds],
   );
   const orderedVisible = useMemo(
-    () => orderedBlogTraceList(visible, blogListOrder),
+    () => orderedBlogPinList(visible, blogListOrder),
     [visible, blogListOrder],
   );
-  const visibleTraceIds = useMemo(
+  const visiblePinIds = useMemo(
     () => orderedVisible.map((t) => t.id),
     [orderedVisible],
   );
-  const { photosByTraceId, signedUrlByPhotoId } =
-    useJournalTracesPhotosSignedUrls(
-      activeJournalId ?? undefined,
-      visibleTraceIds,
-    );
+  const { photosByPinId, signedUrlByPhotoId } = useMapPinsPhotosSignedUrls(
+    activeMapId ?? undefined,
+    visiblePinIds,
+  );
 
   const blogLightboxItems = useMemo(() => {
     if (!photoLightbox) return [];
-    const ps = photosByTraceId.get(photoLightbox.traceId) ?? [];
+    const ps = photosByPinId.get(photoLightbox.pinId) ?? [];
     return photosToLightboxItems(ps, signedUrlByPhotoId);
-  }, [photoLightbox, photosByTraceId, signedUrlByPhotoId]);
+  }, [photoLightbox, photosByPinId, signedUrlByPhotoId]);
 
   const blogLightboxTitle = useMemo(() => {
     if (!photoLightbox) return undefined;
-    const t = orderedVisible.find((x) => x.id === photoLightbox.traceId);
-    return t?.title?.trim() || "Untitled trace";
+    const t = orderedVisible.find((x) => x.id === photoLightbox.pinId);
+    return t?.title?.trim() || "Untitled pin";
   }, [photoLightbox, orderedVisible]);
 
   async function saveTag() {
-    if (!activeJournalId || !newTagName.trim()) return;
+    if (!activeMapId || !newTagName.trim()) return;
     if (tagEditTarget) {
       const { error } = await supabase
         .from("tags")
@@ -224,15 +218,15 @@ export function BlogPage() {
       if (!error) {
         setTagDialogOpen(false);
         setTagEditTarget(null);
-        await qc.invalidateQueries({ queryKey: ["tags", activeJournalId] });
+        await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
         await qc.invalidateQueries({
-          queryKey: ["traces", activeJournalId, "blog"],
+          queryKey: ["pins", activeMapId, "blog"],
         });
       }
       return;
     }
     const { error } = await supabase.from("tags").insert({
-      journal_id: activeJournalId,
+      map_id: activeMapId,
       name: newTagName.trim(),
       color: newTagColor,
       icon_emoji: newTagEmoji || "📍",
@@ -240,27 +234,25 @@ export function BlogPage() {
     if (!error) {
       setNewTagName("");
       setTagDialogOpen(false);
-      await qc.invalidateQueries({ queryKey: ["tags", activeJournalId] });
+      await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
     }
   }
 
-  if (journalLoading || (Boolean(activeJournalId) && tracesQuery.isPending)) {
-    return <JournalViewInitialLoader />;
+  if (mapLoading || (Boolean(activeMapId) && pinsQuery.isPending)) {
+    return <MapViewInitialLoader />;
   }
 
-  if (!activeJournalId) {
-    return (
-      <JournalViewInitialLoader label="No journal available." busy={false} />
-    );
+  if (!activeMapId) {
+    return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
   return (
     <BlogPageRoot>
       <BlogFabSlot>
-        <AddTraceFab
+        <AddPinFab
           onClick={() => {
-            if (!blogJournalSlug) return;
-            navigate(mapAddTraceHref(blogJournalSlug, searchParams));
+            if (!blogMapSlug) return;
+            navigate(mapAddPinHref(blogMapSlug, searchParams));
           }}
         />
       </BlogFabSlot>
@@ -268,20 +260,18 @@ export function BlogPage() {
       <BlogScroll>
         <BlogContent>
           <BlogHeader>
-            <BlogKicker>Journal</BlogKicker>
-            <BlogTitle>
-              {activeJournal?.name.trim() || journalSlug || "Journal"}
-            </BlogTitle>
+            <BlogKicker>Map</BlogKicker>
+            <BlogTitle>{activeMap?.name.trim() || mapSlug || "Map"}</BlogTitle>
             <BlogLead>
-              Traces are listed in{" "}
+              Pins are listed in{" "}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <BlogSortTrigger
                       aria-label={
                         blogListOrder === "chronological"
-                          ? "Trace list order: chronological — change sorting"
-                          : "Trace list order: alphabetical — change sorting"
+                          ? "Pin list order: chronological — change sorting"
+                          : "Pin list order: alphabetical — change sorting"
                       }
                     />
                   }
@@ -322,16 +312,16 @@ export function BlogPage() {
             <FloatingPanel>
               <BlogEmptyPanel>
                 <PageMuted>
-                  {traces.length === 0
-                    ? "No traces yet — add one from the toolbar."
-                    : "No traces match the current filters."}
+                  {pins.length === 0
+                    ? "No pins yet — add one from the toolbar."
+                    : "No pins match the current filters."}
                 </PageMuted>
               </BlogEmptyPanel>
             </FloatingPanel>
           ) : (
-            <BlogTraceList>
+            <BlogPinList>
               {orderedVisible.map((t) => {
-                const tagRows = (t.trace_tags ?? [])
+                const tagRows = (t.pin_tags ?? [])
                   .map((tt) => tt.tags)
                   .filter(Boolean) as {
                   id: string;
@@ -339,23 +329,23 @@ export function BlogPage() {
                   color: string;
                   icon_emoji: string;
                 }[];
-                const tracePhotos = photosByTraceId.get(t.id) ?? [];
-                const detailHref = blogJournalSlug
-                  ? traceDetailHref(blogJournalSlug, t.slug)
+                const pinPhotos = photosByPinId.get(t.id) ?? [];
+                const detailHref = blogMapSlug
+                  ? pinDetailHref(blogMapSlug, t.slug)
                   : "#";
                 return (
                   <li key={t.id}>
                     <article>
                       {t.date ? (
-                        <BlogTraceDate dateTime={t.date}>
-                          {formatTraceDateRange(t.date, t.end_date)}
-                        </BlogTraceDate>
+                        <BlogPinDate dateTime={t.date}>
+                          {formatPinDateRange(t.date, t.end_date)}
+                        </BlogPinDate>
                       ) : null}
-                      <BlogTraceTitle spaced={Boolean(t.date)}>
-                        <BlogTraceTitleLink to={detailHref}>
-                          {t.title?.trim() || "Untitled trace"}
-                        </BlogTraceTitleLink>
-                      </BlogTraceTitle>
+                      <BlogPinTitle spaced={Boolean(t.date)}>
+                        <BlogPinTitleLink to={detailHref}>
+                          {t.title?.trim() || "Untitled pin"}
+                        </BlogPinTitleLink>
+                      </BlogPinTitle>
                       {tagRows.length > 0 ? (
                         <BlogTagRow>
                           {tagRows.map((tag) => (
@@ -373,22 +363,22 @@ export function BlogPage() {
                         </BlogTagRow>
                       ) : null}
                       {t.description?.trim() ? (
-                        <BlogTraceDescription>
+                        <BlogPinDescription>
                           {t.description.trim()}
-                        </BlogTraceDescription>
+                        </BlogPinDescription>
                       ) : null}
-                      {tracePhotos.length > 0 ? (
+                      {pinPhotos.length > 0 ? (
                         <BlogPhotoGrid>
-                          {tracePhotos.map((p) => {
+                          {pinPhotos.map((p) => {
                             const url = signedUrlByPhotoId[p.id];
                             return url ? (
                               <BlogPhotoCell key={p.id}>
-                                <TracePhotoThumb
+                                <PinPhotoThumb
                                   url={url}
                                   size="square"
                                   onOpen={() =>
                                     setPhotoLightbox({
-                                      traceId: t.id,
+                                      pinId: t.id,
                                       photoId: p.id,
                                     })
                                   }
@@ -400,7 +390,7 @@ export function BlogPage() {
                           })}
                         </BlogPhotoGrid>
                       ) : null}
-                      <BlogTraceActions>
+                      <BlogPinActions>
                         <Button
                           variant="secondary"
                           render={
@@ -412,19 +402,19 @@ export function BlogPage() {
                             />
                           }
                         >
-                          View trace
+                          View pin
                         </Button>
-                      </BlogTraceActions>
+                      </BlogPinActions>
                     </article>
                   </li>
                 );
               })}
-            </BlogTraceList>
+            </BlogPinList>
           )}
         </BlogContent>
       </BlogScroll>
 
-      <TracePhotoLightbox
+      <PinPhotoLightbox
         open={photoLightbox !== null}
         onOpenChange={(o) => {
           if (!o) setPhotoLightbox(null);

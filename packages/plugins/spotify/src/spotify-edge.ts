@@ -1,27 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SpotifyTracePayload } from "./spotify-trace-data";
+import type { SpotifyPinPayload } from "./spotify-pin-data";
 
 export type SpotifySyncResponse =
   | {
-      skippedReason: "no_trace_date";
+      skippedReason: "no_pin_date";
       cleared?: boolean;
     }
   | {
       synced: true;
-      payload: SpotifyTracePayload;
+      payload: SpotifyPinPayload;
     }
   | {
       error: string;
       reason?: string;
     };
 
-export async function spotifySyncTraceListening(
+export async function spotifySyncPinListening(
   supabase: SupabaseClient,
-  traceId: string,
+  pinId: string,
 ): Promise<SpotifySyncResponse> {
   const { data, error } = await supabase.functions.invoke<SpotifySyncResponse>(
     "spotify",
-    { body: { action: "sync_top_tracks", traceId } },
+    { body: { action: "sync_top_tracks", pinId } },
   );
   if (error) {
     return { error: error.message || "spotify_sync_failed" };

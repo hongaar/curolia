@@ -7,10 +7,7 @@ export {
 } from "./constants";
 export {
   pluginEntityDataRowQueryKey,
-  spotifyTraceSyncQueryKey,
+  spotifyPinSyncQueryKey,
 } from "./query-keys";
 export type { SpotifySyncResponse } from "./spotify-edge";
-export type {
-  SpotifyTracePayload,
-  SpotifyTraceTrackRow,
-} from "./spotify-trace-data";
+export type { SpotifyPinPayload, SpotifyPinTrackRow } from "./spotify-pin-data";

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Provider module also exports useNavigationShell */
-import { NewJournalDialog } from "@/components/layout/new-journal-dialog";
+import { NewMapDialog } from "@/components/layout/new-map-dialog";
 import { NAV_SIDEBAR_OPEN_STORAGE_KEY } from "@/lib/navigation-shell-layout";
 import {
   createContext,
@@ -16,7 +16,7 @@ import {
 export type NavigationShellContextValue = {
   sidebarOpen: boolean;
   setSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  openNewJournalDialog: () => void;
+  openNewMapDialog: () => void;
 };
 
 const NavigationShellContext =
@@ -33,7 +33,7 @@ function readStoredSidebarOpen(): boolean {
 
 export function NavigationShellProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(readStoredSidebarOpen);
-  const [newJournalOpen, setNewJournalOpen] = useState(false);
+  const [newMapOpen, setNewMapOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -46,26 +46,23 @@ export function NavigationShellProvider({ children }: { children: ReactNode }) {
     }
   }, [sidebarOpen]);
 
-  const openNewJournalDialog = useCallback(() => {
-    setNewJournalOpen(true);
+  const openNewMapDialog = useCallback(() => {
+    setNewMapOpen(true);
   }, []);
 
   const value = useMemo(
     (): NavigationShellContextValue => ({
       sidebarOpen,
       setSidebarOpen,
-      openNewJournalDialog,
+      openNewMapDialog,
     }),
-    [sidebarOpen, openNewJournalDialog],
+    [sidebarOpen, openNewMapDialog],
   );
 
   return (
     <NavigationShellContext.Provider value={value}>
       {children}
-      <NewJournalDialog
-        open={newJournalOpen}
-        onOpenChange={setNewJournalOpen}
-      />
+      <NewMapDialog open={newMapOpen} onOpenChange={setNewMapOpen} />
     </NavigationShellContext.Provider>
   );
 }

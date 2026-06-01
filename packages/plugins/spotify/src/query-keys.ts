@@ -1,20 +1,20 @@
 import { spotifyPluginMeta } from "./plugin-meta";
 
 /**
- * React Query key for Spotify Edge sync. Includes trace dates so a new fetch runs when
+ * React Query key for Spotify Edge sync. Includes pin dates so a new fetch runs when
  * the shell passes updated dates after save (no extra invalidation logic in the web app).
  */
-export function spotifyTraceSyncQueryKey(
-  traceId: string,
-  traceDate: string | null | undefined,
-  traceEndDate: string | null | undefined,
+export function spotifyPinSyncQueryKey(
+  pinId: string,
+  pinDate: string | null | undefined,
+  pinEndDate: string | null | undefined,
 ) {
   return [
-    "spotify_trace_sync",
+    "spotify_pin_sync",
     spotifyPluginMeta.typeId,
-    traceId,
-    traceDate ?? "",
-    traceEndDate ?? "",
+    pinId,
+    pinDate ?? "",
+    pinEndDate ?? "",
   ] as const;
 }
 

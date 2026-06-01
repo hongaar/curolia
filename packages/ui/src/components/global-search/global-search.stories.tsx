@@ -15,7 +15,7 @@ import {
 
 const searchResults = (
   <>
-    <GlobalSearchInput placeholder="Search traces…" />
+    <GlobalSearchInput placeholder="Search pins…" />
     <GlobalSearchResults>
       <GlobalSearchResultRow onClick={() => undefined}>
         <GlobalSearchResultBody>
@@ -77,7 +77,7 @@ export const ToolbarEmbed: Story = {
   ),
   args: {
     toolbarEmbed: true,
-    title: "Search traces",
+    title: "Search pins",
   },
   render: (args) => (
     <SearchPopover defaultOpen>
@@ -90,7 +90,7 @@ export const ToolbarEmbed: Story = {
 export const Title: Story = {
   parameters: storyDocs("Custom `title` tooltip on the trigger button."),
   args: {
-    title: "Search your journal (⌘K)",
+    title: "Search your map (⌘K)",
     toolbarEmbed: false,
   },
   render: (args) => (

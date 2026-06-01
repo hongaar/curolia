@@ -1,4 +1,4 @@
-/** Client refetch guard: don’t sync more often than this when revisiting a trace. */
+/** Client refetch guard: don’t sync more often than this when revisiting a pin. */
 export const LASTFM_SYNC_STALE_TIME_MS = 60_000;
 
 /** Max tracks persisted (top by play count in the period). */

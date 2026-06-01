@@ -1,49 +1,50 @@
-export type JournalMemberRole = "owner" | "editor" | "viewer";
-export type JournalInvitationStatus =
+export type MapMemberRole = "owner" | "editor" | "viewer";
+export type MapInvitationStatus =
   | "pending"
   | "accepted"
   | "declined"
   | "cancelled";
 export type NotificationType =
-  | "journal_invitation"
-  | "journal_invitation_accepted"
-  | "journal_ownership_received";
+  | "map_invitation"
+  | "map_invitation_accepted"
+  | "map_ownership_received";
 export type PluginLinkStatus = "disabled" | "pending" | "error" | "connected";
 
 export type Profile = {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
-  default_journal_id: string | null;
+  default_map_id: string | null;
   notification_email_enabled: boolean;
   notification_push_enabled: boolean;
   created_at: string;
   updated_at: string;
 };
 
-export type Journal = {
+/** User-owned map (collection of pins). Named `CuroliaMap` to avoid clashing with JS `Map`. */
+export type CuroliaMap = {
   id: string;
   name: string;
   slug: string;
   is_personal: boolean;
-  /** When null, UI uses defaultJournalIcon(is_personal). */
+  /** When null, UI uses defaultMapIcon(is_personal). */
   icon_emoji: string | null;
   created_by_user_id: string;
   created_at: string;
   updated_at: string;
 };
 
-export type JournalMember = {
-  journal_id: string;
+export type MapMember = {
+  map_id: string;
   user_id: string;
-  role: JournalMemberRole;
+  role: MapMemberRole;
   created_at: string;
 };
 
-export type Trace = {
+export type Pin = {
   id: string;
-  journal_id: string;
-  /** URL-safe slug, unique within the journal. */
+  map_id: string;
+  /** URL-safe slug, unique within the map. */
   slug: string;
   title: string | null;
   description: string | null;
@@ -55,25 +56,25 @@ export type Trace = {
   date: string | null;
   /** Inclusive end day, optional; must be >= date when both are set. */
   end_date: string | null;
-  /** User who created this trace (insert). */
+  /** User who created this pin (insert). */
   created_by_user_id: string | null;
-  /** User who last updated this trace. */
+  /** User who last updated this pin. */
   modified_by_user_id: string | null;
   created_at: string;
   updated_at: string;
 };
 
-export type JournalIcalFeedToken = {
-  journal_id: string;
+export type MapIcalFeedToken = {
+  map_id: string;
   token: string;
   created_at: string;
 };
 
 export type Tag = {
   id: string;
-  journal_id: string;
+  map_id: string;
   name: string;
-  /** URL-safe slug, unique within the journal. */
+  /** URL-safe slug, unique within the map. */
   slug: string;
   color: string;
   icon_emoji: string;
@@ -81,15 +82,15 @@ export type Tag = {
   updated_at: string;
 };
 
-export type TraceTagRow = {
-  trace_id: string;
+export type PinTagRow = {
+  pin_id: string;
   tag_id: string;
 };
 
 export type Photo = {
   id: string;
-  journal_id: string;
-  trace_id: string;
+  map_id: string;
+  pin_id: string;
   storage_path: string | null;
   sort_order: number;
   created_at: string;
@@ -98,10 +99,10 @@ export type Photo = {
   captured_at: string | null;
 };
 
-export type TraceLink = {
+export type PinLink = {
   id: string;
-  journal_id: string;
-  trace_id: string;
+  map_id: string;
+  pin_id: string;
   url: string;
   /** Page title imported from the URL when added (editable). */
   title: string | null;
@@ -115,8 +116,8 @@ export type TraceLink = {
 /** Generic plugin payload row (see `plugin_entity_data` migration). */
 export type PluginEntityData = {
   id: string;
-  journal_id: string;
-  /** Discriminator for which table `entity_id` references; today only `trace`. */
+  map_id: string;
+  /** Discriminator for which table `entity_id` references; today only `pin`. */
   entity_type: string;
   entity_id: string;
   plugin_type_id: string;
@@ -125,9 +126,9 @@ export type PluginEntityData = {
   updated_at: string;
 };
 
-export type JournalPlugin = {
+export type MapPlugin = {
   id: string;
-  journal_id: string;
+  map_id: string;
   plugin_type_id: string;
   enabled: boolean;
   config: Record<string, unknown>;
@@ -148,14 +149,14 @@ export type UserPlugin = {
   updated_at: string;
 };
 
-export type JournalInvitation = {
+export type MapInvitation = {
   id: string;
-  journal_id: string;
+  map_id: string;
   invitee_email: string;
-  invited_role: JournalMemberRole;
+  invited_role: MapMemberRole;
   invited_by_user_id: string;
   token: string;
-  status: JournalInvitationStatus;
+  status: MapInvitationStatus;
   created_at: string;
   expires_at: string;
 };
@@ -181,24 +182,27 @@ export type Database = {
         Insert: Partial<Profile> & { id: string };
         Update: Partial<Profile>;
       };
-      journals: {
-        Row: Journal;
-        Insert: Partial<Journal> & { name: string; created_by_user_id: string };
-        Update: Partial<Journal>;
-      };
-      journal_members: {
-        Row: JournalMember;
-        Insert: {
-          journal_id: string;
-          user_id: string;
-          role?: JournalMemberRole;
+      maps: {
+        Row: CuroliaMap;
+        Insert: Partial<CuroliaMap> & {
+          name: string;
+          created_by_user_id: string;
         };
-        Update: Partial<JournalMember>;
+        Update: Partial<CuroliaMap>;
       };
-      traces: {
-        Row: Trace;
+      map_members: {
+        Row: MapMember;
+        Insert: {
+          map_id: string;
+          user_id: string;
+          role?: MapMemberRole;
+        };
+        Update: Partial<MapMember>;
+      };
+      pins: {
+        Row: Pin;
         Insert: Omit<
-          Trace,
+          Pin,
           | "id"
           | "slug"
           | "created_at"
@@ -207,12 +211,12 @@ export type Database = {
           | "modified_by_user_id"
         > & {
           id?: string;
-          /** Omitted when `public.traces_set_slug()` assigns from `title`. */
+          /** Omitted when `public.pins_set_slug()` assigns from `title`. */
           slug?: string;
           created_by_user_id?: string | null;
           modified_by_user_id?: string | null;
         };
-        Update: Partial<Trace>;
+        Update: Partial<Pin>;
       };
       tags: {
         Row: Tag;
@@ -223,27 +227,24 @@ export type Database = {
         };
         Update: Partial<Tag>;
       };
-      trace_tags: {
-        Row: TraceTagRow;
-        Insert: TraceTagRow;
-        Update: TraceTagRow;
+      pin_tags: {
+        Row: PinTagRow;
+        Insert: PinTagRow;
+        Update: PinTagRow;
       };
       photos: {
         Row: Photo;
         Insert: Omit<Photo, "id" | "created_at"> & { id?: string };
         Update: Partial<Photo>;
       };
-      trace_links: {
-        Row: TraceLink;
-        Insert: Omit<
-          TraceLink,
-          "id" | "journal_id" | "created_at" | "updated_at"
-        > & {
+      pin_links: {
+        Row: PinLink;
+        Insert: Omit<PinLink, "id" | "map_id" | "created_at" | "updated_at"> & {
           id?: string;
-          /** Set automatically by trigger from the parent trace. */
-          journal_id?: string;
+          /** Set automatically by trigger from the parent pin. */
+          map_id?: string;
         };
-        Update: Partial<TraceLink>;
+        Update: Partial<PinLink>;
       };
       plugin_entity_data: {
         Row: PluginEntityData;
@@ -253,20 +254,16 @@ export type Database = {
         Update: Partial<
           Pick<
             PluginEntityData,
-            | "data"
-            | "journal_id"
-            | "entity_type"
-            | "entity_id"
-            | "plugin_type_id"
+            "data" | "map_id" | "entity_type" | "entity_id" | "plugin_type_id"
           >
         >;
       };
-      journal_plugins: {
-        Row: JournalPlugin;
-        Insert: Omit<JournalPlugin, "id" | "created_at" | "updated_at"> & {
+      map_plugins: {
+        Row: MapPlugin;
+        Insert: Omit<MapPlugin, "id" | "created_at" | "updated_at"> & {
           id?: string;
         };
-        Update: Partial<JournalPlugin>;
+        Update: Partial<MapPlugin>;
       };
       user_plugins: {
         Row: UserPlugin;
@@ -275,15 +272,15 @@ export type Database = {
         };
         Update: Partial<UserPlugin>;
       };
-      journal_ical_feed_tokens: {
-        Row: JournalIcalFeedToken;
-        Insert: { journal_id: string; token?: string };
-        Update: Partial<Pick<JournalIcalFeedToken, "token">>;
+      map_ical_feed_tokens: {
+        Row: MapIcalFeedToken;
+        Insert: { map_id: string; token?: string };
+        Update: Partial<Pick<MapIcalFeedToken, "token">>;
       };
-      journal_invitations: {
-        Row: JournalInvitation;
+      map_invitations: {
+        Row: MapInvitation;
         Insert: never;
-        Update: Partial<Pick<JournalInvitation, "status">>;
+        Update: Partial<Pick<MapInvitation, "status">>;
       };
       notifications: {
         Row: AppNotification;
@@ -294,8 +291,8 @@ export type Database = {
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: {
-      journal_member_role: JournalMemberRole;
-      journal_invitation_status: JournalInvitationStatus;
+      map_member_role: MapMemberRole;
+      map_invitation_status: MapInvitationStatus;
       notification_type: NotificationType;
       plugin_link_status: PluginLinkStatus;
     };

@@ -98,7 +98,7 @@ export function GooglePhotosAccountSettingsPanel(
       ) : (
         <PluginAccountRow gap="sm">
           <PluginAccountMuted>
-            Connect your library to search and import photos on traces.
+            Connect your library to search and import photos on pins.
           </PluginAccountMuted>
           <PluginAccountButton type="button" onClick={() => void onLink()}>
             Link Google Photos

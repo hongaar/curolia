@@ -86,7 +86,7 @@ function SidebarDemo() {
   return (
     <NavigationSidebarRoot>
       <NavigationSidebarSection>
-        <NavigationSidebarLabel>Journal</NavigationSidebarLabel>
+        <NavigationSidebarLabel>Map</NavigationSidebarLabel>
         <p style={{ margin: 0, fontSize: "0.875rem", padding: "0 0.5rem" }}>
           Summer 2025
         </p>
@@ -134,7 +134,7 @@ function ShellDemo({
               </MainToolbarMenuButton>
               <MainToolbarBrand>Curolia</MainToolbarBrand>
               <MainToolbarSearchSlot>
-                <Input placeholder="Search traces…" aria-label="Search" />
+                <Input placeholder="Search pins…" aria-label="Search" />
               </MainToolbarSearchSlot>
             </MainToolbarShell>
           }

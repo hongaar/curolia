@@ -5,7 +5,7 @@ import { Badge } from "./badge";
 const meta = {
   title: "Badge",
   ...componentStoryMeta(
-    `Small status or category label for traces, plugins, and filters.`,
+    `Small status or category label for pins, plugins, and filters.`,
     `Use \`variant\` for semantic color. Prefer short text; pair with icons only when the meaning is not clear from the label alone.`,
   ),
   component: Badge,

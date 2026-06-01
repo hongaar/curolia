@@ -89,7 +89,7 @@ export function LastfmAccountSettingsPanel(props: PluginAccountPanelProps) {
       <PluginAccountInputDescription>
         <PluginAccountMuted>
           Enter your public Last.fm username. Scrobbles are read from
-          Last.fm&apos;s API (full history for the trace dates, subject to API
+          Last.fm&apos;s API (full history for the pin dates, subject to API
           limits).
         </PluginAccountMuted>
       </PluginAccountInputDescription>

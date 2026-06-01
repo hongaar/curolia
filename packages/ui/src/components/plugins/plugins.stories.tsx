@@ -46,7 +46,7 @@ export const Default: Story = {
               Spotify
             </PluginListRowTitle>
             <PluginListRowDescription>
-              Add top tracks for each trace&apos;s dates.
+              Add top tracks for each pin&apos;s dates.
             </PluginListRowDescription>
           </PluginListRowInfo>
         </PluginListRowMain>

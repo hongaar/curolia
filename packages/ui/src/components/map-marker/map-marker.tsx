@@ -88,7 +88,7 @@ export function MapMarker({
         type="button"
         className={className}
         style={inlineStyle}
-        aria-label={ariaLabel ?? "Open trace"}
+        aria-label={ariaLabel ?? "Open pin"}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -183,7 +183,7 @@ export function createMapMarkerMount(
     applyMapMarkerFace(face, props);
     if (props.interactive) {
       const btn = face as HTMLButtonElement;
-      btn.setAttribute("aria-label", props.ariaLabel ?? "Open trace");
+      btn.setAttribute("aria-label", props.ariaLabel ?? "Open pin");
       syncInteractiveHandlers(btn, props);
     }
     applyHostStyles();

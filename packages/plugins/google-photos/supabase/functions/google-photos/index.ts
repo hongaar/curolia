@@ -103,9 +103,9 @@ function byteaInsertValue(buf: Uint8Array): string {
   return "\\x" + hex;
 }
 
-type TraceRow = {
+type PinRow = {
   id: string;
-  journal_id: string;
+  map_id: string;
   date: string | null;
   end_date: string | null;
   lat: number;
@@ -126,11 +126,11 @@ type PickerMediaItem = {
 type Body =
   | {
       action: "import";
-      traceId: string;
+      pinId: string;
       mediaItemIds: string[];
       pickerSessionId: string;
     }
-  | { action: "picker_create"; traceId?: string }
+  | { action: "picker_create"; pinId?: string }
   | { action: "picker_session"; sessionId: string }
   | { action: "picker_list"; sessionId: string }
   | {
@@ -242,13 +242,13 @@ async function getGoogleAccessToken(
   return { ok: true, accessToken: tok.access_token as string };
 }
 
-async function traceContextForUser(
+async function pinContextForUser(
   admin: ReturnType<typeof createClient>,
   userId: string,
-  traceId: string,
+  pinId: string,
 ): Promise<
   | {
-      trace: TraceRow;
+      pin: PinRow;
       hint: {
         startDate: string;
         endDate: string;
@@ -256,21 +256,21 @@ async function traceContextForUser(
         lng: number;
       };
     }
-  | { error: "trace_not_found" | "forbidden" }
+  | { error: "pin_not_found" | "forbidden" }
 > {
-  const { data: trace, error: te } = await admin
-    .from("traces")
-    .select("id, journal_id, date, end_date, lat, lng")
-    .eq("id", traceId)
+  const { data: pin, error: te } = await admin
+    .from("pins")
+    .select("id, map_id, date, end_date, lat, lng")
+    .eq("id", pinId)
     .maybeSingle();
 
-  if (te || !trace) return { error: "trace_not_found" };
+  if (te || !pin) return { error: "pin_not_found" };
 
-  const t = trace as TraceRow;
+  const t = pin as PinRow;
   const { data: mem } = await admin
-    .from("journal_members")
+    .from("map_members")
     .select("user_id")
-    .eq("journal_id", t.journal_id)
+    .eq("map_id", t.map_id)
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -280,7 +280,7 @@ async function traceContextForUser(
   const endDate = t.end_date ?? startDate;
 
   return {
-    trace: t,
+    pin: t,
     hint: {
       startDate,
       endDate,
@@ -473,10 +473,10 @@ Deno.serve(async (req: Request) => {
       lng: number;
     } | null = null;
 
-    if (body.traceId) {
-      const ctx = await traceContextForUser(admin, userId, body.traceId);
+    if (body.pinId) {
+      const ctx = await pinContextForUser(admin, userId, body.pinId);
       if ("error" in ctx) {
-        const status = ctx.error === "trace_not_found" ? 404 : 403;
+        const status = ctx.error === "pin_not_found" ? 404 : 403;
         return new Response(JSON.stringify({ error: ctx.error }), {
           status,
           headers: { ...cors(), "Content-Type": "application/json" },
@@ -650,24 +650,24 @@ Deno.serve(async (req: Request) => {
   }
 
   if (body.action === "import") {
-    const { data: trace, error: te } = await admin
-      .from("traces")
-      .select("id, journal_id, date, end_date, lat, lng")
-      .eq("id", body.traceId)
+    const { data: pin, error: te } = await admin
+      .from("pins")
+      .select("id, map_id, date, end_date, lat, lng")
+      .eq("id", body.pinId)
       .maybeSingle();
 
-    if (te || !trace) {
-      return new Response(JSON.stringify({ error: "trace_not_found" }), {
+    if (te || !pin) {
+      return new Response(JSON.stringify({ error: "pin_not_found" }), {
         status: 404,
         headers: { ...cors(), "Content-Type": "application/json" },
       });
     }
 
-    const t = trace as TraceRow;
+    const t = pin as PinRow;
     const { data: mem } = await admin
-      .from("journal_members")
+      .from("map_members")
       .select("user_id")
-      .eq("journal_id", t.journal_id)
+      .eq("map_id", t.map_id)
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -679,14 +679,14 @@ Deno.serve(async (req: Request) => {
     }
 
     const imported: string[] = [];
-    const skippedAlreadyOnTrace: string[] = [];
+    const skippedAlreadyOnPin: string[] = [];
     const downloadFailed: string[] = [];
     let sort =
       (
         await admin
           .from("photos")
           .select("sort_order")
-          .eq("trace_id", t.id)
+          .eq("pin_id", t.id)
           .order("sort_order", { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -695,7 +695,7 @@ Deno.serve(async (req: Request) => {
     const { data: existingRows } = await admin
       .from("photos")
       .select("external_ref")
-      .eq("trace_id", t.id)
+      .eq("pin_id", t.id)
       .eq("source_plugin_id", "google_photos");
 
     const existingMediaIds = new Set<string>();
@@ -746,7 +746,7 @@ Deno.serve(async (req: Request) => {
 
     for (const mediaId of body.mediaItemIds) {
       if (existingMediaIds.has(mediaId)) {
-        skippedAlreadyOnTrace.push(mediaId);
+        skippedAlreadyOnPin.push(mediaId);
         continue;
       }
 
@@ -795,10 +795,10 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      const path = `${t.journal_id}/${t.id}/gp-${mediaId}.${ext}`;
+      const path = `${t.map_id}/${t.id}/gp-${mediaId}.${ext}`;
 
       const { error: upErr } = await admin.storage
-        .from("trace-photos")
+        .from("pin-photos")
         .upload(path, buf, {
           contentType: mime,
           upsert: false,
@@ -808,7 +808,7 @@ Deno.serve(async (req: Request) => {
           upErr.message?.toLowerCase().includes("already exists") ||
           (upErr as { statusCode?: string }).statusCode === "409";
         if (duplicate) {
-          skippedAlreadyOnTrace.push(mediaId);
+          skippedAlreadyOnPin.push(mediaId);
         } else {
           console.error(upErr);
           downloadFailed.push(mediaId);
@@ -821,8 +821,8 @@ Deno.serve(async (req: Request) => {
       const { data: ins, error: insErr } = await admin
         .from("photos")
         .insert({
-          journal_id: t.journal_id,
-          trace_id: t.id,
+          map_id: t.map_id,
+          pin_id: t.id,
           storage_path: path,
           sort_order: sort,
           source_plugin_id: "google_photos",
@@ -848,7 +848,7 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         importedIds: imported,
-        skippedAlreadyOnTrace,
+        skippedAlreadyOnPin,
         downloadFailed,
       }),
       {

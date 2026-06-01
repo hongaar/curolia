@@ -1,8 +1,8 @@
 # Spotify plugin (`@curolia/plugin-spotify`)
 
-> **Disabled in the app** (package kept in the monorepo). Spotify’s Web API only exposes a shallow **recently played** feed (roughly the last few days), which cannot satisfy trace **date-range** listening history. Re-enable by setting `implemented: true` in `src/plugin-meta.ts`, restoring `@curolia/plugin-spotify` in `apps/web/package.json`, and removing `spotify` from `DISABLED_PLUGIN_PACKAGE_DIRS` in `packages/supabase/scripts/sync-plugins.mjs` and `extract-plugin-oauth-registry.ts`, then run `plugins:sync` and `functions:sync`.
+> **Disabled in the app** (package kept in the monorepo). Spotify’s Web API only exposes a shallow **recently played** feed (roughly the last few days), which cannot satisfy pin **date-range** listening history. Re-enable by setting `implemented: true` in `src/plugin-meta.ts`, restoring `@curolia/plugin-spotify` in `apps/web/package.json`, and removing `spotify` from `DISABLED_PLUGIN_PACKAGE_DIRS` in `packages/supabase/scripts/sync-plugins.mjs` and `extract-plugin-oauth-registry.ts`, then run `plugins:sync` and `functions:sync`.
 
-Resolves **top streamed tracks** (by replay count in your Spotify **recently played** history) that fall within each trace’s **date range**, stores them in **`public.plugin_entity_data`**, and renders a **Spotify** card on the **trace detail** page. OAuth uses the shared **`plugin-oauth`** Edge Function (PKCE).
+Resolves **top streamed tracks** (by replay count in your Spotify **recently played** history) that fall within each pin’s **date range**, stores them in **`public.plugin_entity_data`**, and renders a **Spotify** card on the **pin detail** page. OAuth uses the shared **`plugin-oauth`** Edge Function (PKCE).
 
 ## Prerequisites
 
@@ -21,22 +21,22 @@ Resolves **top streamed tracks** (by replay count in your Spotify **recently pla
 ## App usage
 
 1. **Settings → Plugins**: enable **Spotify**, then **Link Spotify**.
-2. Open a **trace** that has a **start date** (and optional end date). The trace detail page runs sync when dates are set; changing dates invalidates the sync query key (see **`spotifyTraceSyncQueryKey`** in **`src/query-keys.ts`**) so Spotify refreshes without extra wiring in the web shell.
+2. Open a **pin** that has a **start date** (and optional end date). The pin detail page runs sync when dates are set; changing dates invalidates the sync query key (see **`spotifyPinSyncQueryKey`** in **`src/query-keys.ts`**) so Spotify refreshes without extra wiring in the web shell.
 
 ## Behaviour notes
 
-- Ranking uses **recently played** entries inside the trace window, **not** Spotify’s separate “top tracks” API (which uses fixed time ranges, not calendar dates).
+- Ranking uses **recently played** entries inside the pin window, **not** Spotify’s separate “top tracks” API (which uses fixed time ranges, not calendar dates).
 - Long windows are capped: see **`SPOTIFY_RECENTLY_PLAYED_MAX_PAGES`** and related constants in **`src/constants.ts`** to avoid excessive Spotify pagination.
-- Payload shape for `plugin_entity_data.data` is **`SpotifyTracePayload`** in **`src/spotify-trace-data.ts`** (`schemaVersion: 1`).
+- Payload shape for `plugin_entity_data.data` is **`SpotifyPinPayload`** in **`src/spotify-pin-data.ts`** (`schemaVersion: 1`).
 
-### Why past trace dates often show “no plays”
+### Why past pin dates often show “no plays”
 
 Spotify’s **[Get Recently Played Tracks](https://developer.spotify.com/documentation/web-api/reference/get-recently-played)** endpoint exposes **recent** streams with pagination—it is **not** a complete listening-history archive by calendar day. Third‑party integrations cannot reconstruct “everything you played on 2023‑06‑15” the way your Spotify Wrapped or internal Spotify logs might.
 
 In practice:
 
-- Only plays that appear in this **recently-played feed** can be matched to your trace window. Listening **months or years ago** usually **won’t** appear, even if you definitely listened that day.
+- Only plays that appear in this **recently-played feed** can be matched to your pin window. Listening **months or years ago** usually **won’t** appear, even if you definitely listened that day.
 - Cursor paging helps scan backward only **within the history Spotify returns** for your account; once the API stops returning older pages, we cannot see further back ([historical discussion](https://github.com/spotify/web-api/issues/1405)).
-- Trace dates are interpreted as **UTC** calendar days (`YYYY-MM-DD` → start/end of that day in UTC). Local‑timezone listening can fall on the adjacent UTC date.
+- Pin dates are interpreted as **UTC** calendar days (`YYYY-MM-DD` → start/end of that day in UTC). Local‑timezone listening can fall on the adjacent UTC date.
 
 For calendar‑accurate long‑term scrobbling, users typically need something like **Last.fm** (or another service that logs plays continuously), not the Spotify Web API alone.

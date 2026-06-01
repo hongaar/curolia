@@ -7,15 +7,13 @@ import { useNavigationShell } from "@/providers/navigation-shell-provider";
 export function NavigationSidebarColumn() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { openNewJournalDialog } = useNavigationShell();
+  const { openNewMapDialog } = useNavigationShell();
 
   return (
     <NavigationSidebarContent
       userId={user?.id}
-      openNewJournalDialog={openNewJournalDialog}
-      onOpenJournalSettings={(journalId) =>
-        void navigate(`/journals/${journalId}/settings`)
-      }
+      openNewMapDialog={openNewMapDialog}
+      onOpenMapSettings={(mapId) => void navigate(`/maps/${mapId}/settings`)}
     />
   );
 }

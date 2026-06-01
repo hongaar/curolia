@@ -1,27 +1,24 @@
 /* eslint-disable react-hooks/set-state-in-effect -- persist last map/blog location for the stack base layer */
-import { journalViewHref } from "@/lib/app-paths";
+import { mapViewHref } from "@/lib/app-paths";
 import { isBaseRoute } from "@/lib/stack-routes";
-import { useJournal } from "@/providers/journal-provider";
+import { useMap } from "@/providers/map-provider";
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useLocation, type Location } from "react-router-dom";
 
 function defaultBasePathname(
-  activeJournalSlug: string | undefined,
-  fallbackJournalSlug: string | undefined,
+  activeMapSlug: string | undefined,
+  fallbackMapSlug: string | undefined,
 ): string {
-  const slug = activeJournalSlug ?? fallbackJournalSlug;
-  return slug ? journalViewHref("map", slug) : "/map";
+  const slug = activeMapSlug ?? fallbackMapSlug;
+  return slug ? mapViewHref("map", slug) : "/map";
 }
 
 /** Last map/blog location — kept mounted while stack screens are open. */
 export function useFrozenBaseLocation(): Location {
   const location = useLocation();
-  const { activeJournal, journals } = useJournal();
-  const fallbackSlug = journals[0]?.slug;
-  const defaultPathname = defaultBasePathname(
-    activeJournal?.slug,
-    fallbackSlug,
-  );
+  const { activeMap, maps } = useMap();
+  const fallbackSlug = maps[0]?.slug;
+  const defaultPathname = defaultBasePathname(activeMap?.slug, fallbackSlug);
 
   const [frozenBase, setFrozenBase] = useState(location);
 

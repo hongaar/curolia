@@ -1,44 +1,44 @@
-import { JournalViewInitialLoader } from "@/components/layout/journal-view-initial-loader";
+import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
-import { TraceMap, type TraceMapHandle } from "@/components/map/trace-map";
-import { TraceMapMarkerPopover } from "@/components/map/trace-map-marker-popover";
-import { AddTraceFab } from "@/components/traces/add-trace-fab";
-import { EmojiPicker } from "@/components/traces/emoji-picker";
-import { PresetColorPicker } from "@/components/traces/preset-color-picker";
-import { TraceFormDialog } from "@/components/traces/trace-form-dialog";
-import { TraceMapQuickAddDialog } from "@/components/traces/trace-map-quick-add-dialog";
-import { useJournalSlugRouteSync } from "@/hooks/use-journal-slug-route-sync";
+import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
+import { PinMapMarkerPopover } from "@/components/map/pin-map-marker-popover";
+import { AddPinFab } from "@/components/pins/add-pin-fab";
+import { EmojiPicker } from "@/components/pins/emoji-picker";
+import { PinFormDialog } from "@/components/pins/pin-form-dialog";
+import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
+import { PresetColorPicker } from "@/components/pins/preset-color-picker";
+import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
 import {
-  applyAddTraceToSearchParams,
+  applyAddPinToSearchParams,
   applyFilterTagsToSearchParams,
   applyMapCameraToSearchParams,
-  applySelectedTraceToSearchParams,
+  applySelectedPinToSearchParams,
   bboxToSyncKey,
   cameraToSyncKey,
   normalizeCameraForUrl,
-  parseAddTraceFromSearchParams,
+  parseAddPinFromSearchParams,
   parseMapBboxFromSearchParams,
   parseMapCameraFromSearchParams,
-  parseSelectedTraceTokenFromSearchParams,
+  parseSelectedPinTokenFromSearchParams,
   resolveFilterTagIdsFromSearchParams,
-  resolveTraceIdFromMapToken,
+  resolvePinIdFromMapToken,
   stripMapBboxFromSearchParams,
   type MapCamera,
 } from "@/lib/map-view-params";
 import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
-import { DEFAULT_TRACE_TAG_COLOR } from "@/lib/preset-trace-tag-colors";
+import type { PinWithTags } from "@/lib/pin-with-tags";
+import { filterPinsByTags } from "@/lib/pin-with-tags";
+import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
-import type { TraceWithTags } from "@/lib/trace-with-tags";
-import { filterTracesByTags } from "@/lib/trace-with-tags";
-import { useJournal } from "@/providers/journal-provider";
+import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
-import type { Tag, Trace } from "@/types/database";
+import type { Pin, Tag } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
@@ -77,9 +77,9 @@ export function MapPage() {
   const qc = useQueryClient();
   const { sidebarOpen, setSidebarOpen } = useNavigationShell();
   const isMobile = useMaxSm();
-  const { journalSlug } = useParams<{ journalSlug: string }>();
-  useJournalSlugRouteSync(journalSlug);
-  const mapRef = useRef<TraceMapHandle>(null);
+  const { mapSlug } = useParams<{ mapSlug: string }>();
+  useMapSlugRouteSync(mapSlug);
+  const mapRef = useRef<PinMapHandle>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const bboxFromUrl = useMemo(
     () => parseMapBboxFromSearchParams(searchParams),
@@ -89,42 +89,37 @@ export function MapPage() {
     () => parseMapCameraFromSearchParams(searchParams),
     [searchParams],
   );
-  const addTraceFromUrl = useMemo(
-    () => parseAddTraceFromSearchParams(searchParams),
+  const addPinFromUrl = useMemo(
+    () => parseAddPinFromSearchParams(searchParams),
     [searchParams],
   );
-  const {
-    activeJournalId,
-    activeJournal,
-    loading: journalLoading,
-  } = useJournal();
-  const prevJournalIdRef = useRef<string | null>(null);
-  const [journalFitGeneration, setJournalFitGeneration] = useState(0);
-  const [journalFitResolvedGeneration, setJournalFitResolvedGeneration] =
-    useState(0);
+  const { activeMapId, activeMap, loading: mapLoading } = useMap();
+  const prevMapIdRef = useRef<string | null>(null);
+  const [mapFitGeneration, setMapFitGeneration] = useState(0);
+  const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
 
   useLayoutEffect(() => {
-    const prev = prevJournalIdRef.current;
-    if (prev !== null && activeJournalId !== null && prev !== activeJournalId) {
-      setJournalFitGeneration((g) => g + 1);
+    const prev = prevMapIdRef.current;
+    if (prev !== null && activeMapId !== null && prev !== activeMapId) {
+      setMapFitGeneration((g) => g + 1);
     }
-    prevJournalIdRef.current = activeJournalId;
-  }, [activeJournalId]);
+    prevMapIdRef.current = activeMapId;
+  }, [activeMapId]);
 
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
   const [placementActive, setPlacementActive] = useState(false);
-  const [quickAddTrace, setQuickAddTrace] = useState<Trace | null>(null);
+  const [quickAddPin, setQuickAddPin] = useState<Pin | null>(null);
   const [quickAddAnchorScreen, setQuickAddAnchorScreen] = useState<{
     x: number;
     y: number;
   } | null>(null);
-  const [fullEditTrace, setFullEditTrace] = useState<Trace | null>(null);
+  const [fullEditPin, setFullEditPin] = useState<Pin | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState(DEFAULT_TRACE_TAG_COLOR);
+  const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
   const [newTagEmoji, setNewTagEmoji] = useState("📍");
   useEffect(() => {
     return () => clearTimeout(cameraIdleTimerRef.current);
@@ -135,7 +130,7 @@ export function MapPage() {
       clearTimeout(cameraIdleTimerRef.current);
       cameraIdleTimerRef.current = setTimeout(() => {
         const normalized = normalizeCameraForUrl(c);
-        writeStoredMapCamera(activeJournalId, normalized);
+        writeStoredMapCamera(activeMapId, normalized);
         setSearchParams(
           (prev) => {
             const prevNoBbox = stripMapBboxFromSearchParams(prev);
@@ -151,41 +146,41 @@ export function MapPage() {
         );
       }, 280);
     },
-    [activeJournalId, setSearchParams],
+    [activeMapId, setSearchParams],
   );
 
-  const tracesQuery = useQuery({
-    queryKey: ["traces", activeJournalId],
+  const pinsQuery = useQuery({
+    queryKey: ["pins", activeMapId],
     queryFn: async () => {
-      if (!activeJournalId) return [];
+      if (!activeMapId) return [];
       const { data, error } = await supabase
-        .from("traces")
+        .from("pins")
         .select(
           `*,
-          trace_tags ( tag_id, tags ( id, name, color, icon_emoji ) ),
+          pin_tags ( tag_id, tags ( id, name, color, icon_emoji ) ),
           photos ( id, storage_path, sort_order )`,
         )
-        .eq("journal_id", activeJournalId)
+        .eq("map_id", activeMapId)
         .order("date", { ascending: false, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as TraceWithTags[];
+      return (data ?? []) as PinWithTags[];
     },
-    enabled: Boolean(activeJournalId) && !journalLoading,
+    enabled: Boolean(activeMapId) && !mapLoading,
   });
 
   const tagsQuery = useQuery({
-    queryKey: ["tags", activeJournalId],
+    queryKey: ["tags", activeMapId],
     queryFn: async () => {
-      if (!activeJournalId) return [];
+      if (!activeMapId) return [];
       const { data, error } = await supabase
         .from("tags")
         .select("*")
-        .eq("journal_id", activeJournalId)
+        .eq("map_id", activeMapId)
         .order("name");
       if (error) throw error;
       return data ?? [];
     },
-    enabled: Boolean(activeJournalId) && !journalLoading,
+    enabled: Boolean(activeMapId) && !mapLoading,
   });
 
   const tags = useMemo(() => tagsQuery.data ?? [], [tagsQuery.data]);
@@ -214,7 +209,7 @@ export function MapPage() {
     onNewTag: () => {
       setTagEditTarget(null);
       setNewTagName("");
-      setNewTagColor(DEFAULT_TRACE_TAG_COLOR);
+      setNewTagColor(DEFAULT_PIN_TAG_COLOR);
       setNewTagEmoji("📍");
       setTagDialogOpen(true);
     },
@@ -227,30 +222,30 @@ export function MapPage() {
     },
   });
 
-  const traces = useMemo(() => tracesQuery.data ?? [], [tracesQuery.data]);
+  const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
 
-  const tracesReadyForJournalFit =
-    Boolean(activeJournalId) && !journalLoading && !tracesQuery.isPending;
-  const visibleTracesForFit = useMemo(
-    () => filterTracesByTags(traces, filterTagIds),
-    [traces, filterTagIds],
+  const pinsReadyForMapFit =
+    Boolean(activeMapId) && !mapLoading && !pinsQuery.isPending;
+  const visiblePinsForFit = useMemo(
+    () => filterPinsByTags(pins, filterTagIds),
+    [pins, filterTagIds],
   );
 
-  const journalFitPending = journalFitGeneration > journalFitResolvedGeneration;
-  const journalFitCanResolve =
+  const mapFitPending = mapFitGeneration > mapFitResolvedGeneration;
+  const mapFitCanResolve =
     Boolean(cameraFromUrl) ||
-    (tracesReadyForJournalFit && visibleTracesForFit.length === 0);
-  const awaitingJournalFit = journalFitPending && !journalFitCanResolve;
+    (pinsReadyForMapFit && visiblePinsForFit.length === 0);
+  const awaitingMapFit = mapFitPending && !mapFitCanResolve;
 
   useEffect(() => {
-    if (!journalFitPending || !journalFitCanResolve) return;
+    if (!mapFitPending || !mapFitCanResolve) return;
     queueMicrotask(() => {
-      setJournalFitResolvedGeneration(journalFitGeneration);
+      setMapFitResolvedGeneration(mapFitGeneration);
     });
-  }, [journalFitPending, journalFitCanResolve, journalFitGeneration]);
+  }, [mapFitPending, mapFitCanResolve, mapFitGeneration]);
 
   const resolvedInitialCamera = useMemo((): MapCamera | null => {
-    if (awaitingJournalFit) return null;
+    if (awaitingMapFit) return null;
     if (cameraFromUrl) return cameraFromUrl;
     if (bboxFromUrl) {
       return normalizeCameraForUrl({
@@ -259,60 +254,56 @@ export function MapPage() {
         zoom: 10,
       });
     }
-    return readStoredMapCamera(activeJournalId);
-  }, [awaitingJournalFit, cameraFromUrl, bboxFromUrl, activeJournalId]);
+    return readStoredMapCamera(activeMapId);
+  }, [awaitingMapFit, cameraFromUrl, bboxFromUrl, activeMapId]);
   const cameraSyncKey = useMemo(() => {
-    if (awaitingJournalFit) return "";
+    if (awaitingMapFit) return "";
     if (bboxFromUrl) return `url:bbox:${bboxToSyncKey(bboxFromUrl)}`;
     if (cameraFromUrl) return `url:${cameraToSyncKey(cameraFromUrl)}`;
     if (resolvedInitialCamera)
       return `init:${cameraToSyncKey(resolvedInitialCamera)}`;
     return "";
-  }, [awaitingJournalFit, bboxFromUrl, cameraFromUrl, resolvedInitialCamera]);
+  }, [awaitingMapFit, bboxFromUrl, cameraFromUrl, resolvedInitialCamera]);
 
   useEffect(() => {
-    if (!awaitingJournalFit) return;
-    if (!tracesReadyForJournalFit) return;
-    if (visibleTracesForFit.length === 0) return;
-    mapRef.current?.fitVisibleTraces();
-  }, [
-    awaitingJournalFit,
-    tracesReadyForJournalFit,
-    visibleTracesForFit.length,
-  ]);
+    if (!awaitingMapFit) return;
+    if (!pinsReadyForMapFit) return;
+    if (visiblePinsForFit.length === 0) return;
+    mapRef.current?.fitVisiblePins();
+  }, [awaitingMapFit, pinsReadyForMapFit, visiblePinsForFit.length]);
 
-  const sidebarTraceToken = useMemo(
-    () => parseSelectedTraceTokenFromSearchParams(searchParams),
+  const sidebarPinToken = useMemo(
+    () => parseSelectedPinTokenFromSearchParams(searchParams),
     [searchParams],
   );
-  const sidebarTraceId = useMemo(
-    () => resolveTraceIdFromMapToken(sidebarTraceToken, traces),
-    [sidebarTraceToken, traces],
+  const sidebarPinId = useMemo(
+    () => resolvePinIdFromMapToken(sidebarPinToken, pins),
+    [sidebarPinToken, pins],
   );
 
-  const onSelectTrace = useCallback(
+  const onSelectPin = useCallback(
     (id: string) => {
-      setQuickAddTrace(null);
+      setQuickAddPin(null);
       setQuickAddAnchorScreen(null);
-      const row = traces.find((x) => x.id === id);
+      const row = pins.find((x) => x.id === id);
       const token = row?.slug ?? id;
-      setSearchParams((prev) => applySelectedTraceToSearchParams(prev, token), {
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, token), {
         replace: true,
       });
     },
-    [setSearchParams, traces],
+    [setSearchParams, pins],
   );
 
-  const onCloseTraceMapPopover = useCallback(() => {
-    setSearchParams((prev) => applySelectedTraceToSearchParams(prev, null), {
+  const onClosePinMapPopover = useCallback(() => {
+    setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
       replace: true,
     });
   }, [setSearchParams]);
 
   const onPlacementClick = useCallback(
     async (lng: number, lat: number) => {
-      if (!activeJournalId) return;
-      setSearchParams((prev) => applySelectedTraceToSearchParams(prev, null), {
+      if (!activeMapId) return;
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
         replace: true,
       });
 
@@ -322,9 +313,9 @@ export function MapPage() {
           lng,
         );
         const { data: row, error } = await supabase
-          .from("traces")
+          .from("pins")
           .insert({
-            journal_id: activeJournalId,
+            map_id: activeMapId,
             title: shortTitle || null,
             location_label: fullLabel?.trim() || null,
             lat,
@@ -333,24 +324,24 @@ export function MapPage() {
           .select("*")
           .single();
         if (error) throw error;
-        await qc.invalidateQueries({ queryKey: ["traces", activeJournalId] });
+        await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
 
         const p = mapRef.current?.lngLatToScreen(lng, lat);
         setQuickAddAnchorScreen(p ?? null);
-        setQuickAddTrace(row as Trace);
+        setQuickAddPin(row as Pin);
       } catch (e) {
         toast.error(
-          e instanceof Error ? e.message : "Could not create trace here.",
+          e instanceof Error ? e.message : "Could not create pin here.",
         );
       }
     },
-    [activeJournalId, qc, setSearchParams],
+    [activeMapId, qc, setSearchParams],
   );
 
-  /** Stable marker lng/lat for trace popover while detail query loads (avoids fixed→floating flash). */
-  const tracePopoverListAnchor = useMemo(() => {
-    if (!sidebarTraceId) return null;
-    const t = traces.find((x) => x.id === sidebarTraceId);
+  /** Stable marker lng/lat for pin popover while detail query loads (avoids fixed→floating flash). */
+  const pinPopoverListAnchor = useMemo(() => {
+    if (!sidebarPinId) return null;
+    const t = pins.find((x) => x.id === sidebarPinId);
     if (
       !t ||
       typeof t.lat !== "number" ||
@@ -360,23 +351,23 @@ export function MapPage() {
     )
       return null;
     return { lat: t.lat, lng: t.lng };
-  }, [sidebarTraceId, traces]);
+  }, [sidebarPinId, pins]);
 
   useEffect(() => {
-    if (!sidebarTraceToken) return;
-    // While the active journal's traces are still loading, do not strip ?trace= — the token may
-    // belong to the new journal (e.g. global search) and is not in the previous list yet.
-    if (tracesQuery.isPending) return;
-    if (traces.length === 0) return;
-    if (resolveTraceIdFromMapToken(sidebarTraceToken, traces)) return;
-    setSearchParams((prev) => applySelectedTraceToSearchParams(prev, null), {
+    if (!sidebarPinToken) return;
+    // While the active map's pins are still loading, do not strip ?pin= — the token may
+    // belong to the new map (e.g. global search) and is not in the previous list yet.
+    if (pinsQuery.isPending) return;
+    if (pins.length === 0) return;
+    if (resolvePinIdFromMapToken(sidebarPinToken, pins)) return;
+    setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
       replace: true,
     });
-  }, [sidebarTraceToken, traces, tracesQuery.isPending, setSearchParams]);
+  }, [sidebarPinToken, pins, pinsQuery.isPending, setSearchParams]);
 
   useEffect(() => {
-    if (!quickAddTrace) return;
-    const { lat, lng } = quickAddTrace;
+    if (!quickAddPin) return;
+    const { lat, lng } = quickAddPin;
     const map = mapRef.current;
     if (!map) return;
     const upd = () => {
@@ -392,28 +383,28 @@ export function MapPage() {
       unsub();
       window.removeEventListener("resize", upd);
     };
-  }, [quickAddTrace]);
+  }, [quickAddPin]);
 
   useEffect(() => {
-    if (!addTraceFromUrl) return;
+    if (!addPinFromUrl) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- latch placement from one-shot ?add= URL deep link
     setPlacementActive(true);
     setSearchParams(
       (prev) =>
-        applyAddTraceToSearchParams(
-          applySelectedTraceToSearchParams(prev, null),
+        applyAddPinToSearchParams(
+          applySelectedPinToSearchParams(prev, null),
           false,
         ),
       { replace: true },
     );
-  }, [addTraceFromUrl, setSearchParams]);
+  }, [addPinFromUrl, setSearchParams]);
 
   useEffect(() => {
     if (!placementActive) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setPlacementActive(false);
-        setSearchParams((prev) => applyAddTraceToSearchParams(prev, false), {
+        setSearchParams((prev) => applyAddPinToSearchParams(prev, false), {
           replace: true,
         });
       }
@@ -423,21 +414,20 @@ export function MapPage() {
   }, [placementActive, setSearchParams]);
 
   useEffect(() => {
-    if (!sidebarTraceToken) return;
+    if (!sidebarPinToken) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setSearchParams(
-          (prev) => applySelectedTraceToSearchParams(prev, null),
-          { replace: true },
-        );
+        setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+          replace: true,
+        });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sidebarTraceToken, setSearchParams]);
+  }, [sidebarPinToken, setSearchParams]);
 
   async function saveTag() {
-    if (!activeJournalId || !newTagName.trim()) return;
+    if (!activeMapId || !newTagName.trim()) return;
     if (tagEditTarget) {
       const { error } = await supabase
         .from("tags")
@@ -451,13 +441,13 @@ export function MapPage() {
       if (!error) {
         setTagDialogOpen(false);
         setTagEditTarget(null);
-        await qc.invalidateQueries({ queryKey: ["tags", activeJournalId] });
-        await qc.invalidateQueries({ queryKey: ["traces", activeJournalId] });
+        await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
+        await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
       }
       return;
     }
     const { error } = await supabase.from("tags").insert({
-      journal_id: activeJournalId,
+      map_id: activeMapId,
       name: newTagName.trim(),
       color: newTagColor,
       icon_emoji: newTagEmoji || "📍",
@@ -465,18 +455,18 @@ export function MapPage() {
     if (!error) {
       setNewTagName("");
       setTagDialogOpen(false);
-      await qc.invalidateQueries({ queryKey: ["tags", activeJournalId] });
+      await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
     }
   }
 
-  function toggleAddTracePlacement() {
+  function toggleAddPinPlacement() {
     setPlacementActive((prev) => {
       const next = !prev;
       setSearchParams(
         (p) => {
-          let params = applyAddTraceToSearchParams(p, false);
+          let params = applyAddPinToSearchParams(p, false);
           if (next) {
-            params = applySelectedTraceToSearchParams(params, null);
+            params = applySelectedPinToSearchParams(params, null);
           }
           return params;
         },
@@ -486,14 +476,12 @@ export function MapPage() {
     });
   }
 
-  if (journalLoading) {
-    return <JournalViewInitialLoader />;
+  if (mapLoading) {
+    return <MapViewInitialLoader />;
   }
 
-  if (!activeJournalId) {
-    return (
-      <JournalViewInitialLoader label="No journal available." busy={false} />
-    );
+  if (!activeMapId) {
+    return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
   return (
@@ -501,13 +489,13 @@ export function MapPage() {
       <MapLayer>
         <MapVignette />
         <MapHost>
-          <TraceMap
+          <PinMap
             ref={mapRef}
-            traces={traces}
+            pins={pins}
             selectedTagIds={filterTagIds}
-            selectedTraceId={sidebarTraceId}
+            selectedPinId={sidebarPinId}
             previewPin={null}
-            onSelectTrace={onSelectTrace}
+            onSelectPin={onSelectPin}
             placementMode={placementActive}
             onPlacementClick={onPlacementClick}
             initialCamera={resolvedInitialCamera}
@@ -515,7 +503,7 @@ export function MapPage() {
             cameraSyncKey={cameraSyncKey}
             onCameraIdle={onCameraIdle}
             onMapBackgroundClick={
-              sidebarTraceId ? onCloseTraceMapPopover : undefined
+              sidebarPinId ? onClosePinMapPopover : undefined
             }
           />
         </MapHost>
@@ -526,9 +514,9 @@ export function MapPage() {
         </MapControlsLayer>
         <MapControlsLayer>
           <MapControlsBottomRight>
-            <AddTraceFab
+            <AddPinFab
               active={placementActive}
-              onClick={toggleAddTracePlacement}
+              onClick={toggleAddPinPlacement}
             />
           </MapControlsBottomRight>
         </MapControlsLayer>
@@ -542,27 +530,23 @@ export function MapPage() {
 
       {placementActive ? (
         <MapPlacementHint>
-          Tap the map to add a trace · Esc or Stop adding to cancel
+          Tap the map to add a pin · Esc or Stop adding to cancel
         </MapPlacementHint>
       ) : null}
 
-      {sidebarTraceId ? (
-        <TraceMapMarkerPopover
+      {sidebarPinId ? (
+        <PinMapMarkerPopover
           key={
-            isMobile
-              ? "trace-map-marker-popover-mobile"
-              : `${sidebarTraceId}-lg`
+            isMobile ? "pin-map-marker-popover-mobile" : `${sidebarPinId}-lg`
           }
-          traceId={sidebarTraceId}
-          journalId={activeJournalId}
-          journalSlug={
-            journalSlug?.trim() || activeJournal?.slug?.trim() || null
-          }
+          pinId={sidebarPinId}
+          mapId={activeMapId}
+          mapSlug={mapSlug?.trim() || activeMap?.slug?.trim() || null}
           mapRef={mapRef}
-          listAnchorLngLat={tracePopoverListAnchor}
+          listAnchorLngLat={pinPopoverListAnchor}
           onClose={() =>
             setSearchParams(
-              (prev) => applySelectedTraceToSearchParams(prev, null),
+              (prev) => applySelectedPinToSearchParams(prev, null),
               {
                 replace: true,
               },
@@ -571,30 +555,30 @@ export function MapPage() {
         />
       ) : null}
 
-      <TraceMapQuickAddDialog
-        open={Boolean(quickAddTrace)}
+      <PinMapQuickAddDialog
+        open={Boolean(quickAddPin)}
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
-            setQuickAddTrace(null);
+            setQuickAddPin(null);
             setQuickAddAnchorScreen(null);
           }
         }}
-        journalId={activeJournalId}
-        trace={quickAddTrace}
-        anchorScreen={quickAddTrace ? quickAddAnchorScreen : null}
+        mapId={activeMapId}
+        pin={quickAddPin}
+        anchorScreen={quickAddPin ? quickAddAnchorScreen : null}
         onEdit={(t) => {
-          setQuickAddTrace(null);
+          setQuickAddPin(null);
           setQuickAddAnchorScreen(null);
-          setFullEditTrace(t);
+          setFullEditPin(t);
         }}
       />
-      <TraceFormDialog
-        open={Boolean(fullEditTrace)}
+      <PinFormDialog
+        open={Boolean(fullEditPin)}
         onOpenChange={(open) => {
-          if (!open) setFullEditTrace(null);
+          if (!open) setFullEditPin(null);
         }}
-        journalId={activeJournalId}
-        trace={fullEditTrace}
+        mapId={activeMapId}
+        pin={fullEditPin}
       />
       <Dialog
         open={tagDialogOpen}

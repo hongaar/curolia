@@ -1,5 +1,5 @@
 -- `plugin_types` was the legacy catalog (`connector_types`). Application/plugin ids are
--- defined in code (`pluginManifest.id`). FKs from journal_plugins, user_plugins, and OAuth
+-- defined in code (`pluginManifest.id`). FKs from map_plugins, user_plugins, and OAuth
 -- tables were dropped in 20260507130000_decouple_plugin_types_foreign_keys.sql.
 -- Remove the last dependency (`photos.source_plugin_id`) and drop the catalog table.
 

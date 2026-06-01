@@ -1,11 +1,11 @@
 import type { MapCamera } from "@/lib/map-view-params";
 import { normalizeCameraForUrl } from "@/lib/map-view-params";
 
-const STORAGE_KEY = "journal:lastMapCamera";
+const STORAGE_KEY = "map:lastMapCamera";
 
 type StoredPayload = {
   v: 1;
-  journalId: string;
+  mapId: string;
   camera: MapCamera;
 };
 
@@ -18,21 +18,15 @@ function isValidCamera(c: MapCamera): boolean {
   return true;
 }
 
-export function readStoredMapCamera(
-  journalId: string | null,
-): MapCamera | null {
-  if (!journalId) return null;
+export function readStoredMapCamera(mapId: string | null): MapCamera | null {
+  if (!mapId) return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as unknown;
     if (!data || typeof data !== "object") return null;
     const o = data as Partial<StoredPayload>;
-    if (
-      o.v !== 1 ||
-      typeof o.journalId !== "string" ||
-      o.journalId !== journalId
-    )
+    if (o.v !== 1 || typeof o.mapId !== "string" || o.mapId !== mapId)
       return null;
     const cam = o.camera;
     if (!cam || typeof cam !== "object") return null;
@@ -45,14 +39,14 @@ export function readStoredMapCamera(
 }
 
 export function writeStoredMapCamera(
-  journalId: string | null,
+  mapId: string | null,
   camera: MapCamera,
 ): void {
-  if (!journalId) return;
+  if (!mapId) return;
   const normalized = normalizeCameraForUrl(camera);
   if (!isValidCamera(normalized)) return;
   try {
-    const payload: StoredPayload = { v: 1, journalId, camera: normalized };
+    const payload: StoredPayload = { v: 1, mapId, camera: normalized };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {
     /* quota / private mode */

@@ -1,14 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
 import {
-  Loader2,
-  Map as MapIcon,
-  MapPin,
-  Notebook,
-  Search,
-} from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { flushSync } from "react-dom";
-import { useLocation, useMatch, useNavigate } from "react-router-dom";
+  mapHrefWithSearch,
+  mapSwitchHref,
+  pinDetailHref,
+} from "@/lib/app-paths";
+import {
+  applyMapBboxToSearchParams,
+  applyMapCameraToSearchParams,
+  applySelectedPinToSearchParams,
+  normalizeCameraForUrl,
+  PIN_FOCUS_ZOOM,
+} from "@/lib/map-view-params";
+import { searchPhotonPlaces, type PhotonPlace } from "@/lib/photon-geocode";
+import {
+  searchPinsInMaps,
+  sortPinsByPreferredMap,
+  type PinSearchRow,
+} from "@/lib/pin-text-search";
+import { useMap } from "@/providers/map-provider";
+import type { CuroliaMap } from "@/types/database";
 import {
   GlobalSearchEmptyHint,
   GlobalSearchFooter,
@@ -31,44 +40,32 @@ import {
   GlobalSearchStatusText,
 } from "@curolia/ui/global-search";
 import { Popover } from "@curolia/ui/popover";
+import { useQuery } from "@tanstack/react-query";
 import {
-  applyMapBboxToSearchParams,
-  applyMapCameraToSearchParams,
-  applySelectedTraceToSearchParams,
-  normalizeCameraForUrl,
-  TRACE_FOCUS_ZOOM,
-} from "@/lib/map-view-params";
-import {
-  journalSwitchHref,
-  mapHrefWithSearch,
-  traceDetailHref,
-} from "@/lib/app-paths";
-import { searchPhotonPlaces, type PhotonPlace } from "@/lib/photon-geocode";
-import {
-  searchTracesInJournals,
-  sortTracesByPreferredJournal,
-  type TraceSearchRow,
-} from "@/lib/trace-text-search";
-import { useJournal } from "@/providers/journal-provider";
-import type { Journal } from "@/types/database";
+  Loader2,
+  Map as MapIcon,
+  MapPin,
+  Notebook,
+  Search,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
+import { useLocation, useMatch, useNavigate } from "react-router-dom";
 
 const DEBOUNCE_MS = 320;
 
-function journalTitle(
-  trace: TraceSearchRow,
-  journalById: Map<string, Journal>,
-) {
-  return journalById.get(trace.journal_id)?.name ?? "Journal";
+function mapTitle(pin: PinSearchRow, mapById: Map<string, CuroliaMap>) {
+  return mapById.get(pin.map_id)?.name ?? "Map";
 }
 
-function tracePrimaryLabel(t: TraceSearchRow): string {
+function pinPrimaryLabel(t: PinSearchRow): string {
   const title = t.title?.trim();
   if (title) return title;
   const place = t.location_label?.trim();
   if (place) return place;
   const desc = t.description?.trim();
   if (desc) return desc.length > 72 ? `${desc.slice(0, 72)}…` : desc;
-  return "Untitled trace";
+  return "Untitled pin";
 }
 
 type ResultButtonProps = {
@@ -100,9 +97,9 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const homeMatch = useMatch({ path: "/", end: true });
-  const mapJournalMatch = useMatch("/map/:journalSlug");
-  const isMapRoute = Boolean(homeMatch || mapJournalMatch);
-  const { journals, activeJournalId, setActiveJournalId } = useJournal();
+  const mapMapMatch = useMatch("/map/:mapSlug");
+  const isMapRoute = Boolean(homeMatch || mapMapMatch);
+  const { maps, activeMapId, setActiveMapId } = useMap();
 
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -131,34 +128,28 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const journalIds = useMemo(() => journals.map((j) => j.id), [journals]);
-  const journalIdsKey = useMemo(
-    () => [...journalIds].sort().join(","),
-    [journalIds],
-  );
-  const journalById = useMemo(
-    () => new Map(journals.map((j) => [j.id, j])),
-    [journals],
-  );
+  const mapIds = useMemo(() => maps.map((j) => j.id), [maps]);
+  const mapIdsKey = useMemo(() => [...mapIds].sort().join(","), [mapIds]);
+  const mapById = useMemo(() => new Map(maps.map((j) => [j.id, j])), [maps]);
 
-  const journalMatches = useMemo(() => {
+  const mapMatches = useMemo(() => {
     const q = debounced.toLowerCase();
     if (q.length < 1) return [];
-    return journals
+    return maps
       .filter((j) => j.name.toLowerCase().includes(q))
       .sort((a, b) => {
-        const as = a.id === activeJournalId ? 0 : 1;
-        const bs = b.id === activeJournalId ? 0 : 1;
+        const as = a.id === activeMapId ? 0 : 1;
+        const bs = b.id === activeMapId ? 0 : 1;
         if (as !== bs) return as - bs;
         return a.name.localeCompare(b.name);
       })
       .slice(0, 12);
-  }, [debounced, journals, activeJournalId]);
+  }, [debounced, maps, activeMapId]);
 
-  const tracesQuery = useQuery({
-    queryKey: ["global-search-traces", debounced, journalIdsKey],
-    queryFn: () => searchTracesInJournals(journalIds, debounced),
-    enabled: open && debounced.length >= 2 && journalIds.length > 0,
+  const pinsQuery = useQuery({
+    queryKey: ["global-search-pins", debounced, mapIdsKey],
+    queryFn: () => searchPinsInMaps(mapIds, debounced),
+    enabled: open && debounced.length >= 2 && mapIds.length > 0,
   });
 
   const placesQuery = useQuery({
@@ -168,53 +159,52 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     staleTime: 60_000,
   });
 
-  const tracesSorted = useMemo(() => {
-    const rows = tracesQuery.data ?? [];
-    return sortTracesByPreferredJournal(rows, activeJournalId);
-  }, [tracesQuery.data, activeJournalId]);
+  const pinsSorted = useMemo(() => {
+    const rows = pinsQuery.data ?? [];
+    return sortPinsByPreferredMap(rows, activeMapId);
+  }, [pinsQuery.data, activeMapId]);
 
-  function onPickJournal(j: Journal) {
+  function onPickMap(j: CuroliaMap) {
     if (!j.slug.trim()) return;
-    navigate(journalSwitchHref(j, location.pathname, location.search));
+    navigate(mapSwitchHref(j, location.pathname, location.search));
     setOpen(false);
   }
 
-  function onPickTrace(t: TraceSearchRow) {
+  function onPickPin(t: PinSearchRow) {
     flushSync(() => {
-      setActiveJournalId(t.journal_id);
+      setActiveMapId(t.map_id);
     });
     if (isMapRoute) {
-      const journal = journalById.get(t.journal_id);
-      const slug = journal?.slug?.trim();
+      const map = mapById.get(t.map_id);
+      const slug = map?.slug?.trim();
       if (!slug) {
         setOpen(false);
         return;
       }
-      const withTrace = applySelectedTraceToSearchParams(
+      const withPin = applySelectedPinToSearchParams(
         new URLSearchParams(),
         t.slug,
       );
       const params = applyMapCameraToSearchParams(
-        withTrace,
+        withPin,
         normalizeCameraForUrl({
           lat: t.lat,
           lng: t.lng,
-          zoom: TRACE_FOCUS_ZOOM,
+          zoom: PIN_FOCUS_ZOOM,
         }),
       );
       navigate(mapHrefWithSearch(slug, `?${params.toString()}`));
     } else {
-      const journal = journalById.get(t.journal_id);
-      const js = journal?.slug?.trim();
-      navigate(js ? traceDetailHref(js, t.slug) : "/");
+      const map = mapById.get(t.map_id);
+      const js = map?.slug?.trim();
+      navigate(js ? pinDetailHref(js, t.slug) : "/");
     }
     setOpen(false);
   }
 
   function onPickPlace(p: PhotonPlace) {
-    const journal =
-      journals.find((j) => j.id === activeJournalId) ?? journals[0] ?? null;
-    const slug = journal?.slug?.trim();
+    const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
+    const slug = map?.slug?.trim();
     if (!slug) {
       setOpen(false);
       return;
@@ -239,9 +229,9 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   }
 
   const showPlaces = isMapRoute && debounced.length >= 2;
-  const showTraces = debounced.length >= 2;
+  const showPins = debounced.length >= 2;
   const busy =
-    (showTraces && tracesQuery.isFetching) ||
+    (showPins && pinsQuery.isFetching) ||
     (showPlaces && placesQuery.isFetching);
 
   return (
@@ -268,7 +258,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       </GlobalSearchPopoverTrigger>
       <GlobalSearchPopoverContent>
         <GlobalSearchPopoverTitle>
-          Search journals and traces
+          Search maps and pins
         </GlobalSearchPopoverTitle>
         <GlobalSearchHeader>
           <GlobalSearchIcon>
@@ -278,7 +268,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Journals, traces…"
+            placeholder="Maps, pins…"
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
@@ -293,57 +283,56 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
         <GlobalSearchResults>
           {debounced.length === 0 ? (
             <GlobalSearchEmptyHint>
-              Search journals by name. Type two or more characters to find
-              traces
+              Search maps by name. Type two or more characters to find pins
               {isMapRoute ? " and map places" : ""}.
             </GlobalSearchEmptyHint>
           ) : null}
 
-          {debounced.length >= 1 && journalMatches.length > 0 ? (
+          {debounced.length >= 1 && mapMatches.length > 0 ? (
             <>
-              <GlobalSearchSectionLabel>Journals</GlobalSearchSectionLabel>
-              {journalMatches.map((j) => (
+              <GlobalSearchSectionLabel>Maps</GlobalSearchSectionLabel>
+              {mapMatches.map((j) => (
                 <ResultRow
                   key={j.id}
                   icon={<Notebook />}
                   title={j.name}
                   subtitle={j.is_personal ? "Personal" : undefined}
-                  onPick={() => onPickJournal(j)}
+                  onPick={() => onPickMap(j)}
                 />
               ))}
             </>
           ) : null}
 
           {debounced.length >= 1 &&
-          journalMatches.length === 0 &&
+          mapMatches.length === 0 &&
           debounced.length < 2 ? (
             <GlobalSearchStatusText>
-              No journals match. Add another letter to search traces
+              No maps match. Add another letter to search pins
               {isMapRoute ? " and places" : ""}.
             </GlobalSearchStatusText>
           ) : null}
 
-          {showTraces ? (
+          {showPins ? (
             <>
-              <GlobalSearchSectionLabel>Traces</GlobalSearchSectionLabel>
-              {tracesQuery.isError ? (
+              <GlobalSearchSectionLabel>Pins</GlobalSearchSectionLabel>
+              {pinsQuery.isError ? (
                 <GlobalSearchStatusText>
-                  Could not load traces.
+                  Could not load pins.
                 </GlobalSearchStatusText>
-              ) : tracesQuery.isFetching && tracesSorted.length === 0 ? (
+              ) : pinsQuery.isFetching && pinsSorted.length === 0 ? (
                 <GlobalSearchStatusText>Searching…</GlobalSearchStatusText>
-              ) : tracesSorted.length === 0 ? (
+              ) : pinsSorted.length === 0 ? (
                 <GlobalSearchStatusText>
-                  No matching traces.
+                  No matching pins.
                 </GlobalSearchStatusText>
               ) : (
-                tracesSorted.map((t) => (
+                pinsSorted.map((t) => (
                   <ResultRow
                     key={t.id}
                     icon={<MapPin />}
-                    title={tracePrimaryLabel(t)}
-                    subtitle={journalTitle(t, journalById)}
-                    onPick={() => onPickTrace(t)}
+                    title={pinPrimaryLabel(t)}
+                    subtitle={mapTitle(t, mapById)}
+                    onPick={() => onPickPin(t)}
                   />
                 ))
               )}
@@ -386,8 +375,8 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
         <GlobalSearchFooter>
           <GlobalSearchKbd>Ctrl</GlobalSearchKbd>{" "}
-          <GlobalSearchKbd>K</GlobalSearchKbd> to open · Trace results prefer
-          the active journal
+          <GlobalSearchKbd>K</GlobalSearchKbd> to open · Pin results prefer the
+          active map
         </GlobalSearchFooter>
       </GlobalSearchPopoverContent>
     </Popover>

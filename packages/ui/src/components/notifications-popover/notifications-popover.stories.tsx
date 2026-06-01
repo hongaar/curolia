@@ -41,13 +41,13 @@ export const Default: Story = {
           <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
             <NotificationsPopoverItem
               unread
-              title="Journal invitation"
+              title="Map invitation"
               body='Alex invited you to "Summer 2025".'
               onClick={() => undefined}
             />
             <NotificationsPopoverItem
               unread={false}
-              title="Trace comment"
+              title="Pin comment"
               body="Sam mentioned you on Café de Flore."
               onClick={() => undefined}
             />

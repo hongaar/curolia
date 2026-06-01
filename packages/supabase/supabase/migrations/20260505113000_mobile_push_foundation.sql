@@ -125,14 +125,14 @@ $$;
 revoke all on function public.register_push_token(text, text, text, text) from public;
 grant execute on function public.register_push_token(text, text, text, text) to authenticated;
 
-create or replace function public.enqueue_journal_invitation_push()
+create or replace function public.enqueue_map_invitation_push()
 returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
 begin
-  if new.type <> 'journal_invitation'::public.notification_type then
+  if new.type <> 'map_invitation'::public.notification_type then
     return new;
   end if;
 
@@ -171,8 +171,8 @@ begin
 end;
 $$;
 
-drop trigger if exists notifications_enqueue_journal_invitation_push on public.notifications;
-create trigger notifications_enqueue_journal_invitation_push
+drop trigger if exists notifications_enqueue_map_invitation_push on public.notifications;
+create trigger notifications_enqueue_map_invitation_push
 after insert on public.notifications
 for each row
-execute function public.enqueue_journal_invitation_push();
+execute function public.enqueue_map_invitation_push();

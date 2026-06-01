@@ -54,11 +54,11 @@ export function BlogEmptyPanel({ children }: { children: React.ReactNode }) {
   return <div className={styles.emptyPanel}>{children}</div>;
 }
 
-export function BlogTraceList({ children }: { children: React.ReactNode }) {
-  return <ul className={styles.traceList}>{children}</ul>;
+export function BlogPinList({ children }: { children: React.ReactNode }) {
+  return <ul className={styles.pinList}>{children}</ul>;
 }
 
-export function BlogTraceDate({
+export function BlogPinDate({
   dateTime,
   children,
 }: {
@@ -66,13 +66,13 @@ export function BlogTraceDate({
   children: React.ReactNode;
 }) {
   return (
-    <time className={styles.traceDate} dateTime={dateTime}>
+    <time className={styles.pinDate} dateTime={dateTime}>
       {children}
     </time>
   );
 }
 
-export function BlogTraceTitle({
+export function BlogPinTitle({
   children,
   spaced = false,
 }: {
@@ -82,9 +82,7 @@ export function BlogTraceTitle({
   return (
     <h2
       className={
-        spaced
-          ? `${styles.traceTitle} ${styles.traceTitleSpaced}`
-          : styles.traceTitle
+        spaced ? `${styles.pinTitle} ${styles.pinTitleSpaced}` : styles.pinTitle
       }
     >
       {children}
@@ -92,7 +90,7 @@ export function BlogTraceTitle({
   );
 }
 
-export function BlogTraceTitleLink({
+export function BlogPinTitleLink({
   to,
   children,
 }: {
@@ -100,7 +98,7 @@ export function BlogTraceTitleLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link className={styles.traceTitleLink} to={to}>
+    <Link className={styles.pinTitleLink} to={to}>
       {children}
     </Link>
   );
@@ -126,12 +124,12 @@ export function BlogTagBadge({
   );
 }
 
-export function BlogTraceDescription({
+export function BlogPinDescription({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <p className={styles.traceDescription}>{children}</p>;
+  return <p className={styles.pinDescription}>{children}</p>;
 }
 
 export function BlogPhotoGrid({ children }: { children: React.ReactNode }) {
@@ -150,6 +148,6 @@ export function BlogPhotoSkeleton() {
   );
 }
 
-export function BlogTraceActions({ children }: { children: React.ReactNode }) {
-  return <div className={styles.traceActions}>{children}</div>;
+export function BlogPinActions({ children }: { children: React.ReactNode }) {
+  return <div className={styles.pinActions}>{children}</div>;
 }

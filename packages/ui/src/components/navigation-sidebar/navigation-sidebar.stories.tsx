@@ -12,7 +12,7 @@ import {
 const meta = {
   title: "Navigation Sidebar",
   ...componentStoryMeta(
-    `Journal picker, nav links, and tag filter chrome.`,
+    `Map picker, nav links, and tag filter chrome.`,
     `Requires \`react-router\` \`NavLink\` via \`NavigationSidebarNavLink\`. Build inside \`NavigationSidebarRoot\` sections.`,
   ),
   component: NavigationSidebarRoot,
@@ -23,11 +23,11 @@ export default meta;
 type Story = StoryObj;
 
 export const Default: Story = {
-  parameters: storyDocs("Sidebar with journal section and nav links."),
+  parameters: storyDocs("Sidebar with map section and nav links."),
   render: () => (
     <NavigationSidebarRoot>
       <NavigationSidebarSection>
-        <NavigationSidebarLabel>Journal</NavigationSidebarLabel>
+        <NavigationSidebarLabel>Map</NavigationSidebarLabel>
         <p style={{ margin: 0, fontSize: "0.875rem", padding: "0 0.5rem" }}>
           Summer 2025
         </p>

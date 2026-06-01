@@ -14,7 +14,7 @@ import {
 const meta = {
   title: "Blog",
   ...componentStoryMeta(
-    `Layout helpers for the journal blog timeline and entries.`,
+    `Layout helpers for the map blog timeline and entries.`,
     `Compose blog list rows and metadata from exported primitives in \`blog.tsx\`.`,
   ),
   component: BlogPageRoot,
@@ -37,7 +37,7 @@ export const Default: Story = {
       <BlogScroll>
         <BlogContent>
           <BlogHeader>
-            <BlogKicker>Journal blog</BlogKicker>
+            <BlogKicker>Map blog</BlogKicker>
             <BlogTitle>Summer 2025</BlogTitle>
             <BlogLead>Stories from the road, sorted by date.</BlogLead>
           </BlogHeader>

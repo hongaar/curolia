@@ -37,7 +37,7 @@ export function LoginLayout({ children, backdropStyle }: LoginLayoutProps) {
 
 export function LoginHeader({
   title = "Curolia",
-  subtitle = "Sign in to your travel journal.",
+  subtitle = "Sign in to your travel map.",
 }: {
   title?: string;
   subtitle?: string;

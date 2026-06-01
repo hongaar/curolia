@@ -7,11 +7,11 @@ Shared plugin contract for Curolia plugin packages and host apps.
 - Defines the canonical plugin manifest shape (`PluginPackageManifest` / `PluginDefinition`).
 - Defines contribution metadata for:
   - global settings
-  - per-journal settings
+  - per-map settings
   - app hooks
   - Supabase Edge Function declarations
   - OAuth declarations
-- Provides helpers for journal plugin config records.
+- Provides helpers for map plugin config records.
 
 ## Plugin package requirements
 
@@ -60,11 +60,11 @@ npm run plugins:sync -w @curolia/web
 
 This keeps plugin add/remove flow dependency-driven (no manual registry edits).
 
-### Trace UI surfaces
+### Pin UI surfaces
 
-- **`TracePhotoImportSlot`**: trace editor (e.g. cloud photo pickers).
-- **`TraceDetailSection`**: optional block on the trace detail route; receives **`TraceContextProps`** (trace id, journal id, dates, `supabase`, `userId`). Plugins that persist JSON should use the shared **`plugin_entity_data`** table (see Supabase migrations).
+- **`PinPhotoImportSlot`**: pin editor (e.g. cloud photo pickers).
+- **`PinDetailSection`**: optional block on the pin detail route; receives **`PinContextProps`** (pin id, map id, dates, `supabase`, `userId`). Plugins that persist JSON should use the shared **`plugin_entity_data`** table (see Supabase migrations).
 
 ### Entity-attached plugin data
 
-Structured payloads keyed by **`entity_type`** + **`entity_id`** + **`plugin_type_id`** live in **`public.plugin_entity_data`** so plugins do not overload unrelated tables (e.g. trace links).
+Structured payloads keyed by **`entity_type`** + **`entity_id`** + **`plugin_type_id`** live in **`public.plugin_entity_data`** so plugins do not overload unrelated tables (e.g. pin links).

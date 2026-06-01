@@ -5,8 +5,8 @@ import { OpenSourceLicensesPage } from "@/pages/open-source-licenses-page";
 import { ResetPasswordPage } from "@/pages/reset-password-page";
 import { RootPage } from "@/pages/root-page";
 import { appShellRouteElements } from "@/routes/app-shell-routes";
-import { StackLayout } from "@/routes/stack-layout";
 import { ProtectedLayout } from "@/routes/protected-layout";
+import { StackLayout } from "@/routes/stack-layout";
 import {
   ContactPageContent,
   PrivacyPolicyPageContent,

@@ -17,7 +17,7 @@ import {
 const meta = {
   title: "Map Marker Popover",
   ...componentStoryMeta(
-    "Content primitives for the trace summary popover beside a map marker.",
+    "Content primitives for the pin summary popover beside a map marker.",
     "Wrap in `FloatingPanel` + `MapFloatingAnchor` on desktop, or `MapMarkerPopoverSheetContent` on mobile.",
   ),
 } satisfies Meta<typeof MapMarkerPopoverBody>;
@@ -43,7 +43,7 @@ export const Default: Story = {
         </MapMarkerPopoverPhotoStrip>
         <MapMarkerPopoverStatus>3 photos · 2 links</MapMarkerPopoverStatus>
         <MapMarkerPopoverActions>
-          <Button size="sm">Open trace</Button>
+          <Button size="sm">Open pin</Button>
         </MapMarkerPopoverActions>
       </MapMarkerPopoverBody>
     </FloatingPanel>

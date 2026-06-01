@@ -1,4 +1,4 @@
--- Trace photo provenance for imported cloud library items (e.g. Google Photos).
+-- Pin photo provenance for imported cloud library items (e.g. Google Photos).
 alter table public.photos
   add column source_plugin_id text references public.plugin_types (id) on delete set null;
 

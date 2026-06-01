@@ -1,27 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { LastfmTracePayload } from "./lastfm-trace-data";
+import type { LastfmPinPayload } from "./lastfm-pin-data";
 
 export type LastfmSyncResponse =
   | {
-      skippedReason: "no_trace_date";
+      skippedReason: "no_pin_date";
       cleared?: boolean;
     }
   | {
       synced: true;
-      payload: LastfmTracePayload;
+      payload: LastfmPinPayload;
     }
   | {
       error: string;
       reason?: string;
     };
 
-export async function lastfmSyncTraceListening(
+export async function lastfmSyncPinListening(
   supabase: SupabaseClient,
-  traceId: string,
+  pinId: string,
 ): Promise<LastfmSyncResponse> {
   const { data, error } = await supabase.functions.invoke<LastfmSyncResponse>(
     "lastfm",
-    { body: { action: "sync_top_tracks", traceId } },
+    { body: { action: "sync_top_tracks", pinId } },
   );
   if (error) {
     return { error: error.message || "lastfm_sync_failed" };

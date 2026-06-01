@@ -129,7 +129,7 @@ export function PrivacyPolicyContent({
 
       <LegalSection title="Who we are">
         <LegalParagraph>
-          Curolia is a travel journal service. For privacy-related questions,
+          Curolia is a travel map service. For privacy-related questions,
           contact us at{" "}
           <a className={styles.legalInlineLink} href={`mailto:${contactEmail}`}>
             {contactEmail}
@@ -150,8 +150,8 @@ export function PrivacyPolicyContent({
             preferences you choose in settings.
           </li>
           <li>
-            <strong>Journal content:</strong> journals, traces, places, notes,
-            photos, tags, and other material you create or upload.
+            <strong>Map content:</strong> maps, pins, places, notes, photos,
+            tags, and other material you create or upload.
           </li>
           <li>
             <strong>Connected services:</strong> if you enable plugins (for
@@ -170,15 +170,15 @@ export function PrivacyPolicyContent({
         <LegalList>
           <li>Provide, maintain, and improve the Service.</li>
           <li>Authenticate you and keep your account secure.</li>
-          <li>Store and display your journals and traces as you direct.</li>
+          <li>Store and display your maps and pins as you direct.</li>
           <li>
             Send service messages (for example password reset or invitations).
           </li>
           <li>Comply with legal obligations and enforce our Terms.</li>
         </LegalList>
         <LegalParagraph>
-          We do not sell your personal data. We do not use your journal content
-          to train third-party AI models.
+          We do not sell your personal data. We do not use your map content to
+          train third-party AI models.
         </LegalParagraph>
       </LegalSection>
 
@@ -196,8 +196,8 @@ export function PrivacyPolicyContent({
           We use trusted infrastructure and service providers (for example
           hosting, authentication, email delivery, and optional plugin providers
           you connect). They process data only on our instructions and under
-          appropriate safeguards. Journal content is private by default; we
-          share it only when you use sharing features or when required by law.
+          appropriate safeguards. Map content is private by default; we share it
+          only when you use sharing features or when required by law.
         </LegalParagraph>
       </LegalSection>
 
@@ -287,9 +287,9 @@ export function TermsContent({
 
       <LegalSection title="The Service">
         <LegalParagraph>
-          Curolia lets you map places, write traces, organise journals, attach
-          media, and optionally connect third-party plugins. Features may change
-          as we improve the product. We may suspend or discontinue parts of the
+          Curolia lets you map places, write pins, organise maps, attach media,
+          and optionally connect third-party plugins. Features may change as we
+          improve the product. We may suspend or discontinue parts of the
           Service with reasonable notice where practicable.
         </LegalParagraph>
       </LegalSection>

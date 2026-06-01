@@ -1,9 +1,9 @@
 import { flip, offset, shift, size, type Middleware } from "@floating-ui/dom";
 
-/** Space from map anchor (marker center) to panel — matches new-trace floating form. */
+/** Space from map anchor (marker center) to panel — matches new-pin floating form. */
 export const MAP_ANCHOR_PANEL_GAP_PX = 28;
 
-/** Floating UI middleware for anchored map panels (new trace dialog, marker hover). */
+/** Floating UI middleware for anchored map panels (new pin dialog, marker hover). */
 export function mapAnchorPanelMiddleware(): Middleware[] {
   return [
     offset(MAP_ANCHOR_PANEL_GAP_PX),

@@ -1,4 +1,4 @@
-import type { TraceMapHandle } from "@/components/map/trace-map";
+import type { PinMapHandle } from "@/components/map/pin-map";
 import { MapToolbar, MapToolbarButton } from "@curolia/ui/map-toolbar";
 import { Locate, Minus, Plus, Scan } from "lucide-react";
 import type { RefObject } from "react";
@@ -6,15 +6,15 @@ import type { RefObject } from "react";
 export function MapControlsToolbar({
   mapRef,
 }: {
-  mapRef: RefObject<TraceMapHandle | null>;
+  mapRef: RefObject<PinMapHandle | null>;
 }) {
   return (
     <MapToolbar>
       <MapToolbarButton
         icon={<Scan aria-hidden />}
-        label="Fit traces"
-        title="Fit map to visible traces"
-        onClick={() => mapRef.current?.fitVisibleTraces()}
+        label="Fit pins"
+        title="Fit map to visible pins"
+        onClick={() => mapRef.current?.fitVisiblePins()}
       />
       <MapToolbarButton
         icon={<Plus aria-hidden />}

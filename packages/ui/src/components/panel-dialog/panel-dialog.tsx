@@ -81,7 +81,7 @@ export function PanelDialogSpinner() {
   return <Loader2 className={cn(styles.iconSm, "spin")} aria-hidden />;
 }
 
-/** In-form prep step (avoids stacking a second modal on trace edit). */
+/** In-form prep step (avoids stacking a second modal on pin edit). */
 export function PanelDialogInlinePrep({
   title,
   description,

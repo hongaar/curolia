@@ -16,7 +16,7 @@ const meta = {
   title: "Card",
   ...componentStoryMeta(
     `Grouped content surface with header, body, and footer regions.`,
-    `Compose \`Card\`, \`CardHeader\`, \`CardTitle\`, \`CardDescription\`, \`CardContent\`, and \`CardFooter\`. Use for trace panels, plugin blocks, and settings sections.`,
+    `Compose \`Card\`, \`CardHeader\`, \`CardTitle\`, \`CardDescription\`, \`CardContent\`, and \`CardFooter\`. Use for pin panels, plugin blocks, and settings sections.`,
   ),
   component: Card,
 } satisfies Meta;
@@ -30,8 +30,8 @@ export const Default: Story = {
     <StoryFrame width="md">
       <Card>
         <CardHeader>
-          <CardTitle>Trace settings</CardTitle>
-          <CardDescription>Configure metadata for this trace.</CardDescription>
+          <CardTitle>Pin settings</CardTitle>
+          <CardDescription>Configure metadata for this pin.</CardDescription>
           <CardAction>
             <Button size="sm" variant="outline">
               Edit

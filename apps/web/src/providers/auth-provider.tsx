@@ -29,9 +29,9 @@ function authRedirectUrl(path: string): string {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const ACTIVE_JOURNAL_KEY = "journal:activeJournalId";
+const ACTIVE_JOURNAL_KEY = "map:activeMapId";
 
-export function getStoredActiveJournalId(): string | null {
+export function getStoredActiveMapId(): string | null {
   try {
     return localStorage.getItem(ACTIVE_JOURNAL_KEY);
   } catch {
@@ -39,7 +39,7 @@ export function getStoredActiveJournalId(): string | null {
   }
 }
 
-export function setStoredActiveJournalId(id: string | null) {
+export function setStoredActiveMapId(id: string | null) {
   try {
     if (id) localStorage.setItem(ACTIVE_JOURNAL_KEY, id);
     else localStorage.removeItem(ACTIVE_JOURNAL_KEY);
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    setStoredActiveJournalId(null);
+    setStoredActiveMapId(null);
     await supabase.auth.signOut();
   }, []);
 

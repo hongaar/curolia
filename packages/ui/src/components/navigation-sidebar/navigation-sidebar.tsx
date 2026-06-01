@@ -143,15 +143,11 @@ export function NavigationSidebarEmoji({
   );
 }
 
-export function JournalDropdownRow({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.journalRow}>{children}</div>;
+export function MapDropdownRow({ children }: { children: React.ReactNode }) {
+  return <div className={styles.mapRow}>{children}</div>;
 }
 
-export function JournalDropdownEditButton({
+export function MapDropdownEditButton({
   children,
   onClick,
   title,
@@ -226,7 +222,7 @@ export function SidebarTagName({
   );
 }
 
-export function SidebarJournalName({
+export function SidebarMapName({
   children,
   selected,
   personal,
@@ -239,13 +235,13 @@ export function SidebarJournalName({
     <span
       className={
         selected
-          ? `${styles.journalName} ${styles.journalNameSelected}`
-          : styles.journalName
+          ? `${styles.mapName} ${styles.mapNameSelected}`
+          : styles.mapName
       }
     >
       {children}
       {personal ? (
-        <span className={styles.journalPersonal}> (personal)</span>
+        <span className={styles.mapPersonal}> (personal)</span>
       ) : null}
     </span>
   );
@@ -275,7 +271,7 @@ export function SidebarDropdownMenuItem({
   ...props
 }: React.ComponentProps<typeof DropdownMenuItem>) {
   return (
-    <DropdownMenuItem className={styles.journalItem} {...props}>
+    <DropdownMenuItem className={styles.mapItem} {...props}>
       {children}
     </DropdownMenuItem>
   );
@@ -289,13 +285,9 @@ export function SidebarCheckSpacer() {
   return <span className={styles.checkSpacer} aria-hidden />;
 }
 
-export function SidebarJournalEmoji({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function SidebarMapEmoji({ children }: { children: React.ReactNode }) {
   return (
-    <span className={styles.journalEmoji} aria-hidden>
+    <span className={styles.mapEmoji} aria-hidden>
       {children}
     </span>
   );

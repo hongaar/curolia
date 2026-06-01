@@ -1,0 +1,146 @@
+.card {
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--muted) 10%, transparent);
+  box-shadow: none;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.headerBetween {
+  justify-content: space-between;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.iconMuted {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.125em;
+  height: 1.125em;
+  color: var(--muted-foreground);
+}
+
+.iconMuted > * {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: inherit;
+  font-weight: 400;
+  line-height: inherit;
+  letter-spacing: -0.025em;
+}
+
+.spinner {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-foreground);
+}
+
+.spinnerIcon {
+  width: 100%;
+  height: 100%;
+  animation: pluginPinSpin 1s linear infinite;
+}
+
+@keyframes pluginPinSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.muted {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.mutedXs {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.mutedStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: var(--muted-foreground);
+}
+
+.error {
+  font-size: 0.875rem;
+  color: var(--destructive);
+}
+
+.trackList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trackLink {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-underline-offset: 4px;
+  text-decoration: none;
+}
+
+.trackLink:hover {
+  text-decoration: underline;
+}
+
+.trackIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-foreground);
+}
+
+.trackIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.trackMeta {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}

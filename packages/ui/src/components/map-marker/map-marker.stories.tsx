@@ -7,7 +7,7 @@ const meta = {
   title: "Map Marker",
   component: MapMarker,
   ...componentStoryMeta(
-    "Emoji pin used on the main map and trace detail inset map.",
+    "Emoji pin used on the main map and pin detail inset map.",
     "Use `createMapMarkerMount` when attaching markers via MapLibre GL.",
   ),
   args: {
@@ -28,24 +28,22 @@ export const Default: Story = {
 };
 
 export const Selected: Story = {
-  parameters: storyDocs("Selected trace on the main map."),
+  parameters: storyDocs("Selected pin on the main map."),
   args: { selected: true },
 };
 
 export const Hovered: Story = {
-  parameters: storyDocs("Hovered trace preview state."),
+  parameters: storyDocs("Hovered pin preview state."),
   args: { hovered: true },
 };
 
 export const Draft: Story = {
-  parameters: storyDocs("Placement preview while creating a trace."),
+  parameters: storyDocs("Placement preview while creating a pin."),
   args: { draft: true, interactive: false, fill: null },
 };
 
 export const InsetSelected: Story = {
-  parameters: storyDocs(
-    "Non-interactive marker on the trace detail inset map.",
-  ),
+  parameters: storyDocs("Non-interactive marker on the pin detail inset map."),
   args: { selected: true, interactive: false },
 };
 

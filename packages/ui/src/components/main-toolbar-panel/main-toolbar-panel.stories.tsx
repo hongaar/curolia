@@ -33,7 +33,7 @@ export const Default: Story = {
       </MainToolbarMenuButton>
       <MainToolbarBrand>Curolia</MainToolbarBrand>
       <MainToolbarSearchSlot>
-        <Input placeholder="Search traces…" aria-label="Search" />
+        <Input placeholder="Search pins…" aria-label="Search" />
       </MainToolbarSearchSlot>
     </MainToolbarShell>
   ),

@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@curolia/ui/dropdown-menu";
 import {
-  JournalDropdownEditButton,
+  MapDropdownEditButton,
   NavigationSidebarIcon,
   SidebarCheckIcon,
   SidebarCheckSpacer,
@@ -82,7 +82,7 @@ export function SidebarTagsFilterDropdown({
                       <SidebarCheckSpacer />
                     )}
                   </SidebarDropdownMenuItem>
-                  <JournalDropdownEditButton
+                  <MapDropdownEditButton
                     title="Edit tag"
                     onClick={(e) => {
                       e.preventDefault();
@@ -91,7 +91,7 @@ export function SidebarTagsFilterDropdown({
                     }}
                   >
                     <Pencil aria-hidden />
-                  </JournalDropdownEditButton>
+                  </MapDropdownEditButton>
                 </SidebarDropdownRow>
               );
             })

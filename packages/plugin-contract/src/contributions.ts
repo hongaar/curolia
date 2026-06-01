@@ -24,21 +24,21 @@ export type GlobalSettingsDeclaration = {
 };
 
 /**
- * Per-journal settings (stored in `journal_plugins.config` or dedicated tables).
+ * Per-map settings (stored in `map_plugins.config` or dedicated tables).
  * UI registration stays in the app shell; this describes intent for docs and tooling.
  */
-export type JournalSettingsDeclaration = {
+export type MapSettingsDeclaration = {
   /** How the web app should mount plugin-specific panels */
   panel: "inline" | "modal";
   title?: string;
 };
 
 /**
- * Named extension points for web/mobile (e.g. photo suggestions for a trace).
+ * Named extension points for web/mobile (e.g. photo suggestions for a pin).
  * Runtime: app registers handlers; plugins only declare names for discovery.
  */
 export type AppHookDeclaration = {
-  /** Dot-separated namespaced id, e.g. `photos.suggestionsForTrace` */
+  /** Dot-separated namespaced id, e.g. `photos.suggestionsForPin` */
   name: string;
   description: string;
 };
@@ -61,7 +61,7 @@ export type PluginOAuthDeclaration = {
 
 export type PluginContributions = {
   globalSettings?: GlobalSettingsDeclaration;
-  journalSettings?: JournalSettingsDeclaration;
+  mapSettings?: MapSettingsDeclaration;
   appHooks?: AppHookDeclaration[];
   edgeFunctions?: EdgeFunctionDeclaration[];
   oauth?: PluginOAuthDeclaration[];

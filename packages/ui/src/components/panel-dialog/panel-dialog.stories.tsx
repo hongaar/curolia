@@ -16,7 +16,7 @@ import {
 const meta = {
   title: "Panel Dialog",
   ...componentStoryMeta(
-    `Wide dialog variant for trace forms and journal actions.`,
+    `Wide dialog variant for pin forms and map actions.`,
     `Use exported \`PanelDialogContent\` wrappers instead of raw \`DialogContent\` sizing.`,
   ),
   component: PanelDialogContent,
@@ -26,7 +26,7 @@ export default meta;
 type Story = StoryObj;
 
 export const Default: Story = {
-  parameters: storyDocs("Wide dialog content for journal and trace forms."),
+  parameters: storyDocs("Wide dialog content for map and pin forms."),
   render: () => (
     <StoryFrame width="md">
       <Dialog defaultOpen>
@@ -34,11 +34,11 @@ export const Default: Story = {
           Open
         </DialogTrigger>
         <PanelDialogContent size="md">
-          <PanelDialogTitle>New journal</PanelDialogTitle>
+          <PanelDialogTitle>New map</PanelDialogTitle>
           <PanelDialogFormStack>
             <PanelDialogField>
-              <Label htmlFor="story-journal-name">Name</Label>
-              <Input id="story-journal-name" placeholder="Summer 2025" />
+              <Label htmlFor="story-map-name">Name</Label>
+              <Input id="story-map-name" placeholder="Summer 2025" />
             </PanelDialogField>
           </PanelDialogFormStack>
           <PanelDialogFooterRow>

@@ -1,5 +1,5 @@
 # Local-only ref (change when you `supabase link` to a cloud project).
-project_id = "journal-local"
+project_id = "curolia-local"
 
 [api]
 enabled = true

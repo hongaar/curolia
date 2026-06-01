@@ -6,7 +6,7 @@ const meta = {
   title: "Textarea",
   ...componentStoryMeta(
     `Multi-line text input.`,
-    `Associate with \`Label\`. Use for descriptions and long-form journal fields.`,
+    `Associate with \`Label\`. Use for descriptions and long-form map fields.`,
   ),
   component: Textarea,
 } satisfies Meta<typeof Textarea>;

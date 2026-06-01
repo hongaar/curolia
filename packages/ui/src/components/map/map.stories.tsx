@@ -82,7 +82,7 @@ export const Default: Story = {
               </MapToolbar>
             </MapControlsTopRight>
             <MapControlsBottomRight>
-              <Button size="icon" aria-label="Add trace">
+              <Button size="icon" aria-label="Add pin">
                 <Plus aria-hidden />
               </Button>
             </MapControlsBottomRight>
@@ -127,7 +127,7 @@ export const Default: Story = {
                   3 photos · 2 links
                 </MapMarkerPopoverStatus>
                 <MapMarkerPopoverActions>
-                  <Button size="sm">Open trace</Button>
+                  <Button size="sm">Open pin</Button>
                 </MapMarkerPopoverActions>
               </MapMarkerPopoverBody>
             </FloatingPanel>
@@ -139,13 +139,13 @@ export const Default: Story = {
 };
 
 export const PlacementMode: Story = {
-  parameters: storyDocs("Trace placement mode with inset border and hint."),
+  parameters: storyDocs("Pin placement mode with inset border and hint."),
   render: () => (
     <div style={{ height: "24rem", width: "100%", position: "relative" }}>
       <MapPageRoot>
         <MapLayer>
           <MapCanvas placementMode />
-          <MapPlacementHint>Click the map to place this trace</MapPlacementHint>
+          <MapPlacementHint>Click the map to place this pin</MapPlacementHint>
         </MapLayer>
       </MapPageRoot>
     </div>
@@ -171,7 +171,7 @@ export const FloatingMarkerPopover: Story = {
           <FloatingPanel padding="default">
             <MapMarkerPopoverBody>
               <MapMarkerPopoverHeader title="Louvre Museum" />
-              <MapMarkerPopoverStatus>Tap to open trace</MapMarkerPopoverStatus>
+              <MapMarkerPopoverStatus>Tap to open pin</MapMarkerPopoverStatus>
             </MapMarkerPopoverBody>
           </FloatingPanel>
         </MapFloatingPanel>

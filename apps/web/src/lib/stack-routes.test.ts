@@ -16,12 +16,12 @@ describe("isStackRoute", () => {
     expect(isStackRoute("/invitations")).toBe(true);
   });
 
-  it("matches journal settings and trace detail", () => {
-    expect(isStackRoute("/journals/abc/settings")).toBe(true);
-    expect(isStackRoute("/traces/my-journal/my-trace")).toBe(true);
+  it("matches map settings and pin detail", () => {
+    expect(isStackRoute("/maps/abc/settings")).toBe(true);
+    expect(isStackRoute("/pins/my-map/my-pin")).toBe(true);
   });
 
-  it("does not match primary journal views or legacy plugin paths", () => {
+  it("does not match primary map views or legacy plugin paths", () => {
     expect(isStackRoute("/map/summer-2024")).toBe(false);
     expect(isStackRoute("/blog/summer-2024")).toBe(false);
     expect(isStackRoute("/blog")).toBe(false);
@@ -30,7 +30,7 @@ describe("isStackRoute", () => {
 });
 
 describe("isBaseRoute", () => {
-  it("matches map and blog journal routes", () => {
+  it("matches map and blog map routes", () => {
     expect(isBaseRoute("/map/trip")).toBe(true);
     expect(isBaseRoute("/blog/trip")).toBe(true);
     expect(isBaseRoute("/blog")).toBe(true);
@@ -39,7 +39,7 @@ describe("isBaseRoute", () => {
   it("does not match stack screens", () => {
     expect(isBaseRoute("/settings")).toBe(false);
     expect(isBaseRoute("/plugins")).toBe(false);
-    expect(isBaseRoute("/traces/a/b")).toBe(false);
+    expect(isBaseRoute("/pins/a/b")).toBe(false);
   });
 });
 
@@ -47,7 +47,7 @@ describe("getStackChain", () => {
   it("returns a single segment per stack route", () => {
     expect(getStackChain("/profile")).toEqual(["/profile"]);
     expect(getStackChain("/plugins")).toEqual(["/plugins"]);
-    expect(getStackChain("/traces/j/t")).toEqual(["/traces/j/t"]);
+    expect(getStackChain("/pins/j/t")).toEqual(["/pins/j/t"]);
   });
 });
 

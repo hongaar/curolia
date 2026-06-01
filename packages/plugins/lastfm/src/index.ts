@@ -6,11 +6,8 @@ export {
   LASTFM_TOP_TRACKS_LIMIT,
 } from "./constants";
 export {
-  lastfmTraceSyncQueryKey,
+  lastfmPinSyncQueryKey,
   pluginEntityDataRowQueryKey,
 } from "./query-keys";
 export type { LastfmSyncResponse } from "./lastfm-edge";
-export type {
-  LastfmTracePayload,
-  LastfmTraceTrackRow,
-} from "./lastfm-trace-data";
+export type { LastfmPinPayload, LastfmPinTrackRow } from "./lastfm-pin-data";

@@ -3,7 +3,7 @@ export type {
   EdgeFunctionDeclaration,
   GlobalSettingField,
   GlobalSettingsDeclaration,
-  JournalSettingsDeclaration,
+  MapSettingsDeclaration,
   PluginContributions,
   PluginOAuthDeclaration,
 } from "./contributions";
@@ -11,8 +11,8 @@ export type {
   PluginDefinition,
   PluginPackageManifest,
   PluginRegistry,
-  TraceContextProps,
-  TracePhotoImportSlotProps,
+  PinContextProps,
+  PinPhotoImportSlotProps,
 } from "./definition";
 export type {
   PluginAccountPanelProps,
@@ -22,15 +22,15 @@ export type {
   PluginUserPluginSnapshot,
 } from "./account-panel";
 export {
-  journalPluginConfigRecord,
-  mergeJournalPluginConfig,
-  type JournalPluginLike,
-} from "./journal-config";
+  mapPluginConfigRecord,
+  mergeMapPluginConfig,
+  type MapPluginLike,
+} from "./map-config";
 
-/** Trace photo suggestion payload (plugins return from Edge or client bridges). */
-export type TracePhotoSuggestionContext = {
-  traceId: string;
-  journalId: string;
+/** Pin photo suggestion payload (plugins return from Edge or client bridges). */
+export type PinPhotoSuggestionContext = {
+  pinId: string;
+  mapId: string;
   date: string | null;
   endDate: string | null;
   lat: number;
@@ -39,12 +39,12 @@ export type TracePhotoSuggestionContext = {
   radiusM?: number;
 };
 
-export type TracePhotoSuggestion = {
+export type PinPhotoSuggestion = {
   externalId: string;
   thumbnailUrl?: string;
   title?: string;
   capturedAt?: string;
-  /** Distance from trace center in meters when known. */
+  /** Distance from pin center in meters when known. */
   distanceM?: number;
   meta?: Record<string, unknown>;
 };

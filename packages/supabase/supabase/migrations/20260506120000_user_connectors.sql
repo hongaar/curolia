@@ -1,5 +1,5 @@
 -- Per-user global connector settings (enable/disable, OAuth tokens, API keys in config).
--- Journal-specific options remain in `journal_connectors.config`.
+-- Map-specific options remain in `map_connectors.config`.
 
 create table public.user_connectors (
   id uuid primary key default gen_random_uuid(),
@@ -38,7 +38,7 @@ create policy "user_connectors_delete_own"
   to authenticated
   using (user_id = auth.uid());
 
--- Journal owners who had a connector enabled on any journal: enable globally.
+-- Map owners who had a connector enabled on any map: enable globally.
 insert into public.user_connectors (user_id, connector_type_id, enabled, config, status, updated_at)
 select distinct jm.user_id,
   jc.connector_type_id,
@@ -46,10 +46,10 @@ select distinct jm.user_id,
   '{}'::jsonb,
   jc.status,
   now()
-from public.journal_connectors jc
-join public.journal_members jm
-  on jm.journal_id = jc.journal_id
- and jm.role = 'owner'::public.journal_member_role
+from public.map_connectors jc
+join public.map_members jm
+  on jm.map_id = jc.map_id
+ and jm.role = 'owner'::public.map_member_role
 where jc.enabled = true
 on conflict (user_id, connector_type_id) do update set
   enabled = public.user_connectors.enabled or excluded.enabled,

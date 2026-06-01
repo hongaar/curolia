@@ -74,9 +74,7 @@ export const DestructiveItem: Story = {
     <DropdownMenu>
       <MenuTrigger label="Actions" />
       <DropdownMenuContent>
-        <DropdownMenuItem variant="destructive">
-          Delete journal
-        </DropdownMenuItem>
+        <DropdownMenuItem variant="destructive">Delete map</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   ),

@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 /**
- * Resolves a URL → page title + favicon for the trace links feature.
+ * Resolves a URL → page title + favicon for the pin links feature.
  * Authenticated; the function gateway already validates the JWT.
  */
 

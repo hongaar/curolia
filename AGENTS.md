@@ -25,7 +25,7 @@
 
 - Implementations live under **`packages/plugins/<plugin-id>/`** (e.g. `@curolia/plugin-ical`). The root `package.json` **workspaces** list must include **`packages/plugins/*`** so nested plugin packages participate in the monorepo install.
 - Inter-package deps use **`file:`** specifiers (e.g. `@curolia/web` → `packages/plugin-contract`) so installs work on npm versions that do not support the `workspace:` protocol.
-- Shared **manifest / contribution types** live in **`@curolia/plugin-contract`** (`packages/plugin-contract`). Use that for declaring global settings, per-journal settings, app hooks, and Edge Function metadata.
+- Shared **manifest / contribution types** live in **`@curolia/plugin-contract`** (`packages/plugin-contract`). Use that for declaring global settings, per-map settings, app hooks, and Edge Function metadata.
 - **`@curolia/brand`** and **plugin registry** (`apps/web/scripts/generate-plugin-registry.mjs`, **`npm run plugins:sync -w @curolia/web`**) must not run from **`apps/web` lifecycle hooks**. Run them via Turbo **`codegen`** (or the two workspace commands directly) before builds/typechecks in **CI**, before **`vercel build`** in the deploy workflow, or locally—never from chained root **`package.json`** scripts.
 
 - **Supabase Edge Functions** for a plugin live under `packages/plugins/<id>/supabase/functions/<slug>/`. After changing plugin-owned function sources, copy them into the Supabase CLI project with:

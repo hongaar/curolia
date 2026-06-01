@@ -1,10 +1,10 @@
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { SidebarTagsFilterDropdown } from "@/components/layout/sidebar-tags-filter-dropdown";
-import { journalSwitchHref, journalViewHref } from "@/lib/app-paths";
-import { defaultJournalIcon } from "@/lib/journal-display-icon";
-import { useJournal } from "@/providers/journal-provider";
+import { mapSwitchHref, mapViewHref } from "@/lib/app-paths";
+import { defaultMapIcon } from "@/lib/map-display-icon";
+import { useMap } from "@/providers/map-provider";
 import { useRegisteredTagSidebar } from "@/providers/tag-sidebar-provider";
-import type { Journal } from "@/types/database";
+import type { CuroliaMap } from "@/types/database";
 import {
   DropdownMenu,
   DropdownMenuGroup,
@@ -13,8 +13,8 @@ import {
   DropdownMenuSeparator,
 } from "@curolia/ui/dropdown-menu";
 import {
-  JournalDropdownEditButton,
-  JournalDropdownRow,
+  MapDropdownEditButton,
+  MapDropdownRow,
   NavigationSidebarEmoji,
   NavigationSidebarHint,
   NavigationSidebarIcon,
@@ -26,39 +26,35 @@ import {
   SidebarCheckSpacer,
   SidebarDropdownContent,
   SidebarDropdownMenuItem,
-  SidebarJournalEmoji,
-  SidebarJournalName,
+  SidebarMapEmoji,
+  SidebarMapName,
   SidebarPickerTrigger,
 } from "@curolia/ui/navigation-sidebar";
 import { Separator } from "@curolia/ui/separator";
-import { BookOpen, Check, Map, Pencil, Plus } from "lucide-react";
+import { BookOpen, Check, Map as MapIcon, Pencil, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-function journalEmoji(journal: Journal) {
-  return journal.icon_emoji ?? defaultJournalIcon(journal.is_personal);
+function mapEmoji(map: CuroliaMap) {
+  return map.icon_emoji ?? defaultMapIcon(map.is_personal);
 }
 
 type NavigationSidebarContentProps = {
   userId: string | undefined;
-  openNewJournalDialog: () => void;
-  onOpenJournalSettings: (journalId: string) => void;
+  openNewMapDialog: () => void;
+  onOpenMapSettings: (mapId: string) => void;
 };
 
 export function NavigationSidebarContent({
   userId,
-  openNewJournalDialog,
-  onOpenJournalSettings,
+  openNewMapDialog,
+  onOpenMapSettings,
 }: NavigationSidebarContentProps) {
   const tagSidebar = useRegisteredTagSidebar();
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
-  const { journals, activeJournal } = useJournal();
-  const mapTo = activeJournal?.slug
-    ? journalViewHref("map", activeJournal.slug)
-    : "/";
-  const blogTo = activeJournal?.slug
-    ? journalViewHref("blog", activeJournal.slug)
-    : "/";
+  const { maps, activeMap } = useMap();
+  const mapTo = activeMap?.slug ? mapViewHref("map", activeMap.slug) : "/";
+  const blogTo = activeMap?.slug ? mapViewHref("blog", activeMap.slug) : "/";
 
   return (
     <NavigationSidebarRoot>
@@ -69,7 +65,7 @@ export function NavigationSidebarContent({
           end
           icon={
             <NavigationSidebarIcon>
-              <Map aria-hidden />
+              <MapIcon aria-hidden />
             </NavigationSidebarIcon>
           }
         >
@@ -90,39 +86,37 @@ export function NavigationSidebarContent({
       <Separator />
 
       <NavigationSidebarSection gap="lg">
-        <NavigationSidebarLabel>Journal</NavigationSidebarLabel>
+        <NavigationSidebarLabel>Map</NavigationSidebarLabel>
         <DropdownMenu>
           <SidebarPickerTrigger
             icon={
-              activeJournal ? (
+              activeMap ? (
                 <NavigationSidebarEmoji aria-hidden>
-                  {journalEmoji(activeJournal)}
+                  {mapEmoji(activeMap)}
                 </NavigationSidebarEmoji>
               ) : null
             }
-            label={activeJournal?.name ?? "Select journal"}
+            label={activeMap?.name ?? "Select map"}
           />
           <SidebarDropdownContent align="start" sideOffset={6}>
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Journals</DropdownMenuLabel>
-              {journals.map((j) => {
-                const selected = j.id === activeJournal?.id;
+              <DropdownMenuLabel>Maps</DropdownMenuLabel>
+              {maps.map((j) => {
+                const selected = j.id === activeMap?.id;
                 return (
-                  <JournalDropdownRow key={j.id}>
+                  <MapDropdownRow key={j.id}>
                     <SidebarDropdownMenuItem
                       onClick={() => {
-                        navigate(journalSwitchHref(j, pathname, search));
+                        navigate(mapSwitchHref(j, pathname, search));
                       }}
                     >
-                      <SidebarJournalEmoji>
-                        {journalEmoji(j)}
-                      </SidebarJournalEmoji>
-                      <SidebarJournalName
+                      <SidebarMapEmoji>{mapEmoji(j)}</SidebarMapEmoji>
+                      <SidebarMapName
                         selected={selected}
                         personal={j.is_personal}
                       >
                         {j.name}
-                      </SidebarJournalName>
+                      </SidebarMapName>
                       {selected ? (
                         <SidebarCheckIcon>
                           <Check aria-hidden />
@@ -131,24 +125,24 @@ export function NavigationSidebarContent({
                         <SidebarCheckSpacer />
                       )}
                     </SidebarDropdownMenuItem>
-                    <JournalDropdownEditButton
-                      title="Edit journal"
+                    <MapDropdownEditButton
+                      title="Edit map"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        onOpenJournalSettings(j.id);
+                        onOpenMapSettings(j.id);
                       }}
                     >
                       <Pencil aria-hidden />
-                    </JournalDropdownEditButton>
-                  </JournalDropdownRow>
+                    </MapDropdownEditButton>
+                  </MapDropdownRow>
                 );
               })}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => openNewJournalDialog()}>
+            <DropdownMenuItem onClick={() => openNewMapDialog()}>
               <Plus aria-hidden />
-              New journal…
+              New map…
             </DropdownMenuItem>
           </SidebarDropdownContent>
         </DropdownMenu>
@@ -168,7 +162,7 @@ export function NavigationSidebarContent({
           />
         ) : (
           <NavigationSidebarHint>
-            Open Map or Blog to filter traces by tags.
+            Open Map or Blog to filter pins by tags.
           </NavigationSidebarHint>
         )}
       </NavigationSidebarSection>

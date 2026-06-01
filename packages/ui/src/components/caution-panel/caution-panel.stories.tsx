@@ -28,9 +28,9 @@ export const Default: Story = {
     "Warning panel with title, description, and destructive action.",
   ),
   args: {
-    title: "Delete journal",
-    description: "All traces in this journal will be permanently removed.",
-    children: <Button variant="destructive">Delete journal</Button>,
+    title: "Delete map",
+    description: "All pins in this map will be permanently removed.",
+    children: <Button variant="destructive">Delete map</Button>,
   },
 };
 
@@ -46,8 +46,8 @@ export const TitleOnly: Story = {
 export const WithDescription: Story = {
   parameters: storyDocs("Supporting copy via `description`."),
   args: {
-    title: "Delete journal",
-    description: "All traces in this journal will be permanently removed.",
-    children: <Button variant="destructive">Delete journal</Button>,
+    title: "Delete map",
+    description: "All pins in this map will be permanently removed.",
+    children: <Button variant="destructive">Delete map</Button>,
   },
 };

@@ -6,13 +6,13 @@ export const MAP_VIEW_PARAM = {
   zoom: "zoom",
   /** West,south,east,north (WGS84), optional — fit map to this extent. */
   bbox: "bbox",
-  /** Open map sidebar for this trace (slug preferred; UUID still accepted). */
-  trace: "trace",
-  /** Comma-separated URL tag slugs (OR filter within the journal). */
+  /** Open map sidebar for this pin (slug preferred; UUID still accepted). */
+  pin: "pin",
+  /** Comma-separated URL tag slugs (OR filter within the map). */
   filter: "filter",
   /** Legacy: comma-separated tag UUIDs (still read when present). */
   tags: "tags",
-  /** Enable map placement mode (e.g. from blog “Add trace”). */
+  /** Enable map placement mode (e.g. from blog “Add pin”). */
   add: "add",
 } as const;
 
@@ -32,39 +32,39 @@ export function parseFilterTagSlugsFromSearchParams(
   return out;
 }
 
-/** Zoom used when focusing the map on a single trace (deep links / search). */
-export const TRACE_FOCUS_ZOOM = 10;
+/** Zoom used when focusing the map on a single pin (deep links / search). */
+export const PIN_FOCUS_ZOOM = 10;
 
-export const TRACE_ID_PARAM_RE =
+export const PIN_ID_PARAM_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Raw value for `?trace=` — UUID or trace slug (within the active journal). */
-export function parseSelectedTraceTokenFromSearchParams(
+/** Raw value for `?pin=` — UUID or pin slug (within the active map). */
+export function parseSelectedPinTokenFromSearchParams(
   searchParams: URLSearchParams,
 ): string | null {
-  const raw = searchParams.get(MAP_VIEW_PARAM.trace)?.trim();
+  const raw = searchParams.get(MAP_VIEW_PARAM.pin)?.trim();
   if (!raw) return null;
-  if (TRACE_ID_PARAM_RE.test(raw)) return raw;
+  if (PIN_ID_PARAM_RE.test(raw)) return raw;
   const slug = raw.toLowerCase();
   if (TAG_FILTER_SLUG_RE.test(slug)) return slug;
   return null;
 }
 
-/** @deprecated Use parseSelectedTraceTokenFromSearchParams — accepts slug or UUID. */
-export function parseSelectedTraceIdFromSearchParams(
+/** @deprecated Use parseSelectedPinTokenFromSearchParams — accepts slug or UUID. */
+export function parseSelectedPinIdFromSearchParams(
   searchParams: URLSearchParams,
 ): string | null {
-  return parseSelectedTraceTokenFromSearchParams(searchParams);
+  return parseSelectedPinTokenFromSearchParams(searchParams);
 }
 
-export function resolveTraceIdFromMapToken<
+export function resolvePinIdFromMapToken<
   T extends { id: string; slug: string },
->(token: string | null, traces: T[]): string | null {
+>(token: string | null, pins: T[]): string | null {
   if (!token) return null;
-  const byId = traces.find((t) => t.id.toLowerCase() === token.toLowerCase());
+  const byId = pins.find((t) => t.id.toLowerCase() === token.toLowerCase());
   if (byId) return byId.id;
   const slug = token.toLowerCase();
-  const bySlug = traces.find((t) => t.slug.toLowerCase() === slug);
+  const bySlug = pins.find((t) => t.slug.toLowerCase() === slug);
   return bySlug?.id ?? null;
 }
 
@@ -76,12 +76,12 @@ export function parseFilterTagIdsFromSearchParams(
   const out = new Set<string>();
   for (const part of raw.split(",")) {
     const id = part.trim();
-    if (id && TRACE_ID_PARAM_RE.test(id)) out.add(id);
+    if (id && PIN_ID_PARAM_RE.test(id)) out.add(id);
   }
   return out;
 }
 
-/** Resolves UUID `tags` plus slug `filter` into tag ids for the loaded journal tags list. */
+/** Resolves UUID `tags` plus slug `filter` into tag ids for the loaded map tags list. */
 export function resolveFilterTagIdsFromSearchParams(
   searchParams: URLSearchParams,
   tags: { id: string; slug: string }[],
@@ -116,8 +116,8 @@ export function applyFilterTagsToSearchParams(
   return next;
 }
 
-/** Removes tag filter keys (used when switching journals). */
-export function stripJournalTagFiltersFromSearchParams(
+/** Removes tag filter keys (used when switching maps). */
+export function stripMapTagFiltersFromSearchParams(
   searchParams: URLSearchParams,
 ): URLSearchParams {
   const next = new URLSearchParams(searchParams);
@@ -126,16 +126,16 @@ export function stripJournalTagFiltersFromSearchParams(
   return next;
 }
 
-/** Set or remove `trace` while keeping other params (e.g. camera). Pass trace slug or legacy UUID. */
-export function applySelectedTraceToSearchParams(
+/** Set or remove `pin` while keeping other params (e.g. camera). Pass pin slug or legacy UUID. */
+export function applySelectedPinToSearchParams(
   searchParams: URLSearchParams,
-  traceSlugOrId: string | null,
+  pinSlugOrId: string | null,
 ): URLSearchParams {
   const next = new URLSearchParams(searchParams);
-  if (traceSlugOrId == null || traceSlugOrId === "") {
-    next.delete(MAP_VIEW_PARAM.trace);
+  if (pinSlugOrId == null || pinSlugOrId === "") {
+    next.delete(MAP_VIEW_PARAM.pin);
   } else {
-    next.set(MAP_VIEW_PARAM.trace, traceSlugOrId);
+    next.set(MAP_VIEW_PARAM.pin, pinSlugOrId);
   }
   return next;
 }
@@ -208,7 +208,7 @@ export function stripMapBboxFromSearchParams(
   return next;
 }
 
-/** Removes point camera and bbox (used when switching journals). */
+/** Removes point camera and bbox (used when switching maps). */
 export function stripMapCameraFromSearchParams(
   searchParams: URLSearchParams,
 ): URLSearchParams {
@@ -266,7 +266,7 @@ export function applyMapCameraToSearchParams(
   return next;
 }
 
-export function parseAddTraceFromSearchParams(
+export function parseAddPinFromSearchParams(
   searchParams: URLSearchParams,
 ): boolean {
   const raw = searchParams.get(MAP_VIEW_PARAM.add)?.trim().toLowerCase();
@@ -274,7 +274,7 @@ export function parseAddTraceFromSearchParams(
 }
 
 /** Set or remove `add` (map placement mode). */
-export function applyAddTraceToSearchParams(
+export function applyAddPinToSearchParams(
   searchParams: URLSearchParams,
   active: boolean,
 ): URLSearchParams {

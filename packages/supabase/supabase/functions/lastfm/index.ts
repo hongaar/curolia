@@ -17,19 +17,19 @@ function cors(): HeadersInit {
   };
 }
 
-type TraceRow = {
+type PinRow = {
   id: string;
-  journal_id: string;
+  map_id: string;
   date: string | null;
   end_date: string | null;
 };
 
 function periodBoundsMs(
-  trace: TraceRow,
+  pin: PinRow,
 ): { startMs: number; endMs: number } | null {
-  const startDay = trace.date?.trim();
+  const startDay = pin.date?.trim();
   if (!startDay) return null;
-  const endDay = (trace.end_date?.trim() || startDay) as string;
+  const endDay = (pin.end_date?.trim() || startDay) as string;
   const startMs = Date.parse(`${startDay}T00:00:00.000Z`);
   const endMs = Date.parse(`${endDay}T23:59:59.999Z`);
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) {
@@ -154,9 +154,9 @@ Deno.serve(async (req: Request) => {
   }
   const userId = userData.user.id;
 
-  let body: { action?: string; traceId?: string };
+  let body: { action?: string; pinId?: string };
   try {
-    body = (await req.json()) as { action?: string; traceId?: string };
+    body = (await req.json()) as { action?: string; pinId?: string };
   } catch {
     return new Response(JSON.stringify({ error: "bad_json" }), {
       status: 400,
@@ -164,7 +164,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (body.action !== "sync_top_tracks" || !body.traceId) {
+  if (body.action !== "sync_top_tracks" || !body.pinId) {
     return new Response(JSON.stringify({ error: "invalid_body" }), {
       status: 400,
       headers: { ...cors(), "Content-Type": "application/json" },
@@ -206,24 +206,24 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const { data: trace, error: te } = await admin
-    .from("traces")
-    .select("id, journal_id, date, end_date")
-    .eq("id", body.traceId)
+  const { data: pin, error: te } = await admin
+    .from("pins")
+    .select("id, map_id, date, end_date")
+    .eq("id", body.pinId)
     .maybeSingle();
 
-  if (te || !trace) {
-    return new Response(JSON.stringify({ error: "trace_not_found" }), {
+  if (te || !pin) {
+    return new Response(JSON.stringify({ error: "pin_not_found" }), {
       status: 404,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
   }
 
-  const t = trace as TraceRow;
+  const t = pin as PinRow;
   const { data: mem } = await admin
-    .from("journal_members")
+    .from("map_members")
     .select("user_id")
-    .eq("journal_id", t.journal_id)
+    .eq("map_id", t.map_id)
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -239,13 +239,13 @@ Deno.serve(async (req: Request) => {
     await admin
       .from("plugin_entity_data")
       .delete()
-      .eq("entity_type", "trace")
+      .eq("entity_type", "pin")
       .eq("entity_id", t.id)
       .eq("plugin_type_id", "lastfm");
 
     return new Response(
       JSON.stringify({
-        skippedReason: "no_trace_date",
+        skippedReason: "no_pin_date",
         cleared: true,
       }),
       {
@@ -358,8 +358,8 @@ Deno.serve(async (req: Request) => {
 
   const { error: upsertErr } = await admin.from("plugin_entity_data").upsert(
     {
-      journal_id: t.journal_id,
-      entity_type: "trace",
+      map_id: t.map_id,
+      entity_type: "pin",
       entity_id: t.id,
       plugin_type_id: "lastfm",
       data: payload as unknown as Record<string, unknown>,

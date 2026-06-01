@@ -3,7 +3,7 @@ import { OAUTH_COMPANION_SCOPES_BY_PROVIDER } from "@curolia/plugin-oauth";
 import { GooglePhotosAccountSettingsPanel } from "./account-settings-panel";
 import { GooglePhotosIcon } from "./icon";
 import { googlePhotosPluginMeta } from "./plugin-meta";
-import { GooglePhotosTracePhotoImportSlot } from "./trace-photo-import-slot";
+import { GooglePhotosPinPhotoImportSlot } from "./pin-photo-import-slot";
 
 /** API/resource scopes only; companion `openid`/`email`/`profile` come from `@curolia/plugin-oauth`. */
 const GOOGLE_PHOTOS_RESOURCE_SCOPES = [
@@ -17,7 +17,7 @@ export const googlePhotosPluginManifest: PluginPackageManifest = {
   icon: GooglePhotosIcon,
   implemented: googlePhotosPluginMeta.implemented,
   AccountSettingsPanel: GooglePhotosAccountSettingsPanel,
-  TracePhotoImportSlot: GooglePhotosTracePhotoImportSlot,
+  PinPhotoImportSlot: GooglePhotosPinPhotoImportSlot,
   contributions: {
     oauth: [
       {
@@ -30,9 +30,9 @@ export const googlePhotosPluginManifest: PluginPackageManifest = {
     ],
     appHooks: [
       {
-        name: "photos.suggestionsForTrace",
+        name: "photos.suggestionsForPin",
         description:
-          "Pick photos from Google Photos for a trace via the google-photos Edge function.",
+          "Pick photos from Google Photos for a pin via the google-photos Edge function.",
       },
     ],
     edgeFunctions: [
@@ -40,7 +40,7 @@ export const googlePhotosPluginManifest: PluginPackageManifest = {
         slug: "google-photos",
         verifyJwt: true,
         description:
-          "Google Photos Picker sessions and import picked media for a trace.",
+          "Google Photos Picker sessions and import picked media for a pin.",
       },
     ],
   },

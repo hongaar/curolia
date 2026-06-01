@@ -1,18 +1,15 @@
 import {
-  applyAddTraceToSearchParams,
-  applySelectedTraceToSearchParams,
+  applyAddPinToSearchParams,
+  applySelectedPinToSearchParams,
   MAP_VIEW_PARAM,
   stripMapCameraFromSearchParams,
 } from "@/lib/map-view-params";
-import type { Journal } from "@/types/database";
+import type { CuroliaMap } from "@/types/database";
 
-export type JournalViewSegment = "map" | "blog";
+export type MapViewSegment = "map" | "blog";
 
-export function journalViewHref(
-  view: JournalViewSegment,
-  journalSlug: string,
-): string {
-  return `/${view}/${journalSlug}`;
+export function mapViewHref(view: MapViewSegment, mapSlug: string): string {
+  return `/${view}/${mapSlug}`;
 }
 
 /** Map uses the fullscreen / overlay sidebar chrome. */
@@ -20,42 +17,37 @@ export function isMapFullscreenPathname(pathname: string): boolean {
   return pathname === "/" || /^\/map\/[^/]+\/?$/.test(pathname);
 }
 
-export function journalViewSegmentFromPathname(
-  pathname: string,
-): JournalViewSegment {
+export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {
   return pathname.startsWith("/blog/") ? "blog" : "map";
 }
 
-export function journalSwitchHref(
-  nextJournal: Journal,
+export function mapSwitchHref(
+  nextMap: CuroliaMap,
   currentPathname: string,
   currentSearch: string,
 ): string {
-  const segment = journalViewSegmentFromPathname(currentPathname);
-  const slug = nextJournal.slug.trim();
+  const segment = mapViewSegmentFromPathname(currentPathname);
+  const slug = nextMap.slug.trim();
   let p = new URLSearchParams(
     currentSearch.startsWith("?") ? currentSearch.slice(1) : currentSearch,
   );
   p = stripMapCameraFromSearchParams(p);
   p.delete("filter");
   p.delete("tags");
-  p.delete(MAP_VIEW_PARAM.trace);
+  p.delete(MAP_VIEW_PARAM.pin);
   p.delete(MAP_VIEW_PARAM.add);
   const q = p.toString();
-  const base = journalViewHref(segment, slug);
+  const base = mapViewHref(segment, slug);
   return q ? `${base}?${q}` : base;
 }
 
-/** Stable trace detail URL: `/traces/:journalSlug/:traceSlug`. */
-export function traceDetailHref(
-  journalSlug: string,
-  traceSlug: string,
-): string {
-  return `/traces/${journalSlug.trim()}/${traceSlug.trim()}`;
+/** Stable pin detail URL: `/pins/:mapSlug/:pinSlug`. */
+export function pinDetailHref(mapSlug: string, pinSlug: string): string {
+  return `/pins/${mapSlug.trim()}/${pinSlug.trim()}`;
 }
 
 export function mapHrefWithSearch(
-  journalSlug: string,
+  mapSlug: string,
   searchParamsStr: string,
 ): string {
   const p = new URLSearchParams(
@@ -64,13 +56,13 @@ export function mapHrefWithSearch(
       : searchParamsStr,
   );
   const q = p.toString();
-  const base = journalViewHref("map", journalSlug);
+  const base = mapViewHref("map", mapSlug);
   return q ? `${base}?${q}` : base;
 }
 
-/** Map with add-trace placement mode enabled (preserves unrelated search params). */
-export function mapAddTraceHref(
-  journalSlug: string,
+/** Map with add-pin placement mode enabled (preserves unrelated search params). */
+export function mapAddPinHref(
+  mapSlug: string,
   searchParams: URLSearchParams | string = "",
 ): string {
   const p =
@@ -79,11 +71,11 @@ export function mapAddTraceHref(
           searchParams.startsWith("?") ? searchParams.slice(1) : searchParams,
         )
       : new URLSearchParams(searchParams);
-  const next = applyAddTraceToSearchParams(
-    applySelectedTraceToSearchParams(p, null),
+  const next = applyAddPinToSearchParams(
+    applySelectedPinToSearchParams(p, null),
     true,
   );
   const q = next.toString();
-  const base = journalViewHref("map", journalSlug);
+  const base = mapViewHref("map", mapSlug);
   return q ? `${base}?${q}` : base;
 }

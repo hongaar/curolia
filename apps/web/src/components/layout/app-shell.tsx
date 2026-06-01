@@ -5,8 +5,8 @@ import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useShellChromePathname } from "@/hooks/use-shell-chrome-pathname";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { isMapFullscreenPathname } from "@/lib/app-paths";
-import { isStackRoute } from "@/lib/stack-routes";
 import { NAV_SIDEBAR_LAYOUT_FLUSH_EVENT } from "@/lib/navigation-shell-layout";
+import { isStackRoute } from "@/lib/stack-routes";
 import { useAuth } from "@/providers/auth-provider";
 import {
   NavigationShellProvider,

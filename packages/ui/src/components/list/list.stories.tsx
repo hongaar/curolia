@@ -22,14 +22,14 @@ export const Default: Story = {
     <BorderedList>
       <NotificationListButton
         unread
-        title="Journal invitation"
+        title="Map invitation"
         body='Alex invited you to "Summer 2025".'
         meta="2h ago"
         onClick={() => undefined}
       />
       <NotificationListButton
         unread={false}
-        title="Trace comment"
+        title="Pin comment"
         body="Sam mentioned you on Café de Flore."
         meta="Yesterday"
         onClick={() => undefined}

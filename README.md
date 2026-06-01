@@ -1,6 +1,6 @@
 # Curolia
 
-Travel / place journal: private **traces** (visits) per **journal**, with maps, tags, photos, and plugin stubs. Stack: **npm workspaces**, **Turborepo**, **Vite + React + TypeScript**, **shadcn/ui**, **Supabase** (Auth, Postgres, Storage), **MapLibre**.
+Place memory app: **pins** (visits and spots) grouped in **maps** (collections you own or share), with a MapLibre view, blog, tags, photos, and plugins. Stack: **npm workspaces**, **Turborepo**, **Vite + React + TypeScript**, **shadcn/ui**, **Supabase** (Auth, Postgres, Storage), **MapLibre**.
 
 ## Monorepo
 
@@ -9,7 +9,7 @@ Travel / place journal: private **traces** (visits) per **journal**, with maps, 
 - `packages/supabase/supabase/` — Supabase project (migrations, `config.toml`, `functions/`) via **`@curolia/supabase`**
 - `packages/brand/` — app logo + theme config (**`@curolia/brand`**) and generators for web/native branding assets
 - `packages/plugin-contract` — shared plugin manifest / contribution types (`@curolia/plugin-contract`)
-- `packages/plugins/*` — optional plugin packages (e.g. `@curolia/plugin-ical`); Edge sources sync into `packages/supabase/supabase/functions/` via `npx turbo run functions:sync`. Structured plugin payloads attached to traces (and future entities) use **`public.plugin_entity_data`** (see migrations). Plugins that need OAuth or external dashboards document setup in **their own README** (e.g. [`packages/plugins/google-photos/README.md`](packages/plugins/google-photos/README.md), [`packages/plugins/spotify/README.md`](packages/plugins/spotify/README.md), [`packages/plugins/lastfm/README.md`](packages/plugins/lastfm/README.md)).
+- `packages/plugins/*` — optional plugin packages (e.g. `@curolia/plugin-ical`); Edge sources sync into `packages/supabase/supabase/functions/` via `npx turbo run functions:sync`. Structured plugin payloads attached to pins (and future entities) use **`public.plugin_entity_data`** (see migrations). Plugins that need OAuth or external dashboards document setup in **their own README** (e.g. [`packages/plugins/google-photos/README.md`](packages/plugins/google-photos/README.md), [`packages/plugins/spotify/README.md`](packages/plugins/spotify/README.md), [`packages/plugins/lastfm/README.md`](packages/plugins/lastfm/README.md)).
 
 Plugin architecture details: [`packages/plugin-contract/README.md`](packages/plugin-contract/README.md).
 
@@ -39,7 +39,7 @@ The production **Vercel** job runs **`npx turbo run codegen`** after install, th
   - `npx turbo run sync --filter=@curolia/mobile` — builds web with `apps/web/.env`, regenerates native icons/splash, and runs `cap sync`
   - `npm run open:ios -w @curolia/mobile`
   - `npm run open:android -w @curolia/mobile`
-- Signed-in app routes use `StackLayout`: map/blog stay mounted as the base layer; settings, trace detail, and other screens stack on top (back restores the base instantly). Mobile / native add slide transitions and hide the floating nav on stack screens; desktop keeps the nav and swaps stack layers without animation. Android hardware back pops the stack or exits on map/blog.
+- Signed-in app routes use `StackLayout`: the geographic **map** view and **blog** for the active collection stay mounted as the base layer; settings, pin detail, and other screens stack on top (back restores the base instantly). Mobile / native add slide transitions and hide the floating nav on stack screens; desktop keeps the nav and swaps stack layers without animation. Android hardware back pops the stack or exits on the base map/blog routes.
 
 For iOS development, install **Xcode 26+** (required by Capacitor 8) and CocoaPods. For Android, install Android Studio SDK tools.
 
@@ -139,7 +139,7 @@ Stopping: Ctrl+C stops the Turbo dev tasks; **`npm run db:stop -w @curolia/supab
 
 ### Push notifications (first mobile feature)
 
-Push delivery is currently enabled for `journal_invitation` notifications when the recipient has push enabled in settings.
+Push delivery is currently enabled for `map_invitation` notifications when the recipient has push enabled in settings.
 
 1. Ensure local Supabase and functions are running (`npm run dev` from repo root covers this):
 
@@ -206,7 +206,7 @@ Common steps:
 
 4. **`redirect_uri` / Kong:** locally, Edge may see `SUPABASE_URL` as **`http://kong:8000`**. **`plugin-oauth`** maps that to **`http://127.0.0.1:54321`** for the OAuth callback when the hostname is `kong`. Override with **`SUPABASE_PUBLIC_PORT`** or **`PLUGIN_OAUTH_CALLBACK_URL`** if needed.
 
-On first signup, a **profile**, personal **journal**, and **owner** membership are created automatically (via the migration trigger).
+On first signup, a **profile**, personal **map**, and **owner** membership are created automatically (via the migration trigger).
 
 ### Hosted Supabase later
 
@@ -303,12 +303,12 @@ A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root)
 
 - `apps/web/src/components/layout/curolia-loading-splash.tsx` — unused re-export; callers use `@curolia/ui/loading-splash` directly
 - `apps/web/src/components/map/map-toolbar.tsx` — unused re-export; callers use `@curolia/ui/map-toolbar` directly
-- `apps/web/src/components/traces/trace-photo-lightbox.tsx` — unused re-export; callers use `@curolia/ui/trace-photo-lightbox` directly
+- `apps/web/src/components/pins/pin-photo-lightbox.tsx` — unused re-export; callers use `@curolia/ui/pin-photo-lightbox` directly
 
 **Review before deleting (may be intentional public API or stale helpers):**
 
-- Unused exports in `apps/web/src/lib/` (e.g. `map-view-params.ts`, `trace-dates.ts`, `photon-geocode.ts`, `trace-text-search.ts`, …)
-- Unused exports in `apps/web/src/components/traces/trace-links-list.tsx`, `apps/web/src/plugins/registry.ts`, Storybook helpers under `packages/ui/src/storybook/`
+- Unused exports in `apps/web/src/lib/` (e.g. `map-view-params.ts`, `pin-dates.ts`, `photon-geocode.ts`, `pin-text-search.ts`, …)
+- Unused exports in `apps/web/src/components/pins/pin-links-list.tsx`, `apps/web/src/plugins/registry.ts`, Storybook helpers under `packages/ui/src/storybook/`
 
 **Expected Knip false positives (ignore or configure out):**
 

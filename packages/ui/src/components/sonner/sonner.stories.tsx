@@ -26,7 +26,7 @@ export const Default: Story = {
         <Button variant="outline" onClick={() => toast("Event saved")}>
           Show toast
         </Button>
-        <Button onClick={() => toast.success("Trace saved")}>Success</Button>
+        <Button onClick={() => toast.success("Pin saved")}>Success</Button>
       </StoryRow>
     </>
   ),

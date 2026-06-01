@@ -2,26 +2,23 @@ import { AppSettingsPage } from "@/pages/app-settings-page";
 import { BlogPage } from "@/pages/blog-page";
 import { BlogHomeRedirectPage } from "@/pages/home-redirect-page";
 import { InvitationsPage } from "@/pages/invitations-page";
-import { JournalSettingsPage } from "@/pages/journal-settings-page";
+import { MapSettingsPage } from "@/pages/map-settings-page";
 import { MapPage } from "@/pages/map-page";
 import { NotificationsPage } from "@/pages/notifications-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
-import { TraceDetailPage } from "@/pages/trace-detail-page";
-import { TraceLegacyRedirectPage } from "@/pages/trace-legacy-redirect-page";
+import { PinDetailPage } from "@/pages/pin-detail-page";
+import { PinLegacyRedirectPage } from "@/pages/pin-legacy-redirect-page";
 import { Navigate, Route } from "react-router-dom";
 
 /** Child routes rendered inside AppShell (shared by App and the mobile stack layout). */
 export const appShellRouteElements = (
   <>
-    <Route path="map/:journalSlug" element={<MapPage />} />
+    <Route path="map/:mapSlug" element={<MapPage />} />
     <Route path="blog" element={<BlogHomeRedirectPage />} />
-    <Route path="blog/:journalSlug" element={<BlogPage />} />
-    <Route
-      path="traces/:journalSlug/:traceSlug"
-      element={<TraceDetailPage />}
-    />
-    <Route path="traces/:legacyTraceId" element={<TraceLegacyRedirectPage />} />
+    <Route path="blog/:mapSlug" element={<BlogPage />} />
+    <Route path="pins/:mapSlug/:pinSlug" element={<PinDetailPage />} />
+    <Route path="pins/:legacyPinId" element={<PinLegacyRedirectPage />} />
     <Route path="profile" element={<ProfilePage />} />
     <Route path="settings" element={<AppSettingsPage />} />
     <Route path="plugins" element={<PluginsPage />} />
@@ -35,9 +32,6 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
-    <Route
-      path="journals/:journalId/settings"
-      element={<JournalSettingsPage />}
-    />
+    <Route path="maps/:mapId/settings" element={<MapSettingsPage />} />
   </>
 );

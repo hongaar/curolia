@@ -3,19 +3,19 @@ import type { PluginAccountSettingsComponent } from "./account-panel";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ComponentType } from "react";
 
-/** Props for optional trace editor UI next to native photo upload (cloud library importers). */
-export type TracePhotoImportSlotProps = {
+/** Props for optional pin editor UI next to native photo upload (cloud library importers). */
+export type PinPhotoImportSlotProps = {
   supabase: SupabaseClient;
   /** Current signed-in user id (shell reads from auth); omit when logged out. */
   userId?: string | null;
-  traceId: string;
-  journalId: string;
-  traceDate?: string | null;
-  traceEndDate?: string | null;
+  pinId: string;
+  mapId: string;
+  pinDate?: string | null;
+  pinEndDate?: string | null;
 };
 
-/** Shared trace-scoped props for plugin surfaces (photo slots, trace detail panels, …). */
-export type TraceContextProps = TracePhotoImportSlotProps;
+/** Shared pin-scoped props for plugin surfaces (photo slots, pin detail panels, …). */
+export type PinContextProps = PinPhotoImportSlotProps;
 
 export type PluginIconComponent = ComponentType<{
   className?: string;
@@ -38,14 +38,14 @@ export type PluginDefinition = {
    */
   AccountSettingsPanel?: PluginAccountSettingsComponent;
   /**
-   * Rendered inline next to “Upload photos” in the trace editor when the plugin can import
-   * library media for an existing trace.
+   * Rendered inline next to “Upload photos” in the pin editor when the plugin can import
+   * library media for an existing pin.
    */
-  TracePhotoImportSlot?: ComponentType<TracePhotoImportSlotProps>;
+  PinPhotoImportSlot?: ComponentType<PinPhotoImportSlotProps>;
   /**
-   * Optional block on the trace detail page (plugin-owned UI + data loaded via plugin routes).
+   * Optional block on the pin detail page (plugin-owned UI + data loaded via plugin routes).
    */
-  TraceDetailSection?: ComponentType<TraceContextProps>;
+  PinDetailSection?: ComponentType<PinContextProps>;
 };
 
 export type PluginRegistry = Record<string, PluginDefinition>;

@@ -47,28 +47,28 @@ const defaultFeatures: LandingFeature[] = [
     icon: <MapPinned aria-hidden size={20} />,
   },
   {
-    id: "traces",
-    title: "Capture traces",
+    id: "pins",
+    title: "Capture pins",
     description:
-      "Record visits with notes, photos, and tags. Each trace becomes a rich memory tied to a place.",
-    imageSrc: defaultLandingImages.traces.src,
-    imageAlt: defaultLandingImages.traces.alt,
+      "Record visits with notes, photos, and tags. Each pin becomes a rich memory tied to a place.",
+    imageSrc: defaultLandingImages.pins.src,
+    imageAlt: defaultLandingImages.pins.alt,
     icon: <BookOpen aria-hidden size={20} />,
   },
   {
-    id: "journals",
-    title: "Organize in journals",
+    id: "maps",
+    title: "Organize in maps",
     description:
-      "Keep trips, regions, or themes in separate journals. Switch contexts without losing the thread.",
-    imageSrc: defaultLandingImages.journals.src,
-    imageAlt: defaultLandingImages.journals.alt,
+      "Keep trips, regions, or themes in separate maps. Switch contexts without losing the thread.",
+    imageSrc: defaultLandingImages.maps.src,
+    imageAlt: defaultLandingImages.maps.alt,
     icon: <Compass aria-hidden size={20} />,
   },
   {
     id: "plugins",
     title: "Extend with plugins",
     description:
-      "Connect Google Photos, Spotify, calendars, and more to enrich traces with the content you already have.",
+      "Connect Google Photos, Spotify, calendars, and more to enrich pins with the content you already have.",
     imageSrc: defaultLandingImages.plugins.src,
     imageAlt: defaultLandingImages.plugins.alt,
     icon: <Plug aria-hidden size={20} />,
@@ -77,24 +77,23 @@ const defaultFeatures: LandingFeature[] = [
 
 function LandingHero({
   heroImageSrc,
-  heroImageAlt = "Curolia map and journal preview",
+  heroImageAlt = "Curolia map and map preview",
 }: Pick<LandingPageProps, "heroImageSrc" | "heroImageAlt">) {
   return (
     <section className={styles.hero} aria-labelledby="landing-hero-title">
       <div className={styles.heroGrid}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Travel journal</p>
+          <p className={styles.eyebrow}>Travel map</p>
           <h1 id="landing-hero-title" className={styles.heroTitle}>
             Remember every place you go
           </h1>
           <p className={styles.heroLead}>
             Curolia is a private atlas for your travels — map visits, write
-            traces, collect photos, and revisit the story of where you have
-            been.
+            pins, collect photos, and revisit the story of where you have been.
           </p>
           <div className={styles.heroActions}>
             <MarketingButtonLink to="/signup" size="lg">
-              Start your journal
+              Start your map
             </MarketingButtonLink>
             <MarketingButtonLink to="/login" variant="outline" size="lg">
               Log in
@@ -114,7 +113,7 @@ function LandingHero({
           </div>
           <div className={styles.heroBadge}>
             <MapPinned aria-hidden size={16} />
-            Map · traces · photos
+            Map · pins · photos
           </div>
         </div>
       </div>
@@ -219,7 +218,7 @@ function LandingCta() {
           </h2>
           <p className={styles.ctaLead}>
             Create a free account and start pinning the places that matter to
-            you. Your journal is private by default.
+            you. Your map is private by default.
           </p>
         </div>
         <MarketingButtonLink to="/signup" size="lg">

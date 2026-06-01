@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   parameters: storyDocs("Body text with default typography."),
-  args: { children: "Trace journal entry body text." },
+  args: { children: "Pin map entry body text." },
 };
 
 export const Muted: Story = {
@@ -36,9 +36,7 @@ export const DisplayTitle: Story = {
         <Text as="h1" variant={["display", "titleLg", "center"]}>
           Curolia
         </Text>
-        <Text variant={["muted", "center"]}>
-          Sign in to your travel journal.
-        </Text>
+        <Text variant={["muted", "center"]}>Sign in to your travel map.</Text>
       </StoryColumn>
     </StoryFrame>
   ),

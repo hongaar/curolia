@@ -80,7 +80,7 @@ export function MapCanvas({
   return (
     <div
       ref={containerRef}
-      data-curolia-trace-map
+      data-curolia-pin-map
       className={
         placementMode
           ? `${styles.mapCanvas} ${styles.mapCanvasPlacement}`

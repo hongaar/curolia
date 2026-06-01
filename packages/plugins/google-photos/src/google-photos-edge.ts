@@ -1,4 +1,4 @@
-import type { TracePhotoSuggestion } from "@curolia/plugin-contract";
+import type { PinPhotoSuggestion } from "@curolia/plugin-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type GooglePhotosPickerHint = {
@@ -66,7 +66,7 @@ function normalizePickerSession(data: unknown): GooglePhotosPickerSession {
 
 export async function googlePhotosPickerCreate(
   supabase: SupabaseClient,
-  traceId?: string,
+  pinId?: string,
 ): Promise<{
   sessionId: string;
   pickerUri: string;
@@ -80,7 +80,7 @@ export async function googlePhotosPickerCreate(
     pickerHint?: GooglePhotosPickerHint;
     error?: string;
   }>("google-photos", {
-    body: { action: "picker_create", ...(traceId ? { traceId } : {}) },
+    body: { action: "picker_create", ...(pinId ? { pinId } : {}) },
   });
   if (error) throw error;
   if (data?.error || !data?.sessionId || !data?.pickerUri) {
@@ -111,10 +111,10 @@ async function googlePhotosPickerListOnce(
   supabase: SupabaseClient,
   sessionId: string,
 ): Promise<{
-  suggestions: TracePhotoSuggestion[];
+  suggestions: PinPhotoSuggestion[];
 }> {
   const { data, error } = await supabase.functions.invoke<{
-    suggestions?: TracePhotoSuggestion[];
+    suggestions?: PinPhotoSuggestion[];
     error?: string;
     message?: string;
   }>("google-photos", {
@@ -133,10 +133,10 @@ export async function googlePhotosPickerList(
   supabase: SupabaseClient,
   sessionId: string,
 ): Promise<{
-  suggestions: TracePhotoSuggestion[];
+  suggestions: PinPhotoSuggestion[];
 }> {
   const delaysMs = [0, 450, 900, 1350];
-  let lastSuggestions: TracePhotoSuggestion[] | undefined;
+  let lastSuggestions: PinPhotoSuggestion[] | undefined;
   let lastErr: Error | undefined;
   for (let i = 0; i < delaysMs.length; i++) {
     const wait = delaysMs[i]!;
@@ -206,26 +206,26 @@ export async function googlePhotosWaitForPickerSelection(
 
 export type GooglePhotosImportResult = {
   importedIds: string[];
-  skippedAlreadyOnTrace: string[];
+  skippedAlreadyOnPin: string[];
   downloadFailed: string[];
 };
 
 export async function googlePhotosImport(
   supabase: SupabaseClient,
-  traceId: string,
+  pinId: string,
   mediaItemIds: string[],
   pickerSessionId: string,
 ): Promise<GooglePhotosImportResult> {
   const { data, error } = await supabase.functions.invoke<{
     importedIds?: string[];
-    skippedAlreadyOnTrace?: string[];
+    skippedAlreadyOnPin?: string[];
     downloadFailed?: string[];
     error?: string;
     message?: string;
   }>("google-photos", {
     body: {
       action: "import",
-      traceId,
+      pinId,
       mediaItemIds,
       pickerSessionId,
     },
@@ -234,7 +234,7 @@ export async function googlePhotosImport(
   if (data?.error) throw new Error(data.message ?? data.error);
   return {
     importedIds: data?.importedIds ?? [],
-    skippedAlreadyOnTrace: data?.skippedAlreadyOnTrace ?? [],
+    skippedAlreadyOnPin: data?.skippedAlreadyOnPin ?? [],
     downloadFailed: data?.downloadFailed ?? [],
   };
 }

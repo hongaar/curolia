@@ -235,9 +235,9 @@ export function PluginsPage() {
           <PageDisplayTitle>Plugins</PageDisplayTitle>
           <PageLead>
             Choose which integrations are available for your account (for
-            example signing in to Google Photos). Journal-specific options—such
-            as publishing an iCalendar feed—are configured in each
-            journal&apos;s settings.
+            example signing in to Google Photos). Map-specific options—such as
+            publishing an iCalendar feed—are configured in each map&apos;s
+            settings.
           </PageLead>
         </PluginListHeader>
         <div>

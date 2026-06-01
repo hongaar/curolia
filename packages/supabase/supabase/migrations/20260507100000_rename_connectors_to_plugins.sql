@@ -7,25 +7,25 @@ alter table public.connector_types rename to plugin_types;
 alter policy "connector_types_select_authenticated" on public.plugin_types
   rename to "plugin_types_select_authenticated";
 
--- Per-journal settings
-alter table public.journal_connectors rename to journal_plugins;
-alter index public.journal_connectors_journal_idx rename to journal_plugins_journal_idx;
-alter table public.journal_plugins rename column connector_type_id to plugin_type_id;
+-- Per-map settings
+alter table public.map_connectors rename to map_plugins;
+alter index public.map_connectors_map_idx rename to map_plugins_map_idx;
+alter table public.map_plugins rename column connector_type_id to plugin_type_id;
 
-alter table public.journal_plugins rename constraint journal_connectors_pkey to journal_plugins_pkey;
-alter table public.journal_plugins
-  rename constraint journal_connectors_journal_id_connector_type_id_key to journal_plugins_journal_id_plugin_type_id_key;
-alter table public.journal_plugins
-  rename constraint journal_connectors_connector_type_id_fkey to journal_plugins_plugin_type_id_fkey;
+alter table public.map_plugins rename constraint map_connectors_pkey to map_plugins_pkey;
+alter table public.map_plugins
+  rename constraint map_connectors_map_id_connector_type_id_key to map_plugins_map_id_plugin_type_id_key;
+alter table public.map_plugins
+  rename constraint map_connectors_connector_type_id_fkey to map_plugins_plugin_type_id_fkey;
 
-alter policy "journal_connectors_select_member" on public.journal_plugins
-  rename to "journal_plugins_select_member";
-alter policy "journal_connectors_write_owner" on public.journal_plugins
-  rename to "journal_plugins_write_owner";
-alter policy "journal_connectors_update_owner" on public.journal_plugins
-  rename to "journal_plugins_update_owner";
-alter policy "journal_connectors_delete_owner" on public.journal_plugins
-  rename to "journal_plugins_delete_owner";
+alter policy "map_connectors_select_member" on public.map_plugins
+  rename to "map_plugins_select_member";
+alter policy "map_connectors_write_owner" on public.map_plugins
+  rename to "map_plugins_write_owner";
+alter policy "map_connectors_update_owner" on public.map_plugins
+  rename to "map_plugins_update_owner";
+alter policy "map_connectors_delete_owner" on public.map_plugins
+  rename to "map_plugins_delete_owner";
 
 -- Account-wide toggles
 alter table public.user_connectors rename to user_plugins;
@@ -44,8 +44,8 @@ alter policy "user_connectors_update_own" on public.user_plugins rename to "user
 alter policy "user_connectors_delete_own" on public.user_plugins rename to "user_plugins_delete_own";
 
 -- Ownership transfer must delete plugin rows by new table name
-create or replace function public.transfer_journal_ownership(
-  p_journal_id uuid,
+create or replace function public.transfer_map_ownership(
+  p_map_id uuid,
   p_new_owner_user_id uuid
 )
 returns void
@@ -55,13 +55,13 @@ set search_path = public
 as $$
 declare
   v_uid uuid := (select auth.uid());
-  v_new_role public.journal_member_role;
+  v_new_role public.map_member_role;
 begin
   if v_uid is null then
     raise exception 'Not authenticated';
   end if;
 
-  if not public.is_journal_owner(p_journal_id) then
+  if not public.is_map_owner(p_map_id) then
     raise exception 'Only the current owner can transfer ownership';
   end if;
 
@@ -70,43 +70,43 @@ begin
   end if;
 
   select jm.role into v_new_role
-  from public.journal_members jm
-  where jm.journal_id = p_journal_id and jm.user_id = p_new_owner_user_id;
+  from public.map_members jm
+  where jm.map_id = p_map_id and jm.user_id = p_new_owner_user_id;
 
   if v_new_role is null then
-    raise exception 'The new owner must already be a member of this journal';
+    raise exception 'The new owner must already be a member of this map';
   end if;
 
-  if v_new_role = 'owner'::public.journal_member_role then
+  if v_new_role = 'owner'::public.map_member_role then
     raise exception 'Target user is already an owner';
   end if;
 
-  delete from public.journal_plugins where journal_id = p_journal_id;
-  delete from public.journal_ical_feed_tokens where journal_id = p_journal_id;
+  delete from public.map_plugins where map_id = p_map_id;
+  delete from public.map_ical_feed_tokens where map_id = p_map_id;
 
-  update public.journal_members
-  set role = 'editor'::public.journal_member_role
-  where journal_id = p_journal_id and user_id = v_uid;
+  update public.map_members
+  set role = 'editor'::public.map_member_role
+  where map_id = p_map_id and user_id = v_uid;
 
-  update public.journal_members
-  set role = 'owner'::public.journal_member_role
-  where journal_id = p_journal_id and user_id = p_new_owner_user_id;
+  update public.map_members
+  set role = 'owner'::public.map_member_role
+  where map_id = p_map_id and user_id = p_new_owner_user_id;
 
-  update public.journals
+  update public.maps
   set created_by_user_id = p_new_owner_user_id,
       updated_at = now()
-  where id = p_journal_id;
+  where id = p_map_id;
 
   insert into public.notifications (
     user_id, type, title, body, payload, action_path
   )
   values (
     p_new_owner_user_id,
-    'journal_ownership_received'::public.notification_type,
-    'Curolia: you are now the journal owner',
+    'map_ownership_received'::public.notification_type,
+    'Curolia: you are now the map owner',
     'Plugins were cleared because integrations are personal to each owner.',
-    jsonb_build_object('journal_id', p_journal_id),
-    '/journals/' || p_journal_id::text || '/settings'
+    jsonb_build_object('map_id', p_map_id),
+    '/maps/' || p_map_id::text || '/settings'
   );
 end;
 $$;

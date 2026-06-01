@@ -13,8 +13,8 @@ const meta = {
   ),
   component: FabButton,
   args: {
-    title: "Add trace",
-    label: "Add trace",
+    title: "Add pin",
+    label: "Add pin",
     icon,
     onClick: () => undefined,
   },
@@ -41,7 +41,7 @@ export const Active: Story = {
 export const Title: Story = {
   parameters: storyDocs("Native `title` tooltip on the button."),
   args: {
-    title: "Add a new trace to this journal",
-    label: "Add trace",
+    title: "Add a new pin to this map",
+    label: "Add pin",
   },
 };

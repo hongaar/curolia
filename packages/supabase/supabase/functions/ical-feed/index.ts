@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-type TraceRow = {
+type PinRow = {
   id: string;
   title: string | null;
   description: string | null;
@@ -55,28 +55,28 @@ function formatUtcDtStamp(d: Date): string {
 }
 
 function buildCalendar(params: {
-  journalName: string;
-  journalId: string;
-  traces: TraceRow[];
+  mapName: string;
+  mapId: string;
+  pins: PinRow[];
 }): string {
   const lines: string[] = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//Curolia//iCalendar feed//EN",
     "CALSCALE:GREGORIAN",
-    `X-WR-CALNAME:${escapeIcsText(params.journalName)}`,
+    `X-WR-CALNAME:${escapeIcsText(params.mapName)}`,
   ];
   const dtstamp = formatUtcDtStamp(new Date());
-  for (const t of params.traces) {
+  for (const t of params.pins) {
     if (!t.date) continue;
-    const summary = (t.title?.trim() || "Trace").slice(0, 200);
+    const summary = (t.title?.trim() || "Pin").slice(0, 200);
     const desc = t.description?.trim() ?? "";
     const start = ymdToIcsDate(t.date);
     const lastInclusive =
       t.end_date && t.end_date >= t.date ? t.end_date : t.date;
     const endExclusive = exclusiveEndFromInclusive(lastInclusive);
     lines.push("BEGIN:VEVENT");
-    lines.push(foldLine(`UID:${t.id}@curolia-${params.journalId}`));
+    lines.push(foldLine(`UID:${t.id}@curolia-${params.mapId}`));
     lines.push(`DTSTAMP:${dtstamp}`);
     lines.push(`DTSTART;VALUE=DATE:${start}`);
     lines.push(`DTEND;VALUE=DATE:${endExclusive}`);
@@ -125,24 +125,24 @@ Deno.serve(async (req) => {
   });
 
   const { data: feedRow, error: feedErr } = await admin
-    .from("journal_ical_feed_tokens")
-    .select("journal_id")
+    .from("map_ical_feed_tokens")
+    .select("map_id")
     .eq("token", token)
     .maybeSingle();
 
-  if (feedErr || !feedRow?.journal_id) {
+  if (feedErr || !feedRow?.map_id) {
     return new Response("Not found", {
       status: 404,
       headers: { "Access-Control-Allow-Origin": "*" },
     });
   }
 
-  const journalId = feedRow.journal_id as string;
+  const mapId = feedRow.map_id as string;
 
   const { data: ownerRow, error: ownerErr } = await admin
-    .from("journal_members")
+    .from("map_members")
     .select("user_id")
-    .eq("journal_id", journalId)
+    .eq("map_id", mapId)
     .eq("role", "owner")
     .maybeSingle();
 
@@ -168,9 +168,9 @@ Deno.serve(async (req) => {
   }
 
   const { data: jc, error: jcErr } = await admin
-    .from("journal_plugins")
+    .from("map_plugins")
     .select("config")
-    .eq("journal_id", journalId)
+    .eq("map_id", mapId)
     .eq("plugin_type_id", "ical")
     .maybeSingle();
 
@@ -190,22 +190,22 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { data: journal, error: jErr } = await admin
-    .from("journals")
+  const { data: map, error: jErr } = await admin
+    .from("maps")
     .select("name")
-    .eq("id", journalId)
+    .eq("id", mapId)
     .single();
-  if (jErr || !journal) {
+  if (jErr || !map) {
     return new Response("Not found", {
       status: 404,
       headers: { "Access-Control-Allow-Origin": "*" },
     });
   }
 
-  const { data: traces, error: tErr } = await admin
-    .from("traces")
+  const { data: pins, error: tErr } = await admin
+    .from("pins")
     .select("id, title, description, lat, lng, date, end_date")
-    .eq("journal_id", journalId)
+    .eq("map_id", mapId)
     .order("date", { ascending: true, nullsFirst: false });
 
   if (tErr) {
@@ -216,9 +216,9 @@ Deno.serve(async (req) => {
   }
 
   const body = buildCalendar({
-    journalName: (journal.name as string) || "Untitled journal",
-    journalId,
-    traces: (traces ?? []) as TraceRow[],
+    mapName: (map.name as string) || "Untitled map",
+    mapId,
+    pins: (pins ?? []) as PinRow[],
   });
 
   return new Response(body, {

@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/providers/auth-provider";
-import { JournalProvider } from "@/providers/journal-provider";
+import { MapProvider } from "@/providers/map-provider";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 
 export function ProtectedLayout() {
@@ -17,8 +17,8 @@ export function ProtectedLayout() {
   }
 
   return (
-    <JournalProvider>
+    <MapProvider>
       <Outlet />
-    </JournalProvider>
+    </MapProvider>
   );
 }

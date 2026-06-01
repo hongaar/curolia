@@ -1,12 +1,12 @@
 import { HomeRedirectPage } from "@/pages/home-redirect-page";
 import { useAuth } from "@/providers/auth-provider";
-import { JournalProvider } from "@/providers/journal-provider";
+import { MapProvider } from "@/providers/map-provider";
 import { Capacitor } from "@capacitor/core";
 import { LandingPage } from "@curolia/site/pages";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 import { Navigate } from "react-router-dom";
 
-/** `/` — marketing landing for guests; journal redirect for signed-in users. */
+/** `/` — marketing landing for guests; map redirect for signed-in users. */
 export function RootPage() {
   const { user, loading } = useAuth();
 
@@ -16,9 +16,9 @@ export function RootPage() {
 
   if (user) {
     return (
-      <JournalProvider>
+      <MapProvider>
         <HomeRedirectPage />
-      </JournalProvider>
+      </MapProvider>
     );
   }
 

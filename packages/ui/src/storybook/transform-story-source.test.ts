@@ -5,8 +5,8 @@ import { transformStorySource } from "./transform-story-source";
 /** Shape Storybook often passes when `render` uses `StoryFrame` (no `render:` prefix). */
 const storybookJsxSnippet = `      <Card>
         <CardHeader>
-          <CardTitle>Trace settings</CardTitle>
-          <CardDescription>Configure metadata for this trace.</CardDescription>
+          <CardTitle>Pin settings</CardTitle>
+          <CardDescription>Configure metadata for this pin.</CardDescription>
           <CardAction>
             <Button size="sm" variant="outline">
               Edit
@@ -30,7 +30,7 @@ const cardCsf = `export const Default = {
     <StoryFrame width="md">
       <Card>
         <CardHeader>
-          <CardTitle>Trace settings</CardTitle>
+          <CardTitle>Pin settings</CardTitle>
         </CardHeader>
       </Card>
     </StoryFrame>

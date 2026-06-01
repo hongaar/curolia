@@ -7,15 +7,15 @@ const BASE_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/blog\/?$/,
 ];
 
-/** Screens stacked above the base (settings, trace detail, …). */
+/** Screens stacked above the base (settings, pin detail, …). */
 const STACK_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/profile\/?$/,
   /^\/settings\/?$/,
   /^\/plugins\/?$/,
   /^\/notifications\/?$/,
   /^\/invitations\/?$/,
-  /^\/journals\/[^/]+\/settings\/?$/,
-  /^\/traces\//,
+  /^\/maps\/[^/]+\/settings\/?$/,
+  /^\/pins\//,
 ];
 
 function normalizePathname(pathname: string): string {
