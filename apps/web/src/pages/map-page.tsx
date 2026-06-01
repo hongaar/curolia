@@ -34,6 +34,7 @@ import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
 import { DEFAULT_TRACE_TAG_COLOR } from "@/lib/preset-trace-tag-colors";
 import { supabase } from "@/lib/supabase";
 import type { TraceWithTags } from "@/lib/trace-with-tags";
+import { filterTracesByTags } from "@/lib/trace-with-tags";
 import { useJournal } from "@/providers/journal-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
@@ -63,6 +64,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -96,7 +98,19 @@ export function MapPage() {
     activeJournal,
     loading: journalLoading,
   } = useJournal();
+  const prevJournalIdRef = useRef<string | null>(null);
+  const [awaitingJournalFit, setAwaitingJournalFit] = useState(false);
+
+  useLayoutEffect(() => {
+    const prev = prevJournalIdRef.current;
+    if (prev !== null && activeJournalId !== null && prev !== activeJournalId) {
+      setAwaitingJournalFit(true);
+    }
+    prevJournalIdRef.current = activeJournalId;
+  }, [activeJournalId]);
+
   const resolvedInitialCamera = useMemo((): MapCamera | null => {
+    if (awaitingJournalFit) return null;
     if (cameraFromUrl) return cameraFromUrl;
     if (bboxFromUrl) {
       return normalizeCameraForUrl({
@@ -106,14 +120,15 @@ export function MapPage() {
       });
     }
     return readStoredMapCamera(activeJournalId);
-  }, [cameraFromUrl, bboxFromUrl, activeJournalId]);
+  }, [awaitingJournalFit, cameraFromUrl, bboxFromUrl, activeJournalId]);
   const cameraSyncKey = useMemo(() => {
+    if (awaitingJournalFit) return "";
     if (bboxFromUrl) return `url:bbox:${bboxToSyncKey(bboxFromUrl)}`;
     if (cameraFromUrl) return `url:${cameraToSyncKey(cameraFromUrl)}`;
     if (resolvedInitialCamera)
       return `init:${cameraToSyncKey(resolvedInitialCamera)}`;
     return "";
-  }, [bboxFromUrl, cameraFromUrl, resolvedInitialCamera]);
+  }, [awaitingJournalFit, bboxFromUrl, cameraFromUrl, resolvedInitialCamera]);
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -231,6 +246,31 @@ export function MapPage() {
   });
 
   const traces = useMemo(() => tracesQuery.data ?? [], [tracesQuery.data]);
+
+  useEffect(() => {
+    if (!awaitingJournalFit) return;
+    if (journalLoading || !activeJournalId || tracesQuery.isPending) return;
+
+    const visible = filterTracesByTags(traces, filterTagIds);
+    mapRef.current?.fitVisibleTraces();
+
+    if (visible.length === 0) {
+      setAwaitingJournalFit(false);
+    }
+  }, [
+    awaitingJournalFit,
+    journalLoading,
+    activeJournalId,
+    tracesQuery.isPending,
+    traces,
+    filterTagIds,
+  ]);
+
+  useEffect(() => {
+    if (!awaitingJournalFit) return;
+    if (!cameraFromUrl) return;
+    setAwaitingJournalFit(false);
+  }, [awaitingJournalFit, cameraFromUrl]);
 
   const sidebarTraceToken = useMemo(
     () => parseSelectedTraceTokenFromSearchParams(searchParams),
@@ -437,7 +477,7 @@ export function MapPage() {
     });
   }
 
-  if (journalLoading || (Boolean(activeJournalId) && tracesQuery.isPending)) {
+  if (journalLoading) {
     return <JournalViewInitialLoader />;
   }
 

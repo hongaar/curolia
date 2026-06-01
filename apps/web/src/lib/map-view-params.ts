@@ -208,6 +208,17 @@ export function stripMapBboxFromSearchParams(
   return next;
 }
 
+/** Removes point camera and bbox (used when switching journals). */
+export function stripMapCameraFromSearchParams(
+  searchParams: URLSearchParams,
+): URLSearchParams {
+  const next = stripMapBboxFromSearchParams(searchParams);
+  next.delete(MAP_VIEW_PARAM.lat);
+  next.delete(MAP_VIEW_PARAM.lng);
+  next.delete(MAP_VIEW_PARAM.zoom);
+  return next;
+}
+
 export function parseMapCameraFromSearchParams(
   searchParams: URLSearchParams,
 ): MapCamera | null {

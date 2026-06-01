@@ -176,6 +176,9 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
       >(),
     );
     const previewMarkerRef = useRef<maplibregl.Marker | null>(null);
+    const geolocateControlRef = useRef<maplibregl.GeolocateControl | null>(
+      null,
+    );
     const onPlacementClickRef = useRef(onPlacementClick);
     const onSelectTraceRef = useRef(onSelectTrace);
     const onCameraIdleRef = useRef(onCameraIdle);
@@ -434,32 +437,14 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
           });
         },
         triggerGeolocate() {
-          const map = mapRef.current;
-          if (!map) return;
           if (!navigator.geolocation) {
             toast.error("Geolocation is not supported in this browser.");
             return;
           }
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              const m = mapRef.current;
-              if (!m) return;
-              m.flyTo({
-                center: [pos.coords.longitude, pos.coords.latitude],
-                zoom: Math.max(m.getZoom(), 12),
-                duration: CAMERA_DURATION_MS,
-                essential: true,
-              });
-            },
-            (err) => {
-              toast.error(geolocationToastMessage(err));
-            },
-            {
-              enableHighAccuracy: true,
-              maximumAge: 30_000,
-              timeout: 12_000,
-            },
-          );
+          const geolocate = geolocateControlRef.current;
+          if (!geolocate?.trigger()) {
+            toast.error("Map is still loading. Try again in a moment.");
+          }
         },
       }),
       [],
@@ -490,8 +475,30 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
         "bottom-right",
       );
 
+      const geolocate = new maplibregl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+          maximumAge: 30_000,
+          timeout: 12_000,
+        },
+        fitBoundsOptions: {
+          maxZoom: CAMERA_MAX_ZOOM,
+        },
+        trackUserLocation: false,
+        showUserLocation: true,
+        showAccuracyCircle: true,
+      });
+      geolocate.on("error", (e) => {
+        const err =
+          e && typeof e === "object" && "data" in e ? e.data : undefined;
+        toast.error(geolocationToastMessage(err));
+      });
+      map.addControl(geolocate);
+      geolocateControlRef.current = geolocate;
+
       mapRef.current = map;
       return () => {
+        geolocateControlRef.current = null;
         map.remove();
         mapRef.current = null;
       };

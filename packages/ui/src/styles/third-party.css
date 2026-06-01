@@ -35,3 +35,9 @@
   color: inherit;
   text-decoration: underline;
 }
+
+/* GeolocateControl is used for the blue dot; toolbar owns the locate action. */
+[data-curolia-trace-map]
+  .maplibregl-ctrl-group:has(.maplibregl-ctrl-geolocate) {
+  display: none !important;
+}

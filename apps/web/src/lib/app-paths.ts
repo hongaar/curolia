@@ -2,6 +2,7 @@ import {
   applyAddTraceToSearchParams,
   applySelectedTraceToSearchParams,
   MAP_VIEW_PARAM,
+  stripMapCameraFromSearchParams,
 } from "@/lib/map-view-params";
 import type { Journal } from "@/types/database";
 
@@ -32,9 +33,10 @@ export function journalSwitchHref(
 ): string {
   const segment = journalViewSegmentFromPathname(currentPathname);
   const slug = nextJournal.slug.trim();
-  const p = new URLSearchParams(
+  let p = new URLSearchParams(
     currentSearch.startsWith("?") ? currentSearch.slice(1) : currentSearch,
   );
+  p = stripMapCameraFromSearchParams(p);
   p.delete("filter");
   p.delete("tags");
   p.delete(MAP_VIEW_PARAM.trace);
