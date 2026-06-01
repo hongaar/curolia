@@ -1,5 +1,5 @@
-import { PrivacyPolicyContent, TermsContent } from "./legal-content";
-import { MarketingDocumentPage } from "./marketing-shell";
+import { PrivacyPolicyContent, TermsContent } from "../content/legal-content";
+import { MarketingDocumentPage } from "../shell/marketing-shell";
 
 const EFFECTIVE_DATE = "31 May 2026";
 
@@ -38,11 +38,3 @@ export function TermsPageContent({
     </MarketingDocumentPage>
   );
 }
-
-export {
-  ContactContent,
-  OpenSourceLicensesSummaryContent,
-  PrivacyPolicyContent,
-  TermsContent,
-} from "./legal-content";
-export type { LegalContentProps, LegalNavTarget } from "./legal-content";

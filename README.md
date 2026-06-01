@@ -317,7 +317,7 @@ A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root)
 - Storybook-only files and tests
 - “Unused dependencies” for side-effect imports (e.g. `@fontsource-variable/geist`) until Knip is configured per workspace
 
-**Already cleaned up:** Vite starter files in `apps/web/src/assets/`, thin landing-page route wrappers, unused `@curolia/ui/landing-page` and `login-layout` exports.
+**Already cleaned up:** Vite starter files in `apps/web/src/assets/`, thin route wrappers, unused `login-layout` exports. Marketing/legal pages live in `@curolia/site`; About dialog is composed in `apps/web`.
 
 ## Roadmap
 

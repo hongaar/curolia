@@ -1,5 +1,5 @@
 import { NpmLicensesFullList } from "@/components/about/npm-licenses-full-list";
-import { OpenSourceLicensesPageContent } from "@curolia/ui/landing-page";
+import { OpenSourceLicensesPageContent } from "@curolia/site/pages";
 
 export function OpenSourceLicensesPage() {
   return (

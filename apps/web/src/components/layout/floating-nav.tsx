@@ -1,10 +1,10 @@
+import { AboutDialog } from "@/components/about/about-dialog";
 import { NpmLicensesFullList } from "@/components/about/npm-licenses-full-list";
 import { MainToolbarPanel } from "@/components/layout/main-toolbar-panel";
 import { UserAvatar } from "@/components/user-avatar";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
-import { AboutDialog } from "@curolia/ui/about-dialog";
 import {
   DropdownMenu,
   DropdownMenuGroup,

@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
-import styles from "./landing-page.module.css";
+import styles from "../styles/site.module.css";
 
 export type LegalNavTarget = "contact" | "privacy" | "terms" | "licenses";
 

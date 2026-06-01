@@ -1,10 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
-import { MemoryRouter } from "react-router-dom";
 
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
-import { AboutDialog } from "./about-dialog";
+import { AboutDialogShell } from "./about-dialog-shell";
+import styles from "./about-dialog.module.css";
+import { AboutLinkList } from "./about-link-list";
+import { AboutMapAttributionSection } from "./about-map-attribution-section";
+import { AboutVersionMeta } from "./about-version-meta";
 import { MapAttributionInline } from "./map-attribution";
 import type { NpmLicenseEntry } from "./npm-licenses-list";
 import { NpmLicensesList } from "./npm-licenses-list";
@@ -24,19 +27,24 @@ const mockLicenses: NpmLicenseEntry[] = [
   },
 ];
 
+const aboutLinks = [
+  { id: "contact", label: "Contact" },
+  { id: "terms", label: "Terms and Conditions" },
+  { id: "privacy", label: "Privacy Policy" },
+  { id: "licenses", label: "Open source licenses" },
+] as const;
+
 const meta = {
   title: "About Dialog",
   ...componentStoryMeta(
-    "About Curolia dialog with inline legal pages and map attribution.",
-    "Use from the account menu in the web app; pass `npmLicensesContent` with generated entries from `apps/web`.",
+    "About dialog shell, link list, and map attribution primitives.",
+    "Compose the product About dialog in apps/web with site legal content.",
   ),
   decorators: [
     (Story) => (
-      <MemoryRouter>
-        <StoryFrame width="md">
-          <Story />
-        </StoryFrame>
-      </MemoryRouter>
+      <StoryFrame width="md">
+        <Story />
+      </StoryFrame>
     ),
   ],
 } satisfies Meta;
@@ -44,20 +52,44 @@ const meta = {
 export default meta;
 type Story = StoryObj;
 
-export const Default: Story = {
+export const ShellMain: Story = {
   parameters: storyDocs(
-    "Main about screen with version, links, and map data attribution.",
+    "Main about screen with version, link list, and map attribution.",
   ),
   render: function Render() {
     const [open, setOpen] = useState(true);
+    const [panel, setPanel] = useState<string | null>(null);
+
     return (
-      <AboutDialog
+      <AboutDialogShell
         open={open}
         onOpenChange={setOpen}
-        version="0.0.0"
-        npmLicensesContent={<NpmLicensesList entries={mockLicenses} />}
+        title={panel ? "Panel" : "About Curolia"}
+        onBack={panel ? () => setPanel(null) : undefined}
+        main={
+          <>
+            <AboutVersionMeta version="0.0.0" />
+            <AboutLinkList
+              items={[...aboutLinks]}
+              onSelect={(id) => setPanel(id)}
+            />
+            <AboutMapAttributionSection />
+          </>
+        }
+        panel={
+          panel ? (
+            <p className={styles.npmEmpty}>Placeholder panel: {panel}</p>
+          ) : undefined
+        }
       />
     );
+  },
+};
+
+export const LinkList: Story = {
+  parameters: storyDocs("Chevron link rows for the about main menu."),
+  render: function Render() {
+    return <AboutLinkList items={[...aboutLinks]} onSelect={() => undefined} />;
   },
 };
 

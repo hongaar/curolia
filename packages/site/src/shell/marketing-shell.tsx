@@ -1,8 +1,8 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
-import { buttonClassName } from "../button";
-import styles from "./landing-page.module.css";
+import { buttonClassName } from "@curolia/ui/button";
+import styles from "../styles/site.module.css";
 
 type MarketingLinkProps = {
   to: string;

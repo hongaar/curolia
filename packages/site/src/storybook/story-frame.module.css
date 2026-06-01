@@ -1,0 +1,94 @@
+.frame {
+  width: 100%;
+  max-width: 100%;
+}
+
+.widthSm {
+  max-width: 24rem;
+}
+
+.widthMd {
+  max-width: 28rem;
+}
+
+.widthLg {
+  max-width: 36rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.columnLg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tall {
+  height: 20rem;
+}
+
+.spacedRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.labelGap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.verticalRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4rem;
+}
+
+.labelGapSm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mutedSm {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.padX {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.iconSm {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.mapPlaceholder {
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  background: linear-gradient(
+    160deg,
+    oklch(0.78 0.06 210) 0%,
+    oklch(0.58 0.08 250) 55%,
+    oklch(0.48 0.06 160) 100%
+  );
+}

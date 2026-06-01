@@ -1,8 +1,8 @@
 import type * as React from "react";
 
-import styles from "./landing-page.module.css";
-import { OpenSourceLicensesSummaryContent } from "./legal-content";
-import { MarketingDocumentPage } from "./marketing-shell";
+import { OpenSourceLicensesSummaryContent } from "../content/legal-content";
+import { MarketingDocumentPage } from "../shell/marketing-shell";
+import styles from "../styles/site.module.css";
 
 const EFFECTIVE_DATE = "1 June 2026";
 

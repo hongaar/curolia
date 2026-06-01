@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
-import { componentStoryMeta, storyDocs } from "../../storybook/docs";
+
+import { componentStoryMeta, storyDocs } from "../storybook/docs";
 import {
   ContactPageContent,
   LandingPage,
@@ -10,10 +11,10 @@ import {
 import { OpenSourceLicensesPageContent } from "./licenses-page";
 
 const meta = {
-  title: "Landing Page",
+  title: "Site",
   ...componentStoryMeta(
-    "Marketing homepage and contact layout for signed-out sessions.",
-    "Use `LandingPage` at `/`, `ContactPageContent` at `/contact`, and legal pages at `/privacy` and `/terms`. Images live in `apps/web/public/landing/`.",
+    "Marketing homepage and public legal pages for signed-out sessions.",
+    "Mounted at `/`, `/contact`, `/privacy`, `/terms`, and `/licenses` from apps/web via `@curolia/site/pages`.",
   ),
   component: LandingPage,
   decorators: [

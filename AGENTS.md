@@ -40,6 +40,13 @@
 
 - **Web UI** may stay in `apps/web` initially; packages should still export **manifest + config parsers** so behavior and declarations stay with the plugin. Prefer moving React panels into the plugin package when they stabilize (with `react` as a `peerDependency`).
 
+## Static pages (`@curolia/site`)
+
+- Marketing and legal **pages** (`LandingPage`, `ContactPageContent`, `PrivacyPolicyPageContent`, `TermsPageContent`, `OpenSourceLicensesPageContent`) and embeddable **content** live in **`packages/site`**. Import via `@curolia/site/pages` and `@curolia/site/content`.
+- **`apps/web`** wires routes in `App.tsx` and composes the product **About** dialog (`apps/web/src/components/about/about-dialog.tsx`) from `@curolia/ui/about-dialog` primitives and `@curolia/site/content`. **`@curolia/ui` must not** import other `@curolia/*` packages.
+- **Storybook** for site: `npm run dev -w @curolia/site` (port 6007). Config is aligned with `@curolia/ui` but **duplicated** under `packages/site/.storybook` and `packages/site/src/storybook` so packages can diverge independently.
+- Landing images live in `packages/site/public/landing/` (bundled via imports in `src/pages/landing-images.ts`).
+
 ## Web styling (`@curolia/ui`)
 
 - **Design tokens and global CSS** live in **`packages/ui/src/styles/`** (import **`@curolia/ui/styles`** from `apps/web` `main.tsx`). Do not add Tailwind or app-local component CSS in **`apps/web`** or **`packages/plugins`**.

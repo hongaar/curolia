@@ -20,7 +20,7 @@ import {
   ContactPageContent,
   PrivacyPolicyPageContent,
   TermsPageContent,
-} from "@curolia/ui/landing-page";
+} from "@curolia/site/pages";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 export default function App() {

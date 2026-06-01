@@ -1,3 +1,4 @@
+import { buttonClassName } from "@curolia/ui/button";
 import {
   BookOpen,
   Compass,
@@ -7,15 +8,17 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type * as React from "react";
-import { buttonClassName } from "../button";
-import styles from "./landing-page.module.css";
-import { ContactContent } from "./legal-content";
+
+import { ContactContent } from "../content/legal-content";
 import {
   MarketingButtonLink,
   MarketingFooter,
   MarketingHeader,
   MarketingLayout,
-} from "./marketing-shell";
+} from "../shell/marketing-shell";
+import styles from "../styles/site.module.css";
+import { defaultLandingImages } from "./landing-images";
+import { PrivacyPolicyPageContent, TermsPageContent } from "./legal-pages";
 
 type LandingFeature = {
   id: string;
@@ -32,30 +35,6 @@ type LandingPageProps = {
   features: LandingFeature[];
   contactEmail?: string;
 };
-
-/** Local landing photography under `apps/web/public/landing/`. */
-const defaultLandingImages = {
-  hero: {
-    src: "/landing/hero.jpg",
-    alt: "Sunset over terraced rice fields",
-  },
-  map: {
-    src: "/landing/feature-map.jpg",
-    alt: "Winding river through a misty green valley",
-  },
-  traces: {
-    src: "/landing/feature-traces.jpg",
-    alt: "Mountain river valley with forest and snow peaks",
-  },
-  journals: {
-    src: "/landing/feature-journals.jpg",
-    alt: "Coastal hills with yellow wildflowers above the sea",
-  },
-  plugins: {
-    src: "/landing/feature-plugins.jpg",
-    alt: "Sunset over a savanna plain with scattered trees",
-  },
-} as const;
 
 const defaultFeatures: LandingFeature[] = [
   {
@@ -296,4 +275,4 @@ export function ContactPageContent({
   );
 }
 
-export { PrivacyPolicyPageContent, TermsPageContent } from "./legal-pages";
+export { PrivacyPolicyPageContent, TermsPageContent };

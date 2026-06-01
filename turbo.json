@@ -39,6 +39,13 @@
       "cache": false,
       "persistent": true
     },
+    "@curolia/site#dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "@curolia/site#typecheck": {
+      "outputs": []
+    },
     "@curolia/brand#generate:native": {
       "cache": false
     },
