@@ -7,7 +7,11 @@ export function MapPageRoot({ children }: { children: React.ReactNode }) {
 }
 
 export function MapLayer({ children }: { children: React.ReactNode }) {
-  return <div className={styles.mapLayer}>{children}</div>;
+  return (
+    <div className={styles.mapLayer} data-curolia-map-layer>
+      {children}
+    </div>
+  );
 }
 
 export function MapVignette() {
@@ -36,6 +40,15 @@ export function MapControlsBottomRight({
   children: React.ReactNode;
 }) {
   return <div className={styles.controlsBottomRight}>{children}</div>;
+}
+
+/** Vertical stack of map controls (tags, toolbar, FAB) at bottom-right. */
+export function MapControlsBottomStack({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.controlsBottomStack}>{children}</div>;
 }
 
 /** Full-screen dismiss overlay behind the navigation sidebar on map view. */

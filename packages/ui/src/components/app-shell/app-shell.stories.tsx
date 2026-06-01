@@ -1,24 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Map, Menu, Settings } from "lucide-react";
+import { Map, Settings } from "lucide-react";
 import { useState } from "react";
 import { withMemoryRouter } from "../../storybook/decorators";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { storyFrameStyles } from "../../storybook/story-frame";
 import { Button } from "../button";
 import { DropdownMenu } from "../dropdown-menu";
-import {
-  AccountMenuContent,
-  AccountMenuTrigger,
-  FloatingNavBar,
-} from "../floating-nav-bar";
+import { AccountMenuContent, AccountMenuTrigger } from "../floating-nav-bar";
 import { Input } from "../input";
-import {
-  MainToolbarBrand,
-  MainToolbarMenuButton,
-  MainToolbarMenuIcon,
-  MainToolbarSearchSlot,
-  MainToolbarShell,
-} from "../main-toolbar-panel";
+import { MainToolbar } from "../main-toolbar";
 import {
   MapControlsLayer,
   MapControlsTopRight,
@@ -27,6 +17,7 @@ import {
   MapPageRoot,
   MapVignette,
 } from "../map";
+import { MapPickerContent, MapPickerTrigger } from "../map-picker";
 import { MapToolbar, MapToolbarButton } from "../map-toolbar";
 import {
   NavigationSidebarLabel,
@@ -114,30 +105,30 @@ function ShellDemo({
   sidebarOpen?: boolean;
   overlayMain?: boolean;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(initialOpen);
+  const [sidebarOpen] = useState(initialOpen);
   return (
     <AppShellLayout
       sidebarOpen={sidebarOpen}
       overlayMain={overlayMain}
       sidebar={<SidebarDemo />}
       header={
-        <FloatingNavBar
-          toolbar={
-            <MainToolbarShell>
-              <MainToolbarMenuButton
-                aria-label="Toggle navigation"
-                onClick={() => setSidebarOpen((o) => !o)}
-              >
-                <MainToolbarMenuIcon>
-                  <Menu aria-hidden />
-                </MainToolbarMenuIcon>
-              </MainToolbarMenuButton>
-              <MainToolbarBrand>Curolia</MainToolbarBrand>
-              <MainToolbarSearchSlot>
-                <Input placeholder="Search pins…" aria-label="Search" />
-              </MainToolbarSearchSlot>
-            </MainToolbarShell>
+        <MainToolbar
+          logoSrc="/favicon.png"
+          mapPicker={
+            <DropdownMenu>
+              <MapPickerTrigger
+                mapEmoji="🗺️"
+                mapName="Summer 2025"
+                aria-label="Select map"
+              />
+              <MapPickerContent>
+                <Button variant="ghost" size="sm">
+                  Switch map…
+                </Button>
+              </MapPickerContent>
+            </DropdownMenu>
           }
+          search={<Input placeholder="Search pins…" aria-label="Search" />}
           accountMenu={
             <DropdownMenu>
               <AccountMenuTrigger title="Account" aria-label="Account menu">
@@ -145,7 +136,7 @@ function ShellDemo({
                   email="demo@curolia.app"
                   storedAvatarUrl={null}
                   label="Demo user"
-                  size="sm"
+                  size="full"
                 />
               </AccountMenuTrigger>
               <AccountMenuContent>

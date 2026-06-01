@@ -11,6 +11,16 @@
     color-mix(in oklch, var(--foreground) 10%, transparent);
 }
 
+.rootIconOnly:where([data-slot="button"]) {
+  width: 3rem;
+  min-width: 3rem;
+  height: 3rem;
+  min-height: 3rem;
+  padding: 0;
+  padding-inline: 0;
+  gap: 0;
+}
+
 .rootActive {
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 35%, transparent);
 }

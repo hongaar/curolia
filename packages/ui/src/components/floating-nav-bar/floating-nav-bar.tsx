@@ -8,21 +8,6 @@ import {
 } from "../dropdown-menu";
 import styles from "./floating-nav-bar.module.css";
 
-export function FloatingNavBar({
-  toolbar,
-  accountMenu,
-}: {
-  toolbar: React.ReactNode;
-  accountMenu: React.ReactNode;
-}) {
-  return (
-    <header className={styles.header}>
-      {toolbar}
-      {accountMenu}
-    </header>
-  );
-}
-
 export function AccountMenuTrigger({
   children,
   ...props

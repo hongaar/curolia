@@ -11,8 +11,8 @@ export type FabButtonProps = {
   title: string;
   onClick: () => void;
   icon: React.ReactNode;
-  /** Visible label beside the icon. */
-  label: string;
+  /** Visible label beside the icon. Omit for icon-only FAB. */
+  label?: string;
 };
 
 export function FabButton({
@@ -22,6 +22,8 @@ export function FabButton({
   icon,
   label,
 }: FabButtonProps) {
+  const iconOnly = label == null || label === "";
+
   return (
     <Button
       type="button"
@@ -29,10 +31,15 @@ export function FabButton({
       title={title}
       onClick={onClick}
       aria-pressed={active || undefined}
-      className={cn(styles.root, active && styles.rootActive)}
+      aria-label={iconOnly ? title : undefined}
+      className={cn(
+        styles.root,
+        iconOnly && styles.rootIconOnly,
+        active && styles.rootActive,
+      )}
     >
       <span className={styles.icon}>{icon}</span>
-      <span>{label}</span>
+      {iconOnly ? null : <span>{label}</span>}
     </Button>
   );
 }

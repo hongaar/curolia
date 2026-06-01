@@ -1,10 +1,9 @@
-import { FloatingNav } from "@/components/layout/floating-nav";
+import { MainToolbar } from "@/components/layout/main-toolbar";
 import { NavigationSidebarColumn } from "@/components/layout/navigation-sidebar-column";
 import { NotificationsRealtimeSync } from "@/components/layout/notifications-realtime-sync";
 import { useNativeBackButton } from "@/hooks/use-native-back-button";
-import { useShellChromePathname } from "@/hooks/use-shell-chrome-pathname";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
-import { isMapFullscreenPathname } from "@/lib/app-paths";
+import { isMapChromeRoute, syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { NAV_SIDEBAR_LAYOUT_FLUSH_EVENT } from "@/lib/navigation-shell-layout";
 import { isStackRoute } from "@/lib/stack-routes";
 import { useAuth } from "@/providers/auth-provider";
@@ -14,16 +13,24 @@ import {
 } from "@/providers/navigation-shell-provider";
 import { TagSidebarProvider } from "@/providers/tag-sidebar-provider";
 import { AppShellLayout } from "@curolia/ui/app-shell";
+import { useLayoutEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 function AppShellInner() {
   const { user } = useAuth();
-  const { sidebarOpen } = useNavigationShell();
+  const { sidebarOpen, setSidebarOpen } = useNavigationShell();
   const { pathname } = useLocation();
-  const chromePathname = useShellChromePathname();
   const stackTransitions = useStackTransitions();
-  const sidebarOverlaysMain = isMapFullscreenPathname(chromePathname);
-  const showFloatingNav = !stackTransitions || !isStackRoute(pathname);
+  const isMapRoute = isMapChromeRoute(pathname);
+  const sidebarOverlaysMain = isMapRoute;
+  const showMainToolbar = !stackTransitions || !isStackRoute(pathname);
+
+  useLayoutEffect(() => {
+    syncMapRouteDocumentClass(pathname);
+    if (isMapRoute && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  }, [pathname, isMapRoute, sidebarOpen, setSidebarOpen]);
 
   useNativeBackButton();
 
@@ -44,7 +51,7 @@ function AppShellInner() {
       notifications={
         user ? <NotificationsRealtimeSync userId={user.id} /> : null
       }
-      header={showFloatingNav ? <FloatingNav /> : undefined}
+      header={showMainToolbar ? <MainToolbar /> : undefined}
     >
       <Outlet />
     </AppShellLayout>

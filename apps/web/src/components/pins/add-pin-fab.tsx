@@ -21,7 +21,6 @@ export function AddPinFab({ onClick, active }: AddPinFabProps) {
           <Plus strokeWidth={2.25} aria-hidden />
         )
       }
-      label={active ? "Stop adding" : "Add pin"}
     />
   );
 }

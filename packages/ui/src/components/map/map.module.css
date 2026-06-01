@@ -10,6 +10,12 @@
   z-index: 0;
 }
 
+@media (min-width: 40rem) {
+  .mapLayer {
+    top: var(--toolbar-offset);
+  }
+}
+
 .vignette {
   pointer-events: none;
   position: absolute;
@@ -59,7 +65,25 @@
 
 @media (min-width: 40rem) {
   .controlsBottomRight {
-    right: 1.5rem;
+    right: calc(1.5rem + var(--safe-right));
+  }
+}
+
+.controlsBottomStack {
+  pointer-events: auto;
+  position: absolute;
+  right: calc(1rem + var(--safe-right));
+  bottom: calc(1.5rem + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+@media (min-width: 40rem) {
+  .controlsBottomStack {
+    right: calc(1.5rem + var(--safe-right));
+    gap: 0.625rem;
   }
 }
 

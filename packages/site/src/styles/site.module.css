@@ -19,7 +19,7 @@
     ),
     radial-gradient(
       ellipse 90% 70% at 95% 20%,
-      oklch(0.55 0.06 250 / 0.12),
+      oklch(0.52 0.14 52 / 0.14),
       transparent 50%
     ),
     radial-gradient(
@@ -66,7 +66,7 @@
   gap: 1rem;
   max-width: 72rem;
   margin: 0 auto;
-  padding: 0.875rem 1.25rem;
+  padding: 1.25rem;
 }
 
 .brand {
@@ -89,7 +89,7 @@
 .brandName {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   line-height: 1;
   letter-spacing: -0.02em;
 }

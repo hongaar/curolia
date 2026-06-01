@@ -1,6 +1,6 @@
+import type { StorybookConfig } from "@storybook/react-vite";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import type { StorybookConfig } from "@storybook/react-vite";
 import { mergeConfig } from "vite";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +24,7 @@ const config: StorybookConfig = {
   docs: {
     defaultName: "Documentation",
   },
+  staticDirs: [{ from: path.join(repoRoot, "apps/web/public"), to: "/" }],
   async viteFinal(config) {
     return mergeConfig(config, {
       server: {

@@ -5,49 +5,43 @@ import { DropdownMenu } from "../dropdown-menu";
 import { UserAvatar } from "../user-avatar";
 import {
   AccountMenuContent,
+  AccountMenuSignedInLabel,
   AccountMenuTrigger,
-  FloatingNavBar,
 } from "./floating-nav-bar";
-import { MainToolbarBrand, MainToolbarShell } from "../main-toolbar-panel";
 
 const meta = {
-  title: "Floating Nav Bar",
+  title: "Account Menu",
   ...componentStoryMeta(
-    `Top header row hosting toolbar and account menu slots.`,
-    `Pass \`toolbar\` (usually \`MainToolbarShell\`) and wrap \`accountMenu\` in \`DropdownMenu\` with \`AccountMenuTrigger\` / \`AccountMenuContent\`.`,
+    "Account dropdown primitives used in the main toolbar.",
+    "Wrap content in `DropdownMenu` with `AccountMenuTrigger` and `AccountMenuContent`.",
   ),
-  component: FloatingNavBar,
-} satisfies Meta;
+  component: AccountMenuTrigger,
+} satisfies Meta<typeof AccountMenuTrigger>;
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  parameters: storyDocs("Top bar with toolbar slot and account menu."),
+  parameters: storyDocs("Avatar trigger with sample menu items."),
   render: () => (
-    <FloatingNavBar
-      toolbar={
-        <MainToolbarShell>
-          <MainToolbarBrand>Curolia</MainToolbarBrand>
-        </MainToolbarShell>
-      }
-      accountMenu={
-        <DropdownMenu>
-          <AccountMenuTrigger title="Account" aria-label="Account menu">
-            <UserAvatar
-              email="demo@curolia.app"
-              storedAvatarUrl={null}
-              label="Demo"
-              size="sm"
-            />
-          </AccountMenuTrigger>
-          <AccountMenuContent>
-            <Button variant="ghost" size="sm">
-              Profile
-            </Button>
-          </AccountMenuContent>
-        </DropdownMenu>
-      }
-    />
+    <DropdownMenu>
+      <AccountMenuTrigger title="Account" aria-label="Account menu">
+        <UserAvatar
+          email="demo@curolia.app"
+          storedAvatarUrl={null}
+          label="Demo"
+          size="full"
+        />
+      </AccountMenuTrigger>
+      <AccountMenuContent>
+        <AccountMenuSignedInLabel email="demo@curolia.app" />
+        <Button variant="ghost" size="sm">
+          Profile
+        </Button>
+        <Button variant="ghost" size="sm">
+          Sign out
+        </Button>
+      </AccountMenuContent>
+    </DropdownMenu>
   ),
 };

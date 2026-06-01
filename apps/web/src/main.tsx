@@ -1,3 +1,4 @@
+import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@curolia/ui/sonner";
@@ -13,6 +14,8 @@ import App from "./App.tsx";
 if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add("native-app");
 }
+
+syncMapRouteDocumentClass();
 
 const queryClient = new QueryClient({
   defaultOptions: {

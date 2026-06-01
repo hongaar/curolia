@@ -137,7 +137,7 @@
   position: fixed;
   z-index: 40;
   right: calc(1rem + var(--safe-right));
-  bottom: calc(var(--app-toolbar-h) + 1rem + var(--safe-bottom));
+  bottom: calc(var(--toolbar-h) + 1rem + var(--safe-bottom));
 }
 
 .iconSm {

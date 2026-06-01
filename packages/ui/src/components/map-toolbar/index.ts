@@ -1,1 +1,6 @@
-export { MapToolbar, MapToolbarButton } from "./map-toolbar";
+export {
+  MapToolbar,
+  MapToolbarButton,
+  MapToolbarIconButton,
+  MapToolbarMenuTrigger,
+} from "./map-toolbar";

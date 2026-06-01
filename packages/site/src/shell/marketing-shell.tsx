@@ -73,12 +73,10 @@ export function MarketingHeader({
         </MarketingLink>
 
         <div className={styles.headerActions}>
-          <MarketingButtonLink to="/login" variant="ghost" size="sm">
+          <MarketingButtonLink to="/login" variant="ghost">
             Log in
           </MarketingButtonLink>
-          <MarketingButtonLink to="/signup" size="sm">
-            Sign up
-          </MarketingButtonLink>
+          <MarketingButtonLink to="/signup">Sign up</MarketingButtonLink>
         </div>
       </div>
     </header>

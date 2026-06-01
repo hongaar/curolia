@@ -11,6 +11,13 @@ html {
   font-family: var(--font-sans);
 }
 
+/* Map route: inset map layer below toolbar before component CSS hydrates. */
+@media (min-width: 40rem) {
+  html.map-route [data-curolia-map-layer] {
+    top: var(--toolbar-offset);
+  }
+}
+
 /* Capacitor native shells: render edge-to-edge; UI chrome reads safe-area vars. */
 html.native-app {
   background-color: var(--background);
@@ -23,6 +30,7 @@ html.native-app body {
 
 body {
   margin: 0;
+  font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);

@@ -1,5 +1,6 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
+import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
 import { PinMapMarkerPopover } from "@/components/map/pin-map-marker-popover";
 import { AddPinFab } from "@/components/pins/add-pin-fab";
@@ -36,20 +37,16 @@ import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
-import { useNavigationShell } from "@/providers/navigation-shell-provider";
-import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
 import type { Pin, Tag } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
-  MapControlsBottomRight,
+  MapControlsBottomStack,
   MapControlsLayer,
-  MapControlsTopRight,
   MapHost,
   MapLayer,
-  MapOverlayDismiss,
   MapPageRoot,
   MapPlacementHint,
   MapVignette,
@@ -75,7 +72,6 @@ import { toast } from "sonner";
 
 export function MapPage() {
   const qc = useQueryClient();
-  const { sidebarOpen, setSidebarOpen } = useNavigationShell();
   const isMobile = useMaxSm();
   const { mapSlug } = useParams<{ mapSlug: string }>();
   useMapSlugRouteSync(mapSlug);
@@ -202,25 +198,21 @@ export function MapPage() {
     [tags, setSearchParams],
   );
 
-  useMountTagSidebarRegistration({
-    tags,
-    filterTagIds,
-    setFilterTagIds,
-    onNewTag: () => {
-      setTagEditTarget(null);
-      setNewTagName("");
-      setNewTagColor(DEFAULT_PIN_TAG_COLOR);
-      setNewTagEmoji("📍");
-      setTagDialogOpen(true);
-    },
-    onEditTag: (tag) => {
-      setTagEditTarget(tag);
-      setNewTagName(tag.name);
-      setNewTagColor(tag.color);
-      setNewTagEmoji(tag.icon_emoji || "📍");
-      setTagDialogOpen(true);
-    },
-  });
+  const openNewTagDialog = useCallback(() => {
+    setTagEditTarget(null);
+    setNewTagName("");
+    setNewTagColor(DEFAULT_PIN_TAG_COLOR);
+    setNewTagEmoji("📍");
+    setTagDialogOpen(true);
+  }, []);
+
+  const openEditTagDialog = useCallback((tag: Tag) => {
+    setTagEditTarget(tag);
+    setNewTagName(tag.name);
+    setNewTagColor(tag.color);
+    setNewTagEmoji(tag.icon_emoji || "📍");
+    setTagDialogOpen(true);
+  }, []);
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
 
@@ -508,24 +500,21 @@ export function MapPage() {
           />
         </MapHost>
         <MapControlsLayer>
-          <MapControlsTopRight>
+          <MapControlsBottomStack>
+            <MapTagFiltersControl
+              tags={tags}
+              filterTagIds={filterTagIds}
+              setFilterTagIds={setFilterTagIds}
+              onNewTag={openNewTagDialog}
+              onEditTag={openEditTagDialog}
+            />
             <MapControlsToolbar mapRef={mapRef} />
-          </MapControlsTopRight>
-        </MapControlsLayer>
-        <MapControlsLayer>
-          <MapControlsBottomRight>
             <AddPinFab
               active={placementActive}
               onClick={toggleAddPinPlacement}
             />
-          </MapControlsBottomRight>
+          </MapControlsBottomStack>
         </MapControlsLayer>
-        {isMobile ? (
-          <MapOverlayDismiss
-            open={sidebarOpen}
-            onDismiss={() => setSidebarOpen(false)}
-          />
-        ) : null}
       </MapLayer>
 
       {placementActive ? (

@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Provider module also exports useNavigationShell */
 import { NewMapDialog } from "@/components/layout/new-map-dialog";
+import { isMapFullscreenPathname } from "@/lib/app-paths";
 import { NAV_SIDEBAR_OPEN_STORAGE_KEY } from "@/lib/navigation-shell-layout";
 import {
   createContext,
@@ -24,6 +25,9 @@ const NavigationShellContext =
 
 function readStoredSidebarOpen(): boolean {
   if (typeof window === "undefined") return false;
+  if (isMapFullscreenPathname(window.location.pathname)) {
+    return false;
+  }
   try {
     return localStorage.getItem(NAV_SIDEBAR_OPEN_STORAGE_KEY) === "1";
   } catch {
