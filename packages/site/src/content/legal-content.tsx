@@ -9,7 +9,8 @@ export type LegalContentProps = {
   contactEmail?: string;
   embedded?: boolean;
   onNavigate?: (target: LegalNavTarget) => void;
-  onShowFullLicenseList?: () => void;
+  /** Generated npm dependency licence list (injected by apps/web). */
+  npmLicenses?: React.ReactNode;
 };
 
 const LEGAL_PATHS: Record<LegalNavTarget, string> = {
@@ -129,8 +130,7 @@ export function PrivacyPolicyContent({
 
       <LegalSection title="Who we are">
         <LegalParagraph>
-          Curolia is a travel map service. For privacy-related questions,
-          contact us at{" "}
+          Curolia is a map service. For privacy-related questions, contact us at{" "}
           <a className={styles.legalInlineLink} href={`mailto:${contactEmail}`}>
             {contactEmail}
           </a>
@@ -416,14 +416,13 @@ export function TermsContent({
 export function OpenSourceLicensesSummaryContent({
   embedded,
   onNavigate,
-  onShowFullLicenseList,
+  npmLicenses,
 }: LegalContentProps) {
   return (
     <>
       <LegalParagraph>
         Curolia is built with open source software. The summary below covers map
-        data and how to view every npm dependency licence shipped with the web
-        app.
+        data and 3rd party dependency licences shipped with the web app.
       </LegalParagraph>
 
       <LegalSection title="Map tiles and data">
@@ -459,30 +458,39 @@ export function OpenSourceLicensesSummaryContent({
         </LegalParagraph>
       </LegalSection>
 
-      <LegalSection title="npm dependencies">
-        <LegalParagraph>
-          {embedded && onShowFullLicenseList ? (
-            <>
-              View the{" "}
+      <LegalSection title="App dependencies">
+        {npmLicenses ? (
+          <>
+            <LegalParagraph>
+              The website and app uses various 3rd party dependencies.
+            </LegalParagraph>
+            <details className={styles.legalDetails}>
+              <summary className={styles.legalSummary}>
+                View complete list
+              </summary>
+              <div className={styles.legalDetailsPanel}>{npmLicenses}</div>
+            </details>
+          </>
+        ) : (
+          <LegalParagraph>
+            The complete dependency licence list for all production packages
+            used by the web app is available on the{" "}
+            {embedded && onNavigate ? (
               <button
                 type="button"
                 className={`${styles.legalInlineLink} ${styles.legalInlineButton}`}
-                onClick={onShowFullLicenseList}
+                onClick={() => onNavigate("licenses")}
               >
-                complete dependency licence list
-              </button>{" "}
-              for all production packages used by the web app.
-            </>
-          ) : (
-            <>
-              View the{" "}
-              <Link className={styles.legalInlineLink} to="/licenses#npm">
-                complete dependency licence list
-              </Link>{" "}
-              for all production packages used by the web app.
-            </>
-          )}
-        </LegalParagraph>
+                open source licenses
+              </button>
+            ) : (
+              <Link className={styles.legalInlineLink} to="/licenses">
+                open source licenses
+              </Link>
+            )}{" "}
+            page.
+          </LegalParagraph>
+        )}
       </LegalSection>
 
       <LegalSection title="Related">

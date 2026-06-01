@@ -27,7 +27,7 @@
   left: 50%;
   display: grid;
   width: 100%;
-  max-width: calc(100% - 2rem);
+  max-width: calc(100% - 3rem - var(--safe-left) - var(--safe-right));
   transform: translate(-50%, -50%);
   gap: 1rem;
   border-radius: var(--radius-xl);

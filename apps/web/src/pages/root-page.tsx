@@ -2,9 +2,8 @@ import { HomeRedirectPage } from "@/pages/home-redirect-page";
 import { useAuth } from "@/providers/auth-provider";
 import { MapProvider } from "@/providers/map-provider";
 import { Capacitor } from "@capacitor/core";
-import { LandingPage } from "@curolia/site/pages";
+import { LandingPage, NativeAppLandingPage } from "@curolia/site/pages";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
-import { Navigate } from "react-router-dom";
 
 /** `/` — marketing landing for guests; map redirect for signed-in users. */
 export function RootPage() {
@@ -23,7 +22,7 @@ export function RootPage() {
   }
 
   if (Capacitor.isNativePlatform()) {
-    return <Navigate to="/login" replace />;
+    return <NativeAppLandingPage />;
   }
 
   return <LandingPage />;

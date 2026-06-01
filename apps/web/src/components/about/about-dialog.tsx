@@ -15,13 +15,7 @@ import {
 } from "@curolia/ui/about-dialog";
 import { useState, type ReactNode } from "react";
 
-export type AboutView =
-  | "main"
-  | "contact"
-  | "privacy"
-  | "terms"
-  | "licenses"
-  | "licenses-full";
+export type AboutView = "main" | "contact" | "privacy" | "terms" | "licenses";
 
 const VIEW_TITLES: Record<AboutView, string> = {
   main: "About Curolia",
@@ -29,7 +23,6 @@ const VIEW_TITLES: Record<AboutView, string> = {
   privacy: "Privacy Policy",
   terms: "Terms and Conditions",
   licenses: "Open source licenses",
-  "licenses-full": "Dependency licences",
 };
 
 const ABOUT_LINKS = [
@@ -84,10 +77,9 @@ export function AboutDialog({
         {view === "licenses" ? (
           <OpenSourceLicensesSummaryContent
             {...legalProps}
-            onShowFullLicenseList={() => setView("licenses-full")}
+            npmLicenses={npmLicensesContent}
           />
         ) : null}
-        {view === "licenses-full" ? npmLicensesContent : null}
       </LegalEmbed>
     );
 

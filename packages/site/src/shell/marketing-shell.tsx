@@ -110,7 +110,7 @@ export function MarketingFooter() {
           </MarketingLink>
         </div>
         <p className={styles.footerNote}>
-          Curolia — your field map for places and travels.
+          Curolia — Remember every place you go
         </p>
       </div>
     </footer>

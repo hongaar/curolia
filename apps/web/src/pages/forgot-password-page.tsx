@@ -7,6 +7,7 @@ import {
   LoginError,
   LoginField,
   LoginFooterLink,
+  LoginForm,
   LoginHeader,
   LoginLayout,
 } from "@curolia/ui/login-layout";
@@ -48,7 +49,12 @@ export function ForgotPasswordPage() {
             Check your inbox and follow the link to choose a new password.
           </Text>
         ) : (
-          <>
+          <LoginForm
+            onSubmit={(event) => {
+              event.preventDefault();
+              void onSubmit();
+            }}
+          >
             <LoginField>
               <Label htmlFor="forgot-email">Email</Label>
               <Input
@@ -61,11 +67,11 @@ export function ForgotPasswordPage() {
             </LoginField>
             {error ? <LoginError>{error}</LoginError> : null}
             <LoginActions>
-              <Button disabled={busy} onClick={() => void onSubmit()}>
+              <Button type="submit" disabled={busy}>
                 Send reset link
               </Button>
             </LoginActions>
-          </>
+          </LoginForm>
         )}
       </Stack>
       <LoginFooterLink to="/login">Back to sign in</LoginFooterLink>

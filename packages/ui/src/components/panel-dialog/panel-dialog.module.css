@@ -22,7 +22,10 @@
 }
 
 .contentMd {
-  max-width: 28rem;
+  max-width: min(
+    28rem,
+    calc(100% - 3rem - var(--safe-left) - var(--safe-right))
+  );
 }
 
 .monoBox {

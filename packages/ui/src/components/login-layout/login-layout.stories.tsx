@@ -38,7 +38,10 @@ export const Default: Story = {
           <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
           <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>
         </LoginTabsList>
-        <LoginTabPanel value="signin">
+        <LoginTabPanel
+          value="signin"
+          onSubmit={(event) => event.preventDefault()}
+        >
           <LoginField>
             <Label htmlFor="story-login-email">Email</Label>
             <Input
@@ -48,19 +51,22 @@ export const Default: Story = {
             />
           </LoginField>
           <LoginActions>
-            <Button type="button">Sign in</Button>
+            <Button type="submit">Sign in</Button>
           </LoginActions>
           <LoginFooterNote>
             Local dev? Use <LoginInlineCode>demo@curolia.app</LoginInlineCode>
           </LoginFooterNote>
         </LoginTabPanel>
-        <LoginTabPanel value="signup">
+        <LoginTabPanel
+          value="signup"
+          onSubmit={(event) => event.preventDefault()}
+        >
           <LoginField>
             <Label htmlFor="story-login-signup-email">Email</Label>
             <Input id="story-login-signup-email" type="email" />
           </LoginField>
           <LoginActions>
-            <Button type="button">Sign up</Button>
+            <Button type="submit">Sign up</Button>
           </LoginActions>
         </LoginTabPanel>
       </Tabs>

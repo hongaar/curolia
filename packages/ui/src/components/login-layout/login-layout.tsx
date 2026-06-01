@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
+import { cn } from "../../lib/utils";
 import { FloatingPanel } from "../floating-panel";
 import { Stack } from "../stack";
 import { TabsContent, TabsList, TabsTrigger } from "../tabs";
@@ -37,7 +38,7 @@ export function LoginLayout({ children, backdropStyle }: LoginLayoutProps) {
 
 export function LoginHeader({
   title = "Curolia",
-  subtitle = "Sign in to your travel map.",
+  subtitle = "Sign in to view your maps.",
 }: {
   title?: string;
   subtitle?: string;
@@ -58,11 +59,23 @@ export function LoginHeader({
   );
 }
 
-function LoginFormStack({ children }: { children: React.ReactNode }) {
+export function LoginForm({
+  onSubmit,
+  children,
+  className,
+}: {
+  onSubmit: React.FormEventHandler<HTMLFormElement>;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <Stack gap="md" className={styles.formSection}>
-      {children}
-    </Stack>
+    <form
+      onSubmit={onSubmit}
+      className={className ?? styles.formSection}
+      noValidate
+    >
+      <Stack gap="md">{children}</Stack>
+    </form>
   );
 }
 
@@ -81,12 +94,14 @@ export function LoginFieldLabelRow({
 export function LoginFormLink({
   to,
   children,
+  className,
 }: {
   to: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <Link to={to} className={styles.formLink}>
+    <Link to={to} className={cn(styles.formLink, className)}>
       {children}
     </Link>
   );
@@ -98,6 +113,20 @@ export function LoginError({ children }: { children: React.ReactNode }) {
 
 export function LoginActions({ children }: { children: React.ReactNode }) {
   return <div className={styles.actions}>{children}</div>;
+}
+
+export function LoginActionsSecondaryLink({
+  to,
+  children,
+}: {
+  to: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <LoginFormLink to={to} className={styles.actionsSecondaryLink}>
+      {children}
+    </LoginFormLink>
+  );
 }
 
 export function LoginTabsList({ children }: { children: React.ReactNode }) {
@@ -120,14 +149,16 @@ export function LoginTabTrigger({
 
 export function LoginTabPanel({
   value,
+  onSubmit,
   children,
 }: {
   value: string;
+  onSubmit: React.FormEventHandler<HTMLFormElement>;
   children: React.ReactNode;
 }) {
   return (
     <TabsContent value={value}>
-      <LoginFormStack>{children}</LoginFormStack>
+      <LoginForm onSubmit={onSubmit}>{children}</LoginForm>
     </TabsContent>
   );
 }

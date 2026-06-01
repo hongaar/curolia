@@ -1,29 +1,14 @@
-import featureMaps from "../../public/landing/feature-maps.jpg";
-import featureMap from "../../public/landing/feature-map.jpg";
-import featurePlugins from "../../public/landing/feature-plugins.jpg";
-import featurePins from "../../public/landing/feature-pins.jpg";
-import hero from "../../public/landing/hero.jpg";
+import { unsplashImages } from "../content/unsplash-images";
 
-/** Landing photography bundled with `@curolia/site`. */
+/**
+ * Landing imagery for Storybook overrides and tests.
+ * Production pages use Unsplash URLs from `unsplash-images.ts`.
+ * Local files under `public/landing/` are retained but unused.
+ */
 export const defaultLandingImages = {
-  hero: {
-    src: hero,
-    alt: "Sunset over terraced rice fields",
-  },
-  map: {
-    src: featureMap,
-    alt: "Winding river through a misty green valley",
-  },
-  pins: {
-    src: featurePins,
-    alt: "Mountain river valley with forest and snow peaks",
-  },
-  maps: {
-    src: featureMaps,
-    alt: "Coastal hills with yellow wildflowers above the sea",
-  },
-  plugins: {
-    src: featurePlugins,
-    alt: "Sunset over a savanna plain with scattered trees",
-  },
+  hero: unsplashImages.hero,
+  map: unsplashImages.mapFeature,
+  pins: unsplashImages.pinsFeature,
+  maps: unsplashImages.mapsFeature,
+  plugins: unsplashImages.pluginsFeature,
 } as const;

@@ -7,6 +7,7 @@ import {
   LoginError,
   LoginField,
   LoginFooterLink,
+  LoginForm,
   LoginHeader,
   LoginLayout,
 } from "@curolia/ui/login-layout";
@@ -67,7 +68,12 @@ export function ResetPasswordPage() {
             </LoginFooterLink>
           </>
         ) : (
-          <>
+          <LoginForm
+            onSubmit={(event) => {
+              event.preventDefault();
+              void onSubmit();
+            }}
+          >
             <LoginField>
               <Label htmlFor="new-password">New password</Label>
               <Input
@@ -90,11 +96,11 @@ export function ResetPasswordPage() {
             </LoginField>
             {error ? <LoginError>{error}</LoginError> : null}
             <LoginActions>
-              <Button disabled={busy} onClick={() => void onSubmit()}>
+              <Button type="submit" disabled={busy}>
                 Update password
               </Button>
             </LoginActions>
-          </>
+          </LoginForm>
         )}
       </Stack>
       {!invalidLink && !loading ? (

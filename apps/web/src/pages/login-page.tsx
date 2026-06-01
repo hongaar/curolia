@@ -4,11 +4,10 @@ import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
   LoginActions,
+  LoginActionsSecondaryLink,
   LoginError,
   LoginField,
-  LoginFieldLabelRow,
   LoginFooterLink,
-  LoginFormLink,
   LoginHeader,
   LoginLayout,
   LoginTabPanel,
@@ -66,7 +65,13 @@ export function LoginPage() {
           <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
           <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>
         </LoginTabsList>
-        <LoginTabPanel value="signin">
+        <LoginTabPanel
+          value="signin"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSignIn();
+          }}
+        >
           <LoginField>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -78,12 +83,7 @@ export function LoginPage() {
             />
           </LoginField>
           <LoginField>
-            <LoginFieldLabelRow>
-              <Label htmlFor="password">Password</Label>
-              <LoginFormLink to="/forgot-password">
-                Forgot password?
-              </LoginFormLink>
-            </LoginFieldLabelRow>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -94,12 +94,21 @@ export function LoginPage() {
           </LoginField>
           {error ? <LoginError>{error}</LoginError> : null}
           <LoginActions>
-            <Button disabled={busy} onClick={() => void onSignIn()}>
+            <Button type="submit" disabled={busy}>
               Sign in
             </Button>
+            <LoginActionsSecondaryLink to="/forgot-password">
+              Forgot password?
+            </LoginActionsSecondaryLink>
           </LoginActions>
         </LoginTabPanel>
-        <LoginTabPanel value="signup">
+        <LoginTabPanel
+          value="signup"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSignUp();
+          }}
+        >
           <LoginField>
             <Label htmlFor="email2">Email</Label>
             <Input
@@ -122,7 +131,7 @@ export function LoginPage() {
           </LoginField>
           {error ? <LoginError>{error}</LoginError> : null}
           <LoginActions>
-            <Button disabled={busy} onClick={() => void onSignUp()}>
+            <Button type="submit" disabled={busy}>
               Create account
             </Button>
           </LoginActions>

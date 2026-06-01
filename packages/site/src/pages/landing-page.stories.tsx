@@ -3,18 +3,27 @@ import { MemoryRouter } from "react-router-dom";
 
 import { componentStoryMeta, storyDocs } from "../storybook/docs";
 import {
+  EventsLandingPage,
+  FamiliesLandingPage,
+  FoodLandingPage,
+  GeocachingLandingPage,
+  HeritageLandingPage,
+  TravelLandingPage,
+} from "./campaign-pages";
+import {
   ContactPageContent,
   LandingPage,
   PrivacyPolicyPageContent,
   TermsPageContent,
 } from "./landing-page";
 import { OpenSourceLicensesPageContent } from "./licenses-page";
+import { NativeAppLandingPage } from "./native-app-landing-page";
 
 const meta = {
   title: "Site",
   ...componentStoryMeta(
-    "Marketing homepage and public legal pages for signed-out sessions.",
-    "Mounted at `/`, `/contact`, `/privacy`, `/terms`, and `/licenses` from apps/web via `@curolia/site/pages`. Preview uses fullscreen layout and the same display font as apps/web.",
+    "Marketing homepage, campaign landings, and public legal pages for signed-out sessions.",
+    "Mounted at `/`, `/for/*`, `/contact`, `/privacy`, `/terms`, and `/licenses` from apps/web via `@curolia/site/pages`. Preview uses fullscreen layout and the same display font as apps/web.",
   ),
   component: LandingPage,
   parameters: {
@@ -34,8 +43,47 @@ type Story = StoryObj;
 
 export const Home: Story = {
   parameters: storyDocs(
-    "Full marketing landing page with hero, features, and CTA.",
+    "Generic marketing landing with audiences, plugins, and sharing options.",
   ),
+};
+
+export const NativeApp: Story = {
+  parameters: storyDocs(
+    "Full-viewport welcome shown to signed-out users in the Capacitor shell.",
+  ),
+  render: () => <NativeAppLandingPage />,
+};
+
+export const CampaignTravel: Story = {
+  parameters: storyDocs(
+    "SEO/campaign landing for travel bloggers at `/for/travel`.",
+  ),
+  render: () => <TravelLandingPage />,
+};
+
+export const CampaignFood: Story = {
+  parameters: storyDocs("Campaign landing for food bloggers at `/for/food`."),
+  render: () => <FoodLandingPage />,
+};
+
+export const CampaignGeocaching: Story = {
+  parameters: storyDocs("Campaign landing for geocaching groups."),
+  render: () => <GeocachingLandingPage />,
+};
+
+export const CampaignFamilies: Story = {
+  parameters: storyDocs("Campaign landing for parents and caregivers."),
+  render: () => <FamiliesLandingPage />,
+};
+
+export const CampaignHeritage: Story = {
+  parameters: storyDocs("Campaign landing for local history walks."),
+  render: () => <HeritageLandingPage />,
+};
+
+export const CampaignEvents: Story = {
+  parameters: storyDocs("Campaign landing for festivals and meetups."),
+  render: () => <EventsLandingPage />,
 };
 
 export const Contact: Story = {

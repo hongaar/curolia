@@ -112,6 +112,11 @@
   gap: 0.5rem;
 }
 
+.actionsSecondaryLink {
+  align-self: center;
+  font-size: 0.875rem;
+}
+
 .footerNote {
   margin-top: 1.5rem;
   text-align: center;
