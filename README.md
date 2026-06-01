@@ -40,7 +40,7 @@ The production **Vercel** job runs **`npx turbo run codegen`** after install, th
   - `npm run open:ios -w @curolia/mobile`
   - `npm run open:android -w @curolia/mobile`
 
-For iOS development, install Xcode + CocoaPods. For Android, install Android Studio SDK tools.
+For iOS development, install **Xcode 26+** (required by Capacitor 8) and CocoaPods. For Android, install Android Studio SDK tools.
 
 ### Native emulator / simulator (local Supabase + live reload)
 
@@ -60,7 +60,7 @@ Save a file in the editor and the WebView reloads automatically.
 Native builds are integrated into `.github/workflows/test.yml`:
 
 - `android` job (Linux): `gradlew` under `apps/mobile/android`
-- `ios` job (macOS): simulator `xcodebuild` under `apps/mobile/ios/App` (no signing)
+- `ios` job (`macos-26`, Xcode 26 preinstalled): simulator `xcodebuild` under `apps/mobile/ios/App` (no signing)
 
 Both jobs depend on the main `ci` job, then run **`npx turbo run sync --filter=@curolia/mobile`** so Turbo prepares native assets and builds the web output before Capacitor sync.
 

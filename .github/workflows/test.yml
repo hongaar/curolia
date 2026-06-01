@@ -67,7 +67,8 @@ jobs:
   ios:
     name: iOS
     needs: validate
-    runs-on: macos-latest
+    # Capacitor 8 requires Xcode 26+ (preinstalled on macos-26; macos-latest may still be macos-15 / Xcode 16.4).
+    runs-on: macos-26
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
