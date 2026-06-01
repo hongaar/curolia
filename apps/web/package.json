@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "plugins:sync": "node scripts/generate-plugin-registry.mjs",
-    "codegen": "npm run plugins:sync",
+    "licenses:generate": "node scripts/generate-npm-licenses.mjs",
+    "codegen": "npm run plugins:sync && npm run licenses:generate",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -19,6 +20,7 @@
   "dependencies": {
     "@capacitor/core": "^8.3.1",
     "@capacitor/device": "^8.0.2",
+    "@capacitor/geolocation": "^8.0.2",
     "@capacitor/push-notifications": "^8.0.3",
     "@curolia/plugin-contract": "file:../../packages/plugin-contract",
     "@curolia/plugin-google-photos": "file:../../packages/plugins/google-photos",
@@ -54,6 +56,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "jsdom": "^26.1.0",
+    "license-checker": "^25.0.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vercel": "^48.12.0",

@@ -7,10 +7,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type * as React from "react";
-import { Link } from "react-router-dom";
-
 import { buttonClassName } from "../button";
 import styles from "./landing-page.module.css";
+import { ContactContent } from "./legal-content";
 import {
   MarketingButtonLink,
   MarketingFooter,
@@ -289,24 +288,7 @@ export function ContactPageContent({
       <main className={styles.legalPage}>
         <div className={styles.contactPanel}>
           <h1 className={styles.contactTitle}>Get in touch</h1>
-          <p className={styles.contactLead}>
-            Questions, feedback, or partnership ideas? We would love to hear
-            from you. Drop us a line and we will get back to you soon.
-          </p>
-          <a className={styles.contactEmail} href={`mailto:${contactEmail}`}>
-            {contactEmail}
-          </a>
-          <p className={styles.contactLegalNote}>
-            See our{" "}
-            <Link className={styles.legalInlineLink} to="/privacy">
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link className={styles.legalInlineLink} to="/terms">
-              Terms and Conditions
-            </Link>
-            .
-          </p>
+          <ContactContent contactEmail={contactEmail} />
         </div>
       </main>
       <MarketingFooter />

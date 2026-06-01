@@ -75,10 +75,6 @@ export function TraceDetailInsetMapView({
       keyboard: false,
       touchZoomRotate: false,
     });
-    map.addControl(
-      new maplibregl.AttributionControl({ compact: false }),
-      "bottom-right",
-    );
     mapRef.current = map;
     return () => {
       markerRef.current?.remove();

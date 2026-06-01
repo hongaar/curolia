@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 const repoRoot = path.resolve(__dirname, "../..");
+const webPackage = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8"),
+) as { version: string };
 const appAssetsConfig = JSON.parse(
   fs.readFileSync(
     path.resolve(repoRoot, "packages", "brand", "app-assets.config.json"),
@@ -13,6 +16,9 @@ const appAssetsConfig = JSON.parse(
 );
 
 export default defineConfig({
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(webPackage.version),
+  },
   plugins: [
     react(),
     VitePWA({

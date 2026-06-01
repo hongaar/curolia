@@ -4,5 +4,10 @@
   "webDir": "../web/dist",
   "server": {
     "androidScheme": "https"
+  },
+  "plugins": {
+    "Geolocation": {
+      "locationWhenInUseDescription": "Curolia uses your location to center the map on where you are."
+    }
   }
 }

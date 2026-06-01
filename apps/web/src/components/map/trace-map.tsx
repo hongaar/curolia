@@ -5,6 +5,7 @@ import {
   type MapBbox,
   type MapCamera,
 } from "@/lib/map-view-params";
+import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
 import { filterTracesByTags, type TraceWithTags } from "@/lib/trace-with-tags";
 import { MapCanvas } from "@curolia/ui/map";
 import {
@@ -437,14 +438,21 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
           });
         },
         triggerGeolocate() {
-          if (!navigator.geolocation) {
-            toast.error("Geolocation is not supported in this browser.");
-            return;
-          }
-          const geolocate = geolocateControlRef.current;
-          if (!geolocate?.trigger()) {
-            toast.error("Map is still loading. Try again in a moment.");
-          }
+          void (async () => {
+            if (!navigator.geolocation) {
+              toast.error("Geolocation is not supported in this browser.");
+              return;
+            }
+            const permitted = await ensureNativeLocationPermission();
+            if (!permitted) {
+              toast.error("Location permission denied.");
+              return;
+            }
+            const geolocate = geolocateControlRef.current;
+            if (!geolocate?.trigger()) {
+              toast.error("Map is still loading. Try again in a moment.");
+            }
+          })();
         },
       }),
       [],
@@ -470,10 +478,6 @@ export const TraceMap = forwardRef<TraceMapHandle, TraceMapProps>(
         touchPitch: false,
       });
       map.touchZoomRotate.disableRotation();
-      map.addControl(
-        new maplibregl.AttributionControl({ compact: false }),
-        "bottom-right",
-      );
 
       const geolocate = new maplibregl.GeolocateControl({
         positionOptions: {

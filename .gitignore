@@ -26,6 +26,9 @@ apps/mobile/android/app/src/main/res/**/splash.png
 apps/mobile/android/app/src/main/res/mipmap-*/*.png
 apps/mobile/ios/App/App/Assets.xcassets/**/*.png
 
+# Generated npm licence list (apps/web/scripts/generate-npm-licenses.mjs)
+apps/web/src/generated/
+
 # Generated web branding (from @curolia/brand, source: packages/brand/icon.png)
 apps/web/public/favicon.png
 apps/web/public/icon.png

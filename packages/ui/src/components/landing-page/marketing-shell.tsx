@@ -99,6 +99,9 @@ export function MarketingFooter() {
           <MarketingLink to="/contact" className={styles.footerLink}>
             Contact
           </MarketingLink>
+          <MarketingLink to="/licenses" className={styles.footerLink}>
+            Licenses
+          </MarketingLink>
           <MarketingLink to="/login" className={styles.footerLink}>
             Log in
           </MarketingLink>

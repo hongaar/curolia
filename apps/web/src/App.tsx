@@ -8,6 +8,7 @@ import { JournalSettingsPage } from "@/pages/journal-settings-page";
 import { LoginPage } from "@/pages/login-page";
 import { MapPage } from "@/pages/map-page";
 import { NotificationsPage } from "@/pages/notifications-page";
+import { OpenSourceLicensesPage } from "@/pages/open-source-licenses-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { ResetPasswordPage } from "@/pages/reset-password-page";
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/contact" element={<ContactPageContent />} />
       <Route path="/privacy" element={<PrivacyPolicyPageContent />} />
       <Route path="/terms" element={<TermsPageContent />} />
+      <Route path="/licenses" element={<OpenSourceLicensesPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

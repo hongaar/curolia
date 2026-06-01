@@ -1,0 +1,171 @@
+.body {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+  padding-block: 0.25rem 0.5rem;
+}
+
+.meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.versionLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.versionValue {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9375rem;
+}
+
+.linksNav {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.linkItem {
+  display: block;
+  width: 100%;
+  border-top: 1px solid var(--border);
+}
+
+.linkItem:first-child {
+  border-top: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: none;
+  font-size: 0.9375rem;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.link:hover {
+  background: color-mix(in oklch, var(--muted) 45%, transparent);
+}
+
+.linkChevron {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.section {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.mapAttribution {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.mapAttribution a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mapAttribution a:hover {
+  color: var(--primary);
+}
+
+.backRow {
+  margin-bottom: 0.25rem;
+}
+
+.scrollBody {
+  max-height: min(70vh, 28rem);
+  overflow-y: auto;
+  padding-inline-end: 0.125rem;
+}
+
+.npmList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.npmItem {
+  display: grid;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.npmName {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--foreground);
+  word-break: break-word;
+}
+
+.npmLicense {
+  color: var(--muted-foreground);
+}
+
+.npmRepo {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.npmRepo:hover {
+  text-decoration: underline;
+}
+
+.npmEmpty {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.npmCode {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+}

@@ -7,6 +7,7 @@ import {
   PrivacyPolicyPageContent,
   TermsPageContent,
 } from "./landing-page";
+import { OpenSourceLicensesPageContent } from "./licenses-page";
 
 const meta = {
   title: "Landing Page",
@@ -48,4 +49,11 @@ export const Privacy: Story = {
 export const Terms: Story = {
   parameters: storyDocs("Public terms and conditions at `/terms`."),
   render: () => <TermsPageContent />,
+};
+
+export const Licenses: Story = {
+  parameters: storyDocs(
+    "Open source summary at `/licenses`; full npm list is injected by the web app.",
+  ),
+  render: () => <OpenSourceLicensesPageContent />,
 };
