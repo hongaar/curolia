@@ -51,7 +51,9 @@ export function CampaignLandingPage({
           </div>
 
           <div className={campaignStyles.campaignHeroCopy}>
-            <p className={campaignStyles.campaignEyebrow}>{campaign.eyebrow}</p>
+            <p className={campaignStyles.campaignEyebrow}>
+              For {campaign.eyebrow}
+            </p>
             <h1
               id="campaign-hero-title"
               className={campaignStyles.campaignTitle}
@@ -78,7 +80,7 @@ export function CampaignLandingPage({
             id="campaign-features-title"
             className={campaignStyles.campaignSectionTitle}
           >
-            Why Curolia fits
+            Curolia features for {campaign.eyebrow}
           </h2>
           <ul className={campaignStyles.campaignBulletList}>
             {campaign.bullets.map((bullet) => (

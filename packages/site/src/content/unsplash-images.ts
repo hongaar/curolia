@@ -26,9 +26,10 @@ function unsplash(
 /** Marketing photography via Unsplash. Local files under `public/landing/` are kept but unused. */
 export const unsplashImages = {
   hero: unsplash(
-    "photo-1524661135-423995f22d0b",
-    "Topographic map spread on a wooden table",
-    { name: "Luigi Pozzoli", username: "luigipozz" },
+    "photo-1488646953014-85cb44e25828",
+    "Traveler with a map in a sunlit plaza, planning the next stop",
+    { name: "Aswin C", username: "aswin_cp" },
+    1800,
   ),
   mapFeature: unsplash(
     "photo-1472214103451-9374bd1c798e",
@@ -57,9 +58,9 @@ export const unsplashImages = {
     1200,
   ),
   travel: unsplash(
-    "photo-1488646953014-85cb44e25828",
-    "Traveler looking at a paper map in a sunny plaza",
-    { name: "Aswin C", username: "aswin_cp" },
+    "photo-1519681393784-d120267933ba",
+    "Mountain ridge under a starry night sky",
+    { name: "Billy Huynh", username: "billyhuynh" },
   ),
   food: unsplash(
     "photo-1414235077428-338989a2e8c0",
@@ -72,19 +73,19 @@ export const unsplashImages = {
     { name: "Dino Reichmuth", username: "dinoreichmuth" },
   ),
   families: unsplash(
-    "photo-1516627145497-ae6968895b74",
-    "Children playing outdoors",
-    { name: "Tanaphong Toochinda", username: "bo1920" },
+    "photo-1613794713137-a78aba4be84a",
+    "Child playing on a sandy playground in a city park",
+    { name: "Fabian Centeno", username: "real_chance12" },
   ),
   hiking: unsplash(
-    "photo-1609521263047-f8f205293f24",
-    "Hiker on a mountain trail above clouds",
-    { name: "Kyle Glenn", username: "kylejglenn" },
+    "photo-1510312305653-8ed496efae75",
+    "Dome tent on a mountain top with the sun behind",
+    { name: "Kevin Ianeselli", username: "kevinianeselli" },
   ),
   vanlife: unsplash(
-    "photo-1504280390367-361c6d9f38f4",
-    "Camping tent under a starry night sky",
-    { name: "Josh Eckworth", username: "eckworth" },
+    "photo-1469854523086-cc02fe5d8800",
+    "Yellow Volkswagen van on the road",
+    { name: "Dino Reichmuth", username: "dinoreichmuth" },
   ),
   heritage: unsplash(
     "photo-1548013146-72479768bada",
