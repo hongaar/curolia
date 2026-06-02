@@ -12,6 +12,7 @@ import {
   SrOnlyInput,
 } from "../form-layout";
 import {
+  PanelCardTitle,
   PanelDialogBody,
   PanelDialogContent,
   PanelDialogFooter,
@@ -46,7 +47,7 @@ export function PinFormPanelCard({
   return (
     <div className={styles.panelCard}>
       <PanelDialogHeader>
-        <PanelDialogTitle>{title}</PanelDialogTitle>
+        <PanelCardTitle>{title}</PanelCardTitle>
       </PanelDialogHeader>
       <PanelDialogBody>{children}</PanelDialogBody>
       <PanelDialogFooter between={footerBetween}>{footer}</PanelDialogFooter>

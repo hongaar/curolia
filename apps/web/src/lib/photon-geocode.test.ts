@@ -1,0 +1,36 @@
+import { describe, expect, it } from "vitest";
+import { photonDefaultTitleForZoom } from "./photon-geocode";
+
+describe("photonDefaultTitleForZoom", () => {
+  const props = {
+    name: "Rue de Rivoli",
+    street: "Rue de Rivoli",
+    city: "Paris",
+    state: "Île-de-France",
+    country: "France",
+  };
+
+  it("uses country when zoomed far out", () => {
+    expect(
+      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 4),
+    ).toBe("France");
+  });
+
+  it("uses state at regional zoom", () => {
+    expect(
+      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 7),
+    ).toBe("Île-de-France");
+  });
+
+  it("uses city at metro zoom", () => {
+    expect(
+      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 10),
+    ).toBe("Paris");
+  });
+
+  it("uses street or POI name when zoomed in", () => {
+    expect(
+      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 13),
+    ).toBe("Rue de Rivoli");
+  });
+});

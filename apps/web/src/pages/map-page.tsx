@@ -350,7 +350,7 @@ export function MapPage() {
   }, [setSearchParams]);
 
   const onPlacementClick = useCallback(
-    async (lng: number, lat: number) => {
+    async (lng: number, lat: number, zoom: number) => {
       if (!activeMapId) return;
       setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
         replace: true,
@@ -360,6 +360,7 @@ export function MapPage() {
         const { fullLabel, shortTitle } = await reversePhotonPlaceDetails(
           lat,
           lng,
+          zoom,
         );
         const { data: row, error } = await supabase
           .from("pins")
@@ -535,20 +536,18 @@ export function MapPage() {
   }
 
   function toggleAddPinPlacement() {
-    setPlacementActive((prev) => {
-      const next = !prev;
-      setSearchParams(
-        (p) => {
-          let params = applyAddPinToSearchParams(p, false);
-          if (next) {
-            params = applySelectedPinToSearchParams(params, null);
-          }
-          return params;
-        },
-        { replace: true },
-      );
-      return next;
-    });
+    const next = !placementActive;
+    setPlacementActive(next);
+    setSearchParams(
+      (p) => {
+        let params = applyAddPinToSearchParams(p, false);
+        if (next) {
+          params = applySelectedPinToSearchParams(params, null);
+        }
+        return params;
+      },
+      { replace: true },
+    );
   }
 
   const showSidePanel = Boolean(sidebarPinId && isWideEnough);

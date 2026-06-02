@@ -89,6 +89,11 @@ export function PanelDialogTitle({ children }: { children: ReactNode }) {
   return <DialogTitle className={styles.panelTitle}>{children}</DialogTitle>;
 }
 
+/** Title for map-anchored / non-modal panels — must not use {@link DialogTitle}. */
+export function PanelCardTitle({ children }: { children: ReactNode }) {
+  return <h2 className={styles.panelTitle}>{children}</h2>;
+}
+
 export function PanelDialogFormStack({ children }: { children: ReactNode }) {
   return <div className={styles.formStack}>{children}</div>;
 }

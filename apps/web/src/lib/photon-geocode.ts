@@ -104,6 +104,86 @@ export function photonPrimaryTitle(
   );
 }
 
+/** MapLibre zoom below which new-pin titles prefer country over finer labels. */
+const PIN_TITLE_ZOOM_COUNTRY_MAX = 6;
+/** Prefer state/region for titles when zoom is below this. */
+const PIN_TITLE_ZOOM_STATE_MAX = 6;
+/** Prefer city/town for titles when zoom is below this; at or above, use street/POI names. */
+const PIN_TITLE_ZOOM_CITY_MAX = 12;
+
+function pickPhotonLabel(
+  ...values: (string | undefined)[]
+): string | undefined {
+  for (const v of values) {
+    const t = v?.trim();
+    if (t) return t;
+  }
+  return undefined;
+}
+
+/**
+ * Default pin title for reverse geocode at a map zoom — avoids street names when
+ * the map is zoomed out to country/city scale.
+ */
+export function photonDefaultTitleForZoom(
+  props: PhotonProps | undefined,
+  fullLabel: string,
+  zoom: number,
+): string {
+  if (!Number.isFinite(zoom)) {
+    return photonPrimaryTitle("", props, fullLabel);
+  }
+
+  const segments = fullLabel
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const fallback = () =>
+    pickPhotonLabel(
+      props?.country,
+      props?.state,
+      props?.city,
+      props?.town,
+      props?.village,
+      props?.name,
+      props?.street,
+      segments[0],
+      fullLabel.trim(),
+    ) ?? "Place";
+
+  if (zoom < PIN_TITLE_ZOOM_COUNTRY_MAX) {
+    return (
+      pickPhotonLabel(props?.country, props?.state, segments.at(-1)) ??
+      fallback()
+    );
+  }
+  if (zoom < PIN_TITLE_ZOOM_STATE_MAX) {
+    return (
+      pickPhotonLabel(
+        props?.state,
+        props?.country,
+        props?.city,
+        props?.town,
+        props?.village,
+      ) ?? fallback()
+    );
+  }
+  if (zoom < PIN_TITLE_ZOOM_CITY_MAX) {
+    return (
+      pickPhotonLabel(
+        props?.city,
+        props?.town,
+        props?.village,
+        props?.state,
+        props?.country,
+      ) ?? fallback()
+    );
+  }
+
+  return photonPrimaryTitle("", props, fullLabel);
+}
+
 type PhotonFeature = NonNullable<PhotonResponse["features"]>[number];
 
 /**
@@ -210,11 +290,13 @@ export async function reversePhotonLocationLabel(
 }
 
 /**
- * Reverse geocode: full place line plus a short default title (most specific segment).
+ * Reverse geocode: full place line plus a short default title. When `zoom` is set,
+ * title granularity matches the map scale (country/city vs street).
  */
 export async function reversePhotonPlaceDetails(
   lat: number,
   lng: number,
+  zoom?: number,
 ): Promise<{ fullLabel: string | null; shortTitle: string | null }> {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return { fullLabel: null, shortTitle: null };
@@ -237,10 +319,9 @@ export async function reversePhotonPlaceDetails(
 
   const fullLabel = photonLabel(props).trim() || null;
   const shortTitle =
-    (
-      photonPrimaryTitle("", props, fullLabel ?? "") ||
-      fullLabel ||
-      ""
+    (zoom !== undefined
+      ? photonDefaultTitleForZoom(props, fullLabel ?? "", zoom)
+      : photonPrimaryTitle("", props, fullLabel ?? "") || fullLabel || ""
     ).trim() || null;
 
   return { fullLabel, shortTitle };

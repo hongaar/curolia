@@ -86,7 +86,7 @@ type PinMapProps = {
   /** Draft pin while creating a pin (e.g. New pin dialog). */
   previewPin?: PinMapPreviewPin | null;
   placementMode?: boolean;
-  onPlacementClick?: (lng: number, lat: number) => void;
+  onPlacementClick?: (lng: number, lat: number, zoom: number) => void;
   /** When set (from URL or localStorage fallback), map uses this view. */
   initialCamera?: MapCamera | null;
   /** When set (from URL), map fits this extent with padding instead of center/zoom fly. */
@@ -689,7 +689,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (placementMode) {
         const fn = onPlacementClickRef.current;
-        if (fn) fn(e.lngLat.lng, e.lngLat.lat);
+        if (fn) fn(e.lngLat.lng, e.lngLat.lat, map.getZoom());
         return;
       }
       if (clickHitPinMarker(e)) return;
