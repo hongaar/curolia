@@ -15,12 +15,30 @@ const appAssetsConfig = JSON.parse(
   ),
 );
 
+/**
+ * Prism language files and @lexical/code reference bare `Prism`; Rolldown (Vite 8)
+ * does not guarantee init order, so production builds throw ReferenceError.
+ * @see https://github.com/mdx-editor/editor/issues/491
+ */
+const prismjsGlobalShim = {
+  name: "prismjs-global-shim",
+  transform(code: string, id: string) {
+    const needsPrismImport =
+      /[/\\]prismjs[/\\]components[/\\]/.test(id) ||
+      (/[/\\]@lexical[/\\]code[/\\]/.test(id) && /\bPrism\b/.test(code));
+    if (needsPrismImport) {
+      return { code: `import Prism from "prismjs";\n${code}`, map: null };
+    }
+  },
+};
+
 export default defineConfig({
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(webPackage.version),
   },
   plugins: [
     react(),
+    prismjsGlobalShim,
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "icon.png"],
