@@ -16,10 +16,10 @@ describe("photonDefaultTitleForZoom", () => {
     ).toBe("France");
   });
 
-  it("uses state at regional zoom", () => {
+  it("uses city once past country zoom band", () => {
     expect(
       photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 7),
-    ).toBe("Île-de-France");
+    ).toBe("Paris");
   });
 
   it("uses city at metro zoom", () => {
