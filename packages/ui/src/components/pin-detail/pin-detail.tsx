@@ -2,6 +2,7 @@ import type * as React from "react";
 import { Link } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import { MarkdownContent } from "../markdown-content";
 import styles from "./pin-detail.module.css";
 
 export function PinDetailCard({ children }: { children: React.ReactNode }) {
@@ -32,12 +33,8 @@ export function PinDetailContent({ children }: { children: React.ReactNode }) {
   return <CardContent className={styles.detailContent}>{children}</CardContent>;
 }
 
-export function PinDetailDescription({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <p className={styles.description}>{children}</p>;
+export function PinDetailDescription({ markdown }: { markdown: string }) {
+  return <MarkdownContent markdown={markdown} />;
 }
 
 export function PinDetailPhotoRow({ children }: { children: React.ReactNode }) {

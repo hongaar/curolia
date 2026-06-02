@@ -1,3 +1,4 @@
+import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { supabase } from "@/lib/supabase";
 import type { Pin } from "@/types/database";
@@ -11,8 +12,9 @@ import {
   FormMutedTextXs,
   PinFormFloatingHost,
   PinFormFooterSplit,
-  PinFormModalContent,
   PinFormPanelCard,
+  PinFormPanelDialog,
+  PinFormPanelFieldGroup,
 } from "@curolia/ui/pin-form";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,7 +26,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useMaxSm } from "@/hooks/use-max-sm";
 
 type PinMapQuickAddDialogProps = {
   open: boolean;
@@ -183,69 +184,71 @@ export function PinMapQuickAddDialog({
 
   if (!open || !pin) return null;
 
-  const formShell = (
-    <PinFormPanelCard
-      title="New pin"
-      footerBetween
-      footer={
-        <PinFormFooterSplit
-          start={
-            <Button
-              type="button"
-              variant="outline"
-              disabled={busy}
-              onClick={() => void onDelete()}
-            >
-              Delete
-            </Button>
-          }
-          end={
-            <>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={busy}
-                onClick={() => {
-                  void flushTitleIfNeeded().then(() => onEdit(pin));
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  void flushTitleIfNeeded().then(() => onOpenChange(false));
-                }}
-              >
-                Done
-              </Button>
-            </>
-          }
-        />
+  const footer = (
+    <PinFormFooterSplit
+      start={
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() => void onDelete()}
+        >
+          Delete
+        </Button>
       }
-    >
-      <FormField>
-        <Label htmlFor="pin-quick-title">Title</Label>
-        <Input
-          id="pin-quick-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={() => void onTitleBlur()}
-          autoComplete="off"
-        />
-      </FormField>
-      {pin.location_label ? (
-        <FormMutedTextXs>{pin.location_label}</FormMutedTextXs>
-      ) : null}
+      end={
+        <>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={busy}
+            onClick={() => {
+              void flushTitleIfNeeded().then(() => onEdit(pin));
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              void flushTitleIfNeeded().then(() => onOpenChange(false));
+            }}
+          >
+            Done
+          </Button>
+        </>
+      }
+    />
+  );
+
+  const fields = (
+    <>
+      <PinFormPanelFieldGroup>
+        <FormField>
+          <Label htmlFor="pin-quick-title">Title</Label>
+          <Input
+            id="pin-quick-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={() => void onTitleBlur()}
+            autoComplete="off"
+          />
+        </FormField>
+        {pin.location_label ? (
+          <FormMutedTextXs>{pin.location_label}</FormMutedTextXs>
+        ) : null}
+      </PinFormPanelFieldGroup>
       {error ? <FormErrorText>{error}</FormErrorText> : null}
-    </PinFormPanelCard>
+    </>
   );
 
   if (useFloatingPanel && anchorScreen) {
     return (
       <PinFormFloatingHost hostRef={floatingRef}>
-        {formShell}
+        <PinFormPanelCard title="New pin" footerBetween footer={footer}>
+          {fields}
+        </PinFormPanelCard>
       </PinFormFloatingHost>
     );
   }
@@ -257,7 +260,9 @@ export function PinMapQuickAddDialog({
         if (!o) void flushTitleIfNeeded().then(() => onOpenChange(false));
       }}
     >
-      <PinFormModalContent>{formShell}</PinFormModalContent>
+      <PinFormPanelDialog title="New pin" footerBetween footer={footer}>
+        {fields}
+      </PinFormPanelDialog>
     </Dialog>
   );
 }

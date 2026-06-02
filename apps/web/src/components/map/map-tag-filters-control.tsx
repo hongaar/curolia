@@ -3,7 +3,7 @@ import type { Tag } from "@/types/database";
 import { DropdownMenu, DropdownMenuContent } from "@curolia/ui/dropdown-menu";
 import { MapToolbarMenuTrigger } from "@curolia/ui/map-toolbar";
 import { Tag as TagIcon } from "lucide-react";
-import type { SetStateAction } from "react";
+import { useState, type SetStateAction } from "react";
 
 type MapTagFiltersControlProps = {
   tags: Tag[];
@@ -21,9 +21,10 @@ export function MapTagFiltersControl({
   onEditTag,
 }: MapTagFiltersControlProps) {
   const activeCount = filterTagIds.size;
+  const [open, setOpen] = useState(false);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <MapToolbarMenuTrigger
         icon={<TagIcon aria-hidden />}
         label="Tag filters"
@@ -37,7 +38,10 @@ export function MapTagFiltersControl({
           filterTagIds={filterTagIds}
           setFilterTagIds={setFilterTagIds}
           onNewTag={onNewTag}
-          onEditTag={onEditTag}
+          onEditTag={(tag) => {
+            onEditTag(tag);
+            setOpen(false);
+          }}
         />
       </DropdownMenuContent>
     </DropdownMenu>

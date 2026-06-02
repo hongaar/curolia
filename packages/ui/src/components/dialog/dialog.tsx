@@ -9,8 +9,9 @@ import styles from "./dialog.module.css";
 const DialogDepthContext = React.createContext(0);
 const DialogOpenContext = React.createContext(false);
 
+/** Above app chrome (`main-toolbar` z-index 96); below lightbox (200). */
 function dialogLayerZIndex(depth: number, layer: "overlay" | "content") {
-  const base = 70 + (depth - 1) * 10;
+  const base = 100 + (depth - 1) * 10;
   return layer === "overlay" ? base : base + 1;
 }
 

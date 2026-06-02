@@ -3,10 +3,10 @@ import type { PinMapHandle } from "@/components/map/pin-map";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
-import { supabase } from "@/lib/supabase";
 import { formatPinDateRange } from "@/lib/pin-dates";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
+import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
@@ -25,12 +25,12 @@ import {
   MapMarkerPopoverStatus,
   MapMarkerPopoverTagRow,
 } from "@curolia/ui/map-marker-popover";
-import { Sheet } from "@curolia/ui/sheet";
 import { PinDetailTagBadge } from "@curolia/ui/pin-detail";
 import {
   PinPhotoLightbox,
   PinPhotoThumb,
 } from "@curolia/ui/pin-photo-lightbox";
+import { Sheet } from "@curolia/ui/sheet";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
@@ -291,9 +291,7 @@ export function PinMapMarkerPopover({
             </MapMarkerPopoverTagRow>
           ) : null}
           {pin.description ? (
-            <MapMarkerPopoverDescription>
-              {pin.description}
-            </MapMarkerPopoverDescription>
+            <MapMarkerPopoverDescription markdown={pin.description} />
           ) : null}
           {photos.length > 0 ? (
             <MapMarkerPopoverPhotoStrip>

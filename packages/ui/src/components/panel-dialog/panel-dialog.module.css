@@ -1,7 +1,52 @@
 .panelContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: min(
+    28rem,
+    calc(100% - 3rem - var(--safe-left) - var(--safe-right))
+  );
+  max-height: min(90dvh, calc(100dvh - var(--toolbar-offset) - 1.5rem));
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--panel-border);
+  border-radius: var(--radius-xl);
   background: var(--panel-bg);
+  box-shadow: none;
   backdrop-filter: blur(24px);
+}
+
+.panelHeader {
+  flex-shrink: 0;
+  padding: 1rem 1rem 0.5rem 1rem;
+}
+
+.panelContent > :global([data-slot="dialog-header"]) {
+  padding-right: 3rem;
+}
+
+.panelSection {
+  flex-shrink: 0;
+  padding: 1rem 3rem 0 1rem;
+}
+
+.scrollBody {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.scrollBodyInner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.panelFooter {
+  margin: 0;
+  padding: 1rem;
 }
 
 .panelTitle {
@@ -13,19 +58,11 @@
 .formStack {
   display: grid;
   gap: 1rem;
-  padding-block: 0.5rem;
 }
 
 .formField {
   display: grid;
   gap: 0.5rem;
-}
-
-.contentMd {
-  max-width: min(
-    28rem,
-    calc(100% - 3rem - var(--safe-left) - var(--safe-right))
-  );
 }
 
 .monoBox {
@@ -36,6 +73,13 @@
   font-family: ui-monospace, monospace;
   font-size: 0.875rem;
   word-break: break-word;
+}
+
+.footerBetween {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .footerRow {

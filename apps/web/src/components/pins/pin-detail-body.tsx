@@ -172,7 +172,7 @@ export function PinDetailBody({
       <PinDetailContent>
         {topContent}
         {pin.description ? (
-          <PinDetailDescription>{pin.description}</PinDetailDescription>
+          <PinDetailDescription markdown={pin.description} />
         ) : null}
         {photos.length > 0 || photoPlaceholders > 0 ? (
           <PinPhotoMasonry

@@ -1,19 +1,22 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@curolia/ui/button";
-import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
-import {
-  PanelDialogContent,
-  PanelDialogField,
-  PanelDialogFormStack,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { mapViewHref } from "@/lib/app-paths";
-import { useMap } from "@/providers/map-provider";
 import { defaultMapIcon } from "@/lib/map-display-icon";
+import { useMap } from "@/providers/map-provider";
+import { Button } from "@curolia/ui/button";
+import { Dialog } from "@curolia/ui/dialog";
+import { Input } from "@curolia/ui/input";
+import { Label } from "@curolia/ui/label";
+import {
+  PanelDialogBody,
+  PanelDialogContent,
+  PanelDialogField,
+  PanelDialogFooter,
+  PanelDialogFormStack,
+  PanelDialogHeader,
+  PanelDialogTitle,
+} from "@curolia/ui/panel-dialog";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type NewMapDialogProps = {
   open: boolean;
@@ -50,34 +53,36 @@ export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
       }}
     >
       <PanelDialogContent>
-        <DialogHeader>
+        <PanelDialogHeader>
           <PanelDialogTitle>New map</PanelDialogTitle>
-        </DialogHeader>
-        <PanelDialogFormStack>
-          <PanelDialogField>
-            <Label htmlFor="jn">Name</Label>
-            <Input
-              id="jn"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Family trips"
+        </PanelDialogHeader>
+        <PanelDialogBody>
+          <PanelDialogFormStack>
+            <PanelDialogField>
+              <Label htmlFor="jn">Name</Label>
+              <Input
+                id="jn"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Family trips"
+              />
+            </PanelDialogField>
+            <EmojiPicker
+              id="jn-icon"
+              label="Icon"
+              value={icon}
+              onChange={setIcon}
             />
-          </PanelDialogField>
-          <EmojiPicker
-            id="jn-icon"
-            label="Icon"
-            value={icon}
-            onChange={setIcon}
-          />
-        </PanelDialogFormStack>
-        <DialogFooter>
+          </PanelDialogFormStack>
+        </PanelDialogBody>
+        <PanelDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button disabled={creating} onClick={() => void handleCreate()}>
             Create
           </Button>
-        </DialogFooter>
+        </PanelDialogFooter>
       </PanelDialogContent>
     </Dialog>
   );

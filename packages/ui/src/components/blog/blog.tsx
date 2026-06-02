@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
+import { MarkdownContent } from "../markdown-content";
 import styles from "./blog.module.css";
 
 export function BlogPageRoot({ children }: { children: React.ReactNode }) {
@@ -124,12 +125,10 @@ export function BlogTagBadge({
   );
 }
 
-export function BlogPinDescription({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <p className={styles.pinDescription}>{children}</p>;
+export function BlogPinDescription({ markdown }: { markdown: string }) {
+  return (
+    <MarkdownContent className={styles.pinDescription} markdown={markdown} />
+  );
 }
 
 export function BlogPhotoGrid({ children }: { children: React.ReactNode }) {

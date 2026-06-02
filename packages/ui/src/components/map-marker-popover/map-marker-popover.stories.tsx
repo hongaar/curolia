@@ -31,9 +31,7 @@ export const Default: Story = {
     <FloatingPanel style={{ maxWidth: "22rem" }}>
       <MapMarkerPopoverBody>
         <MapMarkerPopoverHeader title="Café de Flore" />
-        <MapMarkerPopoverDescription>
-          Morning coffee before exploring Saint-Germain.
-        </MapMarkerPopoverDescription>
+        <MapMarkerPopoverDescription markdown="Morning coffee before exploring *Saint-Germain*." />
         <MapMarkerPopoverTagRow>
           <Badge variant="secondary">Food</Badge>
         </MapMarkerPopoverTagRow>

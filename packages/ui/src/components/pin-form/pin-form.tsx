@@ -1,9 +1,6 @@
 import { X } from "lucide-react";
 import type * as React from "react";
 
-import { cn } from "../../lib/utils";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../card";
-import { DialogContent } from "../dialog";
 import {
   FormErrorText,
   FormField,
@@ -14,6 +11,13 @@ import {
   FormSelectTriggerFull,
   SrOnlyInput,
 } from "../form-layout";
+import {
+  PanelDialogBody,
+  PanelDialogContent,
+  PanelDialogFooter,
+  PanelDialogHeader,
+  PanelDialogTitle,
+} from "../panel-dialog";
 import styles from "./pin-form.module.css";
 
 export {
@@ -27,6 +31,7 @@ export {
   SrOnlyInput,
 };
 
+/** Map-anchored floating panel. Same header / body / footer layout as {@link PinFormPanelDialog}. */
 export function PinFormPanelCard({
   title,
   children,
@@ -39,22 +44,46 @@ export function PinFormPanelCard({
   footerBetween?: boolean;
 }) {
   return (
-    <Card className={styles.panelCard}>
-      <CardHeader className={styles.panelCardHeader}>
-        <CardTitle className={styles.panelCardTitle}>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className={styles.panelCardContent}>{children}</CardContent>
-      <CardFooter
-        className={
-          footerBetween
-            ? `${styles.panelCardFooter} ${styles.panelCardFooterBetween}`
-            : styles.panelCardFooter
-        }
-      >
-        {footer}
-      </CardFooter>
-    </Card>
+    <div className={styles.panelCard}>
+      <PanelDialogHeader>
+        <PanelDialogTitle>{title}</PanelDialogTitle>
+      </PanelDialogHeader>
+      <PanelDialogBody>{children}</PanelDialogBody>
+      <PanelDialogFooter between={footerBetween}>{footer}</PanelDialogFooter>
+    </div>
   );
+}
+
+/** Pin create/edit in a modal — same shell as other {@link PanelDialogContent} dialogs. */
+export function PinFormPanelDialog({
+  title,
+  children,
+  footer,
+  footerBetween = false,
+  ...contentProps
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  footer: React.ReactNode;
+  footerBetween?: boolean;
+} & Omit<React.ComponentProps<typeof PanelDialogContent>, "children">) {
+  return (
+    <PanelDialogContent {...contentProps}>
+      <PanelDialogHeader>
+        <PanelDialogTitle>{title}</PanelDialogTitle>
+      </PanelDialogHeader>
+      <PanelDialogBody>{children}</PanelDialogBody>
+      <PanelDialogFooter between={footerBetween}>{footer}</PanelDialogFooter>
+    </PanelDialogContent>
+  );
+}
+
+export function PinFormPanelFieldGroup({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.panelCardFieldGroup}>{children}</div>;
 }
 
 export function PinFormGrid({ children }: { children: React.ReactNode }) {
@@ -230,20 +259,6 @@ export function PinFormFloatingHost({
         <div className={styles.floatingShell}>{children}</div>
       </div>
     </div>
-  );
-}
-
-export function PinFormModalContent({
-  children,
-  ...props
-}: React.ComponentProps<typeof DialogContent>) {
-  return (
-    <DialogContent
-      className={cn(styles.modalContent, props.className)}
-      {...props}
-    >
-      {children}
-    </DialogContent>
   );
 }
 

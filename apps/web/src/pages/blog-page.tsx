@@ -41,7 +41,7 @@ import {
   BlogTitle,
 } from "@curolia/ui/blog";
 import { Button } from "@curolia/ui/button";
-import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
+import { Dialog } from "@curolia/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,9 +55,12 @@ import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { PageMuted } from "@curolia/ui/page";
 import {
+  PanelDialogBody,
   PanelDialogContent,
   PanelDialogField,
+  PanelDialogFooter,
   PanelDialogFormStack,
+  PanelDialogHeader,
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
 import {
@@ -363,9 +366,7 @@ export function BlogPage() {
                         </BlogTagRow>
                       ) : null}
                       {t.description?.trim() ? (
-                        <BlogPinDescription>
-                          {t.description.trim()}
-                        </BlogPinDescription>
+                        <BlogPinDescription markdown={t.description.trim()} />
                       ) : null}
                       {pinPhotos.length > 0 ? (
                         <BlogPhotoGrid>
@@ -432,34 +433,36 @@ export function BlogPage() {
         }}
       >
         <PanelDialogContent>
-          <DialogHeader>
+          <PanelDialogHeader>
             <PanelDialogTitle>
               {tagEditTarget ? "Edit tag" : "New tag"}
             </PanelDialogTitle>
-          </DialogHeader>
-          <PanelDialogFormStack>
-            <PanelDialogField>
-              <Label htmlFor="blog-tag-name">Name</Label>
-              <Input
-                id="blog-tag-name"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
+          </PanelDialogHeader>
+          <PanelDialogBody>
+            <PanelDialogFormStack>
+              <PanelDialogField>
+                <Label htmlFor="blog-tag-name">Name</Label>
+                <Input
+                  id="blog-tag-name"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                />
+              </PanelDialogField>
+              <PresetColorPicker
+                id="blog-tag-color"
+                label="Color"
+                value={newTagColor}
+                onChange={setNewTagColor}
               />
-            </PanelDialogField>
-            <PresetColorPicker
-              id="blog-tag-color"
-              label="Color"
-              value={newTagColor}
-              onChange={setNewTagColor}
-            />
-            <EmojiPicker
-              id="blog-tag-emoji"
-              label="Icon (emoji)"
-              value={newTagEmoji}
-              onChange={setNewTagEmoji}
-            />
-          </PanelDialogFormStack>
-          <DialogFooter>
+              <EmojiPicker
+                id="blog-tag-emoji"
+                label="Icon (emoji)"
+                value={newTagEmoji}
+                onChange={setNewTagEmoji}
+              />
+            </PanelDialogFormStack>
+          </PanelDialogBody>
+          <PanelDialogFooter>
             <Button
               variant="outline"
               onClick={() => {
@@ -472,7 +475,7 @@ export function BlogPage() {
             <Button onClick={() => void saveTag()}>
               {tagEditTarget ? "Save tag" : "Create tag"}
             </Button>
-          </DialogFooter>
+          </PanelDialogFooter>
         </PanelDialogContent>
       </Dialog>
     </BlogPageRoot>

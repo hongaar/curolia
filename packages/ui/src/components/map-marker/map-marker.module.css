@@ -34,19 +34,16 @@
 .draft {
   box-shadow: var(--shadow-lg);
   outline: 3px dashed var(--primary);
-  outline-offset: 2px;
 }
 
 .selected {
   box-shadow: var(--shadow-lg);
   outline: 3px solid var(--primary);
-  outline-offset: 2px;
 }
 
 .hovered {
   box-shadow: var(--shadow-lg);
   outline: 3px solid var(--map-marker-ring);
-  outline-offset: 2px;
 }
 
 .defaultRing {

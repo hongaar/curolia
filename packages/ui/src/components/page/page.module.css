@@ -325,6 +325,7 @@
   font-weight: 400;
   letter-spacing: -0.025em;
   color: var(--foreground);
+  margin-bottom: 0.25rem;
 }
 
 .panelTitleRow {

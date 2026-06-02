@@ -3,7 +3,6 @@
   gap: 1.25rem;
   width: 100%;
   min-width: 0;
-  padding-block: 0.25rem 0.5rem;
 }
 
 .meta {
@@ -112,12 +111,6 @@
 
 .backRow {
   margin-bottom: 0.25rem;
-}
-
-.scrollBody {
-  max-height: min(70vh, 28rem);
-  overflow-y: auto;
-  padding-inline-end: 0.125rem;
 }
 
 .npmList {

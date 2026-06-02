@@ -38,6 +38,8 @@
     "./map-marker": "./src/components/map-marker/index.ts",
     "./map-marker-popover": "./src/components/map-marker-popover/index.ts",
     "./map-toolbar": "./src/components/map-toolbar/index.ts",
+    "./markdown-content": "./src/components/markdown-content/index.ts",
+    "./markdown-editor": "./src/components/markdown-editor/index.ts",
     "./tooltip": "./src/components/tooltip/index.ts",
     "./navigation-sidebar": "./src/components/navigation-sidebar/index.ts",
     "./notifications-popover": "./src/components/notifications-popover/index.ts",
@@ -80,6 +82,11 @@
     "clsx": "^2.1.1",
     "frimousse": "^0.3.0",
     "lucide-react": "^0.507.0",
+    "react-markdown": "^10.1.0",
+    "rehype-raw": "^7.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7"
   },
   "peerDependencies": {

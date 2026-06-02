@@ -1,30 +1,18 @@
-import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { mapRoleLabel, type InviteMapRole } from "@/lib/map-member-roles";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { MapInvitation, MapMemberRole, Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@curolia/ui/select";
-import {
-  Dialog,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-} from "@curolia/ui/dialog";
+import { Dialog, DialogDescription } from "@curolia/ui/dialog";
 import {
   FormErrorText,
   FormField,
   FormSelectTriggerCompact,
   FormSelectTriggerRounded,
 } from "@curolia/ui/form-layout";
+import { Input } from "@curolia/ui/input";
+import { Label } from "@curolia/ui/label";
 import {
   BorderedList,
   ListEmptyItem,
@@ -38,19 +26,29 @@ import {
   PageInviteEmailField,
   PageInviteRoleField,
   PageInviteRow,
+  PageSectionHeading,
   PageSectionHint,
   PageSectionSubheading,
   PageSharingRoot,
   PageSharingSection,
-  PageSectionHeading,
 } from "@curolia/ui/page";
 import {
+  PanelDialogBody,
   PanelDialogContent,
   PanelDialogField,
+  PanelDialogFooter,
   PanelDialogFormStack,
+  PanelDialogHeader,
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
-import { mapRoleLabel, type InviteMapRole } from "@/lib/map-member-roles";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@curolia/ui/select";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 
 type MemberRow = {
   user_id: string;
@@ -384,38 +382,40 @@ export function MapSharingSection({
 
           <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
             <PanelDialogContent>
-              <DialogHeader>
+              <PanelDialogHeader>
                 <PanelDialogTitle>Transfer ownership</PanelDialogTitle>
                 <DialogDescription>
                   This cannot be undone from here. Connectors and iCal tokens
                   for this map will be cleared.
                 </DialogDescription>
-              </DialogHeader>
-              <PanelDialogFormStack>
-                <PanelDialogField>
-                  <Label>New owner</Label>
-                  <Select
-                    value={transferTo}
-                    onValueChange={(v) => setTransferTo(v ?? "")}
-                  >
-                    <FormSelectTriggerRounded>
-                      <SelectValue placeholder="Choose a member" />
-                    </FormSelectTriggerRounded>
-                    <SelectContent>
-                      {transferCandidates.map((m) => (
-                        <SelectItem key={m.user_id} value={m.user_id}>
-                          {m.profile?.display_name?.trim() || "Member"} (
-                          {mapRoleLabel(m.role)})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </PanelDialogField>
-                {transferErr ? (
-                  <FormErrorText>{transferErr}</FormErrorText>
-                ) : null}
-              </PanelDialogFormStack>
-              <DialogFooter>
+              </PanelDialogHeader>
+              <PanelDialogBody>
+                <PanelDialogFormStack>
+                  <PanelDialogField>
+                    <Label>New owner</Label>
+                    <Select
+                      value={transferTo}
+                      onValueChange={(v) => setTransferTo(v ?? "")}
+                    >
+                      <FormSelectTriggerRounded>
+                        <SelectValue placeholder="Choose a member" />
+                      </FormSelectTriggerRounded>
+                      <SelectContent>
+                        {transferCandidates.map((m) => (
+                          <SelectItem key={m.user_id} value={m.user_id}>
+                            {m.profile?.display_name?.trim() || "Member"} (
+                            {mapRoleLabel(m.role)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </PanelDialogField>
+                  {transferErr ? (
+                    <FormErrorText>{transferErr}</FormErrorText>
+                  ) : null}
+                </PanelDialogFormStack>
+              </PanelDialogBody>
+              <PanelDialogFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -430,7 +430,7 @@ export function MapSharingSection({
                 >
                   Confirm transfer
                 </Button>
-              </DialogFooter>
+              </PanelDialogFooter>
             </PanelDialogContent>
           </Dialog>
         </>

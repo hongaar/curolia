@@ -54,11 +54,6 @@
   gap: 1rem;
 }
 
-.description {
-  font-size: 0.875rem;
-  white-space: pre-wrap;
-}
-
 .photoRow {
   display: flex;
   flex-wrap: wrap;

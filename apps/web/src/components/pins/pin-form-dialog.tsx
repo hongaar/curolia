@@ -4,37 +4,29 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { reversePhotonLocationLabel } from "@/lib/photon-geocode";
-import { supabase } from "@/lib/supabase";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
+import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
-import type { Tag, Pin } from "@/types/database";
+import type { Pin, Tag } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
 import { Checkbox } from "@curolia/ui/checkbox";
-import {
-  Dialog,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-} from "@curolia/ui/dialog";
+import { Dialog, DialogDescription } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
+import { MarkdownEditor } from "@curolia/ui/markdown-editor";
 import {
+  PanelDialogBody,
   PanelDialogContent,
   PanelDialogField,
+  PanelDialogFooter,
   PanelDialogFormStack,
+  PanelDialogHeader,
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@curolia/ui/select";
-import { Textarea } from "@curolia/ui/textarea";
 import {
   FormErrorText,
   FormField,
@@ -42,12 +34,11 @@ import {
   FormSelectTriggerFull,
   PinFormDangerActions,
   PinFormDangerHint,
-  PinFormDangerZone,
   PinFormFloatingHost,
   PinFormGrid,
-  PinFormModalContent,
   PinFormMoveList,
   PinFormPanelCard,
+  PinFormPanelDialog,
   PinFormPhotoGrid,
   PinFormPhotoPlaceholder,
   PinFormPhotoRemoveButton,
@@ -63,8 +54,19 @@ import {
   PinPhotoLightbox,
   PinPhotoThumb,
 } from "@curolia/ui/pin-photo-lightbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@curolia/ui/select";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { Pencil, Trash2, Upload } from "lucide-react";
 import {
   useEffect,
@@ -76,6 +78,17 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
+async function invalidatePinDetailCaches(
+  qc: QueryClient,
+  pinId: string,
+  mapId: string,
+) {
+  await qc.invalidateQueries({ queryKey: ["pins", mapId] });
+  await qc.invalidateQueries({ queryKey: ["pin"] });
+  await qc.invalidateQueries({ queryKey: ["pin", pinId] });
+  await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pinId] });
+}
 
 type PinFormDialogProps = {
   open: boolean;
@@ -154,14 +167,16 @@ export function PinFormDialog({
     },
     onSuccess: async (_data, photoId) => {
       setPhotoLightbox((prev) => (prev?.photoId === photoId ? null : prev));
-      await qc.invalidateQueries({ queryKey: ["photos", pin?.id] });
-      await qc.invalidateQueries({ queryKey: ["photo-urls", pin?.id] });
+      if (!pin) return;
+      await qc.invalidateQueries({ queryKey: ["photos", pin.id] });
+      await qc.invalidateQueries({ queryKey: ["photo-urls", pin.id] });
       await qc.invalidateQueries({
         queryKey: ["map-pin-photos", mapId],
       });
       await qc.invalidateQueries({
         queryKey: ["photo-urls-batch", mapId],
       });
+      await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pin.id] });
     },
     onError: (e) => {
       toast.error(e instanceof Error ? e.message : "Could not remove photo.");
@@ -411,8 +426,8 @@ export function PinFormDialog({
 
       await qc.invalidateQueries({ queryKey: ["pins", oldMapId] });
       await qc.invalidateQueries({ queryKey: ["pins", moveTargetMapId] });
-      await qc.invalidateQueries({ queryKey: ["pin"] });
-      await qc.invalidateQueries({ queryKey: ["pin", pin.id] });
+      await invalidatePinDetailCaches(qc, pin.id, oldMapId);
+      await invalidatePinDetailCaches(qc, pin.id, moveTargetMapId);
       await qc.invalidateQueries({ queryKey: ["photos", pin.id] });
       await qc.invalidateQueries({ queryKey: ["photo-urls", pin.id] });
       await qc.invalidateQueries({
@@ -447,8 +462,7 @@ export function PinFormDialog({
       const mapSlug = maps.find((j) => j.id === pin.map_id)?.slug?.trim() ?? "";
       const { error } = await supabase.from("pins").delete().eq("id", pin.id);
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["pins", pin.map_id] });
-      await qc.invalidateQueries({ queryKey: ["pin"] });
+      await invalidatePinDetailCaches(qc, pin.id, pin.map_id);
       await qc.invalidateQueries({
         queryKey: ["map-pin-photos", pin.map_id],
       });
@@ -542,8 +556,11 @@ export function PinFormDialog({
         if (tErr) throw tErr;
       }
 
-      await qc.invalidateQueries({ queryKey: ["pins", mapId] });
-      if (pin) await qc.invalidateQueries({ queryKey: ["pin"] });
+      if (pin) {
+        await invalidatePinDetailCaches(qc, pin.id, mapId);
+      } else {
+        await qc.invalidateQueries({ queryKey: ["pins", mapId] });
+      }
       onOpenChange(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -584,6 +601,7 @@ export function PinFormDialog({
     await qc.invalidateQueries({
       queryKey: ["photo-urls-batch", mapId],
     });
+    await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pin.id] });
   }
 
   const formFields = (
@@ -598,15 +616,16 @@ export function PinFormDialog({
       </FormField>
       <FormField>
         <Label htmlFor={`t-desc-${idSuffix}`}>Description</Label>
-        <Textarea
+        <MarkdownEditor
           id={`t-desc-${idSuffix}`}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
+          onChange={setDescription}
+          rows={4}
+          placeholder="Notes about this place…"
         />
       </FormField>
       <FormField>
-        <Label htmlFor={`t-date-${idSuffix}`}>Date (optional)</Label>
+        <Label htmlFor={`t-date-${idSuffix}`}>Date</Label>
         <Input
           id={`t-date-${idSuffix}`}
           type="date"
@@ -615,7 +634,7 @@ export function PinFormDialog({
         />
       </FormField>
       <FormField>
-        <Label htmlFor={`t-end-${idSuffix}`}>End date (optional)</Label>
+        <Label htmlFor={`t-end-${idSuffix}`}>End date</Label>
         <Input
           id={`t-end-${idSuffix}`}
           type="date"
@@ -639,36 +658,36 @@ export function PinFormDialog({
         <>
           <FormField>
             <Label>Photos</Label>
-            <PinFormPhotoGrid>
-              {photos.map((p) => {
-                const url = signedUrlByPhotoId[p.id];
-                const removing =
-                  removePhotoMut.isPending && removePhotoMut.variables === p.id;
-                return url ? (
-                  <PinFormPhotoThumb
-                    key={p.id}
-                    removeButton={
-                      <PinFormPhotoRemoveButton
-                        onClick={() => removePhotoMut.mutate(p.id)}
-                        disabled={removing}
+            {photos.length > 0 ? (
+              <PinFormPhotoGrid>
+                {photos.map((p) => {
+                  const url = signedUrlByPhotoId[p.id];
+                  const removing =
+                    removePhotoMut.isPending &&
+                    removePhotoMut.variables === p.id;
+                  return url ? (
+                    <PinFormPhotoThumb
+                      key={p.id}
+                      removeButton={
+                        <PinFormPhotoRemoveButton
+                          onClick={() => removePhotoMut.mutate(p.id)}
+                          disabled={removing}
+                        />
+                      }
+                    >
+                      <PinPhotoThumb
+                        url={url}
+                        onOpen={() => setPhotoLightbox({ photoId: p.id })}
                       />
-                    }
-                  >
-                    <PinPhotoThumb
-                      url={url}
-                      onOpen={() => setPhotoLightbox({ photoId: p.id })}
-                    />
-                  </PinFormPhotoThumb>
-                ) : (
-                  <PinFormPhotoPlaceholder key={p.id}>
-                    …
-                  </PinFormPhotoPlaceholder>
-                );
-              })}
-              {photos.length === 0 ? (
-                <FormMutedText>No photos yet.</FormMutedText>
-              ) : null}
-            </PinFormPhotoGrid>
+                    </PinFormPhotoThumb>
+                  ) : (
+                    <PinFormPhotoPlaceholder key={p.id}>
+                      …
+                    </PinFormPhotoPlaceholder>
+                  );
+                })}
+              </PinFormPhotoGrid>
+            ) : null}
             <PinFormUploadRow>
               <PinFormUploadLabel
                 input={
@@ -734,37 +753,35 @@ export function PinFormDialog({
         </PinFormTagBox>
       </FormField>
       {pin ? (
-        <PinFormDangerZone>
-          <CautionPanel
-            title="Danger zone"
-            description="Move this pin to another map or delete it permanently."
-          >
-            <PinFormDangerActions>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={otherMaps.length === 0}
-                onClick={() => {
-                  setMoveTargetMapId("");
-                  setMoveOpen(true);
-                }}
-              >
-                Move to another map…
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setDeleteOpen(true)}
-              >
-                <Trash2 aria-hidden />
-                Delete pin
-              </Button>
-            </PinFormDangerActions>
-            {otherMaps.length === 0 ? (
-              <PinFormDangerHint>No other maps to move to.</PinFormDangerHint>
-            ) : null}
-          </CautionPanel>
-        </PinFormDangerZone>
+        <CautionPanel
+          title="Danger zone"
+          description="Move this pin to another map or delete it permanently."
+        >
+          <PinFormDangerActions>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={otherMaps.length === 0}
+              onClick={() => {
+                setMoveTargetMapId("");
+                setMoveOpen(true);
+              }}
+            >
+              Move to another map…
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 aria-hidden />
+              Delete pin
+            </Button>
+          </PinFormDangerActions>
+          {otherMaps.length === 0 ? (
+            <PinFormDangerHint>No other maps to move to.</PinFormDangerHint>
+          ) : null}
+        </CautionPanel>
       ) : null}
       {error ? <FormErrorText>{error}</FormErrorText> : null}
     </PinFormGrid>
@@ -779,12 +796,6 @@ export function PinFormDialog({
         Save
       </Button>
     </>
-  );
-
-  const formShell = (
-    <PinFormPanelCard title={dialogTitle} footer={footerActions}>
-      {formFields}
-    </PinFormPanelCard>
   );
 
   const photoLightboxOverlay = pin ? (
@@ -807,48 +818,50 @@ export function PinFormDialog({
       }}
     >
       <PanelDialogContent>
-        <DialogHeader>
+        <PanelDialogHeader>
           <PanelDialogTitle>Move pin to another map</PanelDialogTitle>
           <DialogDescription>
             Tags will be removed. If you choose a shared map, other members may
             see this pin. Pick a destination map below.
           </DialogDescription>
-        </DialogHeader>
-        <PanelDialogFormStack>
-          <PinFormMoveList>
-            <li>
-              All tags will be removed from this pin. Tags belong to a map and
-              do not carry over.
-            </li>
-            {moveTargetMap && !moveTargetMap.is_personal ? (
+        </PanelDialogHeader>
+        <PanelDialogBody>
+          <PanelDialogFormStack>
+            <PinFormMoveList>
               <li>
-                This map is shared with others. Members who can access it may be
-                able to see this pin.
+                All tags will be removed from this pin. Tags belong to a map and
+                do not carry over.
               </li>
-            ) : null}
-          </PinFormMoveList>
-          <PanelDialogField>
-            <Label htmlFor="move-pin-map">Destination map</Label>
-            <Select
-              modal={false}
-              value={moveTargetMapId === "" ? null : moveTargetMapId}
-              onValueChange={(v) => setMoveTargetMapId(v ?? "")}
-              items={mapSelectItems}
-            >
-              <FormSelectTriggerFull id="move-pin-map">
-                <SelectValue placeholder="Choose a map" />
-              </FormSelectTriggerFull>
-              <SelectContent alignItemWithTrigger={false}>
-                {otherMaps.map((j) => (
-                  <SelectItem key={j.id} value={j.id}>
-                    {j.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </PanelDialogField>
-        </PanelDialogFormStack>
-        <DialogFooter>
+              {moveTargetMap && !moveTargetMap.is_personal ? (
+                <li>
+                  This map is shared with others. Members who can access it may
+                  be able to see this pin.
+                </li>
+              ) : null}
+            </PinFormMoveList>
+            <PanelDialogField>
+              <Label htmlFor="move-pin-map">Destination map</Label>
+              <Select
+                modal={false}
+                value={moveTargetMapId === "" ? null : moveTargetMapId}
+                onValueChange={(v) => setMoveTargetMapId(v ?? "")}
+                items={mapSelectItems}
+              >
+                <FormSelectTriggerFull id="move-pin-map">
+                  <SelectValue placeholder="Choose a map" />
+                </FormSelectTriggerFull>
+                <SelectContent alignItemWithTrigger={false}>
+                  {otherMaps.map((j) => (
+                    <SelectItem key={j.id} value={j.id}>
+                      {j.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </PanelDialogField>
+          </PanelDialogFormStack>
+        </PanelDialogBody>
+        <PanelDialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -864,7 +877,7 @@ export function PinFormDialog({
           >
             {moving ? "Moving…" : "Move pin"}
           </Button>
-        </DialogFooter>
+        </PanelDialogFooter>
       </PanelDialogContent>
     </Dialog>
   ) : null;
@@ -878,13 +891,13 @@ export function PinFormDialog({
       }}
     >
       <PanelDialogContent showCloseButton={!deleting}>
-        <DialogHeader>
+        <PanelDialogHeader>
           <PanelDialogTitle>Delete pin?</PanelDialogTitle>
           <DialogDescription>
             This removes the pin from your map. This cannot be undone.
           </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
+        </PanelDialogHeader>
+        <PanelDialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -901,7 +914,7 @@ export function PinFormDialog({
           >
             {deleting ? "Deleting…" : "Delete pin"}
           </Button>
-        </DialogFooter>
+        </PanelDialogFooter>
       </PanelDialogContent>
     </Dialog>
   ) : null;
@@ -910,7 +923,9 @@ export function PinFormDialog({
     return (
       <>
         <PinFormFloatingHost hostRef={floatingRef}>
-          {formShell}
+          <PinFormPanelCard title={dialogTitle} footer={footerActions}>
+            {formFields}
+          </PinFormPanelCard>
         </PinFormFloatingHost>
         {photoLightboxOverlay}
       </>
@@ -920,7 +935,9 @@ export function PinFormDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <PinFormModalContent>{formShell}</PinFormModalContent>
+        <PinFormPanelDialog title={dialogTitle} footer={footerActions}>
+          {formFields}
+        </PinFormPanelDialog>
       </Dialog>
       {photoLightboxOverlay}
       {movePinDialog}

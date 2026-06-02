@@ -32,6 +32,7 @@ import {
 } from "@curolia/ui/navigation-sidebar";
 import { Separator } from "@curolia/ui/separator";
 import { BookOpen, Check, Map as MapIcon, Pencil, Plus } from "lucide-react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function mapEmoji(map: CuroliaMap) {
@@ -53,6 +54,7 @@ export function NavigationSidebarContent({
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
   const { maps, activeMap } = useMap();
+  const [mapsMenuOpen, setMapsMenuOpen] = useState(false);
   const mapTo = activeMap?.slug ? mapViewHref("map", activeMap.slug) : "/";
   const blogTo = activeMap?.slug ? mapViewHref("blog", activeMap.slug) : "/";
 
@@ -87,7 +89,7 @@ export function NavigationSidebarContent({
 
       <NavigationSidebarSection gap="lg">
         <NavigationSidebarLabel>Map</NavigationSidebarLabel>
-        <DropdownMenu>
+        <DropdownMenu open={mapsMenuOpen} onOpenChange={setMapsMenuOpen}>
           <SidebarPickerTrigger
             icon={
               activeMap ? (
@@ -131,6 +133,7 @@ export function NavigationSidebarContent({
                         e.preventDefault();
                         e.stopPropagation();
                         onOpenMapSettings(j.id);
+                        setMapsMenuOpen(false);
                       }}
                     >
                       <Pencil aria-hidden />

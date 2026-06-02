@@ -3,27 +3,85 @@ import { useId, type ComponentProps, type ReactNode } from "react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
-import { DialogContent, DialogTitle } from "../dialog";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../dialog";
 import styles from "./panel-dialog.module.css";
 
 export function PanelDialogContent({
   children,
-  size = "default",
+  className,
   ...props
-}: ComponentProps<typeof DialogContent> & {
-  size?: "default" | "md";
+}: ComponentProps<typeof DialogContent>) {
+  return (
+    <DialogContent className={cn(styles.panelContent, className)} {...props}>
+      {children}
+    </DialogContent>
+  );
+}
+
+/** Title row for floating panels and other non-modal shells. */
+export function PanelDialogHeader({
+  children,
+  className,
+  ...props
+}: ComponentProps<typeof DialogHeader>) {
+  return (
+    <DialogHeader className={cn(styles.panelHeader, className)} {...props}>
+      {children}
+    </DialogHeader>
+  );
+}
+
+/** Scrollable main area; padding lives on the inner wrapper so the scrollbar is edge-flush. */
+export function PanelDialogBody({
+  children,
+  className,
+  ...props
+}: ComponentProps<"div">) {
+  return (
+    <div className={styles.scrollBody} {...props}>
+      <div className={cn(styles.scrollBodyInner, className)}>{children}</div>
+    </div>
+  );
+}
+
+/** Top block when not using {@link DialogHeader} (e.g. back row + title). */
+export function PanelDialogSection({
+  children,
+  className,
+  ...props
+}: ComponentProps<"div">) {
+  return (
+    <div className={cn(styles.panelSection, className)} {...props}>
+      {children}
+    </div>
+  );
+}
+
+export function PanelDialogFooter({
+  between = false,
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof DialogFooter> & {
+  /** Primary actions on the right, secondary on the left (row at all breakpoints). */
+  between?: boolean;
 }) {
   return (
-    <DialogContent
+    <DialogFooter
       className={cn(
-        styles.panelContent,
-        size === "md" && styles.contentMd,
-        props.className,
+        styles.panelFooter,
+        between && styles.footerBetween,
+        className,
       )}
       {...props}
     >
       {children}
-    </DialogContent>
+    </DialogFooter>
   );
 }
 

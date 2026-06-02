@@ -36,9 +36,7 @@ export const Default: Story = {
           <PinDetailSubtitle>12 Jun 2025 · Paris</PinDetailSubtitle>
         </PinDetailHeader>
         <PinDetailContent>
-          <PinDetailDescription>
-            Morning coffee before exploring Saint-Germain-des-Prés.
-          </PinDetailDescription>
+          <PinDetailDescription markdown="Morning coffee before exploring **Saint-Germain-des-Prés**." />
           <PinDetailTagRow>
             <PinDetailTagBadge style={{ background: "#3b82f6" }}>
               Food

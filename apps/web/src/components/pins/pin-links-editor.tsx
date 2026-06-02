@@ -1,19 +1,14 @@
-import { useState } from "react";
-import { Button } from "@curolia/ui/button";
-import { Input } from "@curolia/ui/input";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { LinkFavicon } from "@/components/pins/pin-links-list";
 import {
   fetchLinkMetadata,
   linkDisplayDomain,
   normalizeUrlInput,
 } from "@/lib/pin-links";
-import { LinkFavicon } from "@/components/pins/pin-links-list";
+import { supabase } from "@/lib/supabase";
 import { usePinLinks } from "@/lib/use-pin-links";
 import type { PinLink } from "@/types/database";
-import { FormMutedText } from "@curolia/ui/form-layout";
+import { Button } from "@curolia/ui/button";
+import { Input } from "@curolia/ui/input";
 import {
   PinLinkRowBody,
   PinLinkRowDomain,
@@ -24,6 +19,10 @@ import {
   PinLinksEditorRoot,
   PinLinksSpinnerIcon,
 } from "@curolia/ui/pin-links";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 type PinLinksEditorProps = {
   pinId: string;
@@ -95,21 +94,20 @@ export function PinLinksEditor({ pinId, mapId }: PinLinksEditorProps) {
 
   return (
     <PinLinksEditorRoot>
-      <PinLinksEditorList>
-        {links.map((link) => (
-          <PinLinkEditorRow
-            key={link.id}
-            link={link}
-            onRemove={() => removeMutation.mutate(link.id)}
-            removing={
-              removeMutation.isPending && removeMutation.variables === link.id
-            }
-          />
-        ))}
-        {links.length === 0 ? (
-          <FormMutedText>No links yet.</FormMutedText>
-        ) : null}
-      </PinLinksEditorList>
+      {links.length > 0 ? (
+        <PinLinksEditorList>
+          {links.map((link) => (
+            <PinLinkEditorRow
+              key={link.id}
+              link={link}
+              onRemove={() => removeMutation.mutate(link.id)}
+              removing={
+                removeMutation.isPending && removeMutation.variables === link.id
+              }
+            />
+          ))}
+        </PinLinksEditorList>
+      ) : null}
       <PinLinksEditorAddRow>
         <Input
           type="url"

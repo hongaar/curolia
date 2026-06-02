@@ -41,7 +41,7 @@ import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
 import { Button } from "@curolia/ui/button";
-import { Dialog, DialogFooter, DialogHeader } from "@curolia/ui/dialog";
+import { Dialog } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
@@ -55,9 +55,12 @@ import {
   MapVignette,
 } from "@curolia/ui/map";
 import {
+  PanelDialogBody,
   PanelDialogContent,
   PanelDialogField,
+  PanelDialogFooter,
   PanelDialogFormStack,
+  PanelDialogHeader,
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -609,9 +612,7 @@ export function MapPage() {
       </MapLayer>
 
       {placementActive ? (
-        <MapPlacementHint>
-          Tap the map to add a pin · Esc or Stop adding to cancel
-        </MapPlacementHint>
+        <MapPlacementHint>Click to add a pin</MapPlacementHint>
       ) : null}
 
       <PinMapQuickAddDialog
@@ -647,34 +648,36 @@ export function MapPage() {
         }}
       >
         <PanelDialogContent>
-          <DialogHeader>
+          <PanelDialogHeader>
             <PanelDialogTitle>
               {tagEditTarget ? "Edit tag" : "New tag"}
             </PanelDialogTitle>
-          </DialogHeader>
-          <PanelDialogFormStack>
-            <PanelDialogField>
-              <Label htmlFor="tag-name">Name</Label>
-              <Input
-                id="tag-name"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
+          </PanelDialogHeader>
+          <PanelDialogBody>
+            <PanelDialogFormStack>
+              <PanelDialogField>
+                <Label htmlFor="tag-name">Name</Label>
+                <Input
+                  id="tag-name"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                />
+              </PanelDialogField>
+              <PresetColorPicker
+                id="tag-color"
+                label="Color"
+                value={newTagColor}
+                onChange={setNewTagColor}
               />
-            </PanelDialogField>
-            <PresetColorPicker
-              id="tag-color"
-              label="Color"
-              value={newTagColor}
-              onChange={setNewTagColor}
-            />
-            <EmojiPicker
-              id="tag-emoji"
-              label="Icon (emoji)"
-              value={newTagEmoji}
-              onChange={setNewTagEmoji}
-            />
-          </PanelDialogFormStack>
-          <DialogFooter>
+              <EmojiPicker
+                id="tag-emoji"
+                label="Icon (emoji)"
+                value={newTagEmoji}
+                onChange={setNewTagEmoji}
+              />
+            </PanelDialogFormStack>
+          </PanelDialogBody>
+          <PanelDialogFooter>
             <Button
               variant="outline"
               onClick={() => {
@@ -687,7 +690,7 @@ export function MapPage() {
             <Button onClick={() => void saveTag()}>
               {tagEditTarget ? "Save tag" : "Create tag"}
             </Button>
-          </DialogFooter>
+          </PanelDialogFooter>
         </PanelDialogContent>
       </Dialog>
     </MapPageRoot>

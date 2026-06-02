@@ -2,16 +2,16 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
 import { Button } from "../button";
+import { FormField } from "../form-layout";
 import { Input } from "../input";
 import { Label } from "../label";
-import { FormField } from "../form-layout";
 import { PinFormPanelCard } from "./pin-form";
 
 const meta = {
   title: "Pin Form",
   ...componentStoryMeta(
     `Pin create/edit dialog layout and field groups.`,
-    `Compose inside \`PanelDialogContent\` for add/edit pin flows.`,
+    `Use \`PinFormPanelDialog\` for modals and \`PinFormPanelCard\` for map-anchored panels.`,
   ),
   component: PinFormPanelCard,
 } satisfies Meta;

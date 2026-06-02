@@ -1,6 +1,7 @@
 import type * as React from "react";
 
 import { cn } from "../../lib/utils";
+import { MarkdownContent } from "../markdown-content";
 import { SheetContent, SheetTitle } from "../sheet";
 import styles from "./map-marker-popover.module.css";
 
@@ -28,11 +29,11 @@ export function MapMarkerPopoverHeader({
 }
 
 export function MapMarkerPopoverDescription({
-  children,
+  markdown,
 }: {
-  children: React.ReactNode;
+  markdown: string;
 }) {
-  return <p className={styles.description}>{children}</p>;
+  return <MarkdownContent className={styles.description} markdown={markdown} />;
 }
 
 export function MapMarkerPopoverPhotoStrip({

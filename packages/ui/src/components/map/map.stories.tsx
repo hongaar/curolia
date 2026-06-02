@@ -111,9 +111,7 @@ export const Default: Story = {
                     </MapMarkerPopoverHeaderActions>
                   }
                 />
-                <MapMarkerPopoverDescription>
-                  Morning coffee before exploring Saint-Germain.
-                </MapMarkerPopoverDescription>
+                <MapMarkerPopoverDescription markdown="Morning coffee before exploring Saint-Germain." />
                 <MapMarkerPopoverTagRow>
                   <Badge variant="secondary">Food</Badge>
                   <Badge variant="outline">Paris</Badge>

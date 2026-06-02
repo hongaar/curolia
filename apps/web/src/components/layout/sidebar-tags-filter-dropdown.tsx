@@ -19,7 +19,7 @@ import {
   SidebarTagName,
 } from "@curolia/ui/navigation-sidebar";
 import { Check, Pencil, Plus, Tag as TagIcon } from "lucide-react";
-import type { SetStateAction } from "react";
+import { useState, type SetStateAction } from "react";
 
 type SidebarTagsFilterDropdownProps = {
   tags: Tag[];
@@ -36,8 +36,10 @@ export function SidebarTagsFilterDropdown({
   onNewTag,
   onEditTag,
 }: SidebarTagsFilterDropdownProps) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <SidebarPickerTrigger
         active={filterTagIds.size > 0}
         icon={
@@ -88,6 +90,7 @@ export function SidebarTagsFilterDropdown({
                       e.preventDefault();
                       e.stopPropagation();
                       onEditTag(tag);
+                      setOpen(false);
                     }}
                   >
                     <Pencil aria-hidden />
