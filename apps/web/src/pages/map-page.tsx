@@ -543,12 +543,6 @@ export function MapPage() {
 
   const showSidePanel = Boolean(sidebarPinId && isWideEnough);
 
-  useEffect(() => {
-    if (!showSidePanel) {
-      setSidePanelAnimateIn(false);
-    }
-  }, [showSidePanel]);
-
   if (mapLoading) {
     return <MapViewInitialLoader />;
   }
@@ -599,7 +593,10 @@ export function MapPage() {
           </MapControlsBottomStack>
         </MapControlsLayer>
         {showSidePanel ? (
-          <MapSidePanel ref={panelRef} animateIn={sidePanelAnimateIn}>
+          <MapSidePanel
+            ref={panelRef}
+            animateIn={showSidePanel && sidePanelAnimateIn}
+          >
             <PinDetailSideSheet
               key={sidebarPinId}
               pinId={sidebarPinId!}
