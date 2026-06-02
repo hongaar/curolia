@@ -1,8 +1,8 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { LastfmAccountSettingsPanel } from "./account-settings-panel";
 import { LastfmIcon } from "./icon";
-import { lastfmPluginMeta } from "./plugin-meta";
 import { LastfmPinDetailSection } from "./pin-detail-section";
+import { lastfmPluginMeta } from "./plugin-meta";
 
 export const lastfmPluginManifest: PluginPackageManifest = {
   id: lastfmPluginMeta.typeId,
@@ -14,6 +14,10 @@ export const lastfmPluginManifest: PluginPackageManifest = {
   AccountSettingsPanel: LastfmAccountSettingsPanel,
   PinDetailSection: LastfmPinDetailSection,
   contributions: {
+    mapSettings: {
+      panel: "inline",
+      title: "Last.fm",
+    },
     edgeFunctions: [
       {
         slug: "lastfm",

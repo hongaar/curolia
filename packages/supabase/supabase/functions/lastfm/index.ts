@@ -234,6 +234,25 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  const { data: mapPlugin } = await admin
+    .from("map_plugins")
+    .select("enabled")
+    .eq("map_id", t.map_id)
+    .eq("plugin_type_id", "lastfm")
+    .maybeSingle();
+
+  if (mapPlugin && mapPlugin.enabled === false) {
+    return new Response(
+      JSON.stringify({
+        skippedReason: "map_plugin_disabled",
+      }),
+      {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      },
+    );
+  }
+
   const bounds = periodBoundsMs(t);
   if (!bounds) {
     await admin

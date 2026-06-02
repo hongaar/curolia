@@ -3,7 +3,7 @@ import type { LastfmPinPayload } from "./lastfm-pin-data";
 
 export type LastfmSyncResponse =
   | {
-      skippedReason: "no_pin_date";
+      skippedReason: "no_pin_date" | "map_plugin_disabled";
       cleared?: boolean;
     }
   | {

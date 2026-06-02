@@ -20,6 +20,7 @@ import {
 } from "@tanstack/react-query";
 import { Music } from "lucide-react";
 import { useEffect, useMemo } from "react";
+import { isLastfmEnabledForMap } from "./config";
 import {
   LASTFM_SYNC_STALE_TIME_MS,
   LASTFM_TOP_TRACKS_LIMIT,
@@ -44,12 +45,29 @@ function hasLastfmUsername(config: unknown): boolean {
 export function LastfmPinDetailSection({
   supabase,
   userId,
+  mapId,
   pinId,
   pinDate,
   pinEndDate,
 }: PinContextProps) {
   const qc = useQueryClient();
   const pid = lastfmPluginMeta.typeId;
+
+  const mapPluginQuery = useQuery({
+    queryKey: ["map_plugins", mapId, pid],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("map_plugins")
+        .select("enabled")
+        .eq("map_id", mapId)
+        .eq("plugin_type_id", pid)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: Boolean(mapId),
+    placeholderData: keepPreviousData,
+  });
 
   const userPluginQuery = useQuery({
     queryKey: ["user_plugins", userId, pid],
@@ -68,7 +86,10 @@ export function LastfmPinDetailSection({
     placeholderData: keepPreviousData,
   });
 
+  const mapEnabled = isLastfmEnabledForMap(mapPluginQuery.data);
+
   const pluginReady =
+    mapEnabled &&
     Boolean(userPluginQuery.data?.enabled) &&
     hasLastfmUsername(userPluginQuery.data?.config) &&
     lastfmPluginMeta.implemented;
@@ -110,7 +131,11 @@ export function LastfmPinDetailSection({
     if ("synced" in d && d.synced) {
       void qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
     }
-    if ("skippedReason" in d && d.skippedReason === "no_pin_date") {
+    if (
+      "skippedReason" in d &&
+      (d.skippedReason === "no_pin_date" ||
+        d.skippedReason === "map_plugin_disabled")
+    ) {
       void qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
     }
   }, [syncQuery.isSuccess, syncQuery.data, qc, dataRowQueryKey]);

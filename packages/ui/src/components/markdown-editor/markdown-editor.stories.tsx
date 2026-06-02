@@ -8,8 +8,8 @@ import { MarkdownEditor } from "./markdown-editor";
 const meta = {
   title: "Markdown Editor",
   ...componentStoryMeta(
-    "Simple markdown field with formatting toolbar for pin descriptions.",
-    "Stores markdown text; pair with `MarkdownContent` for display.",
+    "Rich-text markdown field (MDXEditor) with Curolia toolbar styling for pin descriptions.",
+    "Stores markdown; pair with `MarkdownContent` for display. Lazy-loaded in the app shell.",
   ),
   component: MarkdownEditor,
 } satisfies Meta<typeof MarkdownEditor>;

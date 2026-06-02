@@ -1,0 +1,35 @@
+/*
+ * MDXEditor appends `.mdxeditor-popup-container` to its overlayContainer (default
+ * <body>) to host the link preview/edit Radix Popover. That element ALSO carries
+ * MDXEditor's own `._popupContainer` class with `z-index: 2`. Because MDXEditor's
+ * stylesheet is lazy-loaded (it imports `@mdxeditor/editor/style.css` from the lazy
+ * editor chunk) it lands AFTER our global CSS in the cascade with equal specificity,
+ * so a plain rule loses. `!important` is required to win and lift the popover above
+ * Curolia dialogs (overlay 100 / content 101, nested up to ~111).
+ *
+ * The popover content is portaled into this body-level container, so its chrome
+ * styling must also live here (component-scoped rules would not match the portal).
+ */
+.mdxeditor-popup-container {
+  z-index: var(--mdx-editor-overlay-z) !important;
+}
+
+.mdxeditor-popup-container [class*="linkDialogPopoverContent"] {
+  z-index: var(--mdx-editor-overlay-content-z);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-lg);
+}
+
+.mdxeditor-popup-container [class*="linkDialogPopoverContent"] input {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--input);
+  background: transparent;
+  color: var(--foreground);
+}
+
+.mdxeditor-popup-container [class*="linkDialogPopoverContent"] button {
+  border-radius: var(--radius-md);
+}

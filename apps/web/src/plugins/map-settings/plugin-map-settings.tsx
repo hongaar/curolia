@@ -1,5 +1,6 @@
 import type { MapPlugin } from "@/types/database";
 import { IcalPluginMapSettings } from "./ical-plugin-map-settings";
+import { LastfmPluginMapSettings } from "./lastfm-plugin-map-settings";
 
 type Props = {
   pluginTypeId: string;
@@ -25,6 +26,15 @@ export function PluginMapSettings({
     case "ical":
       return (
         <IcalPluginMapSettings
+          mapId={mapId}
+          jp={jp}
+          pluginGloballyEnabled={pluginGloballyEnabled}
+          readOnly={readOnly}
+        />
+      );
+    case "lastfm":
+      return (
+        <LastfmPluginMapSettings
           mapId={mapId}
           jp={jp}
           pluginGloballyEnabled={pluginGloballyEnabled}

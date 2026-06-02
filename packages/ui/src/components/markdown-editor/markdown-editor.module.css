@@ -1,8 +1,11 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
   width: 100%;
+}
+
+.toolbarHost {
+  display: contents;
 }
 
 .toolbar {
@@ -16,6 +19,97 @@
   padding: 0.25rem;
 }
 
-.textarea {
-  min-height: 6rem;
+.mdxEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-family: inherit;
+  color: inherit;
 }
+
+/* MDXEditor root wrapper (hashed class suffix changes between releases). */
+.mdxEditor :global([class*="editorRoot"]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.contentEditable {
+  width: 100%;
+  min-height: var(--markdown-editor-min-height, 6rem);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--input);
+  background: transparent;
+  padding: 0.5rem 0.625rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+  outline: none;
+  overflow-y: auto;
+}
+
+.contentEditable:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+}
+
+:global(.dark) .contentEditable {
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+}
+
+@media (min-width: 48rem) {
+  .contentEditable {
+    font-size: 0.875rem;
+  }
+}
+
+/* Placeholder */
+.mdxEditor :global([class*="placeholder"]) {
+  color: var(--muted-foreground);
+  padding: 0.5rem 0.625rem;
+  pointer-events: none;
+}
+
+/* Rich-text content inside the field */
+.mdxEditor :global([class*="contentEditable"] ul),
+.mdxEditor :global([class*="contentEditable"] ol) {
+  margin: 0.25em 0;
+  padding-left: 1.25rem;
+}
+
+.mdxEditor :global([class*="contentEditable"] p) {
+  margin: 0.25em 0;
+}
+
+.mdxEditor :global([class*="contentEditable"] a) {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/*
+ * The link preview/edit popover is portaled to `.mdxeditor-popup-container` on
+ * <body>, so its stacking AND chrome styling live in styles/mdx-editor-overrides.css
+ * (rules scoped under `.mdxEditor` here would not match the portaled node).
+ */

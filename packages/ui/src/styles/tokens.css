@@ -23,6 +23,9 @@
   --toolbar-h: 4.5rem;
   --toolbar-pad-x: 1.5rem;
   --toolbar-offset: calc(var(--safe-top) + var(--toolbar-h));
+  /* MDXEditor link/edit overlays (portaled); above dialogs (~111), below lightbox (200). */
+  --mdx-editor-overlay-z: 120;
+  --mdx-editor-overlay-content-z: 121;
   --app-chrome-top: var(--toolbar-offset);
   /* Scrollable app pages; overridden on html.stack-chrome (mobile stack, no toolbar). */
   --page-chrome-top: var(--toolbar-offset);
