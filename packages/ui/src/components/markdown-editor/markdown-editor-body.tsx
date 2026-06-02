@@ -4,7 +4,6 @@ import {
   linkDialogPlugin,
   linkPlugin,
   listsPlugin,
-  markdownShortcutPlugin,
   MDXEditor,
   toolbarPlugin,
   type MDXEditorMethods,
@@ -47,7 +46,6 @@ export function MarkdownEditorBody({
       listsPlugin(),
       linkPlugin(),
       linkDialogPlugin(),
-      markdownShortcutPlugin(),
       toolbarPlugin({
         toolbarClassName: styles.toolbarHost,
         toolbarContents: () => <MarkdownEditorToolbar disabled={disabled} />,
