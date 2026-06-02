@@ -71,18 +71,17 @@ export function LandingHero({
     <section className={styles.hero} aria-labelledby="landing-hero-title">
       <div className={styles.heroGrid}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>free & open source</p>
+          <p className={styles.eyebrow}>For explorers</p>
           <h1 id="landing-hero-title" className={styles.heroTitle}>
             Remember every place you go
           </h1>
           <p className={styles.heroLead}>
-            Curolia is an atlas for your travels — map visits, write notes,
-            collect photos, and revisit the story of where you have been. And
-            there's much more...
+            Curolia is an atlas for your explorations — map visits, write notes,
+            collect photos, and revisit the story of your trips.
           </p>
           <div className={styles.heroActions}>
             <MarketingButtonLink to="/signup" size="lg">
-              Create a free map
+              Create your first map
             </MarketingButtonLink>
             <MarketingButtonLink to="/login" variant="outline" size="lg">
               Log in

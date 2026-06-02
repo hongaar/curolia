@@ -14,19 +14,26 @@ export function MapToolbarButton({
   active,
   onClick,
   title,
+  hideOnMobile = false,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   onClick: () => void;
   title?: string;
+  /** Hide below 40rem (e.g. zoom controls; pinch-to-zoom on mobile). */
+  hideOnMobile?: boolean;
 }) {
   return (
     <button
       type="button"
       title={title ?? label}
       onClick={onClick}
-      className={cn(styles.button, active && styles.buttonActive)}
+      className={cn(
+        styles.button,
+        active && styles.buttonActive,
+        hideOnMobile && styles.buttonHideOnMobile,
+      )}
     >
       <span className={styles.iconCell}>{icon}</span>
       <span className={styles.labelCell}>{label}</span>

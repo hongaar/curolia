@@ -5,6 +5,7 @@ import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { isMapChromeRoute, syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { NAV_SIDEBAR_LAYOUT_FLUSH_EVENT } from "@/lib/navigation-shell-layout";
+import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { isStackRoute } from "@/lib/stack-routes";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -27,6 +28,7 @@ function AppShellInner() {
 
   useLayoutEffect(() => {
     syncMapRouteDocumentClass(pathname);
+    syncStackChromeDocumentClass(pathname);
     if (isMapRoute && sidebarOpen) {
       setSidebarOpen(false);
     }

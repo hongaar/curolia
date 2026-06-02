@@ -1,3 +1,47 @@
+.searchToolbarRoot {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.searchToolbarField {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--foreground) 4%, var(--background));
+  padding-inline: 0.75rem;
+  cursor: text;
+  outline: none;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.searchToolbarFieldFocused {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--orange) 28%, transparent);
+}
+
+.searchToolbarInput {
+  height: 2.25rem;
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  box-shadow: none;
+}
+
+.searchToolbarInput:focus-visible {
+  box-shadow: none;
+}
+
 .searchTriggerEmbed {
   min-height: 2.25rem;
   width: 100%;
@@ -77,6 +121,10 @@
   .searchLabelStandalone {
     display: inline;
   }
+}
+
+.popoverContentToolbar {
+  width: min(calc(100vw - 2rem), 28rem);
 }
 
 .popoverContent {

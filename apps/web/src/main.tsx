@@ -1,4 +1,5 @@
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
+import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Capacitor } from "@capacitor/core";
 import { Toaster } from "@curolia/ui/sonner";
@@ -16,6 +17,7 @@ if (Capacitor.isNativePlatform()) {
 }
 
 syncMapRouteDocumentClass();
+syncStackChromeDocumentClass();
 
 const queryClient = new QueryClient({
   defaultOptions: {

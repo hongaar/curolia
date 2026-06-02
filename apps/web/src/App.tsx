@@ -50,7 +50,9 @@ export default function App() {
         />
         <Route element={<ProtectedLayout />}>
           <Route element={<AppShell />}>
-            <Route element={<StackLayout />}>{appShellRouteElements}</Route>
+            <Route path="/*" element={<StackLayout />}>
+              {appShellRouteElements}
+            </Route>
           </Route>
         </Route>
       </Routes>

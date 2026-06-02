@@ -47,6 +47,18 @@
   flex-shrink: 0;
   align-items: center;
   gap: 0.25rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+
+.brand:hover .brandName {
+  color: color-mix(in oklch, var(--foreground) 85%, var(--orange));
+}
+
+.brand:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--orange) 28%, transparent);
 }
 
 .brandIcon {

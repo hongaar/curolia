@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Popover as SearchPopover } from "../popover";
 import {
+  GlobalSearchIcon,
   GlobalSearchInput,
   GlobalSearchPopoverContent,
   GlobalSearchPopoverTrigger,
@@ -11,29 +12,35 @@ import {
   GlobalSearchResults,
   GlobalSearchResultSubtitle,
   GlobalSearchResultTitle,
+  GlobalSearchToolbarAnchor,
+  GlobalSearchToolbarField,
 } from "./global-search";
 
-const searchResults = (
+const searchResultsList = (
+  <GlobalSearchResults>
+    <GlobalSearchResultRow onClick={() => undefined}>
+      <GlobalSearchResultBody>
+        <GlobalSearchResultTitle>Café de Flore</GlobalSearchResultTitle>
+        <GlobalSearchResultSubtitle>
+          Paris · 3 photos
+        </GlobalSearchResultSubtitle>
+      </GlobalSearchResultBody>
+    </GlobalSearchResultRow>
+    <GlobalSearchResultRow onClick={() => undefined}>
+      <GlobalSearchResultBody>
+        <GlobalSearchResultTitle>Louvre Museum</GlobalSearchResultTitle>
+        <GlobalSearchResultSubtitle>
+          Paris · 12 photos
+        </GlobalSearchResultSubtitle>
+      </GlobalSearchResultBody>
+    </GlobalSearchResultRow>
+  </GlobalSearchResults>
+);
+
+const searchResultsStandalone = (
   <>
     <GlobalSearchInput placeholder="Search pins…" />
-    <GlobalSearchResults>
-      <GlobalSearchResultRow onClick={() => undefined}>
-        <GlobalSearchResultBody>
-          <GlobalSearchResultTitle>Café de Flore</GlobalSearchResultTitle>
-          <GlobalSearchResultSubtitle>
-            Paris · 3 photos
-          </GlobalSearchResultSubtitle>
-        </GlobalSearchResultBody>
-      </GlobalSearchResultRow>
-      <GlobalSearchResultRow onClick={() => undefined}>
-        <GlobalSearchResultBody>
-          <GlobalSearchResultTitle>Louvre Museum</GlobalSearchResultTitle>
-          <GlobalSearchResultSubtitle>
-            Paris · 12 photos
-          </GlobalSearchResultSubtitle>
-        </GlobalSearchResultBody>
-      </GlobalSearchResultRow>
-    </GlobalSearchResults>
+    {searchResultsList}
   </>
 );
 
@@ -41,7 +48,7 @@ const meta = {
   title: "Global Search",
   ...componentStoryMeta(
     `Search input and result row styling for the main toolbar.`,
-    `Embed inside \`MainToolbarSearchSlot\`; connect popover content to search results.`,
+    `Embed with \`Popover\` + \`GlobalSearchToolbarAnchor\`; see Popover → Anchor input story.`,
   ),
   component: GlobalSearchPopoverTrigger,
   args: {
@@ -66,23 +73,30 @@ export const Default: Story = {
   render: (args) => (
     <SearchPopover defaultOpen>
       <GlobalSearchPopoverTrigger {...args} />
-      <GlobalSearchPopoverContent>{searchResults}</GlobalSearchPopoverContent>
+      <GlobalSearchPopoverContent>
+        {searchResultsStandalone}
+      </GlobalSearchPopoverContent>
     </SearchPopover>
   ),
 };
 
 export const ToolbarEmbed: Story = {
   parameters: storyDocs(
-    "`toolbarEmbed` uses ghost styling for the main toolbar slot.",
+    "Toolbar slot: input in `GlobalSearchToolbarAnchor`, results in `GlobalSearchPopoverContent`.",
   ),
-  args: {
-    toolbarEmbed: true,
-    title: "Search pins",
-  },
-  render: (args) => (
-    <SearchPopover defaultOpen>
-      <GlobalSearchPopoverTrigger {...args} />
-      <GlobalSearchPopoverContent>{searchResults}</GlobalSearchPopoverContent>
+  render: () => (
+    <SearchPopover defaultOpen modal={false}>
+      <GlobalSearchToolbarAnchor>
+        <GlobalSearchToolbarField focused>
+          <GlobalSearchIcon>
+            <Search aria-hidden />
+          </GlobalSearchIcon>
+          <GlobalSearchInput variant="toolbar" placeholder="Search…" />
+        </GlobalSearchToolbarField>
+      </GlobalSearchToolbarAnchor>
+      <GlobalSearchPopoverContent toolbarEmbed>
+        {searchResultsList}
+      </GlobalSearchPopoverContent>
     </SearchPopover>
   ),
 };
@@ -96,7 +110,9 @@ export const Title: Story = {
   render: (args) => (
     <SearchPopover>
       <GlobalSearchPopoverTrigger {...args} />
-      <GlobalSearchPopoverContent>{searchResults}</GlobalSearchPopoverContent>
+      <GlobalSearchPopoverContent>
+        {searchResultsStandalone}
+      </GlobalSearchPopoverContent>
     </SearchPopover>
   ),
 };

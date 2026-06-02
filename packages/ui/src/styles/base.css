@@ -22,10 +22,28 @@ html {
 html.native-app {
   background-color: var(--background);
   min-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.native-app,
+html.native-app * {
+  -webkit-tap-highlight-color: transparent;
 }
 
 html.native-app body {
   min-height: 100%;
+}
+
+/* Touch UIs: suppress WebKit tap flash (mobile web + Capacitor). */
+@media (hover: none) and (pointer: coarse) {
+  html,
+  html * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 body {

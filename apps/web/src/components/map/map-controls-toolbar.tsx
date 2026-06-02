@@ -19,11 +19,13 @@ export function MapControlsToolbar({
       <MapToolbarButton
         icon={<Plus aria-hidden />}
         label="Zoom in"
+        hideOnMobile
         onClick={() => mapRef.current?.zoomIn()}
       />
       <MapToolbarButton
         icon={<Minus aria-hidden />}
         label="Zoom out"
+        hideOnMobile
         onClick={() => mapRef.current?.zoomOut()}
       />
       <MapToolbarButton

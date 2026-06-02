@@ -1,9 +1,14 @@
-import type * as React from "react";
+import * as React from "react";
 
 import { cn } from "../../lib/utils";
 import { buttonClassName } from "../button";
 import { Input } from "../input";
-import { PopoverContent, PopoverTitle, PopoverTrigger } from "../popover";
+import {
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
+} from "../popover";
 import styles from "./global-search.module.css";
 
 export type GlobalSearchPopoverTriggerProps = {
@@ -42,21 +47,65 @@ export function GlobalSearchPopoverContent({
   children,
   align = "start",
   sideOffset = 8,
+  toolbarEmbed = false,
 }: {
   children: React.ReactNode;
   align?: "start" | "center" | "end";
   sideOffset?: number;
+  toolbarEmbed?: boolean;
 }) {
   return (
     <PopoverContent
       align={align}
       sideOffset={sideOffset}
-      className={styles.popoverContent}
+      className={cn(
+        styles.popoverContent,
+        toolbarEmbed && styles.popoverContentToolbar,
+      )}
     >
       {children}
     </PopoverContent>
   );
 }
+
+/** Toolbar slot anchor for popover positioning (wraps the search field). */
+export const GlobalSearchToolbarAnchor = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<typeof PopoverAnchor>
+>(function GlobalSearchToolbarAnchor({ className, children, ...props }, ref) {
+  return (
+    <PopoverAnchor
+      ref={ref}
+      className={cn(styles.searchToolbarRoot, className)}
+      {...props}
+    >
+      {children}
+    </PopoverAnchor>
+  );
+});
+
+/** Toolbar search input row; use `focused` while the input is active. */
+export const GlobalSearchToolbarField = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div"> & { focused?: boolean }
+>(function GlobalSearchToolbarField(
+  { className, children, focused, ...props },
+  ref,
+) {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        styles.searchToolbarField,
+        focused && styles.searchToolbarFieldFocused,
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
 
 export function GlobalSearchPopoverTitle({
   children,
@@ -66,8 +115,22 @@ export function GlobalSearchPopoverTitle({
   return <PopoverTitle className="srOnly">{children}</PopoverTitle>;
 }
 
-export function GlobalSearchInput(props: React.ComponentProps<typeof Input>) {
-  return <Input {...props} className={styles.searchInput} />;
+export function GlobalSearchInput({
+  variant = "popover",
+  className,
+  ...props
+}: React.ComponentProps<typeof Input> & {
+  variant?: "popover" | "toolbar";
+}) {
+  return (
+    <Input
+      {...props}
+      className={cn(
+        variant === "toolbar" ? styles.searchToolbarInput : styles.searchInput,
+        className,
+      )}
+    />
+  );
 }
 
 export function GlobalSearchIcon({ children }: { children: React.ReactNode }) {

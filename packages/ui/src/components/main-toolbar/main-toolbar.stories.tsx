@@ -1,11 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Search } from "lucide-react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
 import { DropdownMenu } from "../dropdown-menu";
 import { AccountMenuContent, AccountMenuTrigger } from "../floating-nav-bar";
-import { GlobalSearchInput, GlobalSearchLabel } from "../global-search";
+import {
+  GlobalSearchIcon,
+  GlobalSearchInput,
+  GlobalSearchToolbarAnchor,
+  GlobalSearchToolbarField,
+} from "../global-search";
 import { Input } from "../input";
 import { MapPickerContent, MapPickerTrigger } from "../map-picker";
+import { Popover } from "../popover";
 import { UserAvatar } from "../user-avatar";
 import { MainToolbar } from "./main-toolbar";
 
@@ -44,9 +51,20 @@ function DemoMapPicker() {
 
 function DemoSearch() {
   return (
-    <GlobalSearchLabel toolbarEmbed>
-      <GlobalSearchInput placeholder="Search…" aria-label="Search" />
-    </GlobalSearchLabel>
+    <Popover modal={false}>
+      <GlobalSearchToolbarAnchor>
+        <GlobalSearchToolbarField>
+          <GlobalSearchIcon>
+            <Search aria-hidden />
+          </GlobalSearchIcon>
+          <GlobalSearchInput
+            variant="toolbar"
+            placeholder="Search…"
+            aria-label="Search"
+          />
+        </GlobalSearchToolbarField>
+      </GlobalSearchToolbarAnchor>
+    </Popover>
   );
 }
 

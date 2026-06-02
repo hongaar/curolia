@@ -160,6 +160,7 @@ function ProfileEditor({
           <UserAvatar
             storedAvatarUrl={avatarUrl}
             email={user.email}
+            gravatarFallback={!profileLoading}
             gravatarSize={256}
             size="lg"
             label={displayName.trim() || user.email || "Profile"}

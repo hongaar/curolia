@@ -50,6 +50,7 @@ export function AccountMenu() {
           <UserAvatar
             storedAvatarUrl={profileQuery.data?.avatar_url}
             email={user?.email}
+            gravatarFallback={profileQuery.isFetched}
             gravatarSize={128}
             label="Account"
             size="full"

@@ -11,16 +11,20 @@
   padding: 0 0.75rem 0 0.25rem;
   box-shadow: var(--panel-shadow);
   backdrop-filter: blur(24px) saturate(1.5);
+  font-family: inherit;
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--panel-fg);
+  cursor: pointer;
+  outline: none;
 }
 
 .trigger:hover,
 .trigger:focus-visible,
 .trigger[data-popup-open] {
   background: var(--panel-bg);
-  border-color: color-mix(in oklch, var(--orange) 35%, var(--panel-border));
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--orange) 28%, transparent);
 }
 
 .mapEmoji {

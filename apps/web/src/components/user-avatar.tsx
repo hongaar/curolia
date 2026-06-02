@@ -6,6 +6,11 @@ export type UserAvatarProps = {
   storedAvatarUrl: string | null | undefined;
   email: string | null | undefined;
   gravatarSize?: number;
+  /**
+   * When false, skip Gravatar until the caller knows there is no stored avatar
+   * (e.g. while a profile query is still loading).
+   */
+  gravatarFallback?: boolean;
   label?: string;
   showUnreadDot?: boolean;
   size?: "sm" | "md" | "lg" | "full";
@@ -15,18 +20,21 @@ export function UserAvatar({
   storedAvatarUrl,
   email,
   gravatarSize = 160,
+  gravatarFallback = true,
   label = "",
   showUnreadDot = false,
   size = "md",
 }: UserAvatarProps) {
   const trimmedEmail = email?.trim() ?? "";
+  const stored = storedAvatarUrl?.trim() || null;
+  const shouldUseGravatar = gravatarFallback && !stored;
   const [gravatar, setGravatar] = useState<{
     email: string;
     url: string | null;
   } | null>(null);
 
   useEffect(() => {
-    if (!trimmedEmail) return;
+    if (!shouldUseGravatar || !trimmedEmail) return;
     let cancelled = false;
     void getGravatarUrl(trimmedEmail, gravatarSize).then((url) => {
       if (!cancelled) setGravatar({ email: trimmedEmail, url });
@@ -34,10 +42,12 @@ export function UserAvatar({
     return () => {
       cancelled = true;
     };
-  }, [trimmedEmail, gravatarSize]);
+  }, [trimmedEmail, gravatarSize, shouldUseGravatar]);
 
   const gravatarUrl =
-    trimmedEmail && gravatar?.email === trimmedEmail ? gravatar.url : null;
+    shouldUseGravatar && trimmedEmail && gravatar?.email === trimmedEmail
+      ? gravatar.url
+      : null;
 
   return (
     <UiUserAvatar

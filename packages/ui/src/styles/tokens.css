@@ -24,6 +24,8 @@
   --toolbar-pad-x: 1.5rem;
   --toolbar-offset: calc(var(--safe-top) + var(--toolbar-h));
   --app-chrome-top: var(--toolbar-offset);
+  /* Scrollable app pages; overridden on html.stack-chrome (mobile stack, no toolbar). */
+  --page-chrome-top: var(--toolbar-offset);
 
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
@@ -109,6 +111,12 @@
     --toolbar-h: 3rem;
     --toolbar-offset: calc(var(--safe-top) + var(--toolbar-h));
   }
+}
+
+/* Set from apps/web when the main toolbar is hidden (stack push on mobile/native). */
+html.stack-chrome {
+  /* Match scrollUnderNav sides: 0.75rem + safe-* (see page.module.css). */
+  --page-chrome-top: var(--safe-top);
 }
 
 .dark {

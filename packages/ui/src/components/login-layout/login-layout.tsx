@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
+import { ArrowLeft } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { FloatingPanel } from "../floating-panel";
 import { Stack } from "../stack";
@@ -169,7 +170,11 @@ export function LoginFooterNote({ children }: { children: React.ReactNode }) {
 
 export function LoginFooterLink({
   to = "/",
-  children = "Back to homepage",
+  children = (
+    <>
+      <ArrowLeft aria-hidden size={16} /> Back to homepage
+    </>
+  ),
 }: {
   to?: string;
   children?: React.ReactNode;

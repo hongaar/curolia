@@ -76,6 +76,12 @@
   height: 1rem;
 }
 
+@media (max-width: 39.99rem) {
+  .buttonHideOnMobile {
+    display: none;
+  }
+}
+
 .labelCell {
   display: flex;
   min-height: 2.25rem;

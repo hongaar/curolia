@@ -12,6 +12,8 @@ export type MainToolbarProps = {
   logoSrc?: string;
   /** Brand wordmark beside the icon. */
   brandLabel?: string;
+  /** Brand block (e.g. client router `Link` wrapping `MainToolbarBrand`). */
+  brand?: React.ReactNode;
 };
 
 export function MainToolbarBrand({
@@ -22,7 +24,7 @@ export function MainToolbarBrand({
   label?: string;
 }) {
   return (
-    <div className={styles.brand}>
+    <>
       <img
         src={logoSrc}
         alt=""
@@ -33,8 +35,17 @@ export function MainToolbarBrand({
         aria-hidden
       />
       <span className={styles.brandName}>{label}</span>
-    </div>
+    </>
   );
+}
+
+/** Pass `className` to a client router link wrapping `MainToolbarBrand`. */
+export function MainToolbarBrandAnchor({
+  children,
+}: {
+  children: (className: string) => React.ReactNode;
+}) {
+  return <>{children(styles.brand)}</>;
 }
 
 export function MainToolbar({
@@ -43,12 +54,17 @@ export function MainToolbar({
   accountMenu,
   logoSrc,
   brandLabel,
+  brand,
 }: MainToolbarProps) {
   return (
     <header className={styles.root}>
       <div className={styles.inner}>
         <div className={styles.left}>
-          <MainToolbarBrand logoSrc={logoSrc} label={brandLabel} />
+          {brand ?? (
+            <div className={styles.brand}>
+              <MainToolbarBrand logoSrc={logoSrc} label={brandLabel} />
+            </div>
+          )}
           {mapPicker}
         </div>
         {search ? (

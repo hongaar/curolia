@@ -104,7 +104,7 @@ function mapStyleUrlForTheme(resolvedTheme: string | undefined): string {
 }
 
 const CAMERA_DURATION_MS = 850;
-const CAMERA_PADDING = 80;
+const CAMERA_PADDING = 140;
 const CAMERA_MAX_ZOOM = 14;
 const SINGLE_PIN_ZOOM = 10;
 
