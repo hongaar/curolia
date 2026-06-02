@@ -12,6 +12,10 @@ const meta = {
     "Stores markdown; pair with `MarkdownContent` for display. Lazy-loaded in the app shell.",
   ),
   component: MarkdownEditor,
+  args: {
+    value: "",
+    onChange: () => {},
+  },
 } satisfies Meta<typeof MarkdownEditor>;
 
 export default meta;
@@ -19,13 +23,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   parameters: storyDocs("Bold, italic, underline, lists, and links."),
-  render: function Render() {
-    const [value, setValue] = useState(
+  args: {
+    value:
       "A **memorable** visit with *great* food.\n\n- First stop\n- Second stop\n\n1. Morning\n2. Evening",
-    );
+    placeholder: "Notes about this place…",
+    rows: 4,
+  },
+  render: function Render(args) {
+    const [value, setValue] = useState(args.value);
     return (
       <StoryFrame width="md">
-        <MarkdownEditor value={value} onChange={setValue} />
+        <MarkdownEditor {...args} value={value} onChange={setValue} />
       </StoryFrame>
     );
   },

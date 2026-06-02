@@ -49,6 +49,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Main chunk exceeds the 2 MiB default after map + editor lazy splits.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         sourcemap: true,
         navigateFallbackDenylist: [/^\/api\//],
