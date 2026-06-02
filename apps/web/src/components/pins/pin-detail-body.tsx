@@ -110,19 +110,21 @@ export function PinDetailBody({
           {pinDateSubtitle ? (
             <PinDetailSubtitle>{pinDateSubtitle}</PinDetailSubtitle>
           ) : null}
-          <PinDetailTagRow>
-            {tagBadges.map((t) => (
-              <PinDetailTagBadge
-                key={t.id}
-                style={{
-                  backgroundColor: t.color,
-                  color: contrastingForeground(t.color),
-                }}
-              >
-                {t.icon_emoji} {t.name}
-              </PinDetailTagBadge>
-            ))}
-          </PinDetailTagRow>
+          {tagBadges.length > 0 ? (
+            <PinDetailTagRow>
+              {tagBadges.map((t) => (
+                <PinDetailTagBadge
+                  key={t.id}
+                  style={{
+                    backgroundColor: t.color,
+                    color: contrastingForeground(t.color),
+                  }}
+                >
+                  {t.icon_emoji} {t.name}
+                </PinDetailTagBadge>
+              ))}
+            </PinDetailTagRow>
+          ) : null}
         </div>
         <PinDetailActions>
           <PinFormDialogTrigger

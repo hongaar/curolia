@@ -15,8 +15,11 @@ export function PinMetadataFooter({
 }: PinMetadataFooterProps) {
   return (
     <footer className={styles.footer}>
-      <p>{createdLine}</p>
-      {modifiedLine ? <p className={styles.modified}>{modifiedLine}</p> : null}
+      {modifiedLine ? (
+        <p className={styles.modified}>{modifiedLine}</p>
+      ) : (
+        <p>{createdLine}</p>
+      )}
     </footer>
   );
 }
