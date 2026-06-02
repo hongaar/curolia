@@ -93,6 +93,7 @@ jobs:
 
   play-store:
     name: Google Play
+    if: vars.ENABLE_PLAY_STORE_DEPLOY == 'true'
     needs: supabase
     runs-on: ubuntu-latest
     environment: production

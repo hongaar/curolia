@@ -69,7 +69,7 @@ Both jobs depend on the main `ci` job, then run **`npx turbo run sync --filter=@
 
 ### Google Play (automated beta / internal testing)
 
-After [`.github/workflows/test.yml`](.github/workflows/test.yml) passes on a push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds a signed **Android App Bundle** and publishes it to Google Play. By default the track is **`internal`** (Play Console → **Testing → Internal testing**). Set repository variable **`PLAY_STORE_TRACK`** to `alpha`, `beta`, or `production` to change the target.
+After [`.github/workflows/test.yml`](.github/workflows/test.yml) passes on a push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) can build a signed **Android App Bundle** and publish it to Google Play when repository variable **`ENABLE_PLAY_STORE_DEPLOY`** is **`true`** (unset or any other value skips the job). By default the track is **`internal`** (Play Console → **Testing → Internal testing**). Set **`PLAY_STORE_TRACK`** to `alpha`, `beta`, or `production` to change the target.
 
 The job runs after Supabase deploy (alongside Vercel). Each deploy uses **`versionCode = github.run_number`** (plus optional **`ANDROID_VERSION_CODE_OFFSET`** if you already shipped higher version codes manually). **`versionName`** is `1.0.<run_number>`.
 
@@ -107,6 +107,7 @@ Optional repository **variables**:
 
 | Variable                      | Default    | Purpose                                                                            |
 | ----------------------------- | ---------- | ---------------------------------------------------------------------------------- |
+| `ENABLE_PLAY_STORE_DEPLOY`    | _(off)_    | Set to `true` to run the Play Store job on deploy; otherwise skipped               |
 | `PLAY_STORE_TRACK`            | `internal` | Play track: `internal`, `alpha`, `beta`, or `production`                           |
 | `ANDROID_VERSION_CODE_OFFSET` | _(none)_   | Added to `github.run_number` when manual uploads already used higher version codes |
 
@@ -229,7 +230,7 @@ Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEn
 
 The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow runs after [`.github/workflows/test.yml`](.github/workflows/test.yml) succeeds on a push to `main`. It runs **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy --use-api`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
 
-`supabase` deploy runs before the `vercel` and **`play-store`** jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile).
+`supabase` deploy runs before the `vercel` and **`play-store`** jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile; Play Store is gated by **`ENABLE_PLAY_STORE_DEPLOY`**).
 
 GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. The database password is the Supabase project **Database** password (Settings → Database).
 
