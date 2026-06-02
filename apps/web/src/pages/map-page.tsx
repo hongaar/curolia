@@ -5,7 +5,6 @@ import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
 import { AddPinFab } from "@/components/pins/add-pin-fab";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
-import { PinFormDialog } from "@/components/pins/pin-form-dialog";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { PresetColorPicker } from "@/components/pins/preset-color-picker";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
@@ -65,6 +64,8 @@ import {
 } from "@curolia/ui/panel-dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -75,6 +76,12 @@ import {
 } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+
+const PinFormDialog = lazy(() =>
+  import("@/components/pins/pin-form-dialog").then((m) => ({
+    default: m.PinFormDialog,
+  })),
+);
 
 /**
  * CSS value passed to MapLayer's --map-panel-right — mirrors the sidePanel
@@ -632,14 +639,18 @@ export function MapPage() {
           setFullEditPin(t);
         }}
       />
-      <PinFormDialog
-        open={Boolean(fullEditPin)}
-        onOpenChange={(open) => {
-          if (!open) setFullEditPin(null);
-        }}
-        mapId={activeMapId}
-        pin={fullEditPin}
-      />
+      {fullEditPin ? (
+        <Suspense fallback={null}>
+          <PinFormDialog
+            open
+            onOpenChange={(open) => {
+              if (!open) setFullEditPin(null);
+            }}
+            mapId={activeMapId}
+            pin={fullEditPin}
+          />
+        </Suspense>
+      ) : null}
       <Dialog
         open={tagDialogOpen}
         onOpenChange={(open) => {

@@ -1,16 +1,12 @@
-import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
-import remarkBreaks from "remark-breaks";
-import remarkGfm from "remark-gfm";
+import { lazy, Suspense } from "react";
 
-import { cn } from "../../lib/utils";
-import styles from "./markdown-content.module.css";
+import type { MarkdownContentBodyProps } from "./markdown-content-body";
 
-const sanitizeSchema = {
-  ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), "u"],
-};
+const MarkdownContentBody = lazy(() =>
+  import("./markdown-content-body").then((m) => ({
+    default: m.MarkdownContentBody,
+  })),
+);
 
 export type MarkdownContentProps = {
   markdown: string;
@@ -21,21 +17,14 @@ export function MarkdownContent({ markdown, className }: MarkdownContentProps) {
   const trimmed = markdown.trim();
   if (!trimmed) return null;
 
+  const bodyProps: MarkdownContentBodyProps = {
+    markdown: trimmed,
+    className,
+  };
+
   return (
-    <div className={cn(styles.root, className)}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
-        rehypePlugins={[rehypeRaw, [rehypeSanitize, sanitizeSchema]]}
-        components={{
-          a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          ),
-        }}
-      >
-        {trimmed}
-      </ReactMarkdown>
-    </div>
+    <Suspense fallback={null}>
+      <MarkdownContentBody {...bodyProps} />
+    </Suspense>
   );
 }

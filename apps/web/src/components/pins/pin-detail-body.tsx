@@ -1,14 +1,11 @@
-import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog";
+import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger";
 import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { pinDetailHref } from "@/lib/app-paths";
 import { formatPinDateRange } from "@/lib/pin-dates";
-import {
-  photoMasonrySource,
-  photosToLightboxItems,
-} from "@/lib/pin-photo-lightbox-items";
+import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
-import { getPluginDefinition, pluginList } from "@/plugins/registry";
+import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import type { Photo, Pin } from "@/types/database";
 import { contrastingForeground } from "@curolia/ui";
@@ -93,29 +90,7 @@ export function PinDetailBody({
     for (const p of photos) {
       const url = signedUrlByPhotoId[p.id];
       if (!url) continue;
-      const source = photoMasonrySource(p);
-      let sourceIcon: ReactNode | undefined;
-      let sourceLabel: string | undefined;
-      if (source?.sourcePluginId) {
-        const plugin = getPluginDefinition(source.sourcePluginId);
-        if (plugin) {
-          const Icon = plugin.icon;
-          sourceIcon = <Icon size={5} />;
-          sourceLabel = `Open in ${plugin.displayName}`;
-        }
-      }
-      out.push({
-        id: p.id,
-        url,
-        ...(source?.originalProductUrl
-          ? { originalProductUrl: source.originalProductUrl }
-          : {}),
-        ...(sourceIcon ? { sourceIcon } : {}),
-        ...(sourceLabel ? { sourceLabel } : {}),
-        ...(sourceLabel
-          ? { sourceTooltip: `${sourceLabel} — opens in a new tab` }
-          : {}),
-      });
+      out.push({ id: p.id, url });
     }
     return out;
   }, [photos, signedUrlByPhotoId]);

@@ -45,25 +45,3 @@ export function photosToLightboxItems(
   }
   return out;
 }
-
-export type PinPhotoMasonrySource = {
-  originalProductUrl?: string;
-  sourcePluginId: string;
-  sourceLabel?: string;
-};
-
-export function photoMasonrySource(
-  photo: Photo,
-): PinPhotoMasonrySource | undefined {
-  if (!photo.source_plugin_id) return undefined;
-
-  const originalProductUrl = photoOriginalProductUrl(
-    photo.external_ref,
-    photo.source_plugin_id,
-  );
-
-  return {
-    sourcePluginId: photo.source_plugin_id,
-    ...(originalProductUrl ? { originalProductUrl } : {}),
-  };
-}

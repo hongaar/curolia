@@ -67,15 +67,8 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { Pencil, Trash2, Upload } from "lucide-react";
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentProps,
-} from "react";
+import { Trash2, Upload } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -942,42 +935,6 @@ export function PinFormDialog({
       {photoLightboxOverlay}
       {movePinDialog}
       {deletePinDialog}
-    </>
-  );
-}
-
-type PinFormDialogTriggerProps = {
-  mapId: string;
-  pin: Pin;
-  label?: string;
-} & Pick<ComponentProps<typeof Button>, "variant" | "size">;
-
-/** Opens {@link PinFormDialog} — use instead of an external Edit control. */
-export function PinFormDialogTrigger({
-  mapId,
-  pin,
-  label = "Edit",
-  variant = "outline",
-  size = "sm",
-}: PinFormDialogTriggerProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  return (
-    <>
-      <Button
-        type="button"
-        variant={variant}
-        size={size}
-        onClick={() => setDialogOpen(true)}
-      >
-        <Pencil aria-hidden />
-        {label}
-      </Button>
-      <PinFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        mapId={mapId}
-        pin={pin}
-      />
     </>
   );
 }
