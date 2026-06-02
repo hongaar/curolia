@@ -1,10 +1,7 @@
 import { LinkFavicon } from "@/components/pins/pin-links-list";
-import {
-  fetchLinkMetadata,
-  linkDisplayDomain,
-  normalizeUrlInput,
-} from "@/lib/pin-links";
+import { linkDisplayDomain } from "@/lib/pin-links";
 import { supabase } from "@/lib/supabase";
+import { useAddPinLink } from "@/lib/use-add-pin-link";
 import { usePinLinks } from "@/lib/use-pin-links";
 import type { PinLink } from "@/types/database";
 import { Button } from "@curolia/ui/button";
@@ -35,43 +32,7 @@ export function PinLinksEditor({ pinId, mapId }: PinLinksEditorProps) {
   const linksQuery = usePinLinks(pinId);
   const links = linksQuery.data ?? [];
 
-  const addMutation = useMutation({
-    mutationFn: async (rawUrl: string) => {
-      const normalized = normalizeUrlInput(rawUrl);
-      if (!normalized) throw new Error("Enter a valid http(s) URL.");
-      let title: string | null = null;
-      let faviconUrl: string | null = null;
-      let urlToStore = normalized;
-      try {
-        const meta = await fetchLinkMetadata(normalized);
-        title = meta.title;
-        faviconUrl = meta.faviconUrl;
-        urlToStore = meta.finalUrl || normalized;
-      } catch (e) {
-        console.warn("link metadata fetch failed", e);
-      }
-      const sortOrder = links.reduce(
-        (m, l) => Math.max(m, l.sort_order + 1),
-        0,
-      );
-      const { error } = await supabase.from("pin_links").insert({
-        map_id: mapId,
-        pin_id: pinId,
-        url: urlToStore,
-        title,
-        favicon_url: faviconUrl,
-        sort_order: sortOrder,
-      });
-      if (error) throw error;
-    },
-    onSuccess: async () => {
-      setDraftUrl("");
-      await qc.invalidateQueries({ queryKey: ["pin-links", pinId] });
-    },
-    onError: (e) => {
-      toast.error(e instanceof Error ? e.message : "Could not add link.");
-    },
-  });
+  const addMutation = useAddPinLink(pinId, mapId);
 
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -89,7 +50,9 @@ export function PinLinksEditor({ pinId, mapId }: PinLinksEditorProps) {
   function submit() {
     const url = draftUrl.trim();
     if (!url) return;
-    addMutation.mutate(url);
+    addMutation.mutate(url, {
+      onSuccess: () => setDraftUrl(""),
+    });
   }
 
   return (

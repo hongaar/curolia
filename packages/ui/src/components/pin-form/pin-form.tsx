@@ -87,8 +87,15 @@ export function PinFormPanelFieldGroup({
   return <div className={styles.panelCardFieldGroup}>{children}</div>;
 }
 
-export function PinFormGrid({ children }: { children: React.ReactNode }) {
-  return <div className={styles.formGrid}>{children}</div>;
+export function PinFormGrid({
+  children,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div className={styles.formGrid} {...props}>
+      {children}
+    </div>
+  );
 }
 
 export function PinFormCoordsGrid({ children }: { children: React.ReactNode }) {

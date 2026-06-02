@@ -4,8 +4,14 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { reversePhotonLocationLabel } from "@/lib/photon-geocode";
+import {
+  fileFromClipboardData,
+  isPinFormTextEntryPasteTarget,
+  urlFromClipboardData,
+} from "@/lib/pin-form-clipboard";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
+import { useAddPinLink } from "@/lib/use-add-pin-link";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
@@ -68,7 +74,14 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { Trash2, Upload } from "lucide-react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ClipboardEvent,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -134,6 +147,7 @@ export function PinFormDialog({
   const anchorRef = useRef<{ x: number; y: number } | null>(null);
 
   const editPinId = pin?.id;
+  const addLinkMut = useAddPinLink(editPinId, mapId);
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(editPinId);
   const lightboxItems = useMemo(
     () => photosToLightboxItems(photos, signedUrlByPhotoId),
@@ -564,7 +578,7 @@ export function PinFormDialog({
 
   const idSuffix = pin ? "e" : "n";
 
-  async function onUploadPhotos(files: FileList | null) {
+  async function onUploadPhotos(files: FileList | File[] | null) {
     if (!files?.length || !pin || !mapId) return;
     let sort = photos.length;
     for (const file of Array.from(files)) {
@@ -597,8 +611,24 @@ export function PinFormDialog({
     await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pin.id] });
   }
 
+  function onFormPasteCapture(e: ClipboardEvent) {
+    if (!pin) return;
+    const imageFile = fileFromClipboardData(e.clipboardData);
+    if (imageFile) {
+      e.preventDefault();
+      void onUploadPhotos([imageFile]);
+      return;
+    }
+    if (isPinFormTextEntryPasteTarget(e.target)) return;
+    const url = urlFromClipboardData(e.clipboardData);
+    if (url) {
+      e.preventDefault();
+      addLinkMut.mutate(url);
+    }
+  }
+
   const formFields = (
-    <PinFormGrid>
+    <PinFormGrid onPasteCapture={pin ? onFormPasteCapture : undefined}>
       <FormField>
         <Label htmlFor={`t-title-${idSuffix}`}>Title</Label>
         <Input

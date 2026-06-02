@@ -21,10 +21,7 @@ import {
 import { Music } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { isLastfmEnabledForMap } from "./config";
-import {
-  LASTFM_SYNC_STALE_TIME_MS,
-  LASTFM_TOP_TRACKS_LIMIT,
-} from "./constants";
+import { LASTFM_SYNC_STALE_TIME_MS } from "./constants";
 import { LastfmIcon } from "./icon";
 import { lastfmSyncPinListening } from "./lastfm-edge";
 import { parseLastfmPinPayload } from "./lastfm-pin-data";
@@ -151,7 +148,7 @@ export function LastfmPinDetailSection({
         <PluginPinContent>
           <PluginPinMuted>
             Add a date to this pin to load your most-played tracks on Last.fm
-            during that period (up to {LASTFM_TOP_TRACKS_LIMIT}).
+            during that period.
           </PluginPinMuted>
         </PluginPinContent>
       </PluginPinCard>
