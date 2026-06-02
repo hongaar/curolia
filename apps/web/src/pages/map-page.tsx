@@ -1,15 +1,16 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
+import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
-import { PinMapMarkerPopover } from "@/components/map/pin-map-marker-popover";
 import { AddPinFab } from "@/components/pins/add-pin-fab";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { PinFormDialog } from "@/components/pins/pin-form-dialog";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { PresetColorPicker } from "@/components/pins/preset-color-picker";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
-import { useMaxSm } from "@/hooks/use-max-sm";
+import { useMinMd } from "@/hooks/use-min-md";
+import { pinDetailHref } from "@/lib/app-paths";
 import {
   readStoredMapCamera,
   writeStoredMapCamera,
@@ -35,6 +36,7 @@ import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
+import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
@@ -49,6 +51,7 @@ import {
   MapLayer,
   MapPageRoot,
   MapPlacementHint,
+  MapSidePanel,
   MapVignette,
 } from "@curolia/ui/map";
 import {
@@ -67,15 +70,29 @@ import {
   useState,
   type SetStateAction,
 } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+
+/**
+ * CSS value passed to MapLayer's --map-panel-right — mirrors the sidePanel
+ * `width: clamp(24rem, 35%, 40rem)` so the map controls shift by the same amount.
+ */
+const PANEL_RIGHT_WIDTH_CSS = "clamp(24rem, 35%, 40rem)";
 
 export function MapPage() {
   const qc = useQueryClient();
-  const isMobile = useMaxSm();
+  const isWideEnough = useMinMd();
+  const navigate = useNavigate();
   const { mapSlug } = useParams<{ mapSlug: string }>();
   useMapSlugRouteSync(mapSlug);
   const mapRef = useRef<PinMapHandle>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  /** Camera captured just before the side panel opened — restored on close. */
+  const prevCameraBeforeSheetRef = useRef<MapCamera | null>(null);
+  /** Track previous sidebarPinId to detect open/close transitions. */
+  const prevSidebarPinIdRef = useRef<string | null>(null);
+  /** True only when the side panel opens from a map marker click (not URL restore). */
+  const [sidePanelAnimateIn, setSidePanelAnimateIn] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const bboxFromUrl = useMemo(
     () => parseMapBboxFromSearchParams(searchParams),
@@ -105,6 +122,8 @@ export function MapPage() {
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  /** Authoritative ?pin= token for URL sync — avoids resurrecting pin from stale search prev. */
+  const sidebarPinTokenRef = useRef<string | null>(null);
   const [placementActive, setPlacementActive] = useState(false);
   const [quickAddPin, setQuickAddPin] = useState<Pin | null>(null);
   const [quickAddAnchorScreen, setQuickAddAnchorScreen] = useState<{
@@ -125,18 +144,26 @@ export function MapPage() {
     (c: MapCamera) => {
       clearTimeout(cameraIdleTimerRef.current);
       cameraIdleTimerRef.current = setTimeout(() => {
+        // Base MapPage stays mounted under stack routes; skip URL sync while a
+        // stack screen is active so we do not navigate back to /map?pin=.
+        if (isStackRoute(window.location.pathname)) return;
         const normalized = normalizeCameraForUrl(c);
         writeStoredMapCamera(activeMapId, normalized);
         setSearchParams(
           (prev) => {
             const prevNoBbox = stripMapBboxFromSearchParams(prev);
             const parsed = parseMapCameraFromSearchParams(prevNoBbox);
+            const withPin = applySelectedPinToSearchParams(
+              prevNoBbox,
+              sidebarPinTokenRef.current,
+            );
             if (
               parsed &&
               cameraToSyncKey(parsed) === cameraToSyncKey(normalized)
-            )
-              return prevNoBbox;
-            return applyMapCameraToSearchParams(prevNoBbox, normalized);
+            ) {
+              return withPin;
+            }
+            return applyMapCameraToSearchParams(withPin, normalized);
           },
           { replace: true },
         );
@@ -273,20 +300,40 @@ export function MapPage() {
     [sidebarPinToken, pins],
   );
 
+  useLayoutEffect(() => {
+    sidebarPinTokenRef.current = sidebarPinToken;
+  }, [sidebarPinToken]);
+
   const onSelectPin = useCallback(
     (id: string) => {
       setQuickAddPin(null);
       setQuickAddAnchorScreen(null);
       const row = pins.find((x) => x.id === id);
       const token = row?.slug ?? id;
+
+      if (!isWideEnough) {
+        // On narrow screens navigate directly to pin detail page
+        const resolvedMapSlug = mapSlug?.trim() || activeMap?.slug?.trim();
+        if (resolvedMapSlug && row?.slug) {
+          navigate(pinDetailHref(resolvedMapSlug, row.slug));
+          return;
+        }
+      }
+
+      setSidePanelAnimateIn(true);
       setSearchParams((prev) => applySelectedPinToSearchParams(prev, token), {
         replace: true,
       });
     },
-    [setSearchParams, pins],
+    [setSearchParams, pins, isWideEnough, mapSlug, activeMap, navigate],
   );
 
   const onClosePinMapPopover = useCallback(() => {
+    setSidePanelAnimateIn(false);
+    mapRef.current?.invalidatePendingMarkerSelection();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
       replace: true,
     });
@@ -329,21 +376,6 @@ export function MapPage() {
     },
     [activeMapId, qc, setSearchParams],
   );
-
-  /** Stable marker lng/lat for pin popover while detail query loads (avoids fixed→floating flash). */
-  const pinPopoverListAnchor = useMemo(() => {
-    if (!sidebarPinId) return null;
-    const t = pins.find((x) => x.id === sidebarPinId);
-    if (
-      !t ||
-      typeof t.lat !== "number" ||
-      typeof t.lng !== "number" ||
-      !Number.isFinite(t.lat) ||
-      !Number.isFinite(t.lng)
-    )
-      return null;
-    return { lat: t.lat, lng: t.lng };
-  }, [sidebarPinId, pins]);
 
   useEffect(() => {
     if (!sidebarPinToken) return;
@@ -409,14 +441,55 @@ export function MapPage() {
     if (!sidebarPinToken) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
-          replace: true,
-        });
+        onClosePinMapPopover();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sidebarPinToken, setSearchParams]);
+  }, [sidebarPinToken, onClosePinMapPopover]);
+
+  // Redirect ?pin= → /pins/:mapSlug/:pinSlug on screens too narrow for the side panel
+  useEffect(() => {
+    if (isWideEnough || !sidebarPinId) return;
+    const pin = pins.find((p) => p.id === sidebarPinId);
+    if (!pin?.slug) return;
+    const resolvedMapSlug = mapSlug?.trim() || activeMap?.slug?.trim();
+    if (!resolvedMapSlug) return;
+    // Replace map?pin= with pin detail (frozen base strips ?pin= on stack open).
+    navigate(pinDetailHref(resolvedMapSlug, pin.slug), { replace: true });
+  }, [isWideEnough, sidebarPinId, pins, mapSlug, activeMap, navigate]);
+
+  // Camera management: pan map when side panel opens; restore when it closes
+  const pinsRef = useRef(pins);
+  useLayoutEffect(() => {
+    pinsRef.current = pins;
+  }, [pins]);
+
+  useEffect(() => {
+    const prevId = prevSidebarPinIdRef.current;
+    const currId = sidebarPinId ?? null;
+    prevSidebarPinIdRef.current = currId;
+
+    if (!isWideEnough) return;
+
+    if (currId && !prevId) {
+      // Panel opening — capture camera, then pan so pin sits in visible left area
+      prevCameraBeforeSheetRef.current =
+        mapRef.current?.getCurrentCamera() ?? null;
+      const pin = pinsRef.current.find((p) => p.id === currId);
+      if (pin && typeof pin.lat === "number" && typeof pin.lng === "number") {
+        const panelWidthPx = panelRef.current?.offsetWidth ?? 384;
+        mapRef.current?.panForPanel(pin.lng, pin.lat, panelWidthPx);
+      }
+    } else if (!currId && prevId) {
+      // Panel closing — restore previous camera
+      const prevCamera = prevCameraBeforeSheetRef.current;
+      if (prevCamera) {
+        mapRef.current?.restoreCameraAfterPanel(prevCamera);
+      }
+      prevCameraBeforeSheetRef.current = null;
+    }
+  }, [sidebarPinId, isWideEnough]);
 
   async function saveTag() {
     if (!activeMapId || !newTagName.trim()) return;
@@ -468,6 +541,14 @@ export function MapPage() {
     });
   }
 
+  const showSidePanel = Boolean(sidebarPinId && isWideEnough);
+
+  useEffect(() => {
+    if (!showSidePanel) {
+      setSidePanelAnimateIn(false);
+    }
+  }, [showSidePanel]);
+
   if (mapLoading) {
     return <MapViewInitialLoader />;
   }
@@ -478,7 +559,9 @@ export function MapPage() {
 
   return (
     <MapPageRoot>
-      <MapLayer>
+      <MapLayer
+        panelRightWidth={showSidePanel ? PANEL_RIGHT_WIDTH_CSS : undefined}
+      >
         <MapVignette />
         <MapHost>
           <PinMap
@@ -515,33 +598,23 @@ export function MapPage() {
             />
           </MapControlsBottomStack>
         </MapControlsLayer>
+        {showSidePanel ? (
+          <MapSidePanel ref={panelRef} animateIn={sidePanelAnimateIn}>
+            <PinDetailSideSheet
+              key={sidebarPinId}
+              pinId={sidebarPinId!}
+              mapId={activeMapId!}
+              mapSlug={mapSlug?.trim() || activeMap?.slug?.trim() || null}
+              onClose={onClosePinMapPopover}
+            />
+          </MapSidePanel>
+        ) : null}
       </MapLayer>
 
       {placementActive ? (
         <MapPlacementHint>
           Tap the map to add a pin · Esc or Stop adding to cancel
         </MapPlacementHint>
-      ) : null}
-
-      {sidebarPinId ? (
-        <PinMapMarkerPopover
-          key={
-            isMobile ? "pin-map-marker-popover-mobile" : `${sidebarPinId}-lg`
-          }
-          pinId={sidebarPinId}
-          mapId={activeMapId}
-          mapSlug={mapSlug?.trim() || activeMap?.slug?.trim() || null}
-          mapRef={mapRef}
-          listAnchorLngLat={pinPopoverListAnchor}
-          onClose={() =>
-            setSearchParams(
-              (prev) => applySelectedPinToSearchParams(prev, null),
-              {
-                replace: true,
-              },
-            )
-          }
-        />
       ) : null}
 
       <PinMapQuickAddDialog

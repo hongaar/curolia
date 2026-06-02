@@ -12,6 +12,7 @@ export type MapMarkerProps = {
   draft?: boolean;
   ariaLabel?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onPointerDown?: React.PointerEventHandler<HTMLButtonElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLButtonElement>;
   onMouseLeave?: React.MouseEventHandler<HTMLButtonElement>;
 };
@@ -132,6 +133,13 @@ function syncInteractiveHandlers(
         props.onClick?.(e as unknown as React.MouseEvent<HTMLButtonElement>);
       }
     : null;
+  face.onpointerdown = props.onPointerDown
+    ? (e) => {
+        props.onPointerDown?.(
+          e as unknown as React.PointerEvent<HTMLButtonElement>,
+        );
+      }
+    : null;
   face.onmouseenter = props.onMouseEnter
     ? (e) => {
         props.onMouseEnter?.(
@@ -204,6 +212,7 @@ export function createMapMarkerMount(
         next.draft !== props.draft;
       const handlersChanged =
         patch.onClick !== undefined ||
+        patch.onPointerDown !== undefined ||
         patch.onMouseEnter !== undefined ||
         patch.onMouseLeave !== undefined ||
         patch.ariaLabel !== undefined;

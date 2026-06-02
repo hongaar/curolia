@@ -57,6 +57,17 @@ export type PinMapHandle = {
   zoomOut: () => void;
   /** Request browser geolocation and fly the map toward the user's position. */
   triggerGeolocate: () => void;
+  /** Return the current map center + zoom (normalized for URL/storage). */
+  getCurrentCamera: () => MapCamera | null;
+  /**
+   * Ease to keep `lng/lat` visible in the left portion of the map,
+   * accounting for a right-side panel of `panelWidthPx` pixels.
+   */
+  panForPanel: (lng: number, lat: number, panelWidthPx: number) => void;
+  /** Restore a previously saved camera and reset panel padding to 0. */
+  restoreCameraAfterPanel: (camera: MapCamera) => void;
+  /** Drop stale marker pointer gestures (e.g. mouseup after ESC closed the sheet). */
+  invalidatePendingMarkerSelection: () => void;
 };
 
 export type PinMapPreviewPin = {
@@ -104,9 +115,20 @@ function mapStyleUrlForTheme(resolvedTheme: string | undefined): string {
 }
 
 const CAMERA_DURATION_MS = 850;
-const CAMERA_PADDING = 140;
+/** Fit-bounds inset per side as a fraction of map container width. */
+const CAMERA_FIT_PADDING_WIDTH_FRACTION = 0.1;
+const CAMERA_FIT_PADDING_MIN_PX = 48;
 const CAMERA_MAX_ZOOM = 14;
 const SINGLE_PIN_ZOOM = 10;
+
+function cameraFitPaddingPx(map: maplibregl.Map): number {
+  const width = map.getContainer().clientWidth;
+  if (width <= 0) return 80;
+  return Math.max(
+    CAMERA_FIT_PADDING_MIN_PX,
+    Math.round(width * CAMERA_FIT_PADDING_WIDTH_FRACTION),
+  );
+}
 
 function geolocationToastMessage(err: unknown): string {
   if (err && typeof err === "object" && "code" in err) {
@@ -183,6 +205,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const initialCameraRef = useRef(initialCamera);
   /** Invalidate deferred URL-apply callbacks when a newer sync generation starts. */
   const urlApplyGenerationRef = useRef(0);
+  /** Bumped when the side panel closes so in-flight marker clicks are ignored. */
+  const pinSelectGenerationRef = useRef(0);
+  const markerPointerDownGenerationRef = useRef(0);
 
   const filtered = useMemo(
     () => filterPinsByTags(pins, selectedTagIds),
@@ -408,7 +433,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           bounds.extend([t.lng, t.lat]);
         }
         map.fitBounds(bounds, {
-          padding: CAMERA_PADDING,
+          padding: cameraFitPaddingPx(map),
           maxZoom: CAMERA_MAX_ZOOM,
           duration: CAMERA_DURATION_MS,
         });
@@ -441,6 +466,40 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
             toast.error("Map is still loading. Try again in a moment.");
           }
         })();
+      },
+      getCurrentCamera() {
+        const map = mapRef.current;
+        if (!map) return null;
+        const c = map.getCenter();
+        return normalizeCameraForUrl({
+          lat: c.lat,
+          lng: c.lng,
+          zoom: map.getZoom(),
+        });
+      },
+      panForPanel(lng: number, lat: number, panelWidthPx: number) {
+        const map = mapRef.current;
+        if (!map) return;
+        map.easeTo({
+          center: [lng, lat],
+          padding: { right: panelWidthPx, left: 0, top: 0, bottom: 0 },
+          duration: 280,
+          essential: true,
+        });
+      },
+      invalidatePendingMarkerSelection() {
+        pinSelectGenerationRef.current += 1;
+      },
+      restoreCameraAfterPanel(camera: MapCamera) {
+        const map = mapRef.current;
+        if (!map) return;
+        map.easeTo({
+          center: [camera.lng, camera.lat],
+          zoom: camera.zoom,
+          padding: { right: 0, left: 0, top: 0, bottom: 0 },
+          duration: 280,
+          essential: true,
+        });
       },
     }),
     [],
@@ -559,7 +618,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
             [bbox.east, bbox.north],
           ),
           {
-            padding: CAMERA_PADDING,
+            padding: cameraFitPaddingPx(m),
             maxZoom: CAMERA_MAX_ZOOM,
             duration: CAMERA_DURATION_MS,
           },
@@ -692,8 +751,18 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         hovered: false,
         interactive: true,
         ariaLabel: t.title?.trim() || "Open pin",
+        onPointerDown: () => {
+          markerPointerDownGenerationRef.current =
+            pinSelectGenerationRef.current;
+        },
         onClick: (e) => {
           e.stopPropagation();
+          if (
+            markerPointerDownGenerationRef.current !==
+            pinSelectGenerationRef.current
+          ) {
+            return;
+          }
           onSelectPinRef.current(t.id);
         },
         onMouseEnter: () => {

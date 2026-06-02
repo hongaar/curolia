@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect -- persist last map/blog location for the stack base layer */
 import { mapViewHref } from "@/lib/app-paths";
-import { isBaseRoute } from "@/lib/stack-routes";
+import { applySelectedPinToSearchParams } from "@/lib/map-view-params";
+import { isBaseRoute, isStackRoute } from "@/lib/stack-routes";
 import { useMap } from "@/providers/map-provider";
 import { useLayoutEffect, useMemo, useState } from "react";
 import { useLocation, type Location } from "react-router-dom";
@@ -25,6 +26,22 @@ export function useFrozenBaseLocation(): Location {
   useLayoutEffect(() => {
     if (isBaseRoute(location.pathname)) {
       setFrozenBase(location);
+      return;
+    }
+    // Stack opened above map — drop ?pin= from frozen base so URL sync on the
+    // still-mounted MapPage does not resurrect the side-sheet pin on the map URL.
+    if (isStackRoute(location.pathname)) {
+      setFrozenBase((prev) => {
+        if (!isBaseRoute(prev.pathname)) return prev;
+        const nextParams = applySelectedPinToSearchParams(
+          new URLSearchParams(prev.search),
+          null,
+        );
+        const q = nextParams.toString();
+        const nextSearch = q ? `?${q}` : "";
+        if (nextSearch === prev.search) return prev;
+        return { ...prev, search: nextSearch };
+      });
     }
   }, [location]);
 

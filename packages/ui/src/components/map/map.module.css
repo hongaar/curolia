@@ -72,18 +72,54 @@
 .controlsBottomStack {
   pointer-events: auto;
   position: absolute;
-  right: calc(1rem + var(--safe-right));
+  right: calc(var(--map-panel-right, 0rem) + 1rem + var(--safe-right));
   bottom: calc(1.5rem + var(--safe-bottom));
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
+  transition: right 240ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 @media (min-width: 40rem) {
   .controlsBottomStack {
-    right: calc(1.5rem + var(--safe-right));
+    right: calc(var(--map-panel-right, 0rem) + 1.5rem + var(--safe-right));
     gap: 0.625rem;
+  }
+}
+
+/* --- Map side panel (pin detail) --- */
+.sidePanel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  /* Grows from 24rem → 40rem as the viewport widens, proportionally to 35% of available width */
+  width: clamp(24rem, 35%, 40rem);
+  z-index: 20;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  background: var(--background);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 24px color-mix(in oklch, black 7%, transparent);
+  padding: 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  /* Gap separates PinDetailHeader from PinDetailContent in the card-free layout */
+  gap: 1rem;
+}
+
+.sidePanelEnter {
+  animation: mapSidePanelIn 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes mapSidePanelIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 

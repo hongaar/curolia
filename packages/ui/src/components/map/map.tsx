@@ -1,18 +1,51 @@
-import type * as React from "react";
+import * as React from "react";
 
+import { cn } from "../../lib/utils";
 import styles from "./map.module.css";
 
 export function MapPageRoot({ children }: { children: React.ReactNode }) {
   return <div className={styles.root}>{children}</div>;
 }
 
-export function MapLayer({ children }: { children: React.ReactNode }) {
+export function MapLayer({
+  children,
+  panelRightWidth,
+}: {
+  children: React.ReactNode;
+  panelRightWidth?: string;
+}) {
   return (
-    <div className={styles.mapLayer} data-curolia-map-layer>
+    <div
+      className={styles.mapLayer}
+      data-curolia-map-layer
+      style={
+        panelRightWidth
+          ? ({ "--map-panel-right": panelRightWidth } as React.CSSProperties)
+          : undefined
+      }
+    >
       {children}
     </div>
   );
 }
+
+export const MapSidePanel = React.forwardRef<
+  HTMLDivElement,
+  {
+    children: React.ReactNode;
+    /** Slide-in when the user selects a map marker; omit on URL restore / navigation. */
+    animateIn?: boolean;
+  }
+>(function MapSidePanel({ children, animateIn = false }, ref) {
+  return (
+    <div
+      ref={ref}
+      className={cn(styles.sidePanel, animateIn && styles.sidePanelEnter)}
+    >
+      {children}
+    </div>
+  );
+});
 
 export function MapVignette() {
   return <div className={styles.vignette} aria-hidden />;
