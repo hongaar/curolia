@@ -20,6 +20,18 @@ export function formatPinDateRange(
   return `${formatLocalCalendarDay(date)} – ${formatLocalCalendarDay(endDate)}`;
 }
 
+/** Pin detail subtitle: location (left) and date range, middle dot between parts. */
+export function formatPinDetailSubtitle(
+  locationLabel: string | null | undefined,
+  date: string | null | undefined,
+  endDate: string | null | undefined,
+): string {
+  const loc = locationLabel?.trim() ?? "";
+  const datePart = formatPinDateRange(date, endDate);
+  if (loc && datePart) return `${loc} · ${datePart}`;
+  return loc || datePart;
+}
+
 /** One line: optional date range plus coordinates (middle dot only between present parts). */
 export function formatPinLocationLine(
   date: string | null | undefined,

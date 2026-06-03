@@ -1,6 +1,6 @@
-import * as React from "react";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
-import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import * as React from "react";
 
 import { cn } from "../../lib/utils";
 import styles from "./select.module.css";
@@ -55,7 +55,7 @@ function SelectContent({
   children,
   side = "bottom",
   sideOffset = 4,
-  align = "center",
+  align = "start",
   alignOffset = 0,
   alignItemWithTrigger = false,
   ...props
@@ -86,7 +86,9 @@ function SelectContent({
           {...props}
         >
           <SelectScrollUpButton />
-          <SelectPrimitive.List>{children}</SelectPrimitive.List>
+          <SelectPrimitive.List className={styles.list}>
+            {children}
+          </SelectPrimitive.List>
           <SelectScrollDownButton />
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>

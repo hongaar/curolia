@@ -31,7 +31,15 @@ import {
   stripMapBboxFromSearchParams,
   type MapCamera,
 } from "@/lib/map-view-params";
-import { reversePhotonPlaceDetails } from "@/lib/photon-geocode";
+import {
+  reversePhotonGeocode,
+  reversePhotonPlaceDetails,
+} from "@/lib/photon-geocode";
+import {
+  defaultLocationLabelDetail,
+  locationLabelForDetail,
+  pinGeocodeToJson,
+} from "@/lib/pin-geocode";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
@@ -357,17 +365,23 @@ export function MapPage() {
       });
 
       try {
-        const { fullLabel, shortTitle } = await reversePhotonPlaceDetails(
-          lat,
-          lng,
-          zoom,
-        );
+        const [{ fullLabel, shortTitle }, geocode] = await Promise.all([
+          reversePhotonPlaceDetails(lat, lng, zoom),
+          reversePhotonGeocode(lat, lng),
+        ]);
+        const labelDetail = defaultLocationLabelDetail(geocode);
+        const location_label =
+          locationLabelForDetail(geocode, labelDetail) ??
+          fullLabel?.trim() ??
+          null;
         const { data: row, error } = await supabase
           .from("pins")
           .insert({
             map_id: activeMapId,
             title: shortTitle || null,
-            location_label: fullLabel?.trim() || null,
+            location_label,
+            geocode: pinGeocodeToJson(geocode),
+            location_label_detail: labelDetail,
             lat,
             lng,
           })

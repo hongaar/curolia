@@ -177,10 +177,6 @@ export function LastfmPinDetailSection({
         {!payload?.tracks?.length && !busy && !syncFailed ? (
           <PluginPinMutedStack>
             <p>No scrobbles matched this pin&apos;s date range.</p>
-            <PluginPinMutedXs>
-              Last.fm returns your listening history for the pin window. Dates
-              use UTC calendar boundaries (midnight–end of day UTC).
-            </PluginPinMutedXs>
           </PluginPinMutedStack>
         ) : null}
         {payload?.tracks?.length ? (

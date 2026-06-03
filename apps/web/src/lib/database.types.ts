@@ -382,10 +382,12 @@ export type Database = {
           date: string | null;
           description: string | null;
           end_date: string | null;
+          geocode: Json | null;
           id: string;
           lat: number;
           lng: number;
           location_label: string | null;
+          location_label_detail: string;
           map_id: string;
           modified_by_user_id: string | null;
           slug: string;
@@ -398,10 +400,12 @@ export type Database = {
           date?: string | null;
           description?: string | null;
           end_date?: string | null;
+          geocode?: Json | null;
           id?: string;
           lat: number;
           lng: number;
           location_label?: string | null;
+          location_label_detail?: string;
           map_id: string;
           modified_by_user_id?: string | null;
           slug?: string;
@@ -414,10 +418,12 @@ export type Database = {
           date?: string | null;
           description?: string | null;
           end_date?: string | null;
+          geocode?: Json | null;
           id?: string;
           lat?: number;
           lng?: number;
           location_label?: string | null;
+          location_label_detail?: string;
           map_id?: string;
           modified_by_user_id?: string | null;
           slug?: string;

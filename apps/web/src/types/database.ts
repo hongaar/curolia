@@ -50,6 +50,10 @@ export type Pin = {
   description: string | null;
   /** Friendly place text from reverse geocoding (optional). */
   location_label: string | null;
+  /** Photon reverse-geocode snapshot for deriving location_label. */
+  geocode: import("@/lib/pin-geocode").PinGeocode | null;
+  /** Granularity for location_label (full, street, locality, …). */
+  location_label_detail: import("@/lib/pin-geocode").LocationLabelDetail;
   lat: number;
   lng: number;
   /** Start calendar day (YYYY-MM-DD), optional. */

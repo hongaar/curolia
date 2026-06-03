@@ -1,0 +1,136 @@
+.shell {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--background);
+  padding: calc(1rem + var(--safe-top)) calc(1rem + var(--safe-right))
+    calc(1.25rem + var(--safe-bottom)) calc(1rem + var(--safe-left));
+}
+
+.shellViewport {
+  min-height: 100dvh;
+}
+
+.shellPage {
+  height: 100%;
+  background:
+    radial-gradient(
+      ellipse 90% 55% at 50% 0%,
+      color-mix(in oklch, var(--destructive) 7%, transparent),
+      transparent 62%
+    ),
+    var(--background);
+}
+
+.backdrop {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.95;
+  background:
+    radial-gradient(
+      ellipse 110% 70% at 18% 12%,
+      color-mix(in oklch, var(--destructive) 14%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 90% 55% at 82% 78%,
+      color-mix(in oklch, var(--primary) 12%, transparent),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 50% 100%,
+      color-mix(in oklch, var(--orange) 10%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(165deg, oklch(0.96 0.02 88) 0%, oklch(0.93 0.028 95) 100%);
+}
+
+:global(.dark) .backdrop {
+  background:
+    radial-gradient(
+      ellipse 110% 70% at 18% 12%,
+      color-mix(in oklch, var(--destructive) 22%, transparent),
+      transparent 52%
+    ),
+    radial-gradient(
+      ellipse 90% 55% at 82% 78%,
+      color-mix(in oklch, var(--primary) 16%, transparent),
+      transparent 48%
+    ),
+    linear-gradient(165deg, oklch(0.2 0.03 260) 0%, oklch(0.16 0.04 260) 100%);
+}
+
+.panelWrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 26rem;
+}
+
+.panel {
+  text-align: center;
+}
+
+.iconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklch, var(--destructive) 22%, transparent);
+  background: color-mix(in oklch, var(--destructive) 10%, var(--card));
+  color: var(--destructive);
+  box-shadow: var(--shadow-sm);
+}
+
+.icon {
+  width: 1.625rem;
+  height: 1.625rem;
+  stroke-width: 1.75;
+}
+
+.lead {
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+.details {
+  width: 100%;
+  max-height: 8rem;
+  overflow: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--muted) 55%, transparent);
+  padding: 0.625rem 0.75rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.actions {
+  width: 100%;
+  padding-top: 0.25rem;
+}
+
+.actionButton {
+  flex: 1 1 auto;
+  min-width: 7.5rem;
+}
+
+@media (min-width: 24rem) {
+  .actionButton {
+    flex: 0 1 auto;
+  }
+}

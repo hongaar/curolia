@@ -3,12 +3,25 @@ import { PinLinksEditor } from "@/components/pins/pin-links-editor";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
-import { reversePhotonLocationLabel } from "@/lib/photon-geocode";
+import { reversePhotonGeocode } from "@/lib/photon-geocode";
 import {
   fileFromClipboardData,
   isPinFormTextEntryPasteTarget,
   urlFromClipboardData,
 } from "@/lib/pin-form-clipboard";
+import {
+  availableLocationLabelPatterns,
+  DEFAULT_LOCATION_LABEL_DETAIL,
+  defaultLocationLabelDetail,
+  geocodeMatchesCoords,
+  isLocationLabelDetail,
+  locationLabelDetailPreviewItems,
+  locationLabelForDetail,
+  parsePinGeocode,
+  pinGeocodeToJson,
+  type LocationLabelDetail,
+  type PinGeocode,
+} from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { useAddPinLink } from "@/lib/use-add-pin-link";
@@ -49,7 +62,6 @@ import {
   PinFormPhotoPlaceholder,
   PinFormPhotoRemoveButton,
   PinFormPhotoThumb,
-  PinFormPlaceText,
   PinFormTagBox,
   PinFormTagOption,
   PinFormUploadInput,
@@ -131,7 +143,9 @@ export function PinFormDialog({
   const [lat, setLat] = useState(String(defaultLat));
   const [lng, setLng] = useState(String(defaultLng));
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [locationLabel, setLocationLabel] = useState("");
+  const [geocode, setGeocode] = useState<PinGeocode | null>(null);
+  const [locationLabelDetail, setLocationLabelDetail] =
+    useState<LocationLabelDetail>(DEFAULT_LOCATION_LABEL_DETAIL);
   const [locationLookupPending, setLocationLookupPending] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +166,21 @@ export function PinFormDialog({
   const lightboxItems = useMemo(
     () => photosToLightboxItems(photos, signedUrlByPhotoId),
     [photos, signedUrlByPhotoId],
+  );
+
+  const locationLabel = useMemo(
+    () => locationLabelForDetail(geocode, locationLabelDetail) ?? "",
+    [geocode, locationLabelDetail],
+  );
+
+  const availableLabelPatterns = useMemo(
+    () => availableLocationLabelPatterns(geocode),
+    [geocode],
+  );
+
+  const locationDetailSelectItems = useMemo(
+    () => locationLabelDetailPreviewItems(geocode),
+    [geocode],
   );
 
   const removePhotoMut = useMutation({
@@ -295,7 +324,15 @@ export function PinFormDialog({
       setEndDateYmd(pin.end_date ?? "");
       setLat(String(pin.lat));
       setLng(String(pin.lng));
-      setLocationLabel(pin.location_label ?? "");
+      const parsedGeocode = parsePinGeocode(pin.geocode);
+      setGeocode(parsedGeocode);
+      const patterns = availableLocationLabelPatterns(parsedGeocode);
+      const stored = pin.location_label_detail;
+      setLocationLabelDetail(
+        stored && isLocationLabelDetail(stored) && patterns.includes(stored)
+          ? stored
+          : defaultLocationLabelDetail(parsedGeocode),
+      );
       void (async () => {
         const { data } = await supabase
           .from("pin_tags")
@@ -310,16 +347,24 @@ export function PinFormDialog({
       setEndDateYmd("");
       setLat(String(defaultLat));
       setLng(String(defaultLng));
-      setLocationLabel("");
+      setGeocode(null);
+      setLocationLabelDetail(DEFAULT_LOCATION_LABEL_DETAIL);
       setSelectedTags(new Set());
     }
   }, [open, pin, defaultLat, defaultLng]);
 
   useEffect(() => {
-    if (!open || pin) return;
+    if (!open) return;
     const latN = Number(lat);
     const lngN = Number(lng);
     if (Number.isNaN(latN) || Number.isNaN(lngN)) return;
+
+    const stored = pin ? parsePinGeocode(pin.geocode) : null;
+    if (stored && geocodeMatchesCoords(stored, latN, lngN)) {
+      setGeocode(stored);
+      setLocationLookupPending(false);
+      return;
+    }
 
     let cancelled = false;
     const t = window.setTimeout(() => {
@@ -327,10 +372,10 @@ export function PinFormDialog({
       setLocationLookupPending(true);
       void (async () => {
         try {
-          const label = await reversePhotonLocationLabel(latN, lngN);
-          if (!cancelled) setLocationLabel(label ?? "");
+          const next = await reversePhotonGeocode(latN, lngN);
+          if (!cancelled) setGeocode(next);
         } catch {
-          if (!cancelled) setLocationLabel("");
+          if (!cancelled) setGeocode(null);
         } finally {
           if (!cancelled) setLocationLookupPending(false);
         }
@@ -342,7 +387,16 @@ export function PinFormDialog({
       window.clearTimeout(t);
       setLocationLookupPending(false);
     };
-  }, [open, pin, lat, lng]);
+  }, [open, lat, lng, pin?.id, pin?.geocode]);
+
+  useEffect(() => {
+    if (!open || !geocode || availableLabelPatterns.length === 0) return;
+    setLocationLabelDetail((current: LocationLabelDetail) =>
+      availableLabelPatterns.includes(current)
+        ? current
+        : availableLabelPatterns[0]!,
+    );
+  }, [open, geocode, availableLabelPatterns]);
 
   useEffect(() => {
     if (!open || pin) return;
@@ -519,6 +573,8 @@ export function PinFormDialog({
             title: title || null,
             description: description || null,
             location_label: locationLabel.trim() || null,
+            geocode: pinGeocodeToJson(geocode),
+            location_label_detail: locationLabelDetail,
             lat: latN,
             lng: lngN,
             date: start,
@@ -535,6 +591,8 @@ export function PinFormDialog({
             title: title || null,
             description: description || null,
             location_label: locationLabel.trim() || null,
+            geocode: pinGeocodeToJson(geocode),
+            location_label_detail: locationLabelDetail,
             lat: latN,
             lng: lngN,
             date: start,
@@ -648,6 +706,40 @@ export function PinFormDialog({
         />
       </FormField>
       <FormField>
+        <Label htmlFor={`t-location-detail-${idSuffix}`}>Location label</Label>
+        <Select
+          modal={false}
+          value={locationLabelDetail}
+          onValueChange={(v) => {
+            if (v && isLocationLabelDetail(v)) setLocationLabelDetail(v);
+          }}
+          items={locationDetailSelectItems}
+          disabled={
+            locationLookupPending ||
+            !geocode ||
+            availableLabelPatterns.length === 0
+          }
+        >
+          <FormSelectTriggerFull id={`t-location-detail-${idSuffix}`}>
+            <SelectValue placeholder="Choose location label" />
+          </FormSelectTriggerFull>
+          <SelectContent>
+            {availableLabelPatterns.map((detail) => (
+              <SelectItem key={detail} value={detail}>
+                {locationLabelForDetail(geocode, detail) ?? "—"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {locationLookupPending ? (
+          <FormMutedText>Looking up address…</FormMutedText>
+        ) : !geocode ? (
+          <FormMutedText>
+            Move the pin or wait for geocoding to finish.
+          </FormMutedText>
+        ) : null}
+      </FormField>
+      <FormField>
         <Label htmlFor={`t-date-${idSuffix}`}>Date</Label>
         <Input
           id={`t-date-${idSuffix}`}
@@ -666,18 +758,7 @@ export function PinFormDialog({
           onChange={(e) => setEndDateYmd(e.target.value)}
         />
       </FormField>
-      {!pin ? (
-        <FormField>
-          <Label>Place</Label>
-          <PinFormPlaceText pending={locationLookupPending}>
-            {locationLookupPending
-              ? "Looking up address…"
-              : locationLabel
-                ? locationLabel
-                : "No place name yet…"}
-          </PinFormPlaceText>
-        </FormField>
-      ) : (
+      {pin ? (
         <>
           <FormField>
             <Label>Photos</Label>
@@ -747,7 +828,7 @@ export function PinFormDialog({
             <PinLinksEditor pinId={pin.id} mapId={mapId} />
           </FormField>
         </>
-      )}
+      ) : null}
       <FormField>
         <Label>Tags</Label>
         <PinFormTagBox>

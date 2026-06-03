@@ -1,4 +1,5 @@
 import { isValidMapBbox, type MapBbox } from "@/lib/map-view-params";
+import type { PinGeocode } from "@/lib/pin-geocode";
 
 export type PhotonPlace = {
   id: string;
@@ -32,7 +33,7 @@ type PhotonResponse = {
   }[];
 };
 
-type PhotonProps = NonNullable<
+export type PhotonProps = NonNullable<
   PhotonResponse["features"]
 >[number]["properties"];
 
@@ -267,11 +268,10 @@ export async function searchPhotonPlaces(
   return out;
 }
 
-/** Reverse geocode coordinates to a single friendly label (Photon). */
-export async function reversePhotonLocationLabel(
+async function fetchPhotonReverseFeature(
   lat: number,
   lng: number,
-): Promise<string | null> {
+): Promise<PhotonFeature | null> {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
   const url = new URL("https://photon.komoot.io/reverse");
@@ -285,6 +285,16 @@ export async function reversePhotonLocationLabel(
   const data = (await res.json()) as PhotonResponse;
   const f = data.features?.[0];
   if (!f?.geometry?.coordinates) return null;
+  return f;
+}
+
+/** Reverse geocode coordinates to a single friendly label (Photon). */
+export async function reversePhotonLocationLabel(
+  lat: number,
+  lng: number,
+): Promise<string | null> {
+  const f = await fetchPhotonReverseFeature(lat, lng);
+  if (!f) return null;
   const label = photonLabel(f.properties).trim();
   return label || null;
 }
@@ -298,20 +308,7 @@ export async function reversePhotonPlaceDetails(
   lng: number,
   zoom?: number,
 ): Promise<{ fullLabel: string | null; shortTitle: string | null }> {
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return { fullLabel: null, shortTitle: null };
-  }
-
-  const url = new URL("https://photon.komoot.io/reverse");
-  url.searchParams.set("lat", String(lat));
-  url.searchParams.set("lon", String(lng));
-  url.searchParams.set("lang", "en");
-
-  const res = await fetch(url.toString());
-  if (!res.ok) return { fullLabel: null, shortTitle: null };
-
-  const data = (await res.json()) as PhotonResponse;
-  const f = data.features?.[0];
+  const f = await fetchPhotonReverseFeature(lat, lng);
   const props = f?.properties;
   if (!f?.geometry?.coordinates || !props) {
     return { fullLabel: null, shortTitle: null };
@@ -325,4 +322,22 @@ export async function reversePhotonPlaceDetails(
     ).trim() || null;
 
   return { fullLabel, shortTitle };
+}
+
+/** Reverse geocode for persistence on `pins.geocode`. */
+export async function reversePhotonGeocode(
+  lat: number,
+  lng: number,
+): Promise<PinGeocode | null> {
+  const f = await fetchPhotonReverseFeature(lat, lng);
+  const props = f?.properties;
+  if (!f?.geometry?.coordinates || !props) return null;
+
+  return {
+    source: "photon",
+    lat,
+    lng,
+    fetchedAt: new Date().toISOString(),
+    properties: { ...props },
+  };
 }

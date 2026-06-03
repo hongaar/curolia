@@ -2,7 +2,7 @@ import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger"
 import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { pinDetailHref } from "@/lib/app-paths";
-import { formatPinDateRange } from "@/lib/pin-dates";
+import { formatPinDetailSubtitle } from "@/lib/pin-dates";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { pluginList } from "@/plugins/registry";
@@ -100,15 +100,19 @@ export function PinDetailBody({
       ? Math.max(0, photos.length - masonryItems.length)
       : 0;
 
-  const pinDateSubtitle = formatPinDateRange(pin.date, pin.end_date);
+  const pinSubtitle = formatPinDetailSubtitle(
+    pin.location_label,
+    pin.date,
+    pin.end_date,
+  );
 
   return (
     <>
       <PinDetailHeader>
         <div>
           <PinDetailTitle>{pin.title || "Untitled place"}</PinDetailTitle>
-          {pinDateSubtitle ? (
-            <PinDetailSubtitle>{pinDateSubtitle}</PinDetailSubtitle>
+          {pinSubtitle ? (
+            <PinDetailSubtitle>{pinSubtitle}</PinDetailSubtitle>
           ) : null}
           {tagBadges.length > 0 ? (
             <PinDetailTagRow>

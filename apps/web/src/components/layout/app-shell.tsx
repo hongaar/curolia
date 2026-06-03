@@ -17,6 +17,7 @@ import {
 } from "@/providers/navigation-shell-provider";
 import { TagSidebarProvider } from "@/providers/tag-sidebar-provider";
 import { AppShellLayout } from "@curolia/ui/app-shell";
+import { ErrorBoundary } from "@curolia/ui/error-boundary";
 import { useEffect, useLayoutEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
@@ -62,7 +63,16 @@ function AppShellInner() {
       }
       header={showMainToolbar ? <MainToolbar /> : undefined}
     >
-      <Outlet />
+      <ErrorBoundary
+        fallbackLayout="page"
+        resetKeys={[pathname]}
+        showErrorDetails={import.meta.env.DEV}
+        onError={(error, errorInfo) => {
+          console.error("Route error", error, errorInfo);
+        }}
+      >
+        <Outlet />
+      </ErrorBoundary>
     </AppShellLayout>
   );
 }

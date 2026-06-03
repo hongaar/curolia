@@ -2,6 +2,7 @@ import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Capacitor } from "@capacitor/core";
+import { ErrorBoundary } from "@curolia/ui/error-boundary";
 import { Toaster } from "@curolia/ui/sonner";
 import "@curolia/ui/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -36,7 +37,14 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <AuthProvider>
           <BrowserRouter>
-            <App />
+            <ErrorBoundary
+              showErrorDetails={import.meta.env.DEV}
+              onError={(error, errorInfo) => {
+                console.error("Unhandled app error", error, errorInfo);
+              }}
+            >
+              <App />
+            </ErrorBoundary>
           </BrowserRouter>
           <Toaster />
         </AuthProvider>

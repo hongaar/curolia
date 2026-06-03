@@ -1,6 +1,9 @@
 .group {
   scroll-margin-block: 0.25rem;
-  padding: 0.25rem;
+}
+
+.list {
+  padding: 0.4rem;
 }
 
 .value {
