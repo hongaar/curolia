@@ -183,6 +183,7 @@ export type Database = {
           is_personal: boolean;
           name: string;
           slug: string;
+          style: Database["public"]["Enums"]["map_style"];
           updated_at: string;
         };
         Insert: {
@@ -193,6 +194,7 @@ export type Database = {
           is_personal?: boolean;
           name: string;
           slug?: string;
+          style?: Database["public"]["Enums"]["map_style"];
           updated_at?: string;
         };
         Update: {
@@ -203,6 +205,7 @@ export type Database = {
           is_personal?: boolean;
           name?: string;
           slug?: string;
+          style?: Database["public"]["Enums"]["map_style"];
           updated_at?: string;
         };
         Relationships: [];
@@ -847,6 +850,7 @@ export type Database = {
     Enums: {
       map_invitation_status: "pending" | "accepted" | "declined" | "cancelled";
       map_member_role: "owner" | "editor" | "viewer";
+      map_style: "auto" | "street" | "satellite";
       notification_type:
         | "map_invitation"
         | "map_invitation_accepted"
@@ -988,6 +992,7 @@ export const Constants = {
     Enums: {
       map_invitation_status: ["pending", "accepted", "declined", "cancelled"],
       map_member_role: ["owner", "editor", "viewer"],
+      map_style: ["auto", "street", "satellite"],
       notification_type: [
         "map_invitation",
         "map_invitation_accepted",

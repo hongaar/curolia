@@ -1,0 +1,102 @@
+.root {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.625rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.card:hover:not(:disabled) {
+  border-color: color-mix(in oklch, var(--ring) 45%, var(--border));
+}
+
+.card:focus-visible {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 45%, transparent);
+}
+
+.cardSelected {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--ring) 35%, transparent);
+}
+
+.card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.preview {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  background: color-mix(in oklch, var(--muted) 70%, var(--background));
+}
+
+.previewImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--muted-foreground);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem 0.625rem 0.625rem;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.description {
+  color: var(--muted-foreground);
+  font-size: var(--font-size-xs);
+  line-height: 1.35;
+}
+
+.srOnlyInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

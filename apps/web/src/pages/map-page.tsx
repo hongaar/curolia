@@ -14,6 +14,7 @@ import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
+import { normalizeMapStylePreset } from "@/lib/map-style";
 import {
   applyAddPinToSearchParams,
   applyFilterTagsToSearchParams,
@@ -655,6 +656,7 @@ export function MapPage() {
             selectedTagIds={filterTagIds}
             selectedPinId={sidebarPinId}
             previewPin={null}
+            mapStyle={normalizeMapStylePreset(activeMap?.style)}
             onSelectPin={onSelectPin}
             placementMode={placementActive}
             onPlacementClick={onPlacementClick}

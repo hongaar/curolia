@@ -1,16 +1,24 @@
 import styles from "./about-dialog.module.css";
 
-/** Inline map data attribution (OpenFreeMap / OpenStreetMap). */
+/** Inline map data attribution for basemap tiles used in the app. */
 export function MapAttributionInline() {
   return (
     <p className={styles.mapAttribution}>
-      Map tiles ©{" "}
+      Map tiles and styles from{" "}
       <a
         href="https://openfreemap.org"
         target="_blank"
         rel="noopener noreferrer"
       >
         OpenFreeMap
+      </a>{" "}
+      (Positron, Dark, and Liberty styles). Satellite imagery ©{" "}
+      <a
+        href="https://www.esri.com/en-us/legal/terms/full-master-agreement"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Esri
       </a>
       . Map data ©{" "}
       <a

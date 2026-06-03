@@ -435,6 +435,16 @@ export function OpenSourceLicensesSummaryContent({
             rel="noopener noreferrer"
           >
             OpenFreeMap
+          </a>{" "}
+          (including Positron, Dark, and Liberty styles). Maps set to satellite
+          view use imagery from{" "}
+          <a
+            className={styles.legalInlineLink}
+            href="https://www.esri.com/en-us/legal/terms/full-master-agreement"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Esri
           </a>
           . Underlying geographic data includes contributions from{" "}
           <a

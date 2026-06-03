@@ -7,10 +7,13 @@ import {
   defaultMapIcon,
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
+import { normalizeMapStylePreset, type MapStylePreset } from "@/lib/map-style";
+import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
+import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
 import { FormField } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
@@ -37,6 +40,7 @@ export function MapSettingsPage() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [iconEmoji, setIconEmoji] = useState("");
+  const [mapStyle, setMapStyle] = useState<MapStylePreset>("auto");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +72,7 @@ export function MapSettingsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset field when switching map
     setName(map.name);
     setIconEmoji(map.icon_emoji ?? defaultMapIcon(map.is_personal));
+    setMapStyle(normalizeMapStylePreset(map.style));
   }, [map]);
 
   async function save() {
@@ -79,6 +84,7 @@ export function MapSettingsPage() {
       .update({
         name: name.trim(),
         icon_emoji: normalizeMapIconForPersist(iconEmoji, map.is_personal),
+        style: mapStyle,
         updated_at: new Date().toISOString(),
       })
       .eq("id", mapId);
@@ -123,8 +129,12 @@ export function MapSettingsPage() {
   const nameDirty = name.trim() !== map.name;
   const iconToSave = normalizeMapIconForPersist(iconEmoji, map.is_personal);
   const iconDirty = iconToSave !== (map.icon_emoji ?? null);
+  const styleDirty = mapStyle !== normalizeMapStylePreset(map.style);
   const canSave =
-    isOwner && Boolean(name.trim()) && (nameDirty || iconDirty) && !saving;
+    isOwner &&
+    Boolean(name.trim()) &&
+    (nameDirty || iconDirty || styleDirty) &&
+    !saving;
 
   return (
     <AppPageLayout>
@@ -135,7 +145,7 @@ export function MapSettingsPage() {
 
         <PageFormBlockSpaced>
           {!isOwner && !roleQuery.isLoading ? (
-            <PageMuted>Only owners can change the map name or icon.</PageMuted>
+            <PageMuted>Only owners can change map settings.</PageMuted>
           ) : null}
           <FormField>
             <Label htmlFor="jn-name">Map name</Label>
@@ -153,6 +163,35 @@ export function MapSettingsPage() {
             onChange={setIconEmoji}
             disabled={!isOwner || roleQuery.isLoading}
           />
+          <FormField>
+            <Label id="map-style-label">Map style</Label>
+            <ChoiceCards
+              name="map-style"
+              value={mapStyle}
+              onValueChange={setMapStyle}
+              disabled={!isOwner || roleQuery.isLoading}
+              aria-labelledby="map-style-label"
+            >
+              <ChoiceCard
+                value="auto"
+                label="Auto"
+                description="Light or dark based on theme"
+                previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
+              />
+              <ChoiceCard
+                value="street"
+                label="Street"
+                description="Detailed streets and labels"
+                previewSrc={MAP_STYLE_PREVIEW_SRC.street}
+              />
+              <ChoiceCard
+                value="satellite"
+                label="Satellite"
+                description="Aerial imagery"
+                previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
+              />
+            </ChoiceCards>
+          </FormField>
           {error ? <PageErrorText>{error}</PageErrorText> : null}
           <PageInlineActions>
             <Button disabled={!canSave} onClick={() => void save()}>

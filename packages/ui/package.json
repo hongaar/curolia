@@ -19,6 +19,7 @@
     "./card": "./src/components/card/index.ts",
     "./caution-panel": "./src/components/caution-panel/index.ts",
     "./checkbox": "./src/components/checkbox/index.ts",
+    "./choice-cards": "./src/components/choice-cards/index.ts",
     "./dialog": "./src/components/dialog/index.ts",
     "./dropdown-menu": "./src/components/dropdown-menu/index.ts",
     "./emoji-picker": "./src/components/emoji-picker/index.ts",

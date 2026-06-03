@@ -1,4 +1,10 @@
 import {
+  mapStyleCacheKey,
+  normalizeMapStylePreset,
+  resolveMapStyle,
+  type MapStylePreset,
+} from "@/lib/map-style";
+import {
   cameraToSyncKey,
   camerasCloseEnough,
   isValidMapBbox,
@@ -107,22 +113,9 @@ type PinMapProps = {
   onCameraIdle?: (camera: MapCamera) => void;
   /** Map canvas click when not in placement mode (e.g. dismiss nav overlay on mobile). */
   onMapBackgroundClick?: () => void;
+  /** Per-map basemap preset from map settings. */
+  mapStyle?: MapStylePreset;
 };
-
-const MAP_STYLE_LIGHT = "https://tiles.openfreemap.org/styles/positron";
-const MAP_STYLE_DARK = "https://tiles.openfreemap.org/styles/dark";
-
-function mapStyleUrlForTheme(resolvedTheme: string | undefined): string {
-  if (resolvedTheme === "dark") return MAP_STYLE_DARK;
-  if (resolvedTheme === "light") return MAP_STYLE_LIGHT;
-  if (
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark")
-  ) {
-    return MAP_STYLE_DARK;
-  }
-  return MAP_STYLE_LIGHT;
-}
 
 const CAMERA_DURATION_MS = 850;
 /** Fit-bounds inset per side as a fraction of map container width. */
@@ -173,10 +166,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     cameraSyncKey = "",
     onCameraIdle,
     onMapBackgroundClick,
+    mapStyle = "auto",
   },
   ref,
 ) {
   const { resolvedTheme } = useTheme();
+  const mapStylePreset = normalizeMapStylePreset(mapStyle);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -193,7 +188,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }),
     [],
   );
-  const appliedMapStyleUrlRef = useRef<string>("");
+  const appliedMapStyleKeyRef = useRef<string>("");
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const markerMountByPinIdRef = useRef<Map<string, MapMarkerMount>>(new Map());
   const markerVisualByPinIdRef = useRef(
@@ -547,12 +542,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   useEffect(() => {
     if (!containerRef.current) return;
     const start = initialCamera;
-    const initialStyle =
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark")
-        ? MAP_STYLE_DARK
-        : MAP_STYLE_LIGHT;
-    appliedMapStyleUrlRef.current = initialStyle;
+    const initialStyle = resolveMapStyle(mapStylePreset, resolvedTheme);
+    appliedMapStyleKeyRef.current = mapStyleCacheKey(
+      mapStylePreset,
+      resolvedTheme,
+    );
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: initialStyle,
@@ -598,11 +592,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const url = mapStyleUrlForTheme(resolvedTheme);
-    if (appliedMapStyleUrlRef.current === url) return;
-    appliedMapStyleUrlRef.current = url;
-    map.setStyle(url);
-  }, [resolvedTheme]);
+    const key = mapStyleCacheKey(mapStylePreset, resolvedTheme);
+    if (appliedMapStyleKeyRef.current === key) return;
+    appliedMapStyleKeyRef.current = key;
+    map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme));
+  }, [mapStylePreset, resolvedTheme]);
 
   /**
    * Apply camera/bbox from URL when it represents external navigation (search, shared link),
