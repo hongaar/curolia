@@ -51,9 +51,7 @@ jobs:
           npx supabase login --token "$SUPABASE_ACCESS_TOKEN"
           npx supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --password "$SUPABASE_DB_PASSWORD" --yes
           npx supabase db push --yes
-          # Docker bundler required for @curolia/link-metadata (deno.json imports outside
-          # supabase/functions/). --use-api cannot read parent paths yet (supabase/cli#3467).
-          npx supabase functions deploy --yes
+          npx supabase functions deploy --use-api --yes
 
   vercel:
     name: Vercel

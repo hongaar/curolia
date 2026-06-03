@@ -13,10 +13,12 @@
     "db:types": "supabase gen types typescript --local > ../../apps/web/src/lib/database.types.ts",
     "functions:sync": "node scripts/sync-plugins.mjs",
     "functions:start": "supabase functions serve",
-    "functions:stop": "pkill -f 'supabase functions serve' || true"
+    "functions:stop": "pkill -f 'supabase functions serve' || true",
+    "test": "vitest run"
   },
   "devDependencies": {
     "supabase": "^2.98.0",
-    "tsx": "^4.19.3"
+    "tsx": "^4.19.3",
+    "vitest": "^3.1.2"
   }
 }

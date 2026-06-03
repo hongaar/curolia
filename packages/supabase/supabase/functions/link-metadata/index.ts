@@ -1,8 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {
-  assembleLinkMetadata,
-  normalizeRequestUrl,
-} from "@curolia/link-metadata";
+import { assembleLinkMetadata } from "./lib/extract.ts";
+import { normalizeRequestUrl } from "./lib/normalize-url.ts";
 
 /**
  * Resolves a URL → page metadata (title, description, favicon, image, location)

@@ -38,8 +38,6 @@
 
   **`functions:sync`** also runs **`packages/supabase/scripts/extract-plugin-oauth-registry.ts`** (via **`tsx`**) so **`scopes-registry.gen.ts`** is built from each plugin’s **`src/oauth-registry.ts`** (preferred; no React/CSS) or **`pluginManifest.contributions.oauth`** in **`src/index.ts`**. Companion scopes merged at authorize time (e.g. Google OIDC `openid` / `email` / `profile`) live in **`@curolia/plugin-oauth`** (**`oauth-companion-scopes.ts`**); the extractor’s strip step must match that module.
 
-  **`@curolia/link-metadata`** Edge handler lives in **`packages/link-metadata/supabase/functions/link-metadata/`** with a function **`deno.json`** mapping **`@curolia/link-metadata/`** → package **`src/`**. **`functions:sync`** copies the handler into **`packages/supabase/supabase/functions/link-metadata/`** and rewrites those import paths for the synced location. Deploy uses the Docker bundler (not **`--use-api`**) so parent-directory imports resolve; see [supabase/cli#3467](https://github.com/supabase/cli/issues/3467). Edge Functions do not use root **`package.json`** / npm workspaces—use **`deno.json`** **`imports`** (or **`npm:`** specifiers for published packages), not **`file:`** workspace deps.
-
 - **Web UI** may stay in `apps/web` initially; packages should still export **manifest + config parsers** so behavior and declarations stay with the plugin. Prefer moving React panels into the plugin package when they stabilize (with `react` as a `peerDependency`).
 
 ## Static pages (`@curolia/site`)

@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "@curolia/link-metadata": "../../../src/index.ts",
-    "@curolia/link-metadata/": "../../../src/"
-  }
-}
