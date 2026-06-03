@@ -129,6 +129,21 @@ export function locationLabelForDetail(
   return joinDistinctLevels(def.levels, geocodeLevelValues(geocode.properties));
 }
 
+export type PinLocationLabelSource = {
+  geocode: PinGeocode | unknown | null;
+  location_label_detail: LocationLabelDetail | string;
+};
+
+/** Display location label from stored geocode + pattern (not persisted). */
+export function pinLocationLabel(pin: PinLocationLabelSource): string | null {
+  const geocode = parsePinGeocode(pin.geocode);
+  if (!geocode) return null;
+  const detail = isLocationLabelDetail(pin.location_label_detail)
+    ? pin.location_label_detail
+    : defaultLocationLabelDetail(geocode);
+  return locationLabelForDetail(geocode, detail);
+}
+
 /** Value → preview label for Select (actual place text per pattern). */
 export function locationLabelDetailPreviewItems(
   geocode: PinGeocode | null | undefined,

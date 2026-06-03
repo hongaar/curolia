@@ -11,6 +11,7 @@ import {
   PIN_FOCUS_ZOOM,
 } from "@/lib/map-view-params";
 import { searchPhotonPlaces, type PhotonPlace } from "@/lib/photon-geocode";
+import { pinLocationLabel } from "@/lib/pin-geocode";
 import {
   searchPinsInMaps,
   sortPinsByPreferredMap,
@@ -70,7 +71,7 @@ function mapTitle(pin: PinSearchRow, mapById: Map<string, CuroliaMap>) {
 function pinPrimaryLabel(t: PinSearchRow): string {
   const title = t.title?.trim();
   if (title) return title;
-  const place = t.location_label?.trim();
+  const place = pinLocationLabel(t)?.trim();
   if (place) return place;
   const desc = t.description?.trim();
   if (desc) return desc.length > 72 ? `${desc.slice(0, 72)}…` : desc;

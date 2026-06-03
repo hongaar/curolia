@@ -3,6 +3,7 @@ import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { pinDetailHref } from "@/lib/app-paths";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
+import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { pluginList } from "@/plugins/registry";
@@ -101,7 +102,7 @@ export function PinDetailBody({
       : 0;
 
   const pinSubtitle = formatPinDetailSubtitle(
-    pin.location_label,
+    pinLocationLabel(pin),
     pin.date,
     pin.end_date,
   );

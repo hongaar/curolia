@@ -4,6 +4,7 @@ import {
   geocodeMatchesCoords,
   locationLabelDetailPreviewItems,
   locationLabelForDetail,
+  pinLocationLabel,
   type PinGeocode,
 } from "@/lib/pin-geocode";
 import { describe, expect, it } from "vitest";
@@ -96,5 +97,16 @@ describe("locationLabelDetailPreviewItems", () => {
 describe("geocodeMatchesCoords", () => {
   it("returns true when coordinates match", () => {
     expect(geocodeMatchesCoords(parisSample, 48.85, 2.33)).toBe(true);
+  });
+});
+
+describe("pinLocationLabel", () => {
+  it("derives label from geocode and detail preference", () => {
+    expect(
+      pinLocationLabel({
+        geocode: parisSample,
+        location_label_detail: "city_country",
+      }),
+    ).toBe("Paris, France");
   });
 });

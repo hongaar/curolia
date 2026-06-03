@@ -1,3 +1,4 @@
+import type { Json } from "@/lib/database.types";
 import { supabase } from "@/lib/supabase";
 
 export type PinSearchRow = {
@@ -6,7 +7,8 @@ export type PinSearchRow = {
   slug: string;
   title: string | null;
   description: string | null;
-  location_label: string | null;
+  geocode: Json | null;
+  location_label_detail: string;
   lat: number;
   lng: number;
   date: string | null;
@@ -22,6 +24,22 @@ export function sanitizeSearchFragment(raw: string): string {
     .slice(0, 120);
 }
 
+const GEOCODE_SEARCH_FIELDS = [
+  "city",
+  "country",
+  "street",
+  "name",
+  "state",
+  "town",
+  "village",
+] as const;
+
+function geocodeSearchOrClause(pattern: string): string {
+  return GEOCODE_SEARCH_FIELDS.map(
+    (field) => `geocode->properties->>${field}.ilike.${pattern}`,
+  ).join(",");
+}
+
 export async function searchPinsInMaps(
   mapIds: string[],
   query: string,
@@ -33,11 +51,11 @@ export async function searchPinsInMaps(
   const { data, error } = await supabase
     .from("pins")
     .select(
-      "id, map_id, slug, title, description, location_label, lat, lng, date",
+      "id, map_id, slug, title, description, geocode, location_label_detail, lat, lng, date",
     )
     .in("map_id", mapIds)
     .or(
-      `title.ilike.${pattern},description.ilike.${pattern},location_label.ilike.${pattern}`,
+      `title.ilike.${pattern},description.ilike.${pattern},${geocodeSearchOrClause(pattern)}`,
     )
     .order("date", { ascending: false, nullsFirst: false })
     .limit(40);

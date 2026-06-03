@@ -386,7 +386,6 @@ export type Database = {
           id: string;
           lat: number;
           lng: number;
-          location_label: string | null;
           location_label_detail: string;
           map_id: string;
           modified_by_user_id: string | null;
@@ -404,7 +403,6 @@ export type Database = {
           id?: string;
           lat: number;
           lng: number;
-          location_label?: string | null;
           location_label_detail?: string;
           map_id: string;
           modified_by_user_id?: string | null;
@@ -422,7 +420,6 @@ export type Database = {
           id?: string;
           lat?: number;
           lng?: number;
-          location_label?: string | null;
           location_label_detail?: string;
           map_id?: string;
           modified_by_user_id?: string | null;

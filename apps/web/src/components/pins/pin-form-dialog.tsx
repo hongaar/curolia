@@ -22,6 +22,7 @@ import {
   type LocationLabelDetail,
   type PinGeocode,
 } from "@/lib/pin-geocode";
+import { fetchLinkMetadata, type LinkMetadata } from "@/lib/pin-links";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { useAddPinLink } from "@/lib/use-add-pin-link";
@@ -159,6 +160,7 @@ export function PinFormDialog({
   const [deleting, setDeleting] = useState(false);
   const floatingRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<{ x: number; y: number } | null>(null);
+  const pendingLinkRef = useRef<LinkMetadata | null>(null);
 
   const editPinId = pin?.id;
   const addLinkMut = useAddPinLink(editPinId, mapId);
@@ -166,11 +168,6 @@ export function PinFormDialog({
   const lightboxItems = useMemo(
     () => photosToLightboxItems(photos, signedUrlByPhotoId),
     [photos, signedUrlByPhotoId],
-  );
-
-  const locationLabel = useMemo(
-    () => locationLabelForDetail(geocode, locationLabelDetail) ?? "",
-    [geocode, locationLabelDetail],
   );
 
   const availableLabelPatterns = useMemo(
@@ -317,6 +314,7 @@ export function PinFormDialog({
   useEffect(() => {
     if (!open) return;
     setError(null);
+    pendingLinkRef.current = null;
     if (pin) {
       setTitle(pin.title ?? "");
       setDescription(pin.description ?? "");
@@ -572,7 +570,6 @@ export function PinFormDialog({
           .update({
             title: title || null,
             description: description || null,
-            location_label: locationLabel.trim() || null,
             geocode: pinGeocodeToJson(geocode),
             location_label_detail: locationLabelDetail,
             lat: latN,
@@ -590,7 +587,6 @@ export function PinFormDialog({
             map_id: mapId,
             title: title || null,
             description: description || null,
-            location_label: locationLabel.trim() || null,
             geocode: pinGeocodeToJson(geocode),
             location_label_detail: locationLabelDetail,
             lat: latN,
@@ -619,6 +615,20 @@ export function PinFormDialog({
       if (tagRows.length > 0) {
         const { error: tErr } = await supabase.from("pin_tags").insert(tagRows);
         if (tErr) throw tErr;
+      }
+
+      const pendingLink = !pin ? pendingLinkRef.current : null;
+      if (pendingLink) {
+        pendingLinkRef.current = null;
+        const { error: linkErr } = await supabase.from("pin_links").insert({
+          map_id: mapId,
+          pin_id: pinId,
+          url: pendingLink.finalUrl || pendingLink.url,
+          title: pendingLink.title,
+          favicon_url: pendingLink.faviconUrl,
+          sort_order: 0,
+        });
+        if (linkErr) throw linkErr;
       }
 
       if (pin) {
@@ -669,24 +679,50 @@ export function PinFormDialog({
     await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pin.id] });
   }
 
+  async function prefillFromPastedLink(url: string) {
+    try {
+      const meta = await fetchLinkMetadata(url);
+      pendingLinkRef.current = meta;
+      if (meta.title?.trim() && !title.trim()) setTitle(meta.title.trim());
+      if (meta.description?.trim() && !description.trim()) {
+        setDescription(meta.description.trim());
+      }
+      if (meta.location) {
+        setLat(String(meta.location.lat));
+        setLng(String(meta.location.lng));
+      } else {
+        toast.message(
+          "Link saved — add coordinates or pick a place on the map.",
+        );
+      }
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "Could not read link metadata.",
+      );
+    }
+  }
+
   function onFormPasteCapture(e: ClipboardEvent) {
-    if (!pin) return;
     const imageFile = fileFromClipboardData(e.clipboardData);
     if (imageFile) {
+      if (!pin) return;
       e.preventDefault();
       void onUploadPhotos([imageFile]);
       return;
     }
     if (isPinFormTextEntryPasteTarget(e.target)) return;
     const url = urlFromClipboardData(e.clipboardData);
-    if (url) {
-      e.preventDefault();
+    if (!url) return;
+    e.preventDefault();
+    if (pin) {
       addLinkMut.mutate(url);
+      return;
     }
+    void prefillFromPastedLink(url);
   }
 
   const formFields = (
-    <PinFormGrid onPasteCapture={pin ? onFormPasteCapture : undefined}>
+    <PinFormGrid onPasteCapture={open ? onFormPasteCapture : undefined}>
       <FormField>
         <Label htmlFor={`t-title-${idSuffix}`}>Title</Label>
         <Input

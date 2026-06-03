@@ -248,6 +248,14 @@ export function normalizeCameraForUrl(c: MapCamera): MapCamera {
   };
 }
 
+export function camerasCloseEnough(a: MapCamera, b: MapCamera): boolean {
+  return (
+    Math.abs(a.lng - b.lng) < 1e-4 &&
+    Math.abs(a.lat - b.lat) < 1e-4 &&
+    Math.abs(a.zoom - b.zoom) < 0.02
+  );
+}
+
 export function cameraToSyncKey(c: MapCamera): string {
   const n = normalizeCameraForUrl(c);
   return `${n.lng},${n.lat},${n.zoom}`;

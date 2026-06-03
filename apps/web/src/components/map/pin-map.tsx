@@ -1,5 +1,6 @@
 import {
   cameraToSyncKey,
+  camerasCloseEnough,
   isValidMapBbox,
   normalizeCameraForUrl,
   type MapBbox,
@@ -63,11 +64,20 @@ export type PinMapHandle = {
    * Ease to keep `lng/lat` visible in the left portion of the map,
    * accounting for a right-side panel of `panelWidthPx` pixels.
    */
-  panForPanel: (lng: number, lat: number, panelWidthPx: number) => void;
+  panForPanel: (
+    lng: number,
+    lat: number,
+    panelWidthPx: number,
+    onSettled?: () => void,
+  ) => void;
   /** Restore a previously saved camera and reset panel padding to 0. */
   restoreCameraAfterPanel: (camera: MapCamera) => void;
+  /** Drop right-side panel padding while keeping the current center and zoom. */
+  clearPanelPadding: () => void;
   /** Drop stale marker pointer gestures (e.g. mouseup after ESC closed the sheet). */
   invalidatePendingMarkerSelection: () => void;
+  /** Fly the map to a coordinate (e.g. after creating a pin from a pasted link). */
+  flyToLocation: (lng: number, lat: number, zoom?: number) => void;
 };
 
 export type PinMapPreviewPin = {
@@ -143,10 +153,9 @@ function geolocationToastMessage(err: unknown): string {
 
 function cameraCloseEnough(map: maplibregl.Map, target: MapCamera) {
   const cur = map.getCenter();
-  return (
-    Math.abs(cur.lng - target.lng) < 1e-4 &&
-    Math.abs(cur.lat - target.lat) < 1e-4 &&
-    Math.abs(map.getZoom() - target.zoom) < 0.02
+  return camerasCloseEnough(
+    { lat: cur.lat, lng: cur.lng, zoom: map.getZoom() },
+    target,
   );
 }
 
@@ -477,7 +486,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           zoom: map.getZoom(),
         });
       },
-      panForPanel(lng: number, lat: number, panelWidthPx: number) {
+      panForPanel(
+        lng: number,
+        lat: number,
+        panelWidthPx: number,
+        onSettled?: () => void,
+      ) {
         const map = mapRef.current;
         if (!map) return;
         map.easeTo({
@@ -486,9 +500,22 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           duration: 280,
           essential: true,
         });
+        if (onSettled) {
+          map.once("moveend", onSettled);
+        }
       },
       invalidatePendingMarkerSelection() {
         pinSelectGenerationRef.current += 1;
+      },
+      flyToLocation(lng: number, lat: number, zoom = SINGLE_PIN_ZOOM) {
+        const map = mapRef.current;
+        if (!map) return;
+        map.flyTo({
+          center: [lng, lat],
+          zoom,
+          duration: CAMERA_DURATION_MS,
+          essential: true,
+        });
       },
       restoreCameraAfterPanel(camera: MapCamera) {
         const map = mapRef.current;
@@ -496,6 +523,18 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         map.easeTo({
           center: [camera.lng, camera.lat],
           zoom: camera.zoom,
+          padding: { right: 0, left: 0, top: 0, bottom: 0 },
+          duration: 280,
+          essential: true,
+        });
+      },
+      clearPanelPadding() {
+        const map = mapRef.current;
+        if (!map) return;
+        const c = map.getCenter();
+        map.easeTo({
+          center: [c.lng, c.lat],
+          zoom: map.getZoom(),
           padding: { right: 0, left: 0, top: 0, bottom: 0 },
           duration: 280,
           essential: true,

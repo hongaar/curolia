@@ -4,6 +4,7 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
+import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
@@ -241,7 +242,7 @@ export function PinMapMarkerPopover({
 
   const pinSubtitle =
     pin && !wrongMap
-      ? formatPinDetailSubtitle(pin.location_label, pin.date, pin.end_date)
+      ? formatPinDetailSubtitle(pinLocationLabel(pin), pin.date, pin.end_date)
       : "";
 
   const detailHref =

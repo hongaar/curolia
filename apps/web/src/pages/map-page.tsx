@@ -20,6 +20,7 @@ import {
   applyMapCameraToSearchParams,
   applySelectedPinToSearchParams,
   bboxToSyncKey,
+  camerasCloseEnough,
   cameraToSyncKey,
   normalizeCameraForUrl,
   parseAddPinFromSearchParams,
@@ -36,10 +37,16 @@ import {
   reversePhotonPlaceDetails,
 } from "@/lib/photon-geocode";
 import {
+  fileFromClipboardData,
+  isPinFormTextEntryPasteTarget,
+  urlFromClipboardData,
+} from "@/lib/pin-form-clipboard";
+import { createPinFromLinkMetadata } from "@/lib/pin-from-link";
+import {
   defaultLocationLabelDetail,
-  locationLabelForDetail,
   pinGeocodeToJson,
 } from "@/lib/pin-geocode";
+import { fetchLinkMetadata } from "@/lib/pin-links";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
@@ -107,6 +114,8 @@ export function MapPage() {
   const panelRef = useRef<HTMLDivElement>(null);
   /** Camera captured just before the side panel opened — restored on close. */
   const prevCameraBeforeSheetRef = useRef<MapCamera | null>(null);
+  /** Camera after the open-time pan-for-panel settles — used to detect user adjustments. */
+  const postPanCameraBeforeSheetRef = useRef<MapCamera | null>(null);
   /** Track previous sidebarPinId to detect open/close transitions. */
   const prevSidebarPinIdRef = useRef<string | null>(null);
   /** True only when the side panel opens from a map marker click (not URL restore). */
@@ -154,9 +163,57 @@ export function MapPage() {
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
   const [newTagEmoji, setNewTagEmoji] = useState("📍");
+  const linkPasteBusyRef = useRef(false);
   useEffect(() => {
     return () => clearTimeout(cameraIdleTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const data = e.clipboardData;
+      if (!data) return;
+      if (isPinFormTextEntryPasteTarget(e.target)) return;
+      if (fileFromClipboardData(data)) return;
+      const url = urlFromClipboardData(data);
+      if (!url || !activeMapId || linkPasteBusyRef.current) return;
+      e.preventDefault();
+      linkPasteBusyRef.current = true;
+      void (async () => {
+        try {
+          const meta = await fetchLinkMetadata(url);
+          if (!meta.location) {
+            toast.message("No location found in this link.");
+            return;
+          }
+          const pin = await createPinFromLinkMetadata({
+            mapId: activeMapId,
+            meta,
+          });
+          await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+          setSearchParams(
+            (prev) => applySelectedPinToSearchParams(prev, null),
+            {
+              replace: true,
+            },
+          );
+          mapRef.current?.flyToLocation(pin.lng, pin.lat);
+          const p = mapRef.current?.lngLatToScreen(pin.lng, pin.lat);
+          setQuickAddAnchorScreen(p ?? null);
+          setQuickAddPin(pin);
+        } catch (err) {
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : "Could not create pin from link.",
+          );
+        } finally {
+          linkPasteBusyRef.current = false;
+        }
+      })();
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [activeMapId, qc, setSearchParams]);
 
   const onCameraIdle = useCallback(
     (c: MapCamera) => {
@@ -365,21 +422,16 @@ export function MapPage() {
       });
 
       try {
-        const [{ fullLabel, shortTitle }, geocode] = await Promise.all([
+        const [{ shortTitle }, geocode] = await Promise.all([
           reversePhotonPlaceDetails(lat, lng, zoom),
           reversePhotonGeocode(lat, lng),
         ]);
         const labelDetail = defaultLocationLabelDetail(geocode);
-        const location_label =
-          locationLabelForDetail(geocode, labelDetail) ??
-          fullLabel?.trim() ??
-          null;
         const { data: row, error } = await supabase
           .from("pins")
           .insert({
             map_id: activeMapId,
             title: shortTitle || null,
-            location_label,
             geocode: pinGeocodeToJson(geocode),
             location_label_detail: labelDetail,
             lat,
@@ -501,18 +553,34 @@ export function MapPage() {
       // Panel opening — capture camera, then pan so pin sits in visible left area
       prevCameraBeforeSheetRef.current =
         mapRef.current?.getCurrentCamera() ?? null;
+      postPanCameraBeforeSheetRef.current = null;
       const pin = pinsRef.current.find((p) => p.id === currId);
       if (pin && typeof pin.lat === "number" && typeof pin.lng === "number") {
         const panelWidthPx = panelRef.current?.offsetWidth ?? 384;
-        mapRef.current?.panForPanel(pin.lng, pin.lat, panelWidthPx);
+        mapRef.current?.panForPanel(pin.lng, pin.lat, panelWidthPx, () => {
+          postPanCameraBeforeSheetRef.current =
+            mapRef.current?.getCurrentCamera() ?? null;
+        });
+      } else {
+        postPanCameraBeforeSheetRef.current = prevCameraBeforeSheetRef.current;
       }
     } else if (!currId && prevId) {
-      // Panel closing — restore previous camera
       const prevCamera = prevCameraBeforeSheetRef.current;
-      if (prevCamera) {
+      const postPanCamera = postPanCameraBeforeSheetRef.current;
+      const currentCamera = mapRef.current?.getCurrentCamera() ?? null;
+      const userAdjustedCamera =
+        postPanCamera != null &&
+        currentCamera != null &&
+        !camerasCloseEnough(currentCamera, postPanCamera);
+
+      if (userAdjustedCamera) {
+        // User panned/zoomed while the sheet was open — keep their view.
+        mapRef.current?.clearPanelPadding();
+      } else if (prevCamera) {
         mapRef.current?.restoreCameraAfterPanel(prevCamera);
       }
       prevCameraBeforeSheetRef.current = null;
+      postPanCameraBeforeSheetRef.current = null;
     }
   }, [sidebarPinId, isWideEnough]);
 

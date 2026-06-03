@@ -1,5 +1,6 @@
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
+import { pinLocationLabel } from "@/lib/pin-geocode";
 import { supabase } from "@/lib/supabase";
 import type { Pin } from "@/types/database";
 import { Button } from "@curolia/ui/button";
@@ -222,6 +223,8 @@ export function PinMapQuickAddDialog({
     />
   );
 
+  const derivedLocationLabel = pin ? pinLocationLabel(pin) : null;
+
   const fields = (
     <>
       <PinFormPanelFieldGroup>
@@ -235,8 +238,8 @@ export function PinMapQuickAddDialog({
             autoComplete="off"
           />
         </FormField>
-        {pin.location_label ? (
-          <FormMutedTextXs>{pin.location_label}</FormMutedTextXs>
+        {derivedLocationLabel ? (
+          <FormMutedTextXs>{derivedLocationLabel}</FormMutedTextXs>
         ) : null}
       </PinFormPanelFieldGroup>
       {error ? <FormErrorText>{error}</FormErrorText> : null}
