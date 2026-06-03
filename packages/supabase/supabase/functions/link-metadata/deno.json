@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@curolia/link-metadata": "../../../../link-metadata/src/index.ts",
+    "@curolia/link-metadata/": "../../../../link-metadata/src/"
+  }
+}

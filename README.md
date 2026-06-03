@@ -228,7 +228,7 @@ Link the CLI from `apps/web` (creates `apps/web/.vercel/`) if you deploy locally
 Production web deploy is orchestrated by GitHub Actions (`.github/workflows/deploy.yml`) from **`apps/web`** using the `vercel` npm scripts (`vercel pull` / `vercel build` / `vercel deploy --prebuilt`).
 Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEnabled: false`) so deployments happen only through the deploy workflow.
 
-The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow runs after [`.github/workflows/test.yml`](.github/workflows/test.yml) succeeds on a push to `main`. It runs **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy --use-api`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
+The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow runs after [`.github/workflows/test.yml`](.github/workflows/test.yml) succeeds on a push to `main`. It runs **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*` and **`@curolia/link-metadata`**, not only last-run sync output.
 
 `supabase` deploy runs before the `vercel` and **`play-store`** jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile; Play Store is gated by **`ENABLE_PLAY_STORE_DEPLOY`**).
 
@@ -292,7 +292,7 @@ Production checklist:
 1. In each provider’s developer console, register the Supabase callback URL `https://<project-ref>.supabase.co/functions/v1/plugin-oauth?action=callback` where required.
 2. Vercel **Preview + Production**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
 3. **`config.toml`**: `plugin-oauth` keeps **`verify_jwt = false`** (browser redirect has no JWT); other functions verify JWT in the handler if needed.
-4. Deploy: GitHub workflow runs **`functions:sync`**, **`supabase db push`**, **`supabase functions deploy --use-api`**, then Vercel prebuilt deploy.
+4. Deploy: GitHub workflow runs **`functions:sync`**, **`supabase db push`**, **`supabase functions deploy`**, then Vercel prebuilt deploy.
 
 ## TODO
 

@@ -61,6 +61,32 @@ function copyDir(src, dest) {
   }
 }
 
+/** Rewrite deno.json import paths for the synced function directory. */
+function syncLinkMetadataFunction() {
+  const pkgRoot = path.join(repoRoot, "packages", "link-metadata");
+  const fnSrc = path.join(pkgRoot, "supabase", "functions", "link-metadata");
+  if (!fs.existsSync(fnSrc)) {
+    console.warn("sync-plugins: link-metadata function source missing");
+    return;
+  }
+
+  const dest = path.join(destRoot, "link-metadata");
+  rmrf(dest);
+  copyDir(fnSrc, dest);
+
+  const denoJsonPath = path.join(dest, "deno.json");
+  const denoJson = JSON.parse(fs.readFileSync(denoJsonPath, "utf8"));
+  denoJson.imports = {
+    "@curolia/link-metadata": "../../../../link-metadata/src/index.ts",
+    "@curolia/link-metadata/": "../../../../link-metadata/src/",
+  };
+  fs.writeFileSync(denoJsonPath, `${JSON.stringify(denoJson, null, 2)}\n`);
+
+  console.log(
+    `synced ${path.relative(repoRoot, fnSrc)} -> ${path.relative(repoRoot, dest)}`,
+  );
+}
+
 if (!fs.existsSync(pluginsRoot)) {
   console.warn("sync-plugins: no packages/plugins directory");
   process.exit(0);
@@ -87,5 +113,7 @@ for (const pkg of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
   }
 }
 
+syncLinkMetadataFunction();
+
 if (count === 0) console.log("sync-plugins: no plugin functions found");
-else console.log(`sync-plugins: ${count} function(s) synced`);
+else console.log(`sync-plugins: ${count} plugin function(s) synced`);
