@@ -31,6 +31,10 @@ export type CuroliaMap = {
   icon_emoji: string | null;
   /** Basemap preset; `auto` follows app light/dark theme. */
   style: import("@/lib/map-style").MapStylePreset;
+  /** Terrain hillshade overlay when `style` is `street`. */
+  style_hillshades: boolean;
+  /** Reference labels overlay when `style` is `satellite`. */
+  style_satellite_labels: boolean;
   created_by_user_id: string;
   created_at: string;
   updated_at: string;

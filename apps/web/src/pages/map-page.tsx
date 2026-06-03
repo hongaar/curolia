@@ -14,7 +14,10 @@ import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
-import { normalizeMapStylePreset } from "@/lib/map-style";
+import {
+  normalizeMapStyleOptions,
+  normalizeMapStylePreset,
+} from "@/lib/map-style";
 import {
   applyAddPinToSearchParams,
   applyFilterTagsToSearchParams,
@@ -135,6 +138,10 @@ export function MapPage() {
     [searchParams],
   );
   const { activeMapId, activeMap, loading: mapLoading } = useMap();
+  const mapStyleOptions = useMemo(
+    () => normalizeMapStyleOptions(activeMap),
+    [activeMap?.style_hillshades, activeMap?.style_satellite_labels],
+  );
   const prevMapIdRef = useRef<string | null>(null);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);
   const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
@@ -657,6 +664,7 @@ export function MapPage() {
             selectedPinId={sidebarPinId}
             previewPin={null}
             mapStyle={normalizeMapStylePreset(activeMap?.style)}
+            mapStyleOptions={mapStyleOptions}
             onSelectPin={onSelectPin}
             placementMode={placementActive}
             onPlacementClick={onPlacementClick}

@@ -73,6 +73,7 @@ export function ChoiceCard<T extends string>({
   previewSrc,
   previewAlt,
   preview,
+  footer,
 }: {
   value: T;
   label: string;
@@ -80,6 +81,8 @@ export function ChoiceCard<T extends string>({
   previewSrc?: string;
   previewAlt?: string;
   preview?: ReactNode;
+  /** Extra controls below the label; clicks do not select this card. */
+  footer?: ReactNode;
 }) {
   const {
     name,
@@ -91,39 +94,39 @@ export function ChoiceCard<T extends string>({
   const inputId = `${name}-${value}`;
 
   return (
-    <label
-      htmlFor={inputId}
-      className={cn(styles.card, selected && styles.cardSelected)}
-    >
-      <input
-        id={inputId}
-        className={styles.srOnlyInput}
-        type="radio"
-        name={name}
-        value={value}
-        checked={selected}
-        disabled={disabled}
-        onChange={() => onValueChange(value)}
-      />
-      <div className={styles.preview} aria-hidden>
-        {preview ? (
-          preview
-        ) : previewSrc ? (
-          <img
-            className={styles.previewImage}
-            src={previewSrc}
-            alt={previewAlt ?? label}
-          />
-        ) : (
-          <div className={styles.previewPlaceholder}>{label}</div>
-        )}
-      </div>
-      <span className={styles.body}>
-        <span className={styles.label}>{label}</span>
-        {description ? (
-          <span className={styles.description}>{description}</span>
-        ) : null}
-      </span>
-    </label>
+    <div className={cn(styles.card, selected && styles.cardSelected)}>
+      <label htmlFor={inputId} className={styles.cardSelect}>
+        <input
+          id={inputId}
+          className={styles.srOnlyInput}
+          type="radio"
+          name={name}
+          value={value}
+          checked={selected}
+          disabled={disabled}
+          onChange={() => onValueChange(value)}
+        />
+        <div className={styles.preview} aria-hidden>
+          {preview ? (
+            preview
+          ) : previewSrc ? (
+            <img
+              className={styles.previewImage}
+              src={previewSrc}
+              alt={previewAlt ?? label}
+            />
+          ) : (
+            <div className={styles.previewPlaceholder}>{label}</div>
+          )}
+        </div>
+        <span className={styles.body}>
+          <span className={styles.label}>{label}</span>
+          {description ? (
+            <span className={styles.description}>{description}</span>
+          ) : null}
+        </span>
+      </label>
+      {footer ? <div className={styles.footer}>{footer}</div> : null}
+    </div>
   );
 }

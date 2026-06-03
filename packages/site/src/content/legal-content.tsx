@@ -446,6 +446,16 @@ export function OpenSourceLicensesSummaryContent({
           >
             Esri
           </a>
+          ; optional place labels use OpenFreeMap vector tiles. Optional
+          hillshades may use elevation data from{" "}
+          <a
+            className={styles.legalInlineLink}
+            href="https://mapterhorn.com/attribution"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Mapterhorn
+          </a>
           . Underlying geographic data includes contributions from{" "}
           <a
             className={styles.legalInlineLink}

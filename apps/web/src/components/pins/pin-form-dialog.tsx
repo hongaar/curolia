@@ -27,8 +27,8 @@ import { fetchLinkMetadata, type LinkMetadata } from "@/lib/pin-links";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { useAddPinLink } from "@/lib/use-add-pin-link";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
-import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
@@ -135,6 +135,7 @@ export function PinFormDialog({
   onNewPinTagIdsChange,
 }: PinFormDialogProps) {
   const { user } = useAuth();
+  const { plugins: enabledPlugins } = useEnabledPlugins();
   const navigate = useNavigate();
   const { maps } = useMap();
   const isNarrow = useMaxSm();
@@ -846,7 +847,7 @@ export function PinFormDialog({
                 <Upload aria-hidden />
                 <span>Upload photos</span>
               </PinFormUploadLabel>
-              {pluginList.map((p) => {
+              {enabledPlugins.map((p) => {
                 const Slot = p.PinPhotoImportSlot;
                 if (!Slot) return null;
                 return (
@@ -897,7 +898,7 @@ export function PinFormDialog({
         </PinFormTagBox>
       </FormField>
       {pin
-        ? pluginList.map((p) => {
+        ? enabledPlugins.map((p) => {
             const Section = p.PinFormSection;
             if (!Section) return null;
             const PluginIcon = p.icon;

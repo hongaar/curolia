@@ -184,6 +184,8 @@ export type Database = {
           name: string;
           slug: string;
           style: Database["public"]["Enums"]["map_style"];
+          style_hillshades: boolean;
+          style_satellite_labels: boolean;
           updated_at: string;
         };
         Insert: {
@@ -195,6 +197,8 @@ export type Database = {
           name: string;
           slug?: string;
           style?: Database["public"]["Enums"]["map_style"];
+          style_hillshades?: boolean;
+          style_satellite_labels?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -206,6 +210,8 @@ export type Database = {
           name?: string;
           slug?: string;
           style?: Database["public"]["Enums"]["map_style"];
+          style_hillshades?: boolean;
+          style_satellite_labels?: boolean;
           updated_at?: string;
         };
         Relationships: [];

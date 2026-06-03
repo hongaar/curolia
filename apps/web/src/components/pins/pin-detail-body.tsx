@@ -6,7 +6,7 @@ import { formatPinDetailSubtitle } from "@/lib/pin-dates";
 import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
-import { pluginList } from "@/plugins/registry";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
 import type { Photo, Pin } from "@/types/database";
 import { contrastingForeground } from "@curolia/ui";
@@ -67,6 +67,7 @@ export function PinDetailBody({
   permalinkMapSlug,
 }: PinDetailBodyProps) {
   const { user } = useAuth();
+  const { plugins: enabledPlugins } = useEnabledPlugins();
   const [photoLightbox, setPhotoLightbox] = useState<{
     photoId: string;
   } | null>(null);
@@ -170,7 +171,7 @@ export function PinDetailBody({
           />
         ) : null}
         <PinLinksList pinId={pin.id} />
-        {pluginList.map((p) => {
+        {enabledPlugins.map((p) => {
           const Section = p.PinDetailSection;
           if (!Section) return null;
           return (

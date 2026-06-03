@@ -7,12 +7,18 @@ import {
   defaultMapIcon,
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
-import { normalizeMapStylePreset, type MapStylePreset } from "@/lib/map-style";
+import {
+  normalizeMapStyleOptions,
+  normalizeMapStylePreset,
+  type MapStyleOptions,
+  type MapStylePreset,
+} from "@/lib/map-style";
 import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
+import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
 import { FormField } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
@@ -41,6 +47,10 @@ export function MapSettingsPage() {
   const [name, setName] = useState("");
   const [iconEmoji, setIconEmoji] = useState("");
   const [mapStyle, setMapStyle] = useState<MapStylePreset>("auto");
+  const [styleOptions, setStyleOptions] = useState<MapStyleOptions>({
+    hillshades: false,
+    satelliteLabels: false,
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,6 +83,7 @@ export function MapSettingsPage() {
     setName(map.name);
     setIconEmoji(map.icon_emoji ?? defaultMapIcon(map.is_personal));
     setMapStyle(normalizeMapStylePreset(map.style));
+    setStyleOptions(normalizeMapStyleOptions(map));
   }, [map]);
 
   async function save() {
@@ -85,6 +96,8 @@ export function MapSettingsPage() {
         name: name.trim(),
         icon_emoji: normalizeMapIconForPersist(iconEmoji, map.is_personal),
         style: mapStyle,
+        style_hillshades: styleOptions.hillshades,
+        style_satellite_labels: styleOptions.satelliteLabels,
         updated_at: new Date().toISOString(),
       })
       .eq("id", mapId);
@@ -129,7 +142,13 @@ export function MapSettingsPage() {
   const nameDirty = name.trim() !== map.name;
   const iconToSave = normalizeMapIconForPersist(iconEmoji, map.is_personal);
   const iconDirty = iconToSave !== (map.icon_emoji ?? null);
-  const styleDirty = mapStyle !== normalizeMapStylePreset(map.style);
+  const savedStyleOptions = normalizeMapStyleOptions(map);
+  const styleDirty =
+    mapStyle !== normalizeMapStylePreset(map.style) ||
+    styleOptions.hillshades !== savedStyleOptions.hillshades ||
+    styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
+  const controlsDisabled = !isOwner || roleQuery.isLoading;
+
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
@@ -165,30 +184,58 @@ export function MapSettingsPage() {
           />
           <FormField>
             <Label id="map-style-label">Map style</Label>
-            <ChoiceCards
+            <ChoiceCards<MapStylePreset>
               name="map-style"
               value={mapStyle}
               onValueChange={setMapStyle}
-              disabled={!isOwner || roleQuery.isLoading}
+              disabled={controlsDisabled}
               aria-labelledby="map-style-label"
             >
               <ChoiceCard
                 value="auto"
                 label="Auto"
-                description="Light or dark based on theme"
+                description="Light or dark"
                 previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
               />
               <ChoiceCard
                 value="street"
                 label="Street"
-                description="Detailed streets and labels"
+                description="Detailed streets"
                 previewSrc={MAP_STYLE_PREVIEW_SRC.street}
+                footer={
+                  <MapStyleOptionCheckbox
+                    id="map-style-hillshades"
+                    label="Hillshades"
+                    checked={styleOptions.hillshades}
+                    disabled={controlsDisabled || mapStyle !== "street"}
+                    onCheckedChange={(checked) =>
+                      setStyleOptions((prev) => ({
+                        ...prev,
+                        hillshades: checked,
+                      }))
+                    }
+                  />
+                }
               />
               <ChoiceCard
                 value="satellite"
                 label="Satellite"
                 description="Aerial imagery"
                 previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
+                footer={
+                  <MapStyleOptionCheckbox
+                    id="map-style-satellite-labels"
+                    label="Labels"
+                    checked={styleOptions.satelliteLabels}
+                    disabled={controlsDisabled || mapStyle !== "satellite"}
+                    onCheckedChange={(checked) =>
+                      setStyleOptions((prev) => ({
+                        ...prev,
+                        satelliteLabels: checked,
+                      }))
+                    }
+                  />
+                }
               />
             </ChoiceCards>
           </FormField>
@@ -224,5 +271,31 @@ export function MapSettingsPage() {
         <MapSharingSection mapId={mapId} mapName={map.name} isOwner={isOwner} />
       </PagePanel>
     </AppPageLayout>
+  );
+}
+
+function MapStyleOptionCheckbox({
+  id,
+  label,
+  checked,
+  disabled,
+  onCheckedChange,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  disabled: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <Label htmlFor={id}>
+      <Checkbox
+        id={id}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={(value) => onCheckedChange(value === true)}
+      />
+      {label}
+    </Label>
   );
 }

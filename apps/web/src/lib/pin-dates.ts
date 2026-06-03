@@ -1,23 +1,77 @@
 /** Format YYYY-MM-DD in the user's local calendar (avoids UTC parsing pitfalls). */
 export function formatLocalCalendarDay(ymd: string): string {
+  return formatDayMonthYear(ymd);
+}
+
+type YmdParts = { y: number; m: number; d: number };
+
+function parseYmd(ymd: string): YmdParts | null {
   const parts = ymd.split("-").map(Number);
-  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return ymd;
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
   const [y, m, d] = parts;
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
+  return { y, m, d };
+}
+
+function localDateFromYmd(ymd: string): Date | null {
+  const p = parseYmd(ymd);
+  if (!p) return null;
+  return new Date(p.y, p.m - 1, p.d);
+}
+
+function formatDay(ymd: string, locale?: Intl.LocalesArgument): string {
+  const dt = localDateFromYmd(ymd);
+  if (!dt) return ymd;
+  return dt.toLocaleDateString(locale, { day: "numeric" });
+}
+
+function formatDayMonth(ymd: string, locale?: Intl.LocalesArgument): string {
+  const dt = localDateFromYmd(ymd);
+  if (!dt) return ymd;
+  return dt.toLocaleDateString(locale, { day: "numeric", month: "long" });
+}
+
+function formatDayMonthYear(
+  ymd: string,
+  locale?: Intl.LocalesArgument,
+): string {
+  const dt = localDateFromYmd(ymd);
+  if (!dt) return ymd;
+  return dt.toLocaleDateString(locale, {
     day: "numeric",
+    month: "long",
+    year: "numeric",
   });
+}
+
+function formatMonthYear(ymd: string, locale?: Intl.LocalesArgument): string {
+  const dt = localDateFromYmd(ymd);
+  if (!dt) return ymd;
+  return dt.toLocaleDateString(locale, { month: "long", year: "numeric" });
 }
 
 export function formatPinDateRange(
   date: string | null | undefined,
   endDate: string | null | undefined,
+  locale?: Intl.LocalesArgument,
 ): string {
   if (!date) return "";
-  if (!endDate || endDate === date) return formatLocalCalendarDay(date);
-  return `${formatLocalCalendarDay(date)} – ${formatLocalCalendarDay(endDate)}`;
+  if (!endDate || endDate === date) return formatDayMonthYear(date, locale);
+
+  const start = parseYmd(date);
+  const end = parseYmd(endDate);
+  if (!start || !end) {
+    return `${formatDayMonthYear(date, locale)} – ${formatDayMonthYear(endDate, locale)}`;
+  }
+
+  if (start.y === end.y && start.m === end.m) {
+    return `${formatDay(date, locale)} – ${formatDay(endDate, locale)} ${formatMonthYear(date, locale)}`;
+  }
+
+  if (start.y === end.y) {
+    return `${formatDayMonth(date, locale)} – ${formatDayMonthYear(endDate, locale)}`;
+  }
+
+  return `${formatDayMonthYear(date, locale)} – ${formatDayMonthYear(endDate, locale)}`;
 }
 
 /** Pin detail subtitle: location (left) and date range, middle dot between parts. */

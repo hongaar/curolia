@@ -1,7 +1,10 @@
 import {
+  DEFAULT_MAP_STYLE_OPTIONS,
   mapStyleCacheKey,
   normalizeMapStylePreset,
   resolveMapStyle,
+  syncMapStyleOverlays,
+  type MapStyleOptions,
   type MapStylePreset,
 } from "@/lib/map-style";
 import {
@@ -115,6 +118,8 @@ type PinMapProps = {
   onMapBackgroundClick?: () => void;
   /** Per-map basemap preset from map settings. */
   mapStyle?: MapStylePreset;
+  /** Per-map basemap overlays (hillshades, satellite labels). */
+  mapStyleOptions?: MapStyleOptions;
 };
 
 const CAMERA_DURATION_MS = 850;
@@ -167,11 +172,17 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onCameraIdle,
     onMapBackgroundClick,
     mapStyle = "auto",
+    mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
   },
   ref,
 ) {
   const { resolvedTheme } = useTheme();
   const mapStylePreset = normalizeMapStylePreset(mapStyle);
+  const mapStyleOpts = mapStyleOptions;
+  const mapStylePresetRef = useRef(mapStylePreset);
+  const mapStyleOptsRef = useRef(mapStyleOpts);
+  mapStylePresetRef.current = mapStylePreset;
+  mapStyleOptsRef.current = mapStyleOpts;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -542,10 +553,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   useEffect(() => {
     if (!containerRef.current) return;
     const start = initialCamera;
-    const initialStyle = resolveMapStyle(mapStylePreset, resolvedTheme);
+    const initialStyle = resolveMapStyle(
+      mapStylePreset,
+      resolvedTheme,
+      mapStyleOpts,
+    );
     appliedMapStyleKeyRef.current = mapStyleCacheKey(
       mapStylePreset,
       resolvedTheme,
+      mapStyleOpts,
     );
     const map = new maplibregl.Map({
       container: containerRef.current,
@@ -580,8 +596,18 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     map.addControl(geolocate);
     geolocateControlRef.current = geolocate;
 
+    const onStyleLoad = () => {
+      syncMapStyleOverlays(
+        map,
+        mapStylePresetRef.current,
+        mapStyleOptsRef.current,
+      );
+    };
+    map.on("style.load", onStyleLoad);
+
     mapRef.current = map;
     return () => {
+      map.off("style.load", onStyleLoad);
       geolocateControlRef.current = null;
       map.remove();
       mapRef.current = null;
@@ -592,11 +618,23 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const key = mapStyleCacheKey(mapStylePreset, resolvedTheme);
+    const key = mapStyleCacheKey(mapStylePreset, resolvedTheme, mapStyleOpts);
     if (appliedMapStyleKeyRef.current === key) return;
     appliedMapStyleKeyRef.current = key;
-    map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme));
-  }, [mapStylePreset, resolvedTheme]);
+    map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
+  }, [
+    mapStylePreset,
+    resolvedTheme,
+    mapStyleOpts.hillshades,
+    mapStyleOpts.satelliteLabels,
+  ]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (!map.isStyleLoaded()) return;
+    syncMapStyleOverlays(map, mapStylePreset, mapStyleOpts);
+  }, [mapStylePreset, mapStyleOpts.hillshades, mapStyleOpts.satelliteLabels]);
 
   /**
    * Apply camera/bbox from URL when it represents external navigation (search, shared link),

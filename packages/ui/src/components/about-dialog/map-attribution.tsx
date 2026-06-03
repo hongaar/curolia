@@ -12,13 +12,22 @@ export function MapAttributionInline() {
       >
         OpenFreeMap
       </a>{" "}
-      (Positron, Dark, and Liberty styles). Satellite imagery ©{" "}
+      (Positron, Dark, and Liberty styles) . Satellite imagery ©{" "}
       <a
         href="https://www.esri.com/en-us/legal/terms/full-master-agreement"
         target="_blank"
         rel="noopener noreferrer"
       >
         Esri
+      </a>
+      . Optional labels use the same OpenFreeMap vector data as street maps.
+      Optional hillshades from{" "}
+      <a
+        href="https://mapterhorn.com/attribution"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Mapterhorn
       </a>
       . Map data ©{" "}
       <a

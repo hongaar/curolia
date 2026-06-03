@@ -15,19 +15,30 @@
   background: var(--card);
   color: var(--foreground);
   text-align: left;
-  cursor: pointer;
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease,
     background 150ms ease;
 }
 
-.card:hover:not(:disabled) {
+.cardSelect {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.card:hover .cardSelect {
   border-color: color-mix(in oklch, var(--ring) 45%, var(--border));
 }
 
-.card:focus-visible {
+.cardSelect:focus-within {
   outline: none;
+}
+
+.card:has(.cardSelect:focus-visible) {
   border-color: var(--ring);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 45%, transparent);
 }
@@ -37,9 +48,13 @@
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--ring) 35%, transparent);
 }
 
-.card:disabled {
+.card:has(.cardSelect input[type="radio"]:disabled) {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.card:has(.cardSelect input[type="radio"]:disabled) .cardSelect {
+  cursor: not-allowed;
 }
 
 .preview {
@@ -87,6 +102,26 @@
   color: var(--muted-foreground);
   font-size: var(--font-size-xs);
   line-height: 1.35;
+}
+
+.footer {
+  padding: 0 0.625rem 0.625rem;
+}
+
+.footer label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.footer label:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .srOnlyInput {

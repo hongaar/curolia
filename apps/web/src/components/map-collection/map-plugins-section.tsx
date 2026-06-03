@@ -1,15 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/providers/auth-provider";
-import { pluginList } from "@/plugins/registry";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { PluginMapSettings } from "@/plugins/map-settings/plugin-map-settings";
-import type { MapPlugin, UserPlugin } from "@/types/database";
+import type { MapPlugin } from "@/types/database";
 import {
   PageMuted,
   PagePanel,
   PagePanelIcon,
   PagePanelTitleRow,
 } from "@curolia/ui/page";
+import { useQuery } from "@tanstack/react-query";
 
 type Props = {
   mapId: string;
@@ -21,20 +20,8 @@ type Props = {
  * For each account-level enabled plugin, shows per-map settings. Owners edit; other roles do not see this block.
  */
 export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
-  const { user } = useAuth();
-
-  const userPluginsQuery = useQuery({
-    queryKey: ["user_plugins", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from("user_plugins")
-        .select("*")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return (data ?? []) as UserPlugin[];
-    },
-    enabled: Boolean(user) && isOwner,
+  const { plugins: implementedEnabled, userPluginsQuery } = useEnabledPlugins({
+    queryEnabled: isOwner,
   });
 
   const mapPluginsQuery = useQuery({
@@ -53,16 +40,6 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
   if (roleLoading || !isOwner) {
     return null;
   }
-
-  const enabledTypeIds = new Set(
-    (userPluginsQuery.data ?? [])
-      .filter((up) => up.enabled)
-      .map((up) => up.plugin_type_id),
-  );
-
-  const implementedEnabled = pluginList.filter(
-    (plugin) => plugin.implemented && enabledTypeIds.has(plugin.id),
-  );
 
   if (userPluginsQuery.isLoading) {
     return (
