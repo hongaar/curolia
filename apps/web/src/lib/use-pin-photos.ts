@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Photo } from "@/types/database";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 function photoIdsKey(photos: Photo[]) {
   return photos.map((p) => `${p.id}:${p.storage_path ?? ""}`).join("|");
@@ -30,12 +30,25 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
     queryKey: ["photo-urls", pinId, idsKey],
     queryFn: async () => {
       const out: Record<string, string> = {};
-      for (const p of photos) {
-        if (!p.storage_path) continue;
-        const { data, error } = await supabase.storage
-          .from("pin-photos")
-          .createSignedUrl(p.storage_path, 3600);
-        if (!error && data?.signedUrl) out[p.id] = data.signedUrl;
+      const paths = photos
+        .filter((p) => p.storage_path)
+        .map((p) => ({ id: p.id, path: p.storage_path! }));
+      if (paths.length === 0) return out;
+
+      const { data, error } = await supabase.storage
+        .from("pin-photos")
+        .createSignedUrls(
+          paths.map((p) => p.path),
+          3600,
+        );
+      if (error) {
+        console.error("pin-photos createSignedUrls", error);
+        return out;
+      }
+      for (let i = 0; i < paths.length; i++) {
+        const row = data?.[i];
+        if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
+        else if (row?.error) console.error(paths[i]!.path, row.error);
       }
       return out;
     },
@@ -80,12 +93,25 @@ export function useMapPinsPhotosSignedUrls(
     queryKey: ["photo-urls-batch", mapId, idsKey],
     queryFn: async () => {
       const out: Record<string, string> = {};
-      for (const p of photos) {
-        if (!p.storage_path) continue;
-        const { data, error } = await supabase.storage
-          .from("pin-photos")
-          .createSignedUrl(p.storage_path, 3600);
-        if (!error && data?.signedUrl) out[p.id] = data.signedUrl;
+      const paths = photos
+        .filter((p) => p.storage_path)
+        .map((p) => ({ id: p.id, path: p.storage_path! }));
+      if (paths.length === 0) return out;
+
+      const { data, error } = await supabase.storage
+        .from("pin-photos")
+        .createSignedUrls(
+          paths.map((p) => p.path),
+          3600,
+        );
+      if (error) {
+        console.error("pin-photos createSignedUrls", error);
+        return out;
+      }
+      for (let i = 0; i < paths.length; i++) {
+        const row = data?.[i];
+        if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
+        else if (row?.error) console.error(paths[i]!.path, row.error);
       }
       return out;
     },

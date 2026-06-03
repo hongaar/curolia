@@ -112,6 +112,11 @@ type PinRow = {
   lng: number;
 };
 
+type PickerMediaFileMetadata = {
+  width?: number;
+  height?: number;
+};
+
 type PickerMediaItem = {
   id: string;
   createTime?: string;
@@ -120,8 +125,30 @@ type PickerMediaItem = {
     baseUrl: string;
     mimeType?: string;
     filename?: string;
+    mediaFileMetadata?: PickerMediaFileMetadata;
   };
 };
+
+function pickerMediaDimensions(
+  mediaFile: PickerMediaItem["mediaFile"],
+): { width: number; height: number } | null {
+  const meta = mediaFile?.mediaFileMetadata;
+  if (!meta) return null;
+  const width = meta.width;
+  const height = meta.height;
+  if (
+    typeof width === "number" &&
+    typeof height === "number" &&
+    width > 0 &&
+    height > 0
+  ) {
+    return { width, height };
+  }
+  return null;
+}
+
+/** Max photos per import request (keeps local edge + storage uploads under timeout). */
+const MAX_IMPORT_MEDIA_PER_REQUEST = 6;
 
 type Body =
   | {
@@ -129,6 +156,8 @@ type Body =
       pinId: string;
       mediaItemIds: string[];
       pickerSessionId: string;
+      /** When false, keep the picker session open for follow-up import batches. Default true. */
+      finalizePickerSession?: boolean;
     }
   | { action: "picker_create"; pinId?: string }
   | { action: "picker_session"; sessionId: string }
@@ -349,6 +378,39 @@ async function fetchGooglePhotoBytes(
   });
   if (!imgRes.ok) return null;
   return new Uint8Array(await imgRes.arrayBuffer());
+}
+
+function isStorageUploadRetryable(err: {
+  message?: string;
+  statusCode?: string;
+}): boolean {
+  const code = err.statusCode ?? "";
+  if (code === "504" || code === "503" || code === "500") return true;
+  const msg = err.message?.toLowerCase() ?? "";
+  return msg.includes("timeout") || msg.includes("timed out");
+}
+
+async function uploadPinPhoto(
+  admin: ReturnType<typeof createClient>,
+  path: string,
+  buf: Uint8Array,
+  mime: string,
+): Promise<{ ok: true } | { ok: false; error: unknown }> {
+  const body = new Blob([buf], { type: mime });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error: upErr } = await admin.storage
+      .from("pin-photos")
+      .upload(path, body, {
+        contentType: mime,
+        upsert: false,
+      });
+    if (!upErr) return { ok: true };
+    if (!isStorageUploadRetryable(upErr) || attempt === 2) {
+      return { ok: false, error: upErr };
+    }
+    await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+  }
+  return { ok: false, error: new Error("upload_retries_exhausted") };
 }
 
 async function thumbDataUrl(
@@ -650,6 +712,24 @@ Deno.serve(async (req: Request) => {
   }
 
   if (body.action === "import") {
+    const mediaItemIds = Array.isArray(body.mediaItemIds)
+      ? body.mediaItemIds.filter((x): x is string => typeof x === "string")
+      : [];
+    if (mediaItemIds.length > MAX_IMPORT_MEDIA_PER_REQUEST) {
+      return new Response(
+        JSON.stringify({
+          error: "import_batch_too_large",
+          message: `Import at most ${MAX_IMPORT_MEDIA_PER_REQUEST} photos per request.`,
+        }),
+        {
+          status: 400,
+          headers: { ...cors(), "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const finalizePickerSession = body.finalizePickerSession !== false;
+
     const { data: pin, error: te } = await admin
       .from("pins")
       .select("id, map_id, date, end_date, lat, lng")
@@ -681,6 +761,7 @@ Deno.serve(async (req: Request) => {
     const imported: string[] = [];
     const skippedAlreadyOnPin: string[] = [];
     const downloadFailed: string[] = [];
+    const storageFailed: string[] = [];
     let sort =
       (
         await admin
@@ -744,7 +825,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    for (const mediaId of body.mediaItemIds) {
+    for (const mediaId of mediaItemIds) {
       if (existingMediaIds.has(mediaId)) {
         skippedAlreadyOnPin.push(mediaId);
         continue;
@@ -786,7 +867,7 @@ Deno.serve(async (req: Request) => {
         buf = await fetchGooglePhotoBytes(
           accessToken,
           mf.baseUrl,
-          "=w1600-h1600",
+          "=w1200-h1200",
         );
       }
 
@@ -797,26 +878,31 @@ Deno.serve(async (req: Request) => {
 
       const path = `${t.map_id}/${t.id}/gp-${mediaId}.${ext}`;
 
-      const { error: upErr } = await admin.storage
-        .from("pin-photos")
-        .upload(path, buf, {
-          contentType: mime,
-          upsert: false,
-        });
-      if (upErr) {
+      const upload = await uploadPinPhoto(admin, path, buf, mime);
+      if (!upload.ok) {
+        const upErr = upload.error as {
+          message?: string;
+          statusCode?: string;
+        };
         const duplicate =
           upErr.message?.toLowerCase().includes("already exists") ||
-          (upErr as { statusCode?: string }).statusCode === "409";
+          upErr.statusCode === "409";
         if (duplicate) {
           skippedAlreadyOnPin.push(mediaId);
         } else {
           console.error(upErr);
-          downloadFailed.push(mediaId);
+          if (isStorageUploadRetryable(upErr)) {
+            storageFailed.push(mediaId);
+          } else {
+            downloadFailed.push(mediaId);
+          }
         }
         continue;
       }
 
       sort += 1;
+
+      const dimensions = pickerMediaDimensions(mf);
 
       const { data: ins, error: insErr } = await admin
         .from("photos")
@@ -828,6 +914,9 @@ Deno.serve(async (req: Request) => {
           source_plugin_id: "google_photos",
           external_ref,
           captured_at: capturedAt ? new Date(capturedAt).toISOString() : null,
+          ...(dimensions
+            ? { width: dimensions.width, height: dimensions.height }
+            : {}),
         })
         .select("id")
         .single();
@@ -841,7 +930,7 @@ Deno.serve(async (req: Request) => {
       existingMediaIds.add(mediaId);
     }
 
-    if (pickerSessionId) {
+    if (finalizePickerSession && pickerSessionId) {
       await deletePickerSession(accessToken, pickerSessionId);
     }
 
@@ -850,6 +939,7 @@ Deno.serve(async (req: Request) => {
         importedIds: imported,
         skippedAlreadyOnPin,
         downloadFailed,
+        storageFailed,
       }),
       {
         status: 200,

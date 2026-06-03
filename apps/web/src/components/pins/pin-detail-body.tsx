@@ -21,8 +21,8 @@ import {
   PinDetailTagRow,
   PinDetailTitle,
 } from "@curolia/ui/pin-detail";
+import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
-import { PinPhotoMasonry } from "@curolia/ui/pin-photo-masonry";
 import { Link2Icon } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -86,19 +86,25 @@ export function PinDetailBody({
     [photos, signedUrlByPhotoId],
   );
 
-  const masonryItems = useMemo(() => {
-    const out: Parameters<typeof PinPhotoMasonry>[0]["items"] = [];
+  const galleryItems = useMemo(() => {
+    const out: Parameters<typeof PinPhotoGallery>[0]["items"] = [];
     for (const p of photos) {
       const url = signedUrlByPhotoId[p.id];
       if (!url) continue;
-      out.push({ id: p.id, url });
+      out.push({
+        id: p.id,
+        url,
+        ...(p.width != null && p.height != null
+          ? { width: p.width, height: p.height }
+          : {}),
+      });
     }
     return out;
   }, [photos, signedUrlByPhotoId]);
 
   const photoPlaceholders =
     photosLoading && photos.length > 0
-      ? Math.max(0, photos.length - masonryItems.length)
+      ? Math.max(0, photos.length - galleryItems.length)
       : 0;
 
   const pinSubtitle = formatPinDetailSubtitle(
@@ -157,8 +163,8 @@ export function PinDetailBody({
           <PinDetailDescription markdown={pin.description} />
         ) : null}
         {photos.length > 0 || photoPlaceholders > 0 ? (
-          <PinPhotoMasonry
-            items={masonryItems}
+          <PinPhotoGallery
+            items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
             onOpen={(photoId) => setPhotoLightbox({ photoId })}
           />

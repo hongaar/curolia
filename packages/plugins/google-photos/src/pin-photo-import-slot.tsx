@@ -16,7 +16,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
-  googlePhotosImport,
+  googlePhotosImportBatched,
   googlePhotosPickerCreate,
   googlePhotosPickerList,
   googlePhotosWaitForPickerSelection,
@@ -29,10 +29,12 @@ function toastGooglePhotosImportResult(result: {
   importedIds: string[];
   skippedAlreadyOnPin: string[];
   downloadFailed: string[];
+  storageFailed: string[];
 }) {
   const imported = result.importedIds.length;
   const already = result.skippedAlreadyOnPin.length;
   const denied = result.downloadFailed.length;
+  const storage = result.storageFailed.length;
 
   if (imported > 0) {
     toast.success(
@@ -53,7 +55,14 @@ function toastGooglePhotosImportResult(result: {
         : `Google denied download for ${denied} photos.`,
     );
   }
-  if (imported === 0 && already === 0 && denied === 0) {
+  if (storage > 0) {
+    toast.error(
+      storage === 1
+        ? "Storage timed out saving 1 photo. Retry import or restart local Supabase."
+        : `Storage timed out saving ${storage} photos. Retry import or restart local Supabase.`,
+    );
+  }
+  if (imported === 0 && already === 0 && denied === 0 && storage === 0) {
     toast.message("Nothing imported.");
   }
 }
@@ -133,7 +142,7 @@ export function GooglePhotosPinPhotoImportSlot({
       if (ids.length === 0) {
         return { kind: "none_selected" as const };
       }
-      const importResult = await googlePhotosImport(
+      const importResult = await googlePhotosImportBatched(
         supabase,
         pinId,
         ids,

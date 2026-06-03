@@ -71,7 +71,7 @@
     "./pin-links": "./src/components/pin-links/index.ts",
     "./pin-metadata-footer": "./src/components/pin-metadata-footer/index.ts",
     "./pin-photo-lightbox": "./src/components/pin-photo-lightbox/index.ts",
-    "./pin-photo-masonry": "./src/components/pin-photo-masonry/index.ts",
+    "./pin-photo-gallery": "./src/components/pin-photo-gallery/index.ts",
     "./user-avatar": "./src/components/user-avatar/index.ts",
     "./lib/utils": "./src/lib/utils.ts"
   },

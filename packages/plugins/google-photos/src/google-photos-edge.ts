@@ -208,18 +208,23 @@ export type GooglePhotosImportResult = {
   importedIds: string[];
   skippedAlreadyOnPin: string[];
   downloadFailed: string[];
+  storageFailed: string[];
 };
+
+const IMPORT_BATCH_SIZE = 3;
 
 export async function googlePhotosImport(
   supabase: SupabaseClient,
   pinId: string,
   mediaItemIds: string[],
   pickerSessionId: string,
+  options?: { finalizePickerSession?: boolean },
 ): Promise<GooglePhotosImportResult> {
   const { data, error } = await supabase.functions.invoke<{
     importedIds?: string[];
     skippedAlreadyOnPin?: string[];
     downloadFailed?: string[];
+    storageFailed?: string[];
     error?: string;
     message?: string;
   }>("google-photos", {
@@ -228,6 +233,7 @@ export async function googlePhotosImport(
       pinId,
       mediaItemIds,
       pickerSessionId,
+      finalizePickerSession: options?.finalizePickerSession,
     },
   });
   if (error) throw error;
@@ -236,5 +242,39 @@ export async function googlePhotosImport(
     importedIds: data?.importedIds ?? [],
     skippedAlreadyOnPin: data?.skippedAlreadyOnPin ?? [],
     downloadFailed: data?.downloadFailed ?? [],
+    storageFailed: data?.storageFailed ?? [],
   };
+}
+
+/** Import in small batches so each edge request stays within local storage timeouts. */
+export async function googlePhotosImportBatched(
+  supabase: SupabaseClient,
+  pinId: string,
+  mediaItemIds: string[],
+  pickerSessionId: string,
+): Promise<GooglePhotosImportResult> {
+  const merged: GooglePhotosImportResult = {
+    importedIds: [],
+    skippedAlreadyOnPin: [],
+    downloadFailed: [],
+    storageFailed: [],
+  };
+  if (mediaItemIds.length === 0) return merged;
+
+  for (let i = 0; i < mediaItemIds.length; i += IMPORT_BATCH_SIZE) {
+    const chunk = mediaItemIds.slice(i, i + IMPORT_BATCH_SIZE);
+    const isLast = i + IMPORT_BATCH_SIZE >= mediaItemIds.length;
+    const batch = await googlePhotosImport(
+      supabase,
+      pinId,
+      chunk,
+      pickerSessionId,
+      { finalizePickerSession: isLast },
+    );
+    merged.importedIds.push(...batch.importedIds);
+    merged.skippedAlreadyOnPin.push(...batch.skippedAlreadyOnPin);
+    merged.downloadFailed.push(...batch.downloadFailed);
+    merged.storageFailed.push(...batch.storageFailed);
+  }
+  return merged;
 }

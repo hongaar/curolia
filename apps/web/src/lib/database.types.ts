@@ -251,34 +251,40 @@ export type Database = {
           captured_at: string | null;
           created_at: string;
           external_ref: Json | null;
+          height: number | null;
           id: string;
           map_id: string;
           pin_id: string;
           sort_order: number;
           source_plugin_id: string | null;
           storage_path: string | null;
+          width: number | null;
         };
         Insert: {
           captured_at?: string | null;
           created_at?: string;
           external_ref?: Json | null;
+          height?: number | null;
           id?: string;
           map_id: string;
           pin_id: string;
           sort_order?: number;
           source_plugin_id?: string | null;
           storage_path?: string | null;
+          width?: number | null;
         };
         Update: {
           captured_at?: string | null;
           created_at?: string;
           external_ref?: Json | null;
+          height?: number | null;
           id?: string;
           map_id?: string;
           pin_id?: string;
           sort_order?: number;
           source_plugin_id?: string | null;
           storage_path?: string | null;
+          width?: number | null;
         };
         Relationships: [
           {

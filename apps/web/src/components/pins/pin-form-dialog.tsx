@@ -2,6 +2,7 @@
 import { PinLinksEditor } from "@/components/pins/pin-links-editor";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
+import { imageDimensionsFromFile } from "@/lib/image-dimensions";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { reversePhotonGeocode } from "@/lib/photon-geocode";
 import {
@@ -661,11 +662,13 @@ export function PinFormDialog({
         console.error(upErr);
         continue;
       }
+      const dims = await imageDimensionsFromFile(file);
       const { error: insErr } = await supabase.from("photos").insert({
         map_id: mapId,
         pin_id: pin.id,
         storage_path: path,
         sort_order: sort++,
+        ...(dims ? { width: dims.width, height: dims.height } : {}),
       });
       if (insErr) console.error(insErr);
     }

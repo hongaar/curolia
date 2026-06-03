@@ -101,6 +101,8 @@ export type Photo = {
   source_plugin_id: string | null;
   external_ref: Record<string, unknown> | null;
   captured_at: string | null;
+  width: number | null;
+  height: number | null;
 };
 
 export type PinLink = {
