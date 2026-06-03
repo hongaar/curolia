@@ -4,7 +4,11 @@
  */
 import { spotifyPluginMeta } from "./plugin-meta";
 
-const SPOTIFY_RESOURCE_SCOPES = ["user-read-recently-played"] as const;
+const SPOTIFY_RESOURCE_SCOPES = [
+  "user-read-email",
+  "playlist-read-private",
+  "user-library-read",
+] as const;
 
 export const pluginOAuthRegistry = {
   id: spotifyPluginMeta.typeId,

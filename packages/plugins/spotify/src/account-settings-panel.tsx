@@ -90,8 +90,8 @@ export function SpotifyAccountSettingsPanel(props: PluginAccountPanelProps) {
       ) : (
         <PluginAccountRow gap="sm">
           <PluginAccountMuted>
-            Connect Spotify to add top tracks you listened to during each
-            pin&apos;s dates (as links).
+            Link Spotify to search your playlists and saved tracks when editing
+            pins.
           </PluginAccountMuted>
           <PluginAccountButton type="button" onClick={() => void onLink()}>
             Link Spotify

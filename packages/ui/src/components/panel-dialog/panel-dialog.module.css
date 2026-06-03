@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 0;
   max-width: min(
-    28rem,
+    var(--panel-dialog-max-width, 28rem),
     calc(100% - 3rem - var(--safe-left) - var(--safe-right))
   );
   max-height: min(90dvh, calc(100dvh - var(--toolbar-offset) - 1.5rem));
@@ -14,6 +14,10 @@
   background: var(--panel-bg);
   box-shadow: none;
   backdrop-filter: blur(24px);
+}
+
+.panelContentWide {
+  --panel-dialog-max-width: 40rem;
 }
 
 .panelHeader {

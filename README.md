@@ -282,7 +282,7 @@ cd packages/supabase && npx supabase secrets set \
   GOOGLE_CLIENT_ID=... \
   GOOGLE_CLIENT_SECRET=... \
   SPOTIFY_CLIENT_ID=...
-# Optional: SPOTIFY_CLIENT_SECRET=...  — if your Spotify app uses a client secret
+  SPOTIFY_CLIENT_SECRET=...  # required for spotify Edge (track/playlist metadata)
 ```
 
 Provider-specific redirect URIs and dashboards: [Google Photos](packages/plugins/google-photos/README.md), [Spotify](packages/plugins/spotify/README.md), [Last.fm](packages/plugins/lastfm/README.md). The **`plugin-oauth`** callback path is always **`/functions/v1/plugin-oauth?action=callback`** on your Supabase API URL.

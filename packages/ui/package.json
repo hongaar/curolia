@@ -54,6 +54,7 @@
     "./plugin-pin": "./src/components/plugin-pin/index.ts",
     "./plugins": "./src/components/plugins/index.ts",
     "./popover": "./src/components/popover/index.ts",
+    "./search-combobox": "./src/components/search-combobox/index.ts",
     "./select": "./src/components/select/index.ts",
     "./separator": "./src/components/separator/index.ts",
     "./sheet": "./src/components/sheet/index.ts",

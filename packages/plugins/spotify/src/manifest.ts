@@ -1,21 +1,27 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { SpotifyAccountSettingsPanel } from "./account-settings-panel";
 import { SpotifyIcon } from "./icon";
-import { spotifyPluginMeta } from "./plugin-meta";
 import { SpotifyPinDetailSection } from "./pin-detail-section";
+import { SpotifyPinFormSection } from "./pin-form-section";
+import { spotifyPluginMeta } from "./plugin-meta";
 
-/** Spotify Web API scopes (PKCE); companion scopes for `spotify` live in `@curolia/plugin-oauth`. */
-const SPOTIFY_RESOURCE_SCOPES = ["user-read-recently-played"] as const;
+const SPOTIFY_RESOURCE_SCOPES = [
+  "user-read-email",
+  "playlist-read-private",
+  "user-library-read",
+] as const;
 
 export const spotifyPluginManifest: PluginPackageManifest = {
   id: spotifyPluginMeta.typeId,
   displayName: spotifyPluginMeta.displayName,
   description:
-    "Show your most-played Spotify tracks during each pin’s date range on the pin page.",
+    "Attach Spotify tracks and playlists to pins so each place has a soundtrack.",
   icon: SpotifyIcon,
   implemented: spotifyPluginMeta.implemented,
   AccountSettingsPanel: SpotifyAccountSettingsPanel,
+  PinFormSection: SpotifyPinFormSection,
   PinDetailSection: SpotifyPinDetailSection,
+  pinDetailPlain: true,
   contributions: {
     oauth: [
       {
@@ -28,7 +34,7 @@ export const spotifyPluginManifest: PluginPackageManifest = {
         slug: "spotify",
         verifyJwt: true,
         description:
-          "Fetch Spotify listening history for a pin window and upsert plugin_entity_data.",
+          "Resolve Spotify track and playlist URLs to metadata for pin attachments.",
       },
     ],
   },

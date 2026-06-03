@@ -1,7 +1,7 @@
-import type { PluginContributions } from "./contributions";
-import type { PluginAccountSettingsComponent } from "./account-panel";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ComponentType } from "react";
+import type { PluginAccountSettingsComponent } from "./account-panel";
+import type { PluginContributions } from "./contributions";
 
 /** Props for optional pin editor UI next to native photo upload (cloud library importers). */
 export type PinPhotoImportSlotProps = {
@@ -43,9 +43,19 @@ export type PluginDefinition = {
    */
   PinPhotoImportSlot?: ComponentType<PinPhotoImportSlotProps>;
   /**
-   * Optional block on the pin detail page (plugin-owned UI + data loaded via plugin routes).
+   * Optional body for the pin editor plugin card (existing pins). The web shell
+   * wraps this in a card with the plugin icon and display name.
+   */
+  PinFormSection?: ComponentType<PinContextProps>;
+  /**
+   * Optional read-only block on the pin detail page.
    */
   PinDetailSection?: ComponentType<PinContextProps>;
+  /**
+   * When true, {@link PinDetailSection} is rendered without the default plugin
+   * card chrome (icon, title, bordered card). Use for embed-first surfaces.
+   */
+  pinDetailPlain?: boolean;
 };
 
 export type PluginRegistry = Record<string, PluginDefinition>;

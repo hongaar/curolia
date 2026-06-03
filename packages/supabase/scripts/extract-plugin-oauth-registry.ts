@@ -15,9 +15,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../../..");
 const pluginsRoot = path.join(repoRoot, "packages", "plugins");
 
-/** Kept in repo but not registered for OAuth (see plugin README). */
-const DISABLED_PLUGIN_PACKAGE_DIRS = new Set(["spotify"]);
-
 const registryOutPath = path.join(
   pluginsRoot,
   "oauth",
@@ -34,7 +31,6 @@ async function collectFromManifests(): Promise<ByPluginMap> {
 
   for (const ent of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
     if (!ent.isDirectory()) continue;
-    if (DISABLED_PLUGIN_PACKAGE_DIRS.has(ent.name)) continue;
     const pkgDir = path.join(pluginsRoot, ent.name);
     const oauthRegistryTs = path.join(pkgDir, "src", "oauth-registry.ts");
     if (!fs.existsSync(oauthRegistryTs)) continue;

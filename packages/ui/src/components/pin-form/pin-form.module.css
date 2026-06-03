@@ -24,6 +24,60 @@
   gap: 1.25rem;
 }
 
+.pluginSectionCard {
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--muted) 10%, transparent);
+  box-shadow: none;
+}
+
+.pluginSectionHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.pluginSectionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.pluginSectionIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.125em;
+  height: 1.125em;
+  color: var(--muted-foreground);
+}
+
+.pluginSectionIcon > * {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pluginSectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: inherit;
+  font-weight: 400;
+  line-height: inherit;
+  letter-spacing: -0.025em;
+}
+
+.pluginSectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .coordsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

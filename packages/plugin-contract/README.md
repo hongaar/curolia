@@ -63,7 +63,9 @@ This keeps plugin add/remove flow dependency-driven (no manual registry edits).
 ### Pin UI surfaces
 
 - **`PinPhotoImportSlot`**: pin editor (e.g. cloud photo pickers).
-- **`PinDetailSection`**: optional block on the pin detail route; receives **`PinContextProps`** (pin id, map id, dates, `supabase`, `userId`). Plugins that persist JSON should use the shared **`plugin_entity_data`** table (see Supabase migrations).
+- **`PinFormSection`**: optional card body in the pin editor for existing pins; `@curolia/web` supplies the card header (icon + name).
+- **`PinDetailSection`**: optional read-only block on the pin detail route; receives **`PinContextProps`** (pin id, map id, dates, `supabase`, `userId`). Plugins that persist JSON should use the shared **`plugin_entity_data`** table (see Supabase migrations).
+- **`pinDetailPlain`**: set on the manifest when the detail section should omit plugin card chrome (logo, title, bordered card)—e.g. an embed-only block.
 
 ### Entity-attached plugin data
 

@@ -63,6 +63,7 @@ import {
   PinFormPhotoPlaceholder,
   PinFormPhotoRemoveButton,
   PinFormPhotoThumb,
+  PinFormPluginSectionCard,
   PinFormTagBox,
   PinFormTagOption,
   PinFormUploadInput,
@@ -892,6 +893,29 @@ export function PinFormDialog({
           ) : null}
         </PinFormTagBox>
       </FormField>
+      {pin
+        ? pluginList.map((p) => {
+            const Section = p.PinFormSection;
+            if (!Section) return null;
+            const PluginIcon = p.icon;
+            return (
+              <PinFormPluginSectionCard
+                key={`form-${p.id}`}
+                icon={<PluginIcon size={4} />}
+                title={p.displayName}
+              >
+                <Section
+                  supabase={supabase}
+                  userId={user?.id}
+                  pinId={pin.id}
+                  mapId={mapId}
+                  pinDate={pin.date}
+                  pinEndDate={pin.end_date}
+                />
+              </PinFormPluginSectionCard>
+            );
+          })
+        : null}
       {pin ? (
         <CautionPanel
           title="Danger zone"
@@ -1075,7 +1099,11 @@ export function PinFormDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <PinFormPanelDialog title={dialogTitle} footer={footerActions}>
+        <PinFormPanelDialog
+          title={dialogTitle}
+          footer={footerActions}
+          size={pin ? "wide" : "default"}
+        >
           {formFields}
         </PinFormPanelDialog>
       </Dialog>

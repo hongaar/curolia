@@ -1,14 +1,8 @@
-/** Client refetch guard: don’t sync more often than this when revisiting a pin. */
-export const SPOTIFY_SYNC_STALE_TIME_MS = 60_000;
+/** Minimum characters before calling Spotify search. */
+export const SPOTIFY_SEARCH_MIN_CHARS = 2;
 
-/** Max tracks persisted (Spotify “top” by play count in the period). */
-export const SPOTIFY_TOP_TRACKS_LIMIT = 3;
+/** Debounce delay for search input (ms). */
+export const SPOTIFY_SEARCH_DEBOUNCE_MS = 300;
 
-/** Spotify API allows up to 50 per request. */
-export const SPOTIFY_RECENTLY_PLAYED_PAGE_LIMIT = 50;
-
-/**
- * Hard cap on pagination requests for recently-played (long pin windows).
- * Total plays scanned ≤ PAGE_LIMIT × MAX_PAGES (e.g. 50 × 12 = 600).
- */
-export const SPOTIFY_RECENTLY_PLAYED_MAX_PAGES = 12;
+/** Shown when search requires a linked Spotify account. */
+export const SPOTIFY_LINK_REQUIRED_ERROR = "spotify_link_required";

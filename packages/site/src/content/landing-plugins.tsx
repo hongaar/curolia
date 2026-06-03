@@ -45,8 +45,8 @@ export const landingPlugins: LandingPlugin[] = [
   {
     id: "spotify",
     name: "Spotify",
-    description: "Soundtrack each place you pinned",
-    status: "coming-soon",
+    description: "Attach tracks and playlists to pins",
+    status: "available",
     icon: () => <SpotifyIcon size={6} />,
   },
   {

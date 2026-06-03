@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import type * as React from "react";
 
+import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import {
   FormErrorText,
   FormField,
@@ -61,15 +62,20 @@ export function PinFormPanelDialog({
   children,
   footer,
   footerBetween = false,
+  size = "default",
   ...contentProps
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   footer: React.ReactNode;
   footerBetween?: boolean;
-} & Omit<React.ComponentProps<typeof PanelDialogContent>, "children">) {
+  size?: React.ComponentProps<typeof PanelDialogContent>["size"];
+} & Omit<
+  React.ComponentProps<typeof PanelDialogContent>,
+  "children" | "size"
+>) {
   return (
-    <PanelDialogContent {...contentProps}>
+    <PanelDialogContent size={size} {...contentProps}>
       <PanelDialogHeader>
         <PanelDialogTitle>{title}</PanelDialogTitle>
       </PanelDialogHeader>
@@ -282,6 +288,31 @@ export function PinFormFooterSplit({
       {start}
       <div className={styles.footerSplitEnd}>{end}</div>
     </>
+  );
+}
+
+/** Pin editor card for a plugin form section (icon + title from shell; body from plugin). */
+export function PinFormPluginSectionCard({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  if (children == null || children === false) return null;
+
+  return (
+    <Card className={styles.pluginSectionCard}>
+      <CardHeader className={styles.pluginSectionHeader}>
+        <div className={styles.pluginSectionTitleRow}>
+          <span className={styles.pluginSectionIcon}>{icon}</span>
+          <CardTitle className={styles.pluginSectionTitle}>{title}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className={styles.pluginSectionBody}>{children}</CardContent>
+    </Card>
   );
 }
 

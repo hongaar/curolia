@@ -77,6 +77,28 @@ export function PluginPinList({ children }: { children: React.ReactNode }) {
   return <ul className={styles.trackList}>{children}</ul>;
 }
 
+function PluginPinTrackAnchor({
+  href,
+  icon,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.trackLink}
+    >
+      <span className={styles.trackIcon}>{icon}</span>
+      {children}
+    </a>
+  );
+}
+
 export function PluginPinLink({
   href,
   icon,
@@ -88,19 +110,115 @@ export function PluginPinLink({
 }) {
   return (
     <li>
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles.trackLink}
-      >
-        <span className={styles.trackIcon}>{icon}</span>
+      <PluginPinTrackAnchor href={href} icon={icon}>
         {children}
-      </a>
+      </PluginPinTrackAnchor>
     </li>
+  );
+}
+
+export function PluginPinInlineLink({
+  href,
+  icon,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <PluginPinTrackAnchor href={href} icon={icon}>
+      {children}
+    </PluginPinTrackAnchor>
   );
 }
 
 export function PluginPinLinkMeta({ children }: { children: React.ReactNode }) {
   return <span className={styles.trackMeta}>{children}</span>;
+}
+
+export function PluginPinAddRow({ children }: { children: React.ReactNode }) {
+  return <div className={styles.addRow}>{children}</div>;
+}
+
+export function PluginPinAddRowInput({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.addRowInput}>{children}</div>;
+}
+
+export function PluginPinItemRow({ children }: { children: React.ReactNode }) {
+  return <li className={styles.itemRow}>{children}</li>;
+}
+
+export function PluginPinItemMain({ children }: { children: React.ReactNode }) {
+  return <div className={styles.itemMain}>{children}</div>;
+}
+
+export function PluginPinSearchResults({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <ul className={styles.searchResults}>{children}</ul>;
+}
+
+export function PluginPinSearchHit({
+  title,
+  meta,
+  imageUrl,
+  disabled,
+  onClick,
+}: {
+  title: string;
+  meta: string | null;
+  imageUrl: string | null;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        className={styles.searchHit}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {imageUrl ? (
+          <img src={imageUrl} alt="" className={styles.searchHitArt} />
+        ) : (
+          <span className={styles.searchHitArt} aria-hidden />
+        )}
+        <span className={styles.searchHitBody}>
+          <span className={styles.searchHitTitle}>{title}</span>
+          {meta ? <span className={styles.searchHitMeta}>{meta}</span> : null}
+        </span>
+      </button>
+    </li>
+  );
+}
+
+export function PluginPinEmbed({
+  src,
+  title,
+  height,
+}: {
+  src: string;
+  title: string;
+  height: number;
+}) {
+  return (
+    <iframe
+      className={styles.embed}
+      src={src}
+      title={title}
+      width="100%"
+      height={height}
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      referrerPolicy="strict-origin-when-cross-origin"
+    />
+  );
 }

@@ -11,13 +11,25 @@ import {
 } from "../dialog";
 import styles from "./panel-dialog.module.css";
 
+export type PanelDialogSize = "default" | "wide";
+
 export function PanelDialogContent({
   children,
   className,
+  size = "default",
   ...props
-}: ComponentProps<typeof DialogContent>) {
+}: ComponentProps<typeof DialogContent> & {
+  size?: PanelDialogSize;
+}) {
   return (
-    <DialogContent className={cn(styles.panelContent, className)} {...props}>
+    <DialogContent
+      className={cn(
+        styles.panelContent,
+        size === "wide" && styles.panelContentWide,
+        className,
+      )}
+      {...props}
+    >
       {children}
     </DialogContent>
   );
