@@ -17,19 +17,7 @@ export type LoginLayoutProps = {
 export function LoginLayout({ children, backdropStyle }: LoginLayoutProps) {
   return (
     <div className={styles.page}>
-      <div
-        className={styles.backdrop}
-        style={
-          backdropStyle ?? {
-            background: `
-            radial-gradient(ellipse 120% 80% at 20% 20%, oklch(0.55 0.08 158 / 0.18), transparent 50%),
-            radial-gradient(ellipse 100% 60% at 80% 70%, oklch(0.55 0.06 250 / 0.14), transparent 45%),
-            linear-gradient(165deg, oklch(0.94 0.02 88) 0%, oklch(0.9 0.025 95) 100%)
-          `,
-          }
-        }
-        aria-hidden
-      />
+      <div className={styles.backdrop} style={backdropStyle} aria-hidden />
       <FloatingPanel padding="lg" elevated className={styles.panel}>
         {children}
       </FloatingPanel>
