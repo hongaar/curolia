@@ -1,6 +1,7 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { LastfmAccountSettingsPanel } from "./account-settings-panel";
 import { LastfmIcon } from "./icon";
+import { LastfmMapSettingsPanel } from "./map-settings-panel";
 import { LastfmPinDetailSection } from "./pin-detail-section";
 import { lastfmPluginMeta } from "./plugin-meta";
 
@@ -12,6 +13,7 @@ export const lastfmPluginManifest: PluginPackageManifest = {
   icon: LastfmIcon,
   implemented: lastfmPluginMeta.implemented,
   AccountSettingsPanel: LastfmAccountSettingsPanel,
+  MapSettingsPanel: LastfmMapSettingsPanel,
   PinDetailSection: LastfmPinDetailSection,
   contributions: {
     mapSettings: {

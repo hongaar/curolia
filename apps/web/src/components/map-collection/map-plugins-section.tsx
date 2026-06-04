@@ -1,6 +1,5 @@
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseUrl } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
-import { PluginMapSettings } from "@/plugins/map-settings/plugin-map-settings";
 import type { MapPlugin } from "@/types/database";
 import {
   PageMuted,
@@ -70,6 +69,7 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
         const jp = mapPluginsQuery.data?.find(
           (c) => c.plugin_type_id === plugin.id,
         );
+        const MapSettingsPanel = plugin.MapSettingsPanel;
         return (
           <PagePanel key={plugin.id}>
             <PagePanelTitleRow
@@ -84,13 +84,16 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
             <PageMuted>
               {plugin.description ?? "Plugin map settings."}
             </PageMuted>
-            <PluginMapSettings
-              pluginTypeId={plugin.id}
-              mapId={mapId}
-              jp={jp}
-              pluginGloballyEnabled
-              readOnly={false}
-            />
+            {MapSettingsPanel ? (
+              <MapSettingsPanel
+                supabase={supabase}
+                supabaseUrl={supabaseUrl}
+                mapId={mapId}
+                jp={jp}
+                pluginGloballyEnabled
+                readOnly={false}
+              />
+            ) : null}
           </PagePanel>
         );
       })}

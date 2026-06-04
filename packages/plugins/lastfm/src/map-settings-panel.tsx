@@ -1,11 +1,5 @@
-import type { Json } from "@/lib/database.types";
-import { supabase } from "@/lib/supabase";
-import type { MapPlugin } from "@/types/database";
+import type { MapSettingsPanelProps } from "@curolia/plugin-contract";
 import { mapPluginConfigRecord } from "@curolia/plugin-contract";
-import {
-  isOpenMeteoEnabledForMap,
-  OPEN_METEO_PLUGIN_ID,
-} from "@curolia/plugin-open-meteo";
 import { Label } from "@curolia/ui/label";
 import {
   PluginSettingsBox,
@@ -17,28 +11,26 @@ import {
 import { Switch } from "@curolia/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { LastfmMapPluginRow } from "./config";
+import { isLastfmEnabledForMap, LASTFM_PLUGIN_ID } from "./config";
 
-export function OpenMeteoPluginMapSettings({
+export function LastfmMapSettingsPanel({
+  supabase,
   mapId,
   jp,
   pluginGloballyEnabled,
   readOnly = false,
-}: {
-  mapId: string;
-  jp: MapPlugin | undefined;
-  pluginGloballyEnabled: boolean;
-  readOnly?: boolean;
-}) {
+}: MapSettingsPanelProps) {
   const qc = useQueryClient();
-  const enabled = isOpenMeteoEnabledForMap(jp);
+  const enabled = isLastfmEnabledForMap(jp as LastfmMapPluginRow | undefined);
 
   const saveEnabled = useMutation({
     mutationFn: async (nextEnabled: boolean) => {
-      const config = mapPluginConfigRecord(jp) as Json;
+      const config = mapPluginConfigRecord(jp);
       const { error } = await supabase.from("map_plugins").upsert(
         {
           map_id: mapId,
-          plugin_type_id: OPEN_METEO_PLUGIN_ID,
+          plugin_type_id: LASTFM_PLUGIN_ID,
           enabled: nextEnabled,
           config,
           status: "connected",
@@ -53,7 +45,7 @@ export function OpenMeteoPluginMapSettings({
     },
     onError: (e) => {
       toast.error(
-        e instanceof Error ? e.message : "Could not update weather settings",
+        e instanceof Error ? e.message : "Could not update Last.fm settings",
       );
     },
   });
@@ -63,25 +55,15 @@ export function OpenMeteoPluginMapSettings({
       <PluginSettingsRow>
         <div>
           <PluginSettingsTitle>
-            <Label htmlFor="open-meteo-map-enabled">
-              Show historical weather on pins
-            </Label>
+            <Label htmlFor="lastfm-map-enabled">Show Last.fm on pins</Label>
           </PluginSettingsTitle>
           <PluginSettingsHint>
-            Pins with a date show weather from{" "}
-            <a
-              href="https://open-meteo.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Open-Meteo
-            </a>{" "}
-            in the pin subtitle (averaged over multi-day stays). Data is CC BY
-            4.0.
+            When enabled, pin pages on this map load your most-scrobbled tracks
+            for each pin&apos;s date range.
           </PluginSettingsHint>
         </div>
         <Switch
-          id="open-meteo-map-enabled"
+          id="lastfm-map-enabled"
           checked={enabled}
           disabled={readOnly || saveEnabled.isPending || !pluginGloballyEnabled}
           onCheckedChange={(c) => void saveEnabled.mutateAsync(c === true)}
@@ -89,8 +71,7 @@ export function OpenMeteoPluginMapSettings({
       </PluginSettingsRow>
       {!pluginGloballyEnabled ? (
         <PluginStatusText size="sm">
-          Turn on Open-Meteo under Plugins (user menu) to use weather on this
-          map.
+          Turn on Last.fm under Plugins (user menu) to use it on this map.
         </PluginStatusText>
       ) : null}
     </PluginSettingsBox>

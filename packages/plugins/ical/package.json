@@ -13,7 +13,11 @@
     "@curolia/plugin-contract": "file:../../plugin-contract"
   },
   "peerDependencies": {
-    "react": ">=19"
+    "@curolia/ui": "*",
+    "@supabase/supabase-js": ">=2",
+    "@tanstack/react-query": ">=5",
+    "react": ">=19",
+    "sonner": ">=2"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"

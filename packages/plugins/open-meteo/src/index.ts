@@ -4,6 +4,7 @@ export {
   type OpenMeteoMapPluginRow,
 } from "./config";
 export { openMeteoPluginManifest as pluginManifest } from "./manifest";
+export { OpenMeteoMapSettingsPanel } from "./map-settings-panel";
 export { fetchPeriodWeatherSummary } from "./open-meteo-api";
 export {
   clampPeriodEndToToday,

@@ -1,5 +1,6 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { IcalIcon } from "./icon";
+import { IcalMapSettingsPanel } from "./map-settings-panel";
 
 export const icalPluginManifest: PluginPackageManifest = {
   id: "ical",
@@ -7,6 +8,7 @@ export const icalPluginManifest: PluginPackageManifest = {
   description: "Publish pins as iCalendar (.ics) files.",
   icon: IcalIcon,
   implemented: true,
+  MapSettingsPanel: IcalMapSettingsPanel,
   contributions: {
     mapSettings: {
       panel: "inline",

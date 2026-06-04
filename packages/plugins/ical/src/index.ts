@@ -3,5 +3,9 @@ export {
   parseIcalMapConfig,
   type IcalMapPluginConfig,
 } from "./config";
-export { icalPluginManifest } from "./manifest";
-export { icalPluginManifest as pluginManifest } from "./manifest";
+export { icalFeedPublicUrl } from "./ical-feed-url";
+export {
+  icalPluginManifest,
+  icalPluginManifest as pluginManifest,
+} from "./manifest";
+export { IcalMapSettingsPanel } from "./map-settings-panel";

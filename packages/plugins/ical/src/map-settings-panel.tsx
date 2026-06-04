@@ -1,13 +1,8 @@
-import type { Json } from "@/lib/database.types";
-import { icalFeedPublicUrl } from "@/lib/ical-feed-url";
-import { resolveSupabaseUrl } from "@/lib/resolve-supabase-url";
-import { supabase } from "@/lib/supabase";
-import type { MapPlugin } from "@/types/database";
+import type { MapSettingsPanelProps } from "@curolia/plugin-contract";
 import {
   mapPluginConfigRecord,
   mergeMapPluginConfig,
 } from "@curolia/plugin-contract";
-import { ICAL_PLUGIN_ID, parseIcalMapConfig } from "@curolia/plugin-ical";
 import { Button } from "@curolia/ui/button";
 import { Label } from "@curolia/ui/label";
 import {
@@ -24,24 +19,27 @@ import { Switch } from "@curolia/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
+import { ICAL_PLUGIN_ID, parseIcalMapConfig } from "./config";
+import { icalFeedPublicUrl } from "./ical-feed-url";
 
-const supabaseUrl = resolveSupabaseUrl(import.meta.env.VITE_SUPABASE_URL ?? "");
-
-async function ensureIcalFeedToken(mapId: string): Promise<string> {
+async function ensureIcalFeedToken(
+  supabase: MapSettingsPanelProps["supabase"],
+  mapId: string,
+): Promise<string> {
   const first = await supabase
     .from("map_ical_feed_tokens")
     .select("token")
     .eq("map_id", mapId)
     .maybeSingle();
   if (first.error) throw first.error;
-  if (first.data?.token) return first.data.token;
+  if (first.data?.token) return first.data.token as string;
 
   const ins = await supabase
     .from("map_ical_feed_tokens")
     .insert({ map_id: mapId })
     .select("token")
     .single();
-  if (!ins.error && ins.data?.token) return ins.data.token;
+  if (!ins.error && ins.data?.token) return ins.data.token as string;
 
   const again = await supabase
     .from("map_ical_feed_tokens")
@@ -50,20 +48,17 @@ async function ensureIcalFeedToken(mapId: string): Promise<string> {
     .single();
   if (again.error) throw ins.error ?? again.error;
   if (!again.data?.token) throw new Error("Could not create feed token");
-  return again.data.token;
+  return again.data.token as string;
 }
 
-export function IcalPluginMapSettings({
+export function IcalMapSettingsPanel({
+  supabase,
+  supabaseUrl,
   mapId,
   jp,
   pluginGloballyEnabled,
   readOnly = false,
-}: {
-  mapId: string;
-  jp: MapPlugin | undefined;
-  pluginGloballyEnabled: boolean;
-  readOnly?: boolean;
-}) {
+}: MapSettingsPanelProps) {
   const qc = useQueryClient();
   const parsed = parseIcalMapConfig(mapPluginConfigRecord(jp));
 
@@ -76,7 +71,7 @@ export function IcalPluginMapSettings({
         .eq("map_id", mapId)
         .maybeSingle();
       if (error) throw error;
-      return data?.token ?? null;
+      return (data?.token as string | null | undefined) ?? null;
     },
     enabled: Boolean(mapId) && pluginGloballyEnabled && parsed.publishFeed,
   });
@@ -85,15 +80,13 @@ export function IcalPluginMapSettings({
     mutationFn: async (next: { publishFeed: boolean }) => {
       let token: string | null = tokenQuery.data ?? null;
       if (next.publishFeed) {
-        token = await ensureIcalFeedToken(mapId);
+        token = await ensureIcalFeedToken(supabase, mapId);
       }
       const config = mergeMapPluginConfig(
         ICAL_PLUGIN_ID,
         mapPluginConfigRecord(jp),
-        {
-          publishFeed: next.publishFeed,
-        },
-      ) as Json;
+        { publishFeed: next.publishFeed },
+      );
       const { error } = await supabase.from("map_plugins").upsert(
         {
           map_id: mapId,

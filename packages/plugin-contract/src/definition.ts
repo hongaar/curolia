@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ComponentType } from "react";
 import type { PluginAccountSettingsComponent } from "./account-panel";
 import type { PluginContributions } from "./contributions";
+import type { MapPluginLike } from "./map-config";
 
 /** Props for optional pin editor UI next to native photo upload (cloud library importers). */
 export type PinPhotoImportSlotProps = {
@@ -16,6 +17,19 @@ export type PinPhotoImportSlotProps = {
 
 /** Shared pin-scoped props for plugin surfaces (photo slots, pin detail panels, …). */
 export type PinContextProps = PinPhotoImportSlotProps;
+
+/** Props for per-map plugin settings panels rendered in the map settings dialog. */
+export type MapSettingsPanelProps = {
+  supabase: SupabaseClient;
+  /** Resolved Supabase project base URL (platform-aware). Used by plugins that construct public URLs. */
+  supabaseUrl?: string;
+  mapId: string;
+  /** Per-map plugin row; undefined when none saved yet. */
+  jp: MapPluginLike | undefined;
+  /** Whether the plugin is enabled for the current account. */
+  pluginGloballyEnabled: boolean;
+  readOnly?: boolean;
+};
 
 export type PluginIconComponent = ComponentType<{
   className?: string;
@@ -51,6 +65,11 @@ export type PluginDefinition = {
    * Optional read-only block on the pin detail page.
    */
   PinDetailSection?: ComponentType<PinContextProps>;
+  /**
+   * Optional per-map settings panel rendered inside the map settings dialog.
+   * Replaces the hard-coded switch in the app shell.
+   */
+  MapSettingsPanel?: ComponentType<MapSettingsPanelProps>;
   /**
    * When true, {@link PinDetailSection} is rendered without the default plugin
    * card chrome (icon, title, bordered card). Use for embed-first surfaces.

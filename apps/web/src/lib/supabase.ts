@@ -11,9 +11,11 @@ const PLACEHOLDER_URL = "http://127.0.0.1:54321";
 const PLACEHOLDER_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 
-const url = resolveSupabaseUrl(
+/** Platform-resolved Supabase project base URL. Re-exported for callers that need to build public Edge Function URLs. */
+export const supabaseUrl = resolveSupabaseUrl(
   import.meta.env.VITE_SUPABASE_URL || PLACEHOLDER_URL,
 );
+const url = supabaseUrl;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || PLACEHOLDER_KEY;
 
 if (

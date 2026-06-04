@@ -1,4 +1,11 @@
 export type {
+  PluginAccountPanelProps,
+  PluginAccountSettingsComponent,
+  PluginOAuthLinkStatusResult,
+  PluginOAuthShellHandlers,
+  PluginUserPluginSnapshot,
+} from "./account-panel";
+export type {
   AppHookDeclaration,
   EdgeFunctionDeclaration,
   GlobalSettingField,
@@ -8,19 +15,13 @@ export type {
   PluginOAuthDeclaration,
 } from "./contributions";
 export type {
+  MapSettingsPanelProps,
+  PinContextProps,
+  PinPhotoImportSlotProps,
   PluginDefinition,
   PluginPackageManifest,
   PluginRegistry,
-  PinContextProps,
-  PinPhotoImportSlotProps,
 } from "./definition";
-export type {
-  PluginAccountPanelProps,
-  PluginAccountSettingsComponent,
-  PluginOAuthLinkStatusResult,
-  PluginOAuthShellHandlers,
-  PluginUserPluginSnapshot,
-} from "./account-panel";
 export {
   mapPluginConfigRecord,
   mergeMapPluginConfig,

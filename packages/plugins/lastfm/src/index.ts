@@ -12,6 +12,7 @@ export {
 export type { LastfmSyncResponse } from "./lastfm-edge";
 export type { LastfmPinPayload, LastfmPinTrackRow } from "./lastfm-pin-data";
 export { lastfmPluginManifest as pluginManifest } from "./manifest";
+export { LastfmMapSettingsPanel } from "./map-settings-panel";
 export {
   lastfmPinSyncQueryKey,
   pluginEntityDataRowQueryKey,
