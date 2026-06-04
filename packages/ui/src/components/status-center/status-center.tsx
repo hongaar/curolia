@@ -40,3 +40,16 @@ export function StatusCenterPanel({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+/** Centered floating panel for messages with actions (e.g. map access denied). */
+export function StatusCenterActionPanel({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={styles.centered}>
+      <FloatingPanel className={styles.centeredPanel}>{children}</FloatingPanel>
+    </div>
+  );
+}

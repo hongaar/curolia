@@ -32,6 +32,6 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
-    <Route path="maps/:mapId/settings" element={<MapSettingsPage />} />
+    <Route path="maps/:mapSlug/settings" element={<MapSettingsPage />} />
   </>
 );

@@ -27,7 +27,7 @@ export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
   const navigate = useNavigate();
   const { createMap } = useMap();
   const [name, setName] = useState("");
-  const [icon, setIcon] = useState(() => defaultMapIcon(false));
+  const [icon, setIcon] = useState(() => defaultMapIcon());
   const [creating, setCreating] = useState(false);
 
   async function handleCreate() {
@@ -48,7 +48,7 @@ export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
         onOpenChange(next);
         if (!next) {
           setName("");
-          setIcon(defaultMapIcon(false));
+          setIcon(defaultMapIcon());
         }
       }}
     >

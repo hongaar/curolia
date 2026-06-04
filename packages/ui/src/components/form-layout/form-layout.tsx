@@ -67,6 +67,12 @@ export function FormSelectTriggerRounded(
   return <SelectTrigger className={styles.selectTriggerRounded} {...props} />;
 }
 
+export function FormSelectTriggerInvite(
+  props: React.ComponentProps<typeof SelectTrigger>,
+) {
+  return <SelectTrigger className={styles.selectTriggerInvite} {...props} />;
+}
+
 export function FormSelectTriggerFull(
   props: React.ComponentProps<typeof SelectTrigger>,
 ) {

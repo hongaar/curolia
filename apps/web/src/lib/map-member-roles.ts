@@ -7,10 +7,15 @@ export function mapRoleLabel(role: MapMemberRole): string {
     case "editor":
       return "Contributor";
     case "viewer":
-      return "Reader";
+      return "Viewer";
     default:
       return role;
   }
 }
 
 export type InviteMapRole = "viewer" | "editor";
+
+/** Label shown in access `<Select>` triggers (values stay `viewer` / `editor`). */
+export function inviteRoleSelectLabel(role: InviteMapRole): string {
+  return mapRoleLabel(role);
+}

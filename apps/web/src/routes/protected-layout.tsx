@@ -1,23 +1,25 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { isPublicMapViewPathname } from "@/lib/public-map-routes";
 import { useAuth } from "@/providers/auth-provider";
 import { MapProvider } from "@/providers/map-provider";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 export function ProtectedLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const publicMapView = !user && isPublicMapViewPathname(location.pathname);
 
   if (loading) {
     return <CuroliaLoadingSplash fill statusLabel="Loading" />;
   }
 
-  if (!user) {
+  if (!user && !publicMapView) {
     const next = encodeURIComponent(`${location.pathname}${location.search}`);
     return <Navigate to={`/login?next=${next}`} replace />;
   }
 
   return (
-    <MapProvider>
+    <MapProvider publicView={publicMapView}>
       <Outlet />
     </MapProvider>
   );

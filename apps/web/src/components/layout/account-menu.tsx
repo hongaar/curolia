@@ -1,6 +1,7 @@
 import { AboutDialog } from "@/components/about/about-dialog";
 import { NpmLicensesFullList } from "@/components/about/npm-licenses-full-list";
 import { UserAvatar } from "@/components/user-avatar";
+import { useUnreadNotificationsCount } from "@/hooks/use-map-access";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
@@ -13,6 +14,7 @@ import {
 import {
   AccountMenuContent,
   AccountMenuItemIcon,
+  AccountMenuItemLabel,
   AccountMenuSignedInLabel,
   AccountMenuTrigger,
 } from "@curolia/ui/floating-nav-bar";
@@ -43,6 +45,9 @@ export function AccountMenu() {
     enabled: Boolean(user),
   });
 
+  const unreadQuery = useUnreadNotificationsCount(user?.id);
+  const hasUnread = (unreadQuery.data ?? 0) > 0;
+
   return (
     <>
       <DropdownMenu>
@@ -54,6 +59,7 @@ export function AccountMenu() {
             gravatarSize={128}
             label="Account"
             size="full"
+            showUnreadDot={hasUnread}
           />
         </AccountMenuTrigger>
         <AccountMenuContent>
@@ -70,7 +76,9 @@ export function AccountMenu() {
               <AccountMenuItemIcon>
                 <Bell />
               </AccountMenuItemIcon>
-              Notifications
+              <AccountMenuItemLabel showUnreadDot={hasUnread}>
+                Notifications
+              </AccountMenuItemLabel>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/settings")}>
               <AccountMenuItemIcon>

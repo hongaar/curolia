@@ -12,6 +12,23 @@ export function mapViewHref(view: MapViewSegment, mapSlug: string): string {
   return `/${view}/${mapSlug}`;
 }
 
+/** Map settings stack route: `/maps/:mapSlug/settings`. */
+export function mapSettingsHref(mapSlug: string): string {
+  return `/maps/${mapSlug.trim()}/settings`;
+}
+
+/** Resolve a map from the settings route param (slug, or legacy UUID). */
+export function resolveMapFromSettingsParam(
+  maps: CuroliaMap[],
+  param: string | undefined,
+): CuroliaMap | null {
+  if (!param?.trim()) return null;
+  const needle = param.trim().toLowerCase();
+  const bySlug = maps.find((m) => m.slug.trim().toLowerCase() === needle);
+  if (bySlug) return bySlug;
+  return maps.find((m) => m.id === param) ?? null;
+}
+
 /** Map uses the fullscreen / overlay sidebar chrome. */
 export function isMapFullscreenPathname(pathname: string): boolean {
   return pathname === "/" || /^\/map\/[^/]+\/?$/.test(pathname);

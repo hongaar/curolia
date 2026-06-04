@@ -4,6 +4,7 @@ import {
   MapPointerContextMenu,
   type MapPointerContextMenuTarget,
 } from "@/components/map/map-pointer-context-menu";
+import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
@@ -11,6 +12,7 @@ import { AddPinFab } from "@/components/pins/add-pin-fab";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { PresetColorPicker } from "@/components/pins/preset-color-picker";
+import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMinMd } from "@/hooks/use-min-md";
 import { pinDetailHref } from "@/lib/app-paths";
@@ -141,7 +143,15 @@ export function MapPage() {
     () => parseAddPinFromSearchParams(searchParams),
     [searchParams],
   );
-  const { activeMapId, activeMap, loading: mapLoading } = useMap();
+  const {
+    activeMapId,
+    activeMap,
+    loading: mapLoading,
+    routeMapStatus,
+    publicView,
+  } = useMap();
+  const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
+  const canEdit = !publicView && memberCanEdit;
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
     [activeMap?.style_hillshades, activeMap?.style_satellite_labels],
@@ -189,7 +199,7 @@ export function MapPage() {
       if (isPinFormTextEntryPasteTarget(e.target)) return;
       if (fileFromClipboardData(data)) return;
       const url = urlFromClipboardData(data);
-      if (!url || !activeMapId || linkPasteBusyRef.current) return;
+      if (!url || !activeMapId || !canEdit || linkPasteBusyRef.current) return;
       e.preventDefault();
       linkPasteBusyRef.current = true;
       void (async () => {
@@ -228,7 +238,7 @@ export function MapPage() {
     };
     window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
-  }, [activeMapId, qc, setSearchParams]);
+  }, [activeMapId, canEdit, qc, setSearchParams]);
 
   const onCameraIdle = useCallback(
     (c: MapCamera) => {
@@ -437,6 +447,7 @@ export function MapPage() {
       clientX: number,
       clientY: number,
     ) => {
+      if (!canEdit) return;
       setPointerContextMenu({
         type: "map",
         lng,
@@ -446,7 +457,7 @@ export function MapPage() {
         y: clientY,
       });
     },
-    [],
+    [canEdit],
   );
 
   const onPinContextMenu = useCallback(
@@ -509,7 +520,7 @@ export function MapPage() {
 
   const onPlacementClick = useCallback(
     async (lng: number, lat: number, zoom: number) => {
-      if (!activeMapId) return;
+      if (!activeMapId || !canEdit) return;
       setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
         replace: true,
       });
@@ -545,8 +556,15 @@ export function MapPage() {
         );
       }
     },
-    [activeMapId, qc, setSearchParams],
+    [activeMapId, canEdit, qc, setSearchParams],
   );
+
+  useEffect(() => {
+    if (canEdit) return;
+    setPlacementActive(false);
+    setQuickAddPin(null);
+    setFullEditPin(null);
+  }, [canEdit]);
 
   useEffect(() => {
     if (!sidebarPinToken) return;
@@ -581,7 +599,7 @@ export function MapPage() {
   }, [quickAddPin]);
 
   useEffect(() => {
-    if (!addPinFromUrl) return;
+    if (!addPinFromUrl || !canEdit) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- latch placement from one-shot ?add= URL deep link
     setPlacementActive(true);
     setSearchParams(
@@ -592,7 +610,7 @@ export function MapPage() {
         ),
       { replace: true },
     );
-  }, [addPinFromUrl, setSearchParams]);
+  }, [addPinFromUrl, canEdit, setSearchParams]);
 
   useEffect(() => {
     if (!placementActive) return;
@@ -718,6 +736,7 @@ export function MapPage() {
   }
 
   function toggleAddPinPlacement() {
+    if (!canEdit) return;
     const next = !placementActive;
     setPlacementActive(next);
     setSearchParams(
@@ -736,6 +755,10 @@ export function MapPage() {
 
   if (mapLoading) {
     return <MapViewInitialLoader />;
+  }
+
+  if (routeMapStatus === "unavailable") {
+    return <MapSlugAccessBlocked />;
   }
 
   if (!activeMapId) {
@@ -766,7 +789,7 @@ export function MapPage() {
             mapStyle={normalizeMapStylePreset(activeMap?.style)}
             mapStyleOptions={mapStyleOptions}
             onSelectPin={onSelectPin}
-            placementMode={placementActive}
+            placementMode={canEdit && placementActive}
             onPlacementClick={onPlacementClick}
             initialCamera={resolvedInitialCamera}
             initialBbox={bboxFromUrl}
@@ -787,12 +810,15 @@ export function MapPage() {
               setFilterTagIds={setFilterTagIds}
               onNewTag={openNewTagDialog}
               onEditTag={openEditTagDialog}
+              canEdit={canEdit}
             />
             <MapControlsToolbar mapRef={mapRef} />
-            <AddPinFab
-              active={placementActive}
-              onClick={toggleAddPinPlacement}
-            />
+            {canEdit ? (
+              <AddPinFab
+                active={placementActive}
+                onClick={toggleAddPinPlacement}
+              />
+            ) : null}
           </MapControlsBottomStack>
         </MapControlsLayer>
         {showSidePanel ? (
@@ -811,13 +837,14 @@ export function MapPage() {
         ) : null}
       </MapLayer>
 
-      {placementActive ? (
+      {canEdit && placementActive ? (
         <MapPlacementHint>Click to add a pin</MapPlacementHint>
       ) : null}
 
       <MapPointerContextMenu
         target={pointerContextMenu}
         onTargetChange={setPointerContextMenu}
+        canEdit={canEdit}
         tags={tags}
         pinTagIdsFor={pinTagIdsFor}
         onTogglePinTag={onTogglePinTag}

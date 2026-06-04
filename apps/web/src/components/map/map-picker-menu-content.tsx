@@ -20,13 +20,13 @@ import { Check, Pencil, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function mapEmoji(map: CuroliaMap) {
-  return map.icon_emoji ?? defaultMapIcon(map.is_personal);
+  return map.icon_emoji ?? defaultMapIcon();
 }
 
 type MapPickerMenuContentProps = {
   maps: CuroliaMap[];
   activeMapId: string | null | undefined;
-  onOpenMapSettings: (mapId: string) => void;
+  onOpenMapSettings: (mapSlug: string) => void;
   onNewMap: () => void;
 };
 
@@ -53,9 +53,7 @@ export function MapPickerMenuContent({
                 }}
               >
                 <SidebarMapEmoji>{mapEmoji(j)}</SidebarMapEmoji>
-                <SidebarMapName selected={selected} personal={j.is_personal}>
-                  {j.name}
-                </SidebarMapName>
+                <SidebarMapName selected={selected}>{j.name}</SidebarMapName>
                 {selected ? (
                   <SidebarCheckIcon>
                     <Check aria-hidden />
@@ -69,7 +67,7 @@ export function MapPickerMenuContent({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onOpenMapSettings(j.id);
+                  onOpenMapSettings(j.slug.trim());
                 }}
               >
                 <Pencil aria-hidden />

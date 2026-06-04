@@ -57,4 +57,21 @@ export function AccountMenuItemIcon({
   return <span className={styles.menuIcon}>{children}</span>;
 }
 
+export function AccountMenuItemLabel({
+  children,
+  showUnreadDot = false,
+}: {
+  children: React.ReactNode;
+  showUnreadDot?: boolean;
+}) {
+  return (
+    <span className={styles.menuItemLabel}>
+      {children}
+      {showUnreadDot ? (
+        <span className={styles.menuItemUnreadDot} aria-hidden />
+      ) : null}
+    </span>
+  );
+}
+
 export const floatingNavStyles = styles;

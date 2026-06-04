@@ -34,16 +34,8 @@ export function NotificationListButton({
   meta?: React.ReactNode;
 }) {
   return (
-    <li>
-      <button
-        type="button"
-        className={
-          unread
-            ? `${styles.listButton} ${styles.listButtonUnread}`
-            : styles.listButton
-        }
-        onClick={onClick}
-      >
+    <li className={unread ? styles.listItemUnread : undefined}>
+      <button type="button" className={styles.listButton} onClick={onClick}>
         {unread ? (
           <span className={styles.unreadDot} aria-hidden />
         ) : (
@@ -63,6 +55,10 @@ export function NotificationListButton({
 
 export function MemberListRow({ children }: { children: React.ReactNode }) {
   return <li className={styles.memberRow}>{children}</li>;
+}
+
+export function MemberAvatar({ children }: { children: React.ReactNode }) {
+  return <span className={styles.memberAvatar}>{children}</span>;
 }
 
 export function MemberPrimary({

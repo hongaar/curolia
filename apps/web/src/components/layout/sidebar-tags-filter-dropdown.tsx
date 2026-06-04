@@ -25,8 +25,8 @@ type SidebarTagsFilterDropdownProps = {
   tags: Tag[];
   filterTagIds: Set<string>;
   setFilterTagIds: (action: SetStateAction<Set<string>>) => void;
-  onNewTag: () => void;
-  onEditTag: (tag: Tag) => void;
+  onNewTag?: () => void;
+  onEditTag?: (tag: Tag) => void;
 };
 
 export function SidebarTagsFilterDropdown({
@@ -36,6 +36,7 @@ export function SidebarTagsFilterDropdown({
   onNewTag,
   onEditTag,
 }: SidebarTagsFilterDropdownProps) {
+  const canEdit = Boolean(onNewTag && onEditTag);
   const [open, setOpen] = useState(false);
 
   return (
@@ -84,17 +85,19 @@ export function SidebarTagsFilterDropdown({
                       <SidebarCheckSpacer />
                     )}
                   </SidebarDropdownMenuItem>
-                  <MapDropdownEditButton
-                    title="Edit tag"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onEditTag(tag);
-                      setOpen(false);
-                    }}
-                  >
-                    <Pencil aria-hidden />
-                  </MapDropdownEditButton>
+                  {canEdit ? (
+                    <MapDropdownEditButton
+                      title="Edit tag"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onEditTag?.(tag);
+                        setOpen(false);
+                      }}
+                    >
+                      <Pencil aria-hidden />
+                    </MapDropdownEditButton>
+                  ) : null}
                 </SidebarDropdownRow>
               );
             })
@@ -112,11 +115,15 @@ export function SidebarTagsFilterDropdown({
             </DropdownMenuItem>
           </>
         ) : null}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onNewTag()}>
-          <Plus aria-hidden />
-          New tag…
-        </DropdownMenuItem>
+        {canEdit ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onNewTag?.()}>
+              <Plus aria-hidden />
+              New tag…
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </SidebarDropdownContent>
     </DropdownMenu>
   );

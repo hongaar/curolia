@@ -41,6 +41,8 @@
   flex-direction: column;
   gap: 0.125rem;
   border: 0;
+  border-radius: 0;
+  appearance: none;
   background: transparent;
   padding: 0.625rem 0.75rem;
   text-align: left;
@@ -49,12 +51,13 @@
   transition: background 150ms;
 }
 
-.itemButton:hover {
-  background: color-mix(in oklch, var(--foreground) 5%, transparent);
-}
-
 .itemButtonUnread {
   background: color-mix(in oklch, var(--primary) 5%, transparent);
+}
+
+.itemButton:hover,
+.itemButtonUnread:hover {
+  background: color-mix(in oklch, var(--foreground) 5%, transparent);
 }
 
 .itemRow {

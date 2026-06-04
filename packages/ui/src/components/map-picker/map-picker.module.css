@@ -27,6 +27,10 @@
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--orange) 28%, transparent);
 }
 
+.triggerNoEmoji {
+  padding-left: 0.75rem;
+}
+
 .mapEmoji {
   display: inline-flex;
   width: 1.75rem;
@@ -64,4 +68,44 @@
 
 .content {
   min-width: 14rem;
+}
+
+.publicInfo {
+  display: inline-flex;
+  height: 2.25rem;
+  max-width: min(16rem, calc(100vw - 10rem));
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  padding: 0 0.75rem 0 0.25rem;
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(24px) saturate(1.5);
+  font-size: var(--font-size-sm);
+  color: var(--panel-fg);
+}
+
+.publicText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  line-height: 1.2;
+}
+
+.publicMapName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.publicOwnerName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
 }

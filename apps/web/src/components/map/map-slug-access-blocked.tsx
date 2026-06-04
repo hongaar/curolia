@@ -1,0 +1,47 @@
+import { mapViewHref, mapViewSegmentFromPathname } from "@/lib/app-paths";
+import { useMap } from "@/providers/map-provider";
+import { Button } from "@curolia/ui/button";
+import { PageInlineActions } from "@curolia/ui/page";
+import { Stack } from "@curolia/ui/stack";
+import { StatusCenterActionPanel } from "@curolia/ui/status-center";
+import { Text } from "@curolia/ui/text";
+import { Link, useLocation } from "react-router-dom";
+
+export function MapSlugAccessBlocked() {
+  const { publicView, maps } = useMap();
+  const location = useLocation();
+  const next = encodeURIComponent(`${location.pathname}${location.search}`);
+  const segment = mapViewSegmentFromPathname(location.pathname);
+  const fallbackHref = maps[0]?.slug ? mapViewHref(segment, maps[0].slug) : "/";
+
+  return (
+    <StatusCenterActionPanel>
+      <Stack gap="md" align="center">
+        <Text variant={["muted", "center"]}>
+          {publicView
+            ? "This map is private or does not exist. Sign in if you were invited to view it."
+            : "You don't have access to this map. Ask the owner for an invite."}
+        </Text>
+        <PageInlineActions spaced="none">
+          {publicView ? (
+            <Button
+              variant="outline"
+              size="sm"
+              render={<Link to={`/login?next=${next}`} />}
+            >
+              Sign in
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              render={<Link to={fallbackHref} />}
+            >
+              {maps[0]?.slug ? "Back to your maps" : "Go home"}
+            </Button>
+          )}
+        </PageInlineActions>
+      </Stack>
+    </StatusCenterActionPanel>
+  );
+}

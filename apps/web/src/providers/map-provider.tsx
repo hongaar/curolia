@@ -4,6 +4,7 @@ import {
   defaultMapIcon,
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
+import { publicMapSlugFromPathname } from "@/lib/public-map-routes";
 import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,11 +17,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useLocation } from "react-router-dom";
 import {
   getStoredActiveMapId,
   setStoredActiveMapId,
   useAuth,
 } from "./auth-provider";
+
+export type RouteMapStatus = "none" | "loading" | "ready" | "unavailable";
 
 type MapContextValue = {
   maps: CuroliaMap[];
@@ -28,6 +32,8 @@ type MapContextValue = {
   activeMapId: string | null;
   setActiveMapId: (id: string) => void;
   loading: boolean;
+  routeMapStatus: RouteMapStatus;
+  publicView: boolean;
   refetch: () => Promise<void>;
   createMap: (
     name: string,
@@ -51,6 +57,19 @@ async function fetchMapsForUser(userId: string): Promise<CuroliaMap[]> {
   return rows.map((r) => r.maps).filter((j): j is CuroliaMap => Boolean(j));
 }
 
+async function fetchPublicMapBySlug(slug: string): Promise<CuroliaMap | null> {
+  const trimmed = slug.trim();
+  if (!trimmed) return null;
+  const { data, error } = await supabase
+    .from("maps")
+    .select("*")
+    .eq("is_public", true)
+    .eq("slug", trimmed)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as CuroliaMap | null) ?? null;
+}
+
 async function fetchProfileDefaultMap(userId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("profiles")
@@ -61,12 +80,24 @@ async function fetchProfileDefaultMap(userId: string): Promise<string | null> {
   return data?.default_map_id ?? null;
 }
 
-export function MapProvider({ children }: { children: ReactNode }) {
+export function MapProvider({
+  children,
+  publicView = false,
+}: {
+  children: ReactNode;
+  publicView?: boolean;
+}) {
   const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [activeMapId, setActiveMapIdState] = useState<string | null>(null);
 
-  const mapsQuery = useQuery({
+  const routeSlug = useMemo(
+    () => publicMapSlugFromPathname(location.pathname),
+    [location.pathname],
+  );
+
+  const memberMapsQuery = useQuery({
     queryKey: ["maps", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -75,9 +106,81 @@ export function MapProvider({ children }: { children: ReactNode }) {
     enabled: Boolean(user) && !authLoading,
   });
 
-  const maps = useMemo(() => mapsQuery.data ?? [], [mapsQuery.data]);
+  const memberMaps = useMemo(
+    () => memberMapsQuery.data ?? [],
+    [memberMapsQuery.data],
+  );
+
+  const needsPublicMap =
+    Boolean(routeSlug) &&
+    (publicView ||
+      !memberMaps.some(
+        (m) => m.slug.trim().toLowerCase() === routeSlug!.trim().toLowerCase(),
+      ));
+
+  const publicMapQuery = useQuery({
+    queryKey: ["public_map", routeSlug],
+    queryFn: async () => {
+      if (!routeSlug) return null;
+      return fetchPublicMapBySlug(routeSlug);
+    },
+    enabled: needsPublicMap,
+  });
+
+  const maps = useMemo(() => {
+    const pub = publicMapQuery.data;
+    if (!pub) return memberMaps;
+    if (memberMaps.some((m) => m.id === pub.id)) return memberMaps;
+    return [...memberMaps, pub];
+  }, [memberMaps, publicMapQuery.data]);
+
+  const resolvedRouteMap = useMemo(() => {
+    if (!routeSlug) return null;
+    const needle = routeSlug.trim().toLowerCase();
+    return maps.find((m) => m.slug.trim().toLowerCase() === needle) ?? null;
+  }, [maps, routeSlug]);
+
+  const routeMapStatus = useMemo((): RouteMapStatus => {
+    if (!routeSlug) return "none";
+    if (resolvedRouteMap) return "ready";
+    if (publicView) {
+      if (publicMapQuery.isPending) return "loading";
+      return "unavailable";
+    }
+    if (memberMapsQuery.isPending) return "loading";
+    if (needsPublicMap && publicMapQuery.isPending) return "loading";
+    return "unavailable";
+  }, [
+    routeSlug,
+    resolvedRouteMap,
+    publicView,
+    publicMapQuery.isPending,
+    memberMapsQuery.isPending,
+    needsPublicMap,
+  ]);
 
   useEffect(() => {
+    if (publicView) {
+      if (publicMapQuery.data) {
+        setActiveMapIdState(publicMapQuery.data.id);
+      } else if (!publicMapQuery.isPending && routeSlug) {
+        setActiveMapIdState(null);
+      }
+      return;
+    }
+
+    if (routeSlug) {
+      if (resolvedRouteMap) {
+        setActiveMapIdState(resolvedRouteMap.id);
+        setStoredActiveMapId(resolvedRouteMap.id);
+        return;
+      }
+      if (routeMapStatus === "unavailable") {
+        setActiveMapIdState(null);
+      }
+      return;
+    }
+
     if (!user || maps.length === 0) {
       setActiveMapIdState(null);
       return;
@@ -104,7 +207,16 @@ export function MapProvider({ children }: { children: ReactNode }) {
         setStoredActiveMapId(first.id);
       }
     })();
-  }, [user, maps]);
+  }, [
+    user,
+    maps,
+    publicView,
+    publicMapQuery.data,
+    publicMapQuery.isPending,
+    routeSlug,
+    resolvedRouteMap,
+    routeMapStatus,
+  ]);
 
   const setActiveMapId = useCallback((id: string) => {
     setActiveMapIdState(id);
@@ -120,15 +232,13 @@ export function MapProvider({ children }: { children: ReactNode }) {
     async (name: string, iconEmoji?: string | null) => {
       if (!user) return { map: null, error: new Error("Not signed in") };
       const icon_emoji = normalizeMapIconForPersist(
-        iconEmoji ?? defaultMapIcon(false),
-        false,
+        iconEmoji ?? defaultMapIcon(),
       );
       const { data: map, error: jErr } = await supabase
         .from("maps")
         .insert({
           name,
           created_by_user_id: user.id,
-          is_personal: false,
           icon_emoji,
         })
         .select()
@@ -149,18 +259,38 @@ export function MapProvider({ children }: { children: ReactNode }) {
     [user, queryClient, setActiveMapId],
   );
 
+  const loading = useMemo(() => {
+    if (publicView) {
+      return routeSlug ? routeMapStatus === "loading" : false;
+    }
+    if (authLoading) return true;
+    if (memberMapsQuery.isPending) return true;
+    if (routeSlug) {
+      return routeMapStatus === "loading";
+    }
+    return maps.length > 0 && activeMapId === null;
+  }, [
+    publicView,
+    routeSlug,
+    routeMapStatus,
+    authLoading,
+    memberMapsQuery.isPending,
+    maps.length,
+    activeMapId,
+  ]);
+
   const value = useMemo<MapContextValue>(
     () => ({
       maps,
       activeMap,
       activeMapId,
       setActiveMapId,
-      loading:
-        authLoading ||
-        mapsQuery.isPending ||
-        (maps.length > 0 && activeMapId === null),
+      loading,
+      routeMapStatus,
+      publicView,
       refetch: async () => {
-        await mapsQuery.refetch();
+        await memberMapsQuery.refetch();
+        if (needsPublicMap) await publicMapQuery.refetch();
       },
       createMap,
     }),
@@ -169,8 +299,12 @@ export function MapProvider({ children }: { children: ReactNode }) {
       activeMap,
       activeMapId,
       setActiveMapId,
-      mapsQuery,
-      authLoading,
+      loading,
+      routeMapStatus,
+      publicView,
+      memberMapsQuery,
+      publicMapQuery,
+      needsPublicMap,
       createMap,
     ],
   );

@@ -45,3 +45,25 @@ export const Default: Story = {
     </DropdownMenu>
   ),
 };
+
+export const UnreadDotOnTrigger: Story = {
+  parameters: storyDocs(
+    "Unread dot on the avatar must not clip at the trigger edge.",
+  ),
+  render: () => (
+    <DropdownMenu defaultOpen>
+      <AccountMenuTrigger title="Account" aria-label="Account menu">
+        <UserAvatar
+          email="demo@curolia.app"
+          storedAvatarUrl={null}
+          label="Demo"
+          size="full"
+          showUnreadDot
+        />
+      </AccountMenuTrigger>
+      <AccountMenuContent>
+        <AccountMenuSignedInLabel email="demo@curolia.app" />
+      </AccountMenuContent>
+    </DropdownMenu>
+  ),
+};

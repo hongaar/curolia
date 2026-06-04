@@ -26,8 +26,8 @@ export type CuroliaMap = {
   id: string;
   name: string;
   slug: string;
-  is_personal: boolean;
-  /** When null, UI uses defaultMapIcon(is_personal). */
+  is_public: boolean;
+  /** When null, UI uses defaultMapIcon(). */
   icon_emoji: string | null;
   /** Basemap preset; `auto` follows app light/dark theme. */
   style: import("@/lib/map-style").MapStylePreset;

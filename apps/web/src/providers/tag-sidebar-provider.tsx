@@ -15,8 +15,8 @@ export type TagSidebarRegistration = {
   tags: Tag[];
   filterTagIds: Set<string>;
   setFilterTagIds: (action: SetStateAction<Set<string>>) => void;
-  onNewTag: () => void;
-  onEditTag: (tag: Tag) => void;
+  onNewTag?: () => void;
+  onEditTag?: (tag: Tag) => void;
 };
 
 type Ctx = {
@@ -77,8 +77,8 @@ export function useMountTagSidebarRegistration(opts: TagSidebarRegistration) {
       tags,
       filterTagIds,
       setFilterTagIds,
-      onNewTag: () => optsRef.current.onNewTag(),
-      onEditTag: (tag) => optsRef.current.onEditTag(tag),
+      onNewTag: () => optsRef.current.onNewTag?.(),
+      onEditTag: (tag) => optsRef.current.onEditTag?.(tag),
     });
     return () => setRegistration(null);
   }, [

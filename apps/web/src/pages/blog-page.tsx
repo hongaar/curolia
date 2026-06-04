@@ -1,11 +1,18 @@
 import { FloatingPanel } from "@/components/layout/floating-panel";
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
-import { AddPinFab } from "@/components/pins/add-pin-fab";
+import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
+import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { PresetColorPicker } from "@/components/pins/preset-color-picker";
-import { useBlogPinListOrder } from "@/hooks/use-blog-pin-list-order";
-import { mapAddPinHref } from "@/lib/app-paths";
-import { orderedBlogPinList } from "@/lib/blog-pin-list-order";
+import { useBlogPinListSort } from "@/hooks/use-blog-pin-list-order";
+import {
+  blogPinListDirectionAriaLabel,
+  blogPinListDirectionLabel,
+  blogPinListDirectionOptions,
+  blogPinListOrderAriaLabel,
+  blogPinListOrderLabel,
+  orderedBlogPinList,
+} from "@/lib/blog-pin-list-order";
 import { formatPinDateRange } from "@/lib/pin-dates";
 import {
   photosToGalleryItems,
@@ -23,7 +30,6 @@ import { contrastingForeground } from "@curolia/ui";
 import {
   BlogContent,
   BlogEmptyPanel,
-  BlogFabSlot,
   BlogHeader,
   BlogKicker,
   BlogLead,
@@ -37,6 +43,7 @@ import {
   BlogPinTitleLink,
   BlogScroll,
   BlogSortChevron,
+  BlogSortLabel,
   BlogSortTrigger,
   BlogTagBadge,
   BlogTagRow,
@@ -48,13 +55,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@curolia/ui/dropdown-menu";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
+import { MapControlsBottomStack, MapControlsLayer } from "@curolia/ui/map";
 import { PageMuted } from "@curolia/ui/page";
 import {
   PanelDialogBody,
@@ -70,13 +77,9 @@ import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
+import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { pinDetailHref } from "@/lib/app-paths";
 import {
@@ -86,13 +89,24 @@ import {
 
 export function BlogPage() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const { mapSlug } = useParams<{ mapSlug: string }>();
   useMapSlugRouteSync(mapSlug);
   const [searchParams, setSearchParams] = useSearchParams();
-  const { activeMapId, activeMap, loading: mapLoading } = useMap();
-  const { order: blogListOrder, setOrder: setBlogListOrder } =
-    useBlogPinListOrder(activeMapId);
+  const {
+    activeMapId,
+    activeMap,
+    loading: mapLoading,
+    routeMapStatus,
+    publicView,
+  } = useMap();
+  const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
+  const canEdit = !publicView && memberCanEdit;
+  const {
+    order: blogListOrder,
+    direction: blogListDirection,
+    setOrder: setBlogListOrder,
+    setDirection: setBlogListDirection,
+  } = useBlogPinListSort(activeMapId);
 
   const blogMapSlug = mapSlug?.trim() || activeMap?.slug?.trim() || "";
   const [photoLightbox, setPhotoLightbox] = useState<{
@@ -156,24 +170,19 @@ export function BlogPage() {
     [tags, setSearchParams],
   );
 
+  const openEditTagDialog = useCallback((tag: Tag) => {
+    setTagEditTarget(tag);
+    setNewTagName(tag.name);
+    setNewTagColor(tag.color);
+    setNewTagEmoji(tag.icon_emoji || "📍");
+    setTagDialogOpen(true);
+  }, []);
+
   useMountTagSidebarRegistration({
     tags,
     filterTagIds,
     setFilterTagIds,
-    onNewTag: () => {
-      setTagEditTarget(null);
-      setNewTagName("");
-      setNewTagColor(DEFAULT_PIN_TAG_COLOR);
-      setNewTagEmoji("📍");
-      setTagDialogOpen(true);
-    },
-    onEditTag: (tag) => {
-      setTagEditTarget(tag);
-      setNewTagName(tag.name);
-      setNewTagColor(tag.color);
-      setNewTagEmoji(tag.icon_emoji || "📍");
-      setTagDialogOpen(true);
-    },
+    onEditTag: canEdit ? openEditTagDialog : undefined,
   });
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
@@ -182,8 +191,12 @@ export function BlogPage() {
     [pins, filterTagIds],
   );
   const orderedVisible = useMemo(
-    () => orderedBlogPinList(visible, blogListOrder),
-    [visible, blogListOrder],
+    () =>
+      orderedBlogPinList(visible, {
+        order: blogListOrder,
+        direction: blogListDirection,
+      }),
+    [visible, blogListOrder, blogListDirection],
   );
   const visiblePinIds = useMemo(
     () => orderedVisible.map((t) => t.id),
@@ -242,24 +255,35 @@ export function BlogPage() {
     }
   }
 
-  if (mapLoading || (Boolean(activeMapId) && pinsQuery.isPending)) {
+  if (mapLoading) {
     return <MapViewInitialLoader />;
+  }
+
+  if (routeMapStatus === "unavailable") {
+    return <MapSlugAccessBlocked />;
   }
 
   if (!activeMapId) {
     return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
+  if (pinsQuery.isPending) {
+    return <MapViewInitialLoader />;
+  }
+
   return (
     <BlogPageRoot>
-      <BlogFabSlot>
-        <AddPinFab
-          onClick={() => {
-            if (!blogMapSlug) return;
-            navigate(mapAddPinHref(blogMapSlug, searchParams));
-          }}
-        />
-      </BlogFabSlot>
+      <MapControlsLayer>
+        <MapControlsBottomStack>
+          <MapTagFiltersControl
+            tags={tags}
+            filterTagIds={filterTagIds}
+            setFilterTagIds={setFilterTagIds}
+            onEditTag={openEditTagDialog}
+            canEdit={canEdit}
+          />
+        </MapControlsBottomStack>
+      </MapControlsLayer>
 
       <BlogScroll>
         <BlogContent>
@@ -272,28 +296,27 @@ export function BlogPage() {
                 <DropdownMenuTrigger
                   render={
                     <BlogSortTrigger
-                      aria-label={
-                        blogListOrder === "chronological"
-                          ? "Pin list order: chronological — change sorting"
-                          : "Pin list order: alphabetical — change sorting"
-                      }
+                      aria-label={blogPinListOrderAriaLabel(blogListOrder)}
                     />
                   }
                 >
-                  {blogListOrder === "chronological"
-                    ? "chronological order"
-                    : "alphabetical order"}
+                  <BlogSortLabel>
+                    {blogPinListOrderLabel(blogListOrder)}
+                  </BlogSortLabel>
                   <BlogSortChevron>
                     <ChevronDown aria-hidden />
                   </BlogSortChevron>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuGroup>
-                    <DropdownMenuLabel>List order</DropdownMenuLabel>
                     <DropdownMenuRadioGroup
                       value={blogListOrder}
                       onValueChange={(v) => {
-                        if (v === "chronological" || v === "alphabetical") {
+                        if (
+                          v === "chronological" ||
+                          v === "alphabetical" ||
+                          v === "created"
+                        ) {
                           setBlogListOrder(v);
                         }
                       }}
@@ -302,8 +325,57 @@ export function BlogPage() {
                         Chronological
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="alphabetical">
-                        Alphabetical (by title)
+                        Alphabetical
                       </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="created">
+                        Created
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>{" "}
+              order,{" "}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <BlogSortTrigger
+                      aria-label={blogPinListDirectionAriaLabel(
+                        blogListOrder,
+                        blogListDirection,
+                      )}
+                    />
+                  }
+                >
+                  <BlogSortLabel>
+                    {blogPinListDirectionLabel(
+                      blogListOrder,
+                      blogListDirection,
+                    )}
+                  </BlogSortLabel>
+                  <BlogSortChevron>
+                    <ChevronDown aria-hidden />
+                  </BlogSortChevron>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuGroup>
+                    <DropdownMenuRadioGroup
+                      value={blogListDirection}
+                      onValueChange={(v) => {
+                        if (v === "asc" || v === "desc") {
+                          setBlogListDirection(v);
+                        }
+                      }}
+                    >
+                      {blogPinListDirectionOptions(blogListOrder).map(
+                        (option) => (
+                          <DropdownMenuRadioItem
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </DropdownMenuRadioItem>
+                        ),
+                      )}
                     </DropdownMenuRadioGroup>
                   </DropdownMenuGroup>
                 </DropdownMenuContent>

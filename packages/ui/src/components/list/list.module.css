@@ -1,10 +1,16 @@
 .borderedList {
   margin-top: 1.5rem;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
 }
 
 .borderedListFlush {
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
 }
@@ -26,6 +32,8 @@
   gap: 0.75rem;
   padding: 0.75rem;
   border: 0;
+  border-radius: 0;
+  appearance: none;
   background: transparent;
   text-align: left;
   font-size: 0.875rem;
@@ -33,12 +41,19 @@
   transition: background 150ms;
 }
 
-.listButton:hover {
+.listItemUnread .listButton {
+  background: color-mix(in oklch, var(--primary) 5%, transparent);
+}
+
+.listButton:hover,
+.listItemUnread .listButton:hover {
   background: color-mix(in oklch, var(--foreground) 5%, transparent);
 }
 
-.listButtonUnread {
-  background: color-mix(in oklch, var(--primary) 5%, transparent);
+.listButton:focus-visible {
+  outline: none;
+  background: color-mix(in oklch, var(--foreground) 5%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
 .unreadDot {
@@ -88,6 +103,10 @@
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
   font-size: 0.875rem;
+}
+
+.memberAvatar {
+  flex-shrink: 0;
 }
 
 .memberPrimary {

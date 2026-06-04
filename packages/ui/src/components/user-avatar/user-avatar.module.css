@@ -36,6 +36,8 @@
   height: 100%;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
 }
 
 .imageWrap {
@@ -63,6 +65,8 @@
   height: 100%;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
 }
 
 .image {
@@ -119,6 +123,6 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 9999px;
-  background: var(--primary);
+  background: var(--destructive);
   box-shadow: 0 0 0 2px var(--panel-bg);
 }

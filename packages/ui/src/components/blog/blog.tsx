@@ -47,6 +47,10 @@ export function BlogSortTrigger({
   );
 }
 
+export function BlogSortLabel({ children }: { children: React.ReactNode }) {
+  return <span className={styles.sortLabel}>{children}</span>;
+}
+
 export function BlogSortChevron({ children }: { children: React.ReactNode }) {
   return <span className={styles.sortChevron}>{children}</span>;
 }

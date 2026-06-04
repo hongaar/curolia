@@ -272,7 +272,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
                 key={j.id}
                 icon={<Notebook />}
                 title={j.name}
-                subtitle={j.is_personal ? "Personal" : undefined}
+                subtitle={j.is_public ? "Public" : undefined}
                 onPick={() => onPickMap(j)}
               />
             ))}

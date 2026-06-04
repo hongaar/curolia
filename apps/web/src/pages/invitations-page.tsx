@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { mapViewHref } from "@/lib/app-paths";
+import { mapSettingsHref, mapViewHref } from "@/lib/app-paths";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { PageBackButton } from "@/components/layout/page-back-button";
@@ -73,7 +73,17 @@ export function InvitationsPage() {
       void qc.invalidateQueries({
         queryKey: ["map_invitations", mapId],
       });
-      navigate(`/maps/${mapId}/settings`, { replace: true });
+      const { data: mapRow, error: mapError } = await supabase
+        .from("maps")
+        .select("slug")
+        .eq("id", mapId)
+        .maybeSingle();
+      if (mapError) {
+        setError(mapError.message);
+        return;
+      }
+      const slug = mapRow?.slug?.trim();
+      navigate(slug ? mapSettingsHref(slug) : "/", { replace: true });
     } else {
       const slug = activeMap?.slug?.trim();
       navigate(slug ? mapViewHref("map", slug) : "/", { replace: true });

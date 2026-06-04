@@ -14,7 +14,10 @@ export function MapPickerTrigger({
   mapName?: string | null;
 }) {
   return (
-    <DropdownMenuTrigger className={styles.trigger} {...props}>
+    <DropdownMenuTrigger
+      className={cn(styles.trigger, !mapEmoji && styles.triggerNoEmoji)}
+      {...props}
+    >
       {mapEmoji ? (
         <span className={styles.mapEmoji} aria-hidden>
           {mapEmoji}
@@ -42,5 +45,35 @@ export function MapPickerContent({
     >
       {children}
     </DropdownMenuContent>
+  );
+}
+
+/** Read-only map title for public (unsigned) map views — no selector chevron. */
+export function PublicMapToolbarInfo({
+  mapEmoji,
+  mapName,
+  ownerName,
+}: {
+  mapEmoji?: React.ReactNode;
+  mapName: string;
+  ownerName?: string | null;
+}) {
+  return (
+    <div
+      className={styles.publicInfo}
+      aria-label={`${mapName}${ownerName ? ` by ${ownerName}` : ""}`}
+    >
+      {mapEmoji ? (
+        <span className={styles.mapEmoji} aria-hidden>
+          {mapEmoji}
+        </span>
+      ) : null}
+      <span className={styles.publicText}>
+        <span className={styles.publicMapName}>{mapName}</span>
+        {ownerName ? (
+          <span className={styles.publicOwnerName}>{ownerName}</span>
+        ) : null}
+      </span>
+    </div>
   );
 }

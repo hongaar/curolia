@@ -180,7 +180,7 @@ export type Database = {
           created_by_user_id: string;
           icon_emoji: string | null;
           id: string;
-          is_personal: boolean;
+          is_public: boolean;
           name: string;
           slug: string;
           style: Database["public"]["Enums"]["map_style"];
@@ -193,7 +193,7 @@ export type Database = {
           created_by_user_id: string;
           icon_emoji?: string | null;
           id?: string;
-          is_personal?: boolean;
+          is_public?: boolean;
           name: string;
           slug?: string;
           style?: Database["public"]["Enums"]["map_style"];
@@ -206,7 +206,7 @@ export type Database = {
           created_by_user_id?: string;
           icon_emoji?: string | null;
           id?: string;
-          is_personal?: boolean;
+          is_public?: boolean;
           name?: string;
           slug?: string;
           style?: Database["public"]["Enums"]["map_style"];
@@ -800,6 +800,7 @@ export type Database = {
         Returns: undefined;
       };
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
+      delete_map: { Args: { p_map_id: string }; Returns: undefined };
       invite_map_member: {
         Args: {
           p_invited_role: Database["public"]["Enums"]["map_member_role"];
@@ -810,6 +811,10 @@ export type Database = {
       };
       is_map_member: { Args: { p_map_id: string }; Returns: boolean };
       is_map_owner: { Args: { p_map_id: string }; Returns: boolean };
+      is_map_publicly_readable: {
+        Args: { p_map_id: string };
+        Returns: boolean;
+      };
       map_claim_slug: {
         Args: { p_desired: string; p_map_id: string };
         Returns: string;
@@ -841,6 +846,10 @@ export type Database = {
         Args: { p_map_id: string; p_user_id: string };
         Returns: undefined;
       };
+      set_map_public: {
+        Args: { p_is_public: boolean; p_map_id: string };
+        Returns: undefined;
+      };
       slugify_text: { Args: { p_raw: string }; Returns: string };
       tag_claim_slug: {
         Args: { p_desired: string; p_map_id: string; p_tag_id: string };
@@ -848,6 +857,10 @@ export type Database = {
       };
       transfer_map_ownership: {
         Args: { p_map_id: string; p_new_owner_user_id: string };
+        Returns: undefined;
+      };
+      transfer_map_ownership_by_email: {
+        Args: { p_map_id: string; p_new_owner_email: string };
         Returns: undefined;
       };
       update_map_member_role: {

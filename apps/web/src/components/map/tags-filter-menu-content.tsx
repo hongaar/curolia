@@ -20,8 +20,9 @@ type TagsFilterMenuContentProps = {
   tags: Tag[];
   filterTagIds: Set<string>;
   setFilterTagIds: (action: SetStateAction<Set<string>>) => void;
-  onNewTag: () => void;
+  onNewTag?: () => void;
   onEditTag: (tag: Tag) => void;
+  canEdit?: boolean;
 };
 
 export function TagsFilterMenuContent({
@@ -30,6 +31,7 @@ export function TagsFilterMenuContent({
   setFilterTagIds,
   onNewTag,
   onEditTag,
+  canEdit = true,
 }: TagsFilterMenuContentProps) {
   return (
     <>
@@ -65,16 +67,18 @@ export function TagsFilterMenuContent({
                     <SidebarCheckSpacer />
                   )}
                 </SidebarDropdownMenuItem>
-                <MapDropdownEditButton
-                  title="Edit tag"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onEditTag(tag);
-                  }}
-                >
-                  <Pencil aria-hidden />
-                </MapDropdownEditButton>
+                {canEdit ? (
+                  <MapDropdownEditButton
+                    title="Edit tag"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onEditTag(tag);
+                    }}
+                  >
+                    <Pencil aria-hidden />
+                  </MapDropdownEditButton>
+                ) : null}
               </SidebarDropdownRow>
             );
           })
@@ -92,11 +96,15 @@ export function TagsFilterMenuContent({
           </DropdownMenuItem>
         </>
       ) : null}
-      <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => onNewTag()}>
-        <Plus aria-hidden />
-        New tag…
-      </DropdownMenuItem>
+      {onNewTag ? (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onNewTag()}>
+            <Plus aria-hidden />
+            New tag…
+          </DropdownMenuItem>
+        </>
+      ) : null}
     </>
   );
 }

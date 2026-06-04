@@ -1058,10 +1058,10 @@ export function PinFormDialog({
                 All tags will be removed from this pin. Tags belong to a map and
                 do not carry over.
               </li>
-              {moveTargetMap && !moveTargetMap.is_personal ? (
+              {moveTargetMap && moveTargetMap.id !== mapId ? (
                 <li>
-                  This map is shared with others. Members who can access it may
-                  be able to see this pin.
+                  This map may be shared with others. Members who can access it
+                  may be able to see this pin.
                 </li>
               ) : null}
             </PinFormMoveList>

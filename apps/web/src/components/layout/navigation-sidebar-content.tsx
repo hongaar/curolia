@@ -1,5 +1,6 @@
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 import { SidebarTagsFilterDropdown } from "@/components/layout/sidebar-tags-filter-dropdown";
+import { usePublicMapOwnerName } from "@/hooks/use-public-map-owner-name";
 import { mapSwitchHref, mapViewHref } from "@/lib/app-paths";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useMap } from "@/providers/map-provider";
@@ -30,19 +31,20 @@ import {
   SidebarMapName,
   SidebarPickerTrigger,
 } from "@curolia/ui/navigation-sidebar";
+import { PublicMapToolbarInfo } from "@curolia/ui/map-picker";
 import { Separator } from "@curolia/ui/separator";
 import { BookOpen, Check, Map as MapIcon, Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function mapEmoji(map: CuroliaMap) {
-  return map.icon_emoji ?? defaultMapIcon(map.is_personal);
+  return map.icon_emoji ?? defaultMapIcon();
 }
 
 type NavigationSidebarContentProps = {
   userId: string | undefined;
   openNewMapDialog: () => void;
-  onOpenMapSettings: (mapId: string) => void;
+  onOpenMapSettings: (mapSlug: string) => void;
 };
 
 export function NavigationSidebarContent({
@@ -53,7 +55,8 @@ export function NavigationSidebarContent({
   const tagSidebar = useRegisteredTagSidebar();
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
-  const { maps, activeMap } = useMap();
+  const { maps, activeMap, publicView, activeMapId } = useMap();
+  const ownerQuery = usePublicMapOwnerName(activeMapId, publicView);
   const [mapsMenuOpen, setMapsMenuOpen] = useState(false);
   const mapTo = activeMap?.slug ? mapViewHref("map", activeMap.slug) : "/";
   const blogTo = activeMap?.slug ? mapViewHref("blog", activeMap.slug) : "/";
@@ -89,66 +92,77 @@ export function NavigationSidebarContent({
 
       <NavigationSidebarSection gap="lg">
         <NavigationSidebarLabel>Map</NavigationSidebarLabel>
-        <DropdownMenu open={mapsMenuOpen} onOpenChange={setMapsMenuOpen}>
-          <SidebarPickerTrigger
-            icon={
-              activeMap ? (
-                <NavigationSidebarEmoji aria-hidden>
-                  {mapEmoji(activeMap)}
-                </NavigationSidebarEmoji>
-              ) : null
-            }
-            label={activeMap?.name ?? "Select map"}
+        {publicView && activeMap ? (
+          <PublicMapToolbarInfo
+            mapEmoji={mapEmoji(activeMap)}
+            mapName={activeMap.name.trim() || "Map"}
+            ownerName={ownerQuery.data}
           />
-          <SidebarDropdownContent align="start" sideOffset={6}>
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Maps</DropdownMenuLabel>
-              {maps.map((j) => {
-                const selected = j.id === activeMap?.id;
-                return (
-                  <MapDropdownRow key={j.id}>
-                    <SidebarDropdownMenuItem
-                      onClick={() => {
-                        navigate(mapSwitchHref(j, pathname, search));
-                      }}
-                    >
-                      <SidebarMapEmoji>{mapEmoji(j)}</SidebarMapEmoji>
-                      <SidebarMapName
-                        selected={selected}
-                        personal={j.is_personal}
+        ) : (
+          <DropdownMenu open={mapsMenuOpen} onOpenChange={setMapsMenuOpen}>
+            <SidebarPickerTrigger
+              icon={
+                activeMap ? (
+                  <NavigationSidebarEmoji aria-hidden>
+                    {mapEmoji(activeMap)}
+                  </NavigationSidebarEmoji>
+                ) : null
+              }
+              label={activeMap?.name ?? "Select map"}
+            />
+            <SidebarDropdownContent align="start" sideOffset={6}>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Maps</DropdownMenuLabel>
+                {maps.map((j) => {
+                  const selected = j.id === activeMap?.id;
+                  return (
+                    <MapDropdownRow key={j.id}>
+                      <SidebarDropdownMenuItem
+                        onClick={() => {
+                          navigate(mapSwitchHref(j, pathname, search));
+                        }}
                       >
-                        {j.name}
-                      </SidebarMapName>
-                      {selected ? (
-                        <SidebarCheckIcon>
-                          <Check aria-hidden />
-                        </SidebarCheckIcon>
-                      ) : (
-                        <SidebarCheckSpacer />
-                      )}
-                    </SidebarDropdownMenuItem>
-                    <MapDropdownEditButton
-                      title="Edit map"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onOpenMapSettings(j.id);
-                        setMapsMenuOpen(false);
-                      }}
-                    >
-                      <Pencil aria-hidden />
-                    </MapDropdownEditButton>
-                  </MapDropdownRow>
-                );
-              })}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => openNewMapDialog()}>
-              <Plus aria-hidden />
-              New map…
-            </DropdownMenuItem>
-          </SidebarDropdownContent>
-        </DropdownMenu>
+                        <SidebarMapEmoji>{mapEmoji(j)}</SidebarMapEmoji>
+                        <SidebarMapName selected={selected}>
+                          {j.name}
+                        </SidebarMapName>
+                        {selected ? (
+                          <SidebarCheckIcon>
+                            <Check aria-hidden />
+                          </SidebarCheckIcon>
+                        ) : (
+                          <SidebarCheckSpacer />
+                        )}
+                      </SidebarDropdownMenuItem>
+                      {userId ? (
+                        <MapDropdownEditButton
+                          title="Edit map"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onOpenMapSettings(j.slug.trim());
+                            setMapsMenuOpen(false);
+                          }}
+                        >
+                          <Pencil aria-hidden />
+                        </MapDropdownEditButton>
+                      ) : null}
+                    </MapDropdownRow>
+                  );
+                })}
+              </DropdownMenuGroup>
+              {userId ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => openNewMapDialog()}>
+                    <Plus aria-hidden />
+                    New map…
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+            </SidebarDropdownContent>
+          </DropdownMenu>
+        )}
       </NavigationSidebarSection>
 
       <Separator />

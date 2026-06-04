@@ -9,8 +9,9 @@ type MapTagFiltersControlProps = {
   tags: Tag[];
   filterTagIds: Set<string>;
   setFilterTagIds: (action: SetStateAction<Set<string>>) => void;
-  onNewTag: () => void;
+  onNewTag?: () => void;
   onEditTag: (tag: Tag) => void;
+  canEdit?: boolean;
 };
 
 export function MapTagFiltersControl({
@@ -19,6 +20,7 @@ export function MapTagFiltersControl({
   setFilterTagIds,
   onNewTag,
   onEditTag,
+  canEdit = true,
 }: MapTagFiltersControlProps) {
   const activeCount = filterTagIds.size;
   const [open, setOpen] = useState(false);
@@ -42,6 +44,7 @@ export function MapTagFiltersControl({
             onEditTag(tag);
             setOpen(false);
           }}
+          canEdit={canEdit}
         />
       </DropdownMenuContent>
     </DropdownMenu>

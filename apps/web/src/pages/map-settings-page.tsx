@@ -2,7 +2,11 @@ import { PageBackButton } from "@/components/layout/page-back-button";
 import { MapPluginsSection } from "@/components/map-collection/map-plugins-section";
 import { MapSharingSection } from "@/components/map-collection/map-sharing-section";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
-import { mapViewHref } from "@/lib/app-paths";
+import {
+  mapSettingsHref,
+  mapViewHref,
+  resolveMapFromSettingsParam,
+} from "@/lib/app-paths";
 import {
   defaultMapIcon,
   normalizeMapIconForPersist,
@@ -40,7 +44,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export function MapSettingsPage() {
-  const { mapId } = useParams<{ mapId: string }>();
+  const { mapSlug: mapSlugParam } = useParams<{ mapSlug: string }>();
   const { user } = useAuth();
   const { maps, activeMapId, setActiveMapId } = useMap();
   const navigate = useNavigate();
@@ -56,9 +60,17 @@ export function MapSettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const map = useMemo(
-    () => maps.find((j) => j.id === mapId) ?? null,
-    [maps, mapId],
+    () => resolveMapFromSettingsParam(maps, mapSlugParam),
+    [maps, mapSlugParam],
   );
+  const mapId = map?.id ?? null;
+
+  useEffect(() => {
+    if (!map || !mapSlugParam) return;
+    const canonicalSlug = map.slug.trim();
+    if (!canonicalSlug || mapSlugParam === canonicalSlug) return;
+    navigate(mapSettingsHref(canonicalSlug), { replace: true });
+  }, [map, mapSlugParam, navigate]);
 
   const roleQuery = useQuery({
     queryKey: ["map_member_role", mapId, user?.id],
@@ -82,7 +94,7 @@ export function MapSettingsPage() {
     if (!map) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset field when switching map
     setName(map.name);
-    setIconEmoji(map.icon_emoji ?? defaultMapIcon(map.is_personal));
+    setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
   }, [map]);
@@ -95,7 +107,7 @@ export function MapSettingsPage() {
       .from("maps")
       .update({
         name: name.trim(),
-        icon_emoji: normalizeMapIconForPersist(iconEmoji, map.is_personal),
+        icon_emoji: normalizeMapIconForPersist(iconEmoji),
         style: mapStyle,
         style_hillshades: styleOptions.hillshades,
         style_satellite_labels: styleOptions.satelliteLabels,
@@ -112,7 +124,7 @@ export function MapSettingsPage() {
     if (user) await qc.invalidateQueries({ queryKey: ["maps", user.id] });
   }
 
-  if (!mapId) {
+  if (!mapSlugParam) {
     return <PageCenteredLoading>Missing map.</PageCenteredLoading>;
   }
 
@@ -143,7 +155,7 @@ export function MapSettingsPage() {
   }
 
   const nameDirty = name.trim() !== map.name;
-  const iconToSave = normalizeMapIconForPersist(iconEmoji, map.is_personal);
+  const iconToSave = normalizeMapIconForPersist(iconEmoji);
   const iconDirty = iconToSave !== (map.icon_emoji ?? null);
   const savedStyleOptions = normalizeMapStyleOptions(map);
   const styleDirty =
@@ -256,12 +268,12 @@ export function MapSettingsPage() {
                 View blog
               </Button>
             ) : null}
-            {activeMapId !== mapId ? (
+            {activeMapId !== map.id ? (
               <Button
                 variant="secondary"
                 type="button"
                 onClick={() => {
-                  setActiveMapId(mapId);
+                  setActiveMapId(map.id);
                   const slug = map.slug.trim();
                   navigate(slug ? mapViewHref("map", slug) : "/");
                 }}
@@ -274,13 +286,19 @@ export function MapSettingsPage() {
       </PagePanel>
 
       <MapPluginsSection
-        mapId={mapId}
+        mapId={map.id}
         isOwner={isOwner}
         roleLoading={roleQuery.isLoading}
       />
 
       <PagePanel>
-        <MapSharingSection mapId={mapId} mapName={map.name} isOwner={isOwner} />
+        <MapSharingSection
+          mapId={map.id}
+          mapName={map.name}
+          mapSlug={map.slug}
+          isPublic={map.is_public}
+          isOwner={isOwner}
+        />
       </PagePanel>
     </AppPageLayout>
   );

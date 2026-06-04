@@ -1,20 +1,20 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { PageBackButton } from "@/components/layout/page-back-button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { PageBackButton } from "@/components/layout/page-back-button";
 import type { AppNotification } from "@/types/database";
+import {
+  BorderedList,
+  ListEmptyItem,
+  NotificationListButton,
+} from "@curolia/ui/list";
 import {
   AppPageLayout,
   PageDisplayTitle,
   PageLead,
   PagePanel,
 } from "@curolia/ui/page";
-import {
-  BorderedList,
-  ListEmptyItem,
-  NotificationListButton,
-} from "@curolia/ui/list";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export function NotificationsPage() {
   const { user } = useAuth();

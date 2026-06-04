@@ -1,6 +1,13 @@
-import { mapRoleLabel, type InviteMapRole } from "@/lib/map-member-roles";
+import { UserAvatar } from "@/components/user-avatar";
+import { mapViewHref } from "@/lib/app-paths";
+import {
+  inviteRoleSelectLabel,
+  mapRoleLabel,
+  type InviteMapRole,
+} from "@/lib/map-member-roles";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
+import { useMap } from "@/providers/map-provider";
 import type { MapInvitation, MapMemberRole, Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
@@ -9,7 +16,7 @@ import {
   FormErrorText,
   FormField,
   FormSelectTriggerCompact,
-  FormSelectTriggerRounded,
+  FormSelectTriggerInvite,
 } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
@@ -17,6 +24,7 @@ import {
   BorderedList,
   ListEmptyItem,
   MemberActions,
+  MemberAvatar,
   MemberListRow,
   MemberPrimary,
   MemberRole,
@@ -47,8 +55,11 @@ import {
   SelectItem,
   SelectValue,
 } from "@curolia/ui/select";
+import { Switch } from "@curolia/ui/switch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type MemberRow = {
   user_id: string;
@@ -59,22 +70,32 @@ type MemberRow = {
 export function MapSharingSection({
   mapId,
   mapName,
+  mapSlug,
+  isPublic,
   isOwner,
 }: {
   mapId: string;
   mapName: string;
+  mapSlug: string;
+  isPublic: boolean;
   isOwner: boolean;
 }) {
   const { user } = useAuth();
+  const { maps, setActiveMapId } = useMap();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<InviteMapRole>("viewer");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteErr, setInviteErr] = useState<string | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
-  const [transferTo, setTransferTo] = useState<string>("");
+  const [transferEmail, setTransferEmail] = useState("");
   const [transferBusy, setTransferBusy] = useState(false);
   const [transferErr, setTransferErr] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteErr, setDeleteErr] = useState(null as string | null);
+  const [publicBusy, setPublicBusy] = useState(false);
 
   const membersQuery = useQuery({
     queryKey: ["map_members_detail", mapId],
@@ -118,11 +139,11 @@ export function MapSharingSection({
 
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
   const pendingInvites = invitationsQuery.data ?? [];
-
-  const transferCandidates = useMemo(
-    () => members.filter((m) => m.role !== "owner" && m.user_id !== user?.id),
-    [members, user?.id],
-  );
+  const trimmedSlug = mapSlug.trim();
+  const publicMapUrl =
+    trimmedSlug && typeof window !== "undefined"
+      ? `${window.location.origin}${mapViewHref("map", trimmedSlug)}`
+      : null;
 
   async function sendInvite() {
     if (!inviteEmail.trim()) return;
@@ -192,12 +213,12 @@ export function MapSharingSection({
   }
 
   async function runTransfer() {
-    if (!transferTo) return;
+    if (!transferEmail.trim()) return;
     setTransferBusy(true);
     setTransferErr(null);
-    const { error } = await supabase.rpc("transfer_map_ownership", {
+    const { error } = await supabase.rpc("transfer_map_ownership_by_email", {
       p_map_id: mapId,
-      p_new_owner_user_id: transferTo,
+      p_new_owner_email: transferEmail.trim(),
     });
     setTransferBusy(false);
     if (error) {
@@ -205,7 +226,7 @@ export function MapSharingSection({
       return;
     }
     setTransferOpen(false);
-    setTransferTo("");
+    setTransferEmail("");
     void qc.invalidateQueries({
       queryKey: ["map_members_detail", mapId],
     });
@@ -217,10 +238,60 @@ export function MapSharingSection({
       queryKey: ["map_ical_feed_token", mapId],
     });
     void qc.invalidateQueries({ queryKey: ["maps", user?.id] });
-    void qc.invalidateQueries({ queryKey: ["notifications", transferTo] });
-    void qc.invalidateQueries({
-      queryKey: ["notifications_unread", transferTo],
+    toast.success("Ownership transferred");
+  }
+
+  async function togglePublic(next: boolean) {
+    setPublicBusy(true);
+    setInviteErr(null);
+    const { error } = await supabase.rpc("set_map_public", {
+      p_map_id: mapId,
+      p_is_public: next,
     });
+    setPublicBusy(false);
+    if (error) {
+      setInviteErr(error.message);
+      return;
+    }
+    toast.success(next ? "Map is now public" : "Map is now private");
+    void qc.invalidateQueries({ queryKey: ["maps", user?.id] });
+    if (trimmedSlug) {
+      void qc.invalidateQueries({ queryKey: ["public_map", trimmedSlug] });
+    }
+  }
+
+  async function runDelete() {
+    setDeleteBusy(true);
+    setDeleteErr(null);
+    const { error } = await supabase.rpc("delete_map", {
+      p_map_id: mapId,
+    });
+    setDeleteBusy(false);
+    if (error) {
+      setDeleteErr(error.message);
+      return;
+    }
+    setDeleteOpen(false);
+    const fallback = maps.find((m) => m.id !== mapId) ?? null;
+    await qc.invalidateQueries({ queryKey: ["maps", user?.id] });
+    if (fallback) {
+      setActiveMapId(fallback.id);
+      const slug = fallback.slug.trim();
+      navigate(slug ? mapViewHref("map", slug) : "/");
+    } else {
+      navigate("/");
+    }
+    toast.success("Map deleted");
+  }
+
+  async function copyPublicLink() {
+    if (!publicMapUrl) return;
+    try {
+      await navigator.clipboard.writeText(publicMapUrl);
+      toast.success("Public link copied");
+    } catch {
+      toast.error("Could not copy link");
+    }
   }
 
   return (
@@ -248,6 +319,16 @@ export function MapSharingSection({
                 m.profile?.display_name?.trim() || (isSelf ? "You" : "Member");
               return (
                 <MemberListRow key={m.user_id}>
+                  <MemberAvatar>
+                    <UserAvatar
+                      storedAvatarUrl={m.profile?.avatar_url}
+                      email={isSelf ? user?.email : undefined}
+                      gravatarFallback={isSelf}
+                      gravatarSize={64}
+                      label={label}
+                      size="sm"
+                    />
+                  </MemberAvatar>
                   <MemberPrimary
                     secondary={isSelf && user?.email ? user.email : undefined}
                   >
@@ -263,10 +344,10 @@ export function MapSharingSection({
                         }
                       >
                         <FormSelectTriggerCompact>
-                          <SelectValue />
+                          <SelectValue>{mapRoleLabel(m.role)}</SelectValue>
                         </FormSelectTriggerCompact>
                         <SelectContent>
-                          <SelectItem value="viewer">Reader</SelectItem>
+                          <SelectItem value="viewer">Viewer</SelectItem>
                           <SelectItem value="editor">Contributor</SelectItem>
                         </SelectContent>
                       </Select>
@@ -307,16 +388,18 @@ export function MapSharingSection({
               </PageInviteEmailField>
               <PageInviteRoleField>
                 <FormField>
-                  <Label>Access</Label>
+                  <Label htmlFor="inv-role">Access</Label>
                   <Select
                     value={inviteRole}
                     onValueChange={(v) => setInviteRole(v as InviteMapRole)}
                   >
-                    <FormSelectTriggerRounded>
-                      <SelectValue />
-                    </FormSelectTriggerRounded>
+                    <FormSelectTriggerInvite id="inv-role">
+                      <SelectValue>
+                        {inviteRoleSelectLabel(inviteRole)}
+                      </SelectValue>
+                    </FormSelectTriggerInvite>
                     <SelectContent>
-                      <SelectItem value="viewer">Reader</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
                       <SelectItem value="editor">Contributor</SelectItem>
                     </SelectContent>
                   </Select>
@@ -333,6 +416,47 @@ export function MapSharingSection({
             <PageSectionHint>
               If they already have an account, they get an in-app notification.
               Pending invites work after they sign up with the same email.
+            </PageSectionHint>
+          </PageSharingSection>
+
+          <PageSharingSection>
+            <PageSectionSubheading>Public access</PageSectionSubheading>
+            <FormField>
+              <Label htmlFor="map-public-toggle">
+                Anyone with the link can view this map (read-only)
+              </Label>
+              <Switch
+                id="map-public-toggle"
+                checked={isPublic}
+                disabled={publicBusy}
+                onCheckedChange={(checked) => void togglePublic(checked)}
+              />
+            </FormField>
+            {isPublic && publicMapUrl ? (
+              <PageInviteRow>
+                <PageInviteEmailField>
+                  <FormField>
+                    <Label htmlFor="public-map-url">Public link</Label>
+                    <Input
+                      id="public-map-url"
+                      readOnly
+                      value={publicMapUrl}
+                      onFocus={(e) => e.target.select()}
+                    />
+                  </FormField>
+                </PageInviteEmailField>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void copyPublicLink()}
+                >
+                  Copy link
+                </Button>
+              </PageInviteRow>
+            ) : null}
+            <PageSectionHint>
+              Public viewers can browse pins without signing in. Editing still
+              requires an invite.
             </PageSectionHint>
           </PageSharingSection>
 
@@ -362,9 +486,10 @@ export function MapSharingSection({
             title="Transfer ownership"
             description={
               <>
-                Choose an existing member. You will become a contributor. All
-                map plugins and calendar feed links for &quot;{mapName}
-                &quot; will be removed.
+                Enter the new owner&apos;s email. They must have an account (or
+                sign up with that email). You will become a contributor. All map
+                plugins and calendar feed links for &quot;{mapName}&quot; will
+                be removed.
               </>
             }
           >
@@ -373,10 +498,32 @@ export function MapSharingSection({
               variant="secondary"
               onClick={() => {
                 setTransferErr(null);
+                setTransferEmail("");
                 setTransferOpen(true);
               }}
             >
               Transfer ownership…
+            </Button>
+          </CautionPanel>
+
+          <CautionPanel
+            title="Delete map"
+            description={
+              <>
+                Permanently delete &quot;{mapName}&quot; and all of its pins.
+                You cannot delete your only map.
+              </>
+            }
+          >
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                setDeleteErr(null);
+                setDeleteOpen(true);
+              }}
+            >
+              Delete map…
             </Button>
           </CautionPanel>
 
@@ -392,23 +539,15 @@ export function MapSharingSection({
               <PanelDialogBody>
                 <PanelDialogFormStack>
                   <PanelDialogField>
-                    <Label>New owner</Label>
-                    <Select
-                      value={transferTo}
-                      onValueChange={(v) => setTransferTo(v ?? "")}
-                    >
-                      <FormSelectTriggerRounded>
-                        <SelectValue placeholder="Choose a member" />
-                      </FormSelectTriggerRounded>
-                      <SelectContent>
-                        {transferCandidates.map((m) => (
-                          <SelectItem key={m.user_id} value={m.user_id}>
-                            {m.profile?.display_name?.trim() || "Member"} (
-                            {mapRoleLabel(m.role)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="transfer-email">New owner email</Label>
+                    <Input
+                      id="transfer-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="friend@example.com"
+                      value={transferEmail}
+                      onChange={(e) => setTransferEmail(e.target.value)}
+                    />
                   </PanelDialogField>
                   {transferErr ? (
                     <FormErrorText>{transferErr}</FormErrorText>
@@ -425,10 +564,45 @@ export function MapSharingSection({
                 </Button>
                 <Button
                   type="button"
-                  disabled={!transferTo || transferBusy}
+                  disabled={!transferEmail.trim() || transferBusy}
                   onClick={() => void runTransfer()}
                 >
                   Confirm transfer
+                </Button>
+              </PanelDialogFooter>
+            </PanelDialogContent>
+          </Dialog>
+
+          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <PanelDialogContent showCloseButton={!deleteBusy}>
+              <PanelDialogHeader>
+                <PanelDialogTitle>Delete map?</PanelDialogTitle>
+                <DialogDescription>
+                  This removes &quot;{mapName}&quot; and every pin on it. This
+                  cannot be undone.
+                </DialogDescription>
+              </PanelDialogHeader>
+              {deleteErr ? (
+                <PanelDialogBody>
+                  <FormErrorText>{deleteErr}</FormErrorText>
+                </PanelDialogBody>
+              ) : null}
+              <PanelDialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={deleteBusy}
+                  onClick={() => setDeleteOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={deleteBusy}
+                  onClick={() => void runDelete()}
+                >
+                  {deleteBusy ? "Deleting…" : "Delete map"}
                 </Button>
               </PanelDialogFooter>
             </PanelDialogContent>

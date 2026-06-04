@@ -34,6 +34,7 @@ export type MapPointerContextMenuTarget =
 type MapPointerContextMenuProps = {
   target: MapPointerContextMenuTarget | null;
   onTargetChange: (target: MapPointerContextMenuTarget | null) => void;
+  canEdit?: boolean;
   tags: Tag[];
   pinTagIdsFor: (pinId: string) => Set<string>;
   onTogglePinTag: (
@@ -50,6 +51,7 @@ type MapPointerContextMenuProps = {
 export function MapPointerContextMenu({
   target,
   onTargetChange,
+  canEdit = true,
   tags,
   pinTagIdsFor,
   onTogglePinTag,
@@ -121,7 +123,7 @@ export function MapPointerContextMenu({
           }}
         />
         <DropdownMenuContent side="right" align="start" sideOffset={4}>
-          {target?.type === "map" ? (
+          {canEdit && target?.type === "map" ? (
             <DropdownMenuItem
               onClick={() => {
                 onAddPinAt(target.lng, target.lat, target.zoom);
@@ -141,47 +143,51 @@ export function MapPointerContextMenu({
               >
                 Open
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  onEditPin(target.pinId);
-                  onTargetChange(null);
-                }}
-              >
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Set tags</DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <PinContextMenuTagsSubmenu
-                    tags={tags}
-                    selectedTagIds={pinTagIdsFor(target.pinId)}
-                    disabled={tagToggleBusy}
-                    onToggleTag={(tagId, checked) => {
-                      setTagToggleBusy(true);
-                      void Promise.resolve(
-                        onTogglePinTag(target.pinId, tagId, checked),
-                      )
-                        .catch((e) => {
-                          toast.error(
-                            e instanceof Error
-                              ? e.message
-                              : "Could not update tags.",
-                          );
-                        })
-                        .finally(() => setTagToggleBusy(false));
+              {canEdit ? (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      onEditPin(target.pinId);
+                      onTargetChange(null);
                     }}
-                  />
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => {
-                  setDeletePinId(target.pinId);
-                  onTargetChange(null);
-                }}
-              >
-                Remove
-              </DropdownMenuItem>
+                  >
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>Set tags</DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <PinContextMenuTagsSubmenu
+                        tags={tags}
+                        selectedTagIds={pinTagIdsFor(target.pinId)}
+                        disabled={tagToggleBusy}
+                        onToggleTag={(tagId, checked) => {
+                          setTagToggleBusy(true);
+                          void Promise.resolve(
+                            onTogglePinTag(target.pinId, tagId, checked),
+                          )
+                            .catch((e) => {
+                              toast.error(
+                                e instanceof Error
+                                  ? e.message
+                                  : "Could not update tags.",
+                              );
+                            })
+                            .finally(() => setTagToggleBusy(false));
+                        }}
+                      />
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => {
+                      setDeletePinId(target.pinId);
+                      onTargetChange(null);
+                    }}
+                  >
+                    Remove
+                  </DropdownMenuItem>
+                </>
+              ) : null}
             </>
           ) : null}
         </DropdownMenuContent>
