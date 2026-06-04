@@ -5,7 +5,7 @@ import styles from "./main-toolbar.module.css";
 export type MainToolbarProps = {
   /** Map selector control (e.g. dropdown trigger). */
   mapPicker?: React.ReactNode;
-  /** Center search slot (hidden on small viewports via CSS). */
+  /** Search slot beside map picker (hidden on small viewports via CSS). */
   search?: React.ReactNode;
   accountMenu: React.ReactNode;
   /** App icon URL (defaults to `/favicon.png`). */
@@ -66,12 +66,12 @@ export function MainToolbar({
             </div>
           )}
           {mapPicker}
+          {search ? (
+            <div className={styles.search}>
+              <div className={styles.searchSlot}>{search}</div>
+            </div>
+          ) : null}
         </div>
-        {search ? (
-          <div className={styles.center}>
-            <div className={styles.searchSlot}>{search}</div>
-          </div>
-        ) : null}
         <div className={styles.right}>{accountMenu}</div>
       </div>
     </header>

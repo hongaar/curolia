@@ -17,7 +17,6 @@
 }
 
 .left,
-.center,
 .right {
   pointer-events: auto;
   display: flex;
@@ -26,15 +25,15 @@
 }
 
 .left {
-  flex-shrink: 0;
+  flex: 1;
   gap: 0.75rem;
 }
 
-.center {
-  flex: 1;
-  justify-content: center;
+.search {
+  display: none;
+  flex: 1 1 12rem;
   max-width: 32rem;
-  margin-inline: auto;
+  min-width: 0;
 }
 
 .right {
@@ -97,6 +96,10 @@
   .left {
     gap: 1rem;
   }
+
+  .search {
+    display: flex;
+  }
 }
 
 @media (max-width: 39.99rem) {
@@ -113,10 +116,6 @@
     top: calc(var(--nav-shell-pad) + var(--safe-top));
     left: calc(var(--nav-shell-pad) + var(--safe-left));
     max-width: calc(100vw - 5rem);
-  }
-
-  .center {
-    display: none;
   }
 
   .right {

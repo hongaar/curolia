@@ -105,7 +105,7 @@ export const Default: Story = {
 };
 
 export const MapPickerOnly: Story = {
-  parameters: storyDocs("Brand + map picker without center search."),
+  parameters: storyDocs("Brand + map picker without toolbar search."),
   render: (args) => (
     <MainToolbar
       {...args}
