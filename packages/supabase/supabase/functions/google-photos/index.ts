@@ -867,7 +867,7 @@ Deno.serve(async (req: Request) => {
         buf = await fetchGooglePhotoBytes(
           accessToken,
           mf.baseUrl,
-          "=w1200-h1200",
+          "=w1600-h1600",
         );
       }
 

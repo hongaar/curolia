@@ -205,7 +205,7 @@ export function MapSettingsPage() {
                 footer={
                   <MapStyleOptionCheckbox
                     id="map-style-hillshades"
-                    label="Hillshades"
+                    label="Terrain"
                     checked={styleOptions.hillshades}
                     disabled={controlsDisabled || mapStyle !== "street"}
                     onCheckedChange={(checked) =>
