@@ -96,6 +96,13 @@ export type PinMapPreviewPin = {
   icon: string;
 };
 
+export type PinMapDraftPinLocation = Pick<PinMapPreviewPin, "lat" | "lng">;
+
+const DEFAULT_DRAFT_PIN: Pick<PinMapPreviewPin, "icon" | "color"> = {
+  icon: "📍",
+  color: null,
+};
+
 type PinMapProps = {
   pins: PinWithTags[];
   selectedTagIds: Set<string>;
@@ -104,6 +111,8 @@ type PinMapProps = {
   selectedPinId?: string | null;
   /** Draft pin while creating a pin (e.g. New pin dialog). */
   previewPin?: PinMapPreviewPin | null;
+  /** Draft pin at the map point opened by the context menu. */
+  contextDraftPin?: PinMapDraftPinLocation | null;
   placementMode?: boolean;
   onPlacementClick?: (lng: number, lat: number, zoom: number) => void;
   /** When set (from URL or localStorage fallback), map uses this view. */
@@ -195,6 +204,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onSelectPin,
     selectedPinId = null,
     previewPin = null,
+    contextDraftPin = null,
     placementMode = false,
     onPlacementClick,
     initialCamera = null,
@@ -239,6 +249,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     new Map<string, { selected: boolean; hovered: boolean; zIndex: string }>(),
   );
   const previewMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const placementDraftMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const placementDraftMountRef = useRef<MapMarkerMount | null>(null);
   const geolocateControlRef = useRef<maplibregl.GeolocateControl | null>(null);
   const onPlacementClickRef = useRef(onPlacementClick);
   const onSelectPinRef = useRef(onSelectPin);
@@ -761,6 +773,35 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
     const canvas = map.getCanvas();
 
+    const removePlacementDraft = () => {
+      placementDraftMarkerRef.current?.remove();
+      placementDraftMarkerRef.current = null;
+      placementDraftMountRef.current?.unmount();
+      placementDraftMountRef.current = null;
+    };
+
+    const placeOrMoveDraft = (lngLat: maplibregl.LngLatLike) => {
+      if (!map.isStyleLoaded()) return;
+      if (placementDraftMarkerRef.current) {
+        placementDraftMarkerRef.current.setLngLat(lngLat);
+        return;
+      }
+      const mount = createMapMarkerMount({
+        emoji: DEFAULT_DRAFT_PIN.icon,
+        fill: DEFAULT_DRAFT_PIN.color,
+        selected: false,
+        interactive: false,
+        draft: true,
+        pointerEvents: "none",
+        zIndex: "5",
+      });
+      const marker = new maplibregl.Marker({ element: mount.element })
+        .setLngLat(lngLat)
+        .addTo(map);
+      placementDraftMountRef.current = mount;
+      placementDraftMarkerRef.current = marker;
+    };
+
     const clickHitPinMarker = (e: maplibregl.MapMouseEvent) => {
       const orig = e.originalEvent;
       if (
@@ -827,8 +868,32 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       );
     };
 
+    const onPlacementMouseMove = (e: maplibregl.MapMouseEvent) => {
+      placeOrMoveDraft(e.lngLat);
+    };
+
+    const onPlacementMouseLeave = () => {
+      removePlacementDraft();
+    };
+
     map.on("click", onClick);
     map.on("contextmenu", onContextMenu);
+
+    let attachPlacementMove: (() => void) | null = null;
+    if (placementMode && !previewPin) {
+      attachPlacementMove = () => {
+        map.on("mousemove", onPlacementMouseMove);
+        canvas.addEventListener("mouseleave", onPlacementMouseLeave);
+      };
+      if (map.isStyleLoaded()) {
+        attachPlacementMove();
+      } else {
+        map.once("load", attachPlacementMove);
+      }
+    } else {
+      removePlacementDraft();
+    }
+
     if (placementMode) {
       canvas.style.cursor = "crosshair";
     } else {
@@ -837,9 +902,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     return () => {
       map.off("click", onClick);
       map.off("contextmenu", onContextMenu);
+      map.off("mousemove", onPlacementMouseMove);
+      if (attachPlacementMove) {
+        map.off("load", attachPlacementMove);
+      }
+      canvas.removeEventListener("mouseleave", onPlacementMouseLeave);
       canvas.style.cursor = "";
+      removePlacementDraft();
     };
-  }, [placementMode]);
+  }, [placementMode, previewPin]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -952,16 +1023,22 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     requestHidePreview,
   ]);
 
+  const staticDraftPin = useMemo((): PinMapPreviewPin | null => {
+    if (previewPin) return previewPin;
+    if (!contextDraftPin) return null;
+    return { ...contextDraftPin, ...DEFAULT_DRAFT_PIN };
+  }, [previewPin, contextDraftPin]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     previewMarkerRef.current?.remove();
     previewMarkerRef.current = null;
-    if (!previewPin) return;
+    if (!staticDraftPin) return;
 
     const mount = createMapMarkerMount({
-      emoji: previewPin.icon,
-      fill: previewPin.color,
+      emoji: staticDraftPin.icon,
+      fill: staticDraftPin.color,
       selected: false,
       interactive: false,
       draft: true,
@@ -969,7 +1046,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       zIndex: "5",
     });
     const marker = new maplibregl.Marker({ element: mount.element })
-      .setLngLat([previewPin.lng, previewPin.lat])
+      .setLngLat([staticDraftPin.lng, staticDraftPin.lat])
       .addTo(map);
     previewMarkerRef.current = marker;
     return () => {
@@ -977,7 +1054,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       mount.unmount();
       previewMarkerRef.current = null;
     };
-  }, [previewPin]);
+  }, [staticDraftPin]);
 
   const hoverTitle = pinHover?.pin.title?.trim() || "Untitled place";
 

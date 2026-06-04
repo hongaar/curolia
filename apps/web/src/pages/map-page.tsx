@@ -755,6 +755,14 @@ export function MapPage() {
             selectedTagIds={filterTagIds}
             selectedPinId={sidebarPinId}
             previewPin={null}
+            contextDraftPin={
+              pointerContextMenu?.type === "map"
+                ? {
+                    lng: pointerContextMenu.lng,
+                    lat: pointerContextMenu.lat,
+                  }
+                : null
+            }
             mapStyle={normalizeMapStylePreset(activeMap?.style)}
             mapStyleOptions={mapStyleOptions}
             onSelectPin={onSelectPin}
