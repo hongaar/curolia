@@ -116,6 +116,16 @@ type PinMapProps = {
   onCameraIdle?: (camera: MapCamera) => void;
   /** Map canvas click when not in placement mode (e.g. dismiss nav overlay on mobile). */
   onMapBackgroundClick?: () => void;
+  /** Right click / long press on empty map (not on a pin marker). */
+  onMapContextMenu?: (
+    lng: number,
+    lat: number,
+    zoom: number,
+    clientX: number,
+    clientY: number,
+  ) => void;
+  /** Right click / long press on a pin marker. */
+  onPinContextMenu?: (pinId: string, clientX: number, clientY: number) => void;
   /** Per-map basemap preset from map settings. */
   mapStyle?: MapStylePreset;
   /** Per-map basemap overlays (hillshades, satellite labels). */
@@ -157,6 +167,27 @@ function cameraCloseEnough(map: maplibregl.Map, target: MapCamera) {
   );
 }
 
+function contextMenuClientPoint(
+  orig: Event | undefined,
+): { x: number; y: number } | null {
+  if (orig instanceof MouseEvent) {
+    return { x: orig.clientX, y: orig.clientY };
+  }
+  if (orig instanceof TouchEvent) {
+    const t = orig.changedTouches[0] ?? orig.touches[0];
+    if (t) return { x: t.clientX, y: t.clientY };
+  }
+  return null;
+}
+
+function pinIdFromContextEvent(orig: Event | undefined): string | null {
+  if (!orig || !("target" in orig)) return null;
+  const target = orig.target;
+  if (!(target instanceof Element)) return null;
+  const host = target.closest("[data-pin-id]");
+  return host?.getAttribute("data-pin-id")?.trim() || null;
+}
+
 export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   {
     pins,
@@ -171,6 +202,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     cameraSyncKey = "",
     onCameraIdle,
     onMapBackgroundClick,
+    onMapContextMenu,
+    onPinContextMenu,
     mapStyle = "auto",
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
   },
@@ -211,6 +244,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const onSelectPinRef = useRef(onSelectPin);
   const onCameraIdleRef = useRef(onCameraIdle);
   const onMapBackgroundClickRef = useRef(onMapBackgroundClick);
+  const onMapContextMenuRef = useRef(onMapContextMenu);
+  const onPinContextMenuRef = useRef(onPinContextMenu);
   /** Last `cameraSyncKey` we applied from props (URL / deep link), not user idle echo. */
   const lastAppliedSyncKeyRef = useRef<string>("");
   /** `cameraToSyncKey(normalizeCameraForUrl(…))` last sent to parent via onCameraIdle — detects idle→URL→props echo. */
@@ -237,6 +272,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onSelectPinRef.current = onSelectPin;
     onCameraIdleRef.current = onCameraIdle;
     onMapBackgroundClickRef.current = onMapBackgroundClick;
+    onMapContextMenuRef.current = onMapContextMenu;
+    onPinContextMenuRef.current = onPinContextMenu;
     filteredRef.current = filtered;
     selectedPinIdRef.current = selectedPinId;
     latestPinHoverIdRef.current = pinHover?.pin.id ?? null;
@@ -245,6 +282,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onSelectPin,
     onCameraIdle,
     onMapBackgroundClick,
+    onMapContextMenu,
+    onPinContextMenu,
     filtered,
     selectedPinId,
     pinHover,
@@ -767,7 +806,29 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       onMapBackgroundClickRef.current?.();
     };
 
+    const onContextMenu = (e: maplibregl.MapMouseEvent) => {
+      e.preventDefault();
+      if (placementMode) return;
+      const point = contextMenuClientPoint(e.originalEvent);
+      if (!point) return;
+
+      if (clickHitPinMarker(e)) {
+        const pinId = pinIdFromContextEvent(e.originalEvent);
+        if (pinId) onPinContextMenuRef.current?.(pinId, point.x, point.y);
+        return;
+      }
+
+      onMapContextMenuRef.current?.(
+        e.lngLat.lng,
+        e.lngLat.lat,
+        map.getZoom(),
+        point.x,
+        point.y,
+      );
+    };
+
     map.on("click", onClick);
+    map.on("contextmenu", onContextMenu);
     if (placementMode) {
       canvas.style.cursor = "crosshair";
     } else {
@@ -775,6 +836,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }
     return () => {
       map.off("click", onClick);
+      map.off("contextmenu", onContextMenu);
       canvas.style.cursor = "";
     };
   }, [placementMode]);
@@ -836,6 +898,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           }
           onSelectPinRef.current(t.id);
         },
+        onContextMenu: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (placementMode) return;
+          onPinContextMenuRef.current?.(t.id, e.clientX, e.clientY);
+        },
         onMouseEnter: () => {
           cancelHidePreview();
           const mapInst = mapRef.current;
@@ -854,6 +922,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           requestHidePreview();
         },
       });
+      mount.element.dataset.pinId = t.id;
       markerMountByPinIdRef.current.set(t.id, mount);
       const initialSelected = t.id === selectedPinIdRef.current;
       markerVisualByPinIdRef.current.set(t.id, {
@@ -875,7 +944,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
     applyMarkerHoverStack(latestPinHoverIdRef.current);
     // Recreate markers only when the filtered pin set changes.
-  }, [filtered, applyMarkerHoverStack, cancelHidePreview, requestHidePreview]);
+  }, [
+    filtered,
+    placementMode,
+    applyMarkerHoverStack,
+    cancelHidePreview,
+    requestHidePreview,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;

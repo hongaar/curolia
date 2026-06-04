@@ -4,11 +4,17 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
+import { combinePinDetailSubtitle } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
+import {
+  OPEN_METEO_PLUGIN_ID,
+  useOpenMeteoPinSubtitle,
+} from "@curolia/plugin-open-meteo";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
@@ -116,8 +122,26 @@ export function PinMapMarkerPopover({
   });
 
   const pin = pinQuery.data;
+  const { plugins: enabledPlugins } = useEnabledPlugins();
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pinId);
   const wrongMap = pin && mapId && pin.map_id !== mapId;
+
+  const openMeteoGloballyEnabled = enabledPlugins.some(
+    (p) => p.id === OPEN_METEO_PLUGIN_ID,
+  );
+  const weatherSubtitle = useOpenMeteoPinSubtitle({
+    supabase,
+    pinId: pin?.id ?? pinId,
+    mapId: pin?.map_id ?? mapId ?? "",
+    lat: pin?.lat ?? 0,
+    lng: pin?.lng ?? 0,
+    pinDate: pin?.date,
+    pinEndDate: pin?.end_date,
+    queryEnabled:
+      openMeteoGloballyEnabled &&
+      Boolean(pin?.id ?? pinId) &&
+      Boolean(pin?.map_id ?? mapId),
+  });
 
   const anchorCoords = useMemo(() => {
     const fromRow = pin ? validLngLat(pin.lat, pin.lng) : null;
@@ -242,7 +266,14 @@ export function PinMapMarkerPopover({
 
   const pinSubtitle =
     pin && !wrongMap
-      ? formatPinDetailSubtitle(pinLocationLabel(pin), pin.date, pin.end_date)
+      ? combinePinDetailSubtitle(
+          formatPinDetailSubtitle(
+            pinLocationLabel(pin),
+            pin.date,
+            pin.end_date,
+          ),
+          weatherSubtitle,
+        )
       : "";
 
   const detailHref =

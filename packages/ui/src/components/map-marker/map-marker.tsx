@@ -13,6 +13,7 @@ export type MapMarkerProps = {
   ariaLabel?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   onPointerDown?: React.PointerEventHandler<HTMLButtonElement>;
+  onContextMenu?: React.MouseEventHandler<HTMLButtonElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLButtonElement>;
   onMouseLeave?: React.MouseEventHandler<HTMLButtonElement>;
 };
@@ -66,6 +67,7 @@ export function MapMarker({
   draft = false,
   ariaLabel,
   onClick,
+  onContextMenu,
   onMouseEnter,
   onMouseLeave,
 }: MapMarkerProps) {
@@ -91,6 +93,7 @@ export function MapMarker({
         style={inlineStyle}
         aria-label={ariaLabel ?? "Open pin"}
         onClick={onClick}
+        onContextMenu={onContextMenu}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
@@ -137,6 +140,13 @@ function syncInteractiveHandlers(
     ? (e) => {
         props.onPointerDown?.(
           e as unknown as React.PointerEvent<HTMLButtonElement>,
+        );
+      }
+    : null;
+  face.oncontextmenu = props.onContextMenu
+    ? (e) => {
+        props.onContextMenu?.(
+          e as unknown as React.MouseEvent<HTMLButtonElement>,
         );
       }
     : null;
@@ -213,6 +223,7 @@ export function createMapMarkerMount(
       const handlersChanged =
         patch.onClick !== undefined ||
         patch.onPointerDown !== undefined ||
+        patch.onContextMenu !== undefined ||
         patch.onMouseEnter !== undefined ||
         patch.onMouseLeave !== undefined ||
         patch.ariaLabel !== undefined;

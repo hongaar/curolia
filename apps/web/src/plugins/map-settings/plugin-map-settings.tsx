@@ -1,6 +1,7 @@
 import type { MapPlugin } from "@/types/database";
 import { IcalPluginMapSettings } from "./ical-plugin-map-settings";
 import { LastfmPluginMapSettings } from "./lastfm-plugin-map-settings";
+import { OpenMeteoPluginMapSettings } from "./open-meteo-plugin-map-settings";
 
 type Props = {
   pluginTypeId: string;
@@ -35,6 +36,15 @@ export function PluginMapSettings({
     case "lastfm":
       return (
         <LastfmPluginMapSettings
+          mapId={mapId}
+          jp={jp}
+          pluginGloballyEnabled={pluginGloballyEnabled}
+          readOnly={readOnly}
+        />
+      );
+    case "open-meteo":
+      return (
+        <OpenMeteoPluginMapSettings
           mapId={mapId}
           jp={jp}
           pluginGloballyEnabled={pluginGloballyEnabled}

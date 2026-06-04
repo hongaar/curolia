@@ -8,6 +8,7 @@ import {
   PinDetailContent,
   PinDetailDescription,
   PinDetailHeader,
+  PinDetailHeaderMain,
   PinDetailSubtitle,
   PinDetailTagBadge,
   PinDetailTagRow,
@@ -32,8 +33,15 @@ export const Default: Story = {
     <StoryFrame width="md">
       <PinDetailCard>
         <PinDetailHeader>
-          <PinDetailTitle>Café de Flore</PinDetailTitle>
-          <PinDetailSubtitle>12 Jun 2025 · Paris</PinDetailSubtitle>
+          <PinDetailHeaderMain>
+            <PinDetailTitle>Café de Flore</PinDetailTitle>
+            <PinDetailActions>
+              <Button size="sm">Edit pin</Button>
+            </PinDetailActions>
+          </PinDetailHeaderMain>
+          <PinDetailSubtitle>
+            Paris · 12 Jun 2025 · ⛅ Cloudy · 18°C
+          </PinDetailSubtitle>
         </PinDetailHeader>
         <PinDetailContent>
           <PinDetailDescription markdown="Morning coffee before exploring **Saint-Germain-des-Prés**." />
@@ -43,9 +51,6 @@ export const Default: Story = {
             </PinDetailTagBadge>
             <PinDetailTagBadge>Paris</PinDetailTagBadge>
           </PinDetailTagRow>
-          <PinDetailActions>
-            <Button size="sm">Edit pin</Button>
-          </PinDetailActions>
         </PinDetailContent>
       </PinDetailCard>
     </StoryFrame>

@@ -1,5 +1,9 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
+import {
+  MapPointerContextMenu,
+  type MapPointerContextMenuTarget,
+} from "@/components/map/map-pointer-context-menu";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
@@ -166,6 +170,8 @@ export function MapPage() {
     y: number;
   } | null>(null);
   const [fullEditPin, setFullEditPin] = useState<Pin | null>(null);
+  const [pointerContextMenu, setPointerContextMenu] =
+    useState<MapPointerContextMenuTarget | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
@@ -422,6 +428,84 @@ export function MapPage() {
       replace: true,
     });
   }, [setSearchParams]);
+
+  const onMapContextMenu = useCallback(
+    (
+      lng: number,
+      lat: number,
+      zoom: number,
+      clientX: number,
+      clientY: number,
+    ) => {
+      setPointerContextMenu({
+        type: "map",
+        lng,
+        lat,
+        zoom,
+        x: clientX,
+        y: clientY,
+      });
+    },
+    [],
+  );
+
+  const onPinContextMenu = useCallback(
+    (pinId: string, clientX: number, clientY: number) => {
+      setPointerContextMenu({
+        type: "pin",
+        pinId,
+        x: clientX,
+        y: clientY,
+      });
+    },
+    [],
+  );
+
+  const onRemovePinFromMap = useCallback(
+    async (pinId: string) => {
+      const { error } = await supabase.from("pins").delete().eq("id", pinId);
+      if (error) throw error;
+      if (activeMapId) {
+        await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+      }
+      if (sidebarPinId === pinId) {
+        onClosePinMapPopover();
+      }
+      toast.success("Pin deleted");
+    },
+    [activeMapId, qc, sidebarPinId, onClosePinMapPopover],
+  );
+
+  const pinTagIdsFor = useCallback(
+    (pinId: string) => {
+      const row = pins.find((p) => p.id === pinId);
+      return new Set(
+        (row?.pin_tags ?? [])
+          .map((pt) => pt.tags?.id ?? pt.tag_id)
+          .filter((id): id is string => Boolean(id)),
+      );
+    },
+    [pins],
+  );
+
+  const onTogglePinTag = useCallback(
+    async (pinId: string, tagId: string, checked: boolean) => {
+      const { error } = checked
+        ? await supabase
+            .from("pin_tags")
+            .insert({ pin_id: pinId, tag_id: tagId })
+        : await supabase
+            .from("pin_tags")
+            .delete()
+            .eq("pin_id", pinId)
+            .eq("tag_id", tagId);
+      if (error) throw error;
+      if (activeMapId) {
+        await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+      }
+    },
+    [activeMapId, qc],
+  );
 
   const onPlacementClick = useCallback(
     async (lng: number, lat: number, zoom: number) => {
@@ -683,6 +767,8 @@ export function MapPage() {
             onMapBackgroundClick={
               sidebarPinId ? onClosePinMapPopover : undefined
             }
+            onMapContextMenu={onMapContextMenu}
+            onPinContextMenu={onPinContextMenu}
           />
         </MapHost>
         <MapControlsLayer>
@@ -720,6 +806,21 @@ export function MapPage() {
       {placementActive ? (
         <MapPlacementHint>Click to add a pin</MapPlacementHint>
       ) : null}
+
+      <MapPointerContextMenu
+        target={pointerContextMenu}
+        onTargetChange={setPointerContextMenu}
+        tags={tags}
+        pinTagIdsFor={pinTagIdsFor}
+        onTogglePinTag={onTogglePinTag}
+        onAddPinAt={onPlacementClick}
+        onOpenPin={onSelectPin}
+        onEditPin={(pinId) => {
+          const row = pins.find((p) => p.id === pinId);
+          if (row) setFullEditPin(row);
+        }}
+        onRemovePin={onRemovePinFromMap}
+      />
 
       <PinMapQuickAddDialog
         open={Boolean(quickAddPin)}

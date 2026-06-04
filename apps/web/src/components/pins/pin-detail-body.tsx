@@ -3,12 +3,17 @@ import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { pinDetailHref } from "@/lib/app-paths";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
+import { combinePinDetailSubtitle } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
 import type { Photo, Pin } from "@/types/database";
+import {
+  OPEN_METEO_PLUGIN_ID,
+  useOpenMeteoPinSubtitle,
+} from "@curolia/plugin-open-meteo";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import {
@@ -16,6 +21,7 @@ import {
   PinDetailContent,
   PinDetailDescription,
   PinDetailHeader,
+  PinDetailHeaderMain,
   PinDetailSubtitle,
   PinDetailTagBadge,
   PinDetailTagRow,
@@ -108,55 +114,68 @@ export function PinDetailBody({
       ? Math.max(0, photos.length - galleryItems.length)
       : 0;
 
-  const pinSubtitle = formatPinDetailSubtitle(
-    pinLocationLabel(pin),
-    pin.date,
-    pin.end_date,
+  const openMeteoGloballyEnabled = enabledPlugins.some(
+    (p) => p.id === OPEN_METEO_PLUGIN_ID,
+  );
+  const weatherSubtitle = useOpenMeteoPinSubtitle({
+    supabase,
+    pinId: pin.id,
+    mapId: pin.map_id,
+    lat: pin.lat,
+    lng: pin.lng,
+    pinDate: pin.date,
+    pinEndDate: pin.end_date,
+    queryEnabled: openMeteoGloballyEnabled,
+  });
+
+  const pinSubtitle = combinePinDetailSubtitle(
+    formatPinDetailSubtitle(pinLocationLabel(pin), pin.date, pin.end_date),
+    weatherSubtitle,
   );
 
   return (
     <>
       <PinDetailHeader>
-        <div>
+        <PinDetailHeaderMain>
           <PinDetailTitle>{pin.title || "Untitled place"}</PinDetailTitle>
-          {pinSubtitle ? (
-            <PinDetailSubtitle>{pinSubtitle}</PinDetailSubtitle>
-          ) : null}
-          {tagBadges.length > 0 ? (
-            <PinDetailTagRow>
-              {tagBadges.map((t) => (
-                <PinDetailTagBadge
-                  key={t.id}
-                  style={{
-                    backgroundColor: t.color,
-                    color: contrastingForeground(t.color),
-                  }}
-                >
-                  {t.icon_emoji} {t.name}
-                </PinDetailTagBadge>
-              ))}
-            </PinDetailTagRow>
-          ) : null}
-        </div>
-        <PinDetailActions>
-          <PinFormDialogTrigger
-            mapId={pin.map_id}
-            pin={pin}
-            variant="outline"
-            size="sm"
-          />
-          {permalinkMapSlug ? (
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Open full pin detail page"
-              render={<Link to={pinDetailHref(permalinkMapSlug, pin.slug)} />}
-            >
-              <Link2Icon />
-            </Button>
-          ) : null}
-          {extraActions}
-        </PinDetailActions>
+          <PinDetailActions>
+            <PinFormDialogTrigger
+              mapId={pin.map_id}
+              pin={pin}
+              variant="outline"
+              size="sm"
+            />
+            {permalinkMapSlug ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Open full pin detail page"
+                render={<Link to={pinDetailHref(permalinkMapSlug, pin.slug)} />}
+              >
+                <Link2Icon />
+              </Button>
+            ) : null}
+            {extraActions}
+          </PinDetailActions>
+        </PinDetailHeaderMain>
+        {pinSubtitle ? (
+          <PinDetailSubtitle>{pinSubtitle}</PinDetailSubtitle>
+        ) : null}
+        {tagBadges.length > 0 ? (
+          <PinDetailTagRow>
+            {tagBadges.map((t) => (
+              <PinDetailTagBadge
+                key={t.id}
+                style={{
+                  backgroundColor: t.color,
+                  color: contrastingForeground(t.color),
+                }}
+              >
+                {t.icon_emoji} {t.name}
+              </PinDetailTagBadge>
+            ))}
+          </PinDetailTagRow>
+        ) : null}
       </PinDetailHeader>
       <PinDetailContent>
         {topContent}

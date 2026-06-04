@@ -13,6 +13,15 @@ export function PinDetailHeader({ children }: { children: React.ReactNode }) {
   return <CardHeader className={styles.detailHeader}>{children}</CardHeader>;
 }
 
+/** Title row with actions on the right; subtitle belongs below this row. */
+export function PinDetailHeaderMain({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.detailHeaderMain}>{children}</div>;
+}
+
 export function PinDetailTitle({ children }: { children: React.ReactNode }) {
   return <CardTitle className={styles.detailTitle}>{children}</CardTitle>;
 }
