@@ -325,21 +325,21 @@ export function MapPage() {
     [tags, setSearchParams],
   );
 
-  const openNewTagDialog = useCallback(() => {
+  const openNewTagDialog = () => {
     setTagEditTarget(null);
     setNewTagName("");
     setNewTagColor(DEFAULT_PIN_TAG_COLOR);
     setNewTagEmoji("📍");
     setTagDialogOpen(true);
-  }, []);
+  };
 
-  const openEditTagDialog = useCallback((tag: Tag) => {
+  const openEditTagDialog = (tag: Tag) => {
     setTagEditTarget(tag);
     setNewTagName(tag.name);
     setNewTagColor(tag.color);
     setNewTagEmoji(tag.icon_emoji || "📍");
     setTagDialogOpen(true);
-  }, []);
+  };
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
 
@@ -558,13 +558,6 @@ export function MapPage() {
     },
     [activeMapId, canEdit, qc, setSearchParams],
   );
-
-  useEffect(() => {
-    if (canEdit) return;
-    setPlacementActive(false);
-    setQuickAddPin(null);
-    setFullEditPin(null);
-  }, [canEdit]);
 
   useEffect(() => {
     if (!sidebarPinToken) return;
@@ -858,7 +851,7 @@ export function MapPage() {
       />
 
       <PinMapQuickAddDialog
-        open={Boolean(quickAddPin)}
+        open={Boolean(canEdit && quickAddPin)}
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
             setQuickAddPin(null);
@@ -866,15 +859,15 @@ export function MapPage() {
           }
         }}
         mapId={activeMapId}
-        pin={quickAddPin}
-        anchorScreen={quickAddPin ? quickAddAnchorScreen : null}
+        pin={canEdit ? quickAddPin : null}
+        anchorScreen={canEdit && quickAddPin ? quickAddAnchorScreen : null}
         onEdit={(t) => {
           setQuickAddPin(null);
           setQuickAddAnchorScreen(null);
           setFullEditPin(t);
         }}
       />
-      {fullEditPin ? (
+      {canEdit && fullEditPin ? (
         <Suspense fallback={null}>
           <PinFormDialog
             open

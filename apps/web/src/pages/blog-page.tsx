@@ -170,13 +170,13 @@ export function BlogPage() {
     [tags, setSearchParams],
   );
 
-  const openEditTagDialog = useCallback((tag: Tag) => {
+  const openEditTagDialog = (tag: Tag) => {
     setTagEditTarget(tag);
     setNewTagName(tag.name);
     setNewTagColor(tag.color);
     setNewTagEmoji(tag.icon_emoji || "📍");
     setTagDialogOpen(true);
-  }, []);
+  };
 
   useMountTagSidebarRegistration({
     tags,
