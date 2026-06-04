@@ -1,14 +1,14 @@
 "use client";
 
-import type * as React from "react";
-import { useTheme } from "next-themes";
 import {
   CircleCheckIcon,
   InfoIcon,
-  TriangleAlertIcon,
-  OctagonXIcon,
   Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import type * as React from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 import styles from "./sonner.module.css";
@@ -19,6 +19,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      position="bottom-left"
+      offset={{
+        left: "calc(1rem + var(--safe-left))",
+        bottom: "calc(1.5rem + var(--safe-bottom))",
+      }}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className={styles.icon} />,
