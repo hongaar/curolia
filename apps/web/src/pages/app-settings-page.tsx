@@ -23,6 +23,7 @@ import type { User } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type ThemeChoice = "light" | "dark" | "system";
 
@@ -41,11 +42,9 @@ function NotificationPreferences({
     () => profile?.notification_push_enabled ?? false,
   );
   const [savingNotif, setSavingNotif] = useState(false);
-  const [notifMsg, setNotifMsg] = useState<string | null>(null);
 
   async function saveNotificationPrefs() {
     setSavingNotif(true);
-    setNotifMsg(null);
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -56,10 +55,10 @@ function NotificationPreferences({
       .eq("id", user.id);
     setSavingNotif(false);
     if (error) {
-      setNotifMsg(error.message);
+      toast.error(error.message);
       return;
     }
-    setNotifMsg("Saved.");
+    toast.success("Notification preferences saved");
     await qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
 
@@ -99,7 +98,6 @@ function NotificationPreferences({
           }
         />
       </PageSwitchStack>
-      {notifMsg ? <PageMuted>{notifMsg}</PageMuted> : null}
       <Button
         type="button"
         size="sm"

@@ -37,6 +37,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export function MapSettingsPage() {
   const { mapId } = useParams<{ mapId: string }>();
@@ -104,8 +105,10 @@ export function MapSettingsPage() {
     setSaving(false);
     if (err) {
       setError(err.message);
+      toast.error(err.message);
       return;
     }
+    toast.success("Map settings saved");
     if (user) await qc.invalidateQueries({ queryKey: ["maps", user.id] });
   }
 

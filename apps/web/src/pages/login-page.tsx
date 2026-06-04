@@ -51,10 +51,7 @@ export function LoginPage() {
     const { error: err } = await signUp(email, password);
     setBusy(false);
     if (err) setError(err.message);
-    else
-      setError(
-        "Check your email to confirm your account, if required by your project.",
-      );
+    else setError("Check your email to confirm your account.");
   }
 
   return (

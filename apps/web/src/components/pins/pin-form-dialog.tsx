@@ -639,9 +639,12 @@ export function PinFormDialog({
       } else {
         await qc.invalidateQueries({ queryKey: ["pins", mapId] });
       }
+      toast.success(pin ? "Pin updated" : "Pin created");
       onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
+      const message = e instanceof Error ? e.message : "Could not save pin.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

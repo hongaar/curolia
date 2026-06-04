@@ -19,13 +19,13 @@ import {
   PageFitButton,
   PageInlineActions,
   PageLead,
-  PageMessageText,
   PagePanel,
   PageProfileGrid,
 } from "@curolia/ui/page";
 import type { User } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
@@ -57,11 +57,9 @@ function ProfileEditor({
   const [avatarUrl, setAvatarUrl] = useState(() => profile?.avatar_url ?? "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   async function save() {
     setSaving(true);
-    setMessage(null);
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -72,22 +70,21 @@ function ProfileEditor({
       .eq("id", user.id);
     setSaving(false);
     if (error) {
-      setMessage(error.message);
+      toast.error(error.message);
       return;
     }
-    setMessage("Saved.");
+    toast.success("Profile saved");
     await qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
 
   async function uploadAvatar(file: File) {
-    setMessage(null);
     const ext = extFromImageFile(file);
     if (!ext) {
-      setMessage("Please choose a JPEG, PNG, GIF, or WebP image.");
+      toast.error("Please choose a JPEG, PNG, GIF, or WebP image.");
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      setMessage("Image must be 2 MB or smaller.");
+      toast.error("Image must be 2 MB or smaller.");
       return;
     }
     setUploading(true);
@@ -100,7 +97,7 @@ function ProfileEditor({
       });
     if (uploadError) {
       setUploading(false);
-      setMessage(uploadError.message);
+      toast.error(uploadError.message);
       return;
     }
     const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
@@ -114,17 +111,16 @@ function ProfileEditor({
       .eq("id", user.id);
     setUploading(false);
     if (dbError) {
-      setMessage(dbError.message);
+      toast.error(dbError.message);
       return;
     }
     setAvatarUrl(publicUrl);
-    setMessage("Photo updated.");
+    toast.success("Photo updated");
     await qc.invalidateQueries({ queryKey: ["profile", user.id] });
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function removeAvatar() {
-    setMessage(null);
     setUploading(true);
     const { data: files } = await supabase.storage
       .from("avatars")
@@ -142,13 +138,11 @@ function ProfileEditor({
       .eq("id", user.id);
     setUploading(false);
     if (error) {
-      setMessage(error.message);
+      toast.error(error.message);
       return;
     }
     setAvatarUrl("");
-    setMessage(
-      "Photo removed. Your Gravatar or default icon will show if applicable.",
-    );
+    toast.success("Photo removed");
     await qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
 
@@ -215,7 +209,6 @@ function ProfileEditor({
           disabled={profileLoading}
         />
       </FormField>
-      {message ? <PageMessageText>{message}</PageMessageText> : null}
       <PageFitButton>
         <Button disabled={saving || profileLoading} onClick={() => void save()}>
           Save changes

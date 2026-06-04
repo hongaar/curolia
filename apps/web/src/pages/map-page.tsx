@@ -197,6 +197,7 @@ export function MapPage() {
             mapId: activeMapId,
             meta,
           });
+          toast.success("Pin created");
           await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
           setSearchParams(
             (prev) => applySelectedPinToSearchParams(prev, null),
@@ -448,6 +449,7 @@ export function MapPage() {
           .select("*")
           .single();
         if (error) throw error;
+        toast.success("Pin created");
         await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
 
         const p = mapRef.current?.lngLatToScreen(lng, lat);
@@ -604,12 +606,15 @@ export function MapPage() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", tagEditTarget.id);
-      if (!error) {
-        setTagDialogOpen(false);
-        setTagEditTarget(null);
-        await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
-        await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+      if (error) {
+        toast.error(error.message);
+        return;
       }
+      toast.success("Tag updated");
+      setTagDialogOpen(false);
+      setTagEditTarget(null);
+      await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
+      await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
       return;
     }
     const { error } = await supabase.from("tags").insert({
@@ -618,11 +623,14 @@ export function MapPage() {
       color: newTagColor,
       icon_emoji: newTagEmoji || "📍",
     });
-    if (!error) {
-      setNewTagName("");
-      setTagDialogOpen(false);
-      await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
+    if (error) {
+      toast.error(error.message);
+      return;
     }
+    toast.success("Tag created");
+    setNewTagName("");
+    setTagDialogOpen(false);
+    await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
   }
 
   function toggleAddPinPlacement() {
