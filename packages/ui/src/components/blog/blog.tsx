@@ -131,20 +131,8 @@ export function BlogPinDescription({ markdown }: { markdown: string }) {
   );
 }
 
-export function BlogPhotoGrid({ children }: { children: React.ReactNode }) {
-  return <ul className={styles.photoGrid}>{children}</ul>;
-}
-
-export function BlogPhotoCell({ children }: { children: React.ReactNode }) {
-  return <li className={styles.photoCell}>{children}</li>;
-}
-
-export function BlogPhotoSkeleton() {
-  return (
-    <li>
-      <div className={styles.photoSkeleton} />
-    </li>
-  );
+export function BlogPinGallery({ children }: { children: React.ReactNode }) {
+  return <div className={styles.pinGallery}>{children}</div>;
 }
 
 export function BlogPinActions({ children }: { children: React.ReactNode }) {

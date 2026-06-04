@@ -196,52 +196,8 @@
   color: var(--muted-foreground);
 }
 
-.photoGrid {
+.pinGallery {
   margin-top: 1.25rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-left: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.photoGrid > li {
-  list-style: none;
-}
-
-.photoCell {
-  width: 6rem;
-  height: 6rem;
-  flex-shrink: 0;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-}
-
-@media (min-width: 40rem) {
-  .photoCell {
-    width: 8rem;
-    height: 8rem;
-  }
-}
-
-.photoSkeleton {
-  width: 6rem;
-  height: 6rem;
-  flex-shrink: 0;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  background: var(--muted);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@media (min-width: 40rem) {
-  .photoSkeleton {
-    width: 8rem;
-    height: 8rem;
-  }
 }
 
 .pinActions {

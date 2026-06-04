@@ -7,6 +7,10 @@ import { useBlogPinListOrder } from "@/hooks/use-blog-pin-list-order";
 import { mapAddPinHref } from "@/lib/app-paths";
 import { orderedBlogPinList } from "@/lib/blog-pin-list-order";
 import { formatPinDateRange } from "@/lib/pin-dates";
+import {
+  photosToGalleryItems,
+  pinPhotoGalleryPlaceholderCount,
+} from "@/lib/pin-photo-gallery-items";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
@@ -24,12 +28,10 @@ import {
   BlogKicker,
   BlogLead,
   BlogPageRoot,
-  BlogPhotoCell,
-  BlogPhotoGrid,
-  BlogPhotoSkeleton,
   BlogPinActions,
   BlogPinDate,
   BlogPinDescription,
+  BlogPinGallery,
   BlogPinList,
   BlogPinTitle,
   BlogPinTitleLink,
@@ -63,10 +65,8 @@ import {
   PanelDialogHeader,
   PanelDialogTitle,
 } from "@curolia/ui/panel-dialog";
-import {
-  PinPhotoLightbox,
-  PinPhotoThumb,
-} from "@curolia/ui/pin-photo-lightbox";
+import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
+import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
@@ -189,10 +189,11 @@ export function BlogPage() {
     () => orderedVisible.map((t) => t.id),
     [orderedVisible],
   );
-  const { photosByPinId, signedUrlByPhotoId } = useMapPinsPhotosSignedUrls(
-    activeMapId ?? undefined,
-    visiblePinIds,
-  );
+  const {
+    photosByPinId,
+    signedUrlByPhotoId,
+    isLoading: photosLoading,
+  } = useMapPinsPhotosSignedUrls(activeMapId ?? undefined, visiblePinIds);
 
   const blogLightboxItems = useMemo(() => {
     if (!photoLightbox) return [];
@@ -333,6 +334,15 @@ export function BlogPage() {
                   icon_emoji: string;
                 }[];
                 const pinPhotos = photosByPinId.get(t.id) ?? [];
+                const galleryItems = photosToGalleryItems(
+                  pinPhotos,
+                  signedUrlByPhotoId,
+                );
+                const photoPlaceholders = pinPhotoGalleryPlaceholderCount(
+                  pinPhotos,
+                  galleryItems,
+                  photosLoading,
+                );
                 const detailHref = blogMapSlug
                   ? pinDetailHref(blogMapSlug, t.slug)
                   : "#";
@@ -368,28 +378,19 @@ export function BlogPage() {
                       {t.description?.trim() ? (
                         <BlogPinDescription markdown={t.description.trim()} />
                       ) : null}
-                      {pinPhotos.length > 0 ? (
-                        <BlogPhotoGrid>
-                          {pinPhotos.map((p) => {
-                            const url = signedUrlByPhotoId[p.id];
-                            return url ? (
-                              <BlogPhotoCell key={p.id}>
-                                <PinPhotoThumb
-                                  url={url}
-                                  size="square"
-                                  onOpen={() =>
-                                    setPhotoLightbox({
-                                      pinId: t.id,
-                                      photoId: p.id,
-                                    })
-                                  }
-                                />
-                              </BlogPhotoCell>
-                            ) : (
-                              <BlogPhotoSkeleton key={p.id} />
-                            );
-                          })}
-                        </BlogPhotoGrid>
+                      {pinPhotos.length > 0 || photoPlaceholders > 0 ? (
+                        <BlogPinGallery>
+                          <PinPhotoGallery
+                            items={galleryItems}
+                            loadingPlaceholders={photoPlaceholders}
+                            onOpen={(photoId) =>
+                              setPhotoLightbox({
+                                pinId: t.id,
+                                photoId,
+                              })
+                            }
+                          />
+                        </BlogPinGallery>
                       ) : null}
                       <BlogPinActions>
                         <Button

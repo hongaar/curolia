@@ -21,6 +21,23 @@ export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {
   return pathname.startsWith("/blog/") ? "blog" : "map";
 }
 
+/** Switch between map and blog for the same map, keeping tag filters. */
+export function mapViewSwitchHref(
+  view: MapViewSegment,
+  mapSlug: string,
+  currentSearch: string = "",
+): string {
+  let p = new URLSearchParams(
+    currentSearch.startsWith("?") ? currentSearch.slice(1) : currentSearch,
+  );
+  p = stripMapCameraFromSearchParams(p);
+  p.delete(MAP_VIEW_PARAM.pin);
+  p.delete(MAP_VIEW_PARAM.add);
+  const q = p.toString();
+  const base = mapViewHref(view, mapSlug.trim());
+  return q ? `${base}?${q}` : base;
+}
+
 export function mapSwitchHref(
   nextMap: CuroliaMap,
   currentPathname: string,

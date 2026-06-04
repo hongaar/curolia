@@ -247,6 +247,15 @@ export function MapSettingsPage() {
             <Button disabled={!canSave} onClick={() => void save()}>
               Save
             </Button>
+            {map.slug.trim() ? (
+              <Button
+                variant="outline"
+                type="button"
+                render={<Link to={mapViewHref("blog", map.slug.trim())} />}
+              >
+                View blog
+              </Button>
+            ) : null}
             {activeMapId !== mapId ? (
               <Button
                 variant="secondary"

@@ -5,6 +5,10 @@ import { pinDetailHref } from "@/lib/app-paths";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
 import { combinePinDetailSubtitle } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
+import {
+  photosToGalleryItems,
+  pinPhotoGalleryPlaceholderCount,
+} from "@/lib/pin-photo-gallery-items";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
@@ -93,26 +97,16 @@ export function PinDetailBody({
     [photos, signedUrlByPhotoId],
   );
 
-  const galleryItems = useMemo(() => {
-    const out: Parameters<typeof PinPhotoGallery>[0]["items"] = [];
-    for (const p of photos) {
-      const url = signedUrlByPhotoId[p.id];
-      if (!url) continue;
-      out.push({
-        id: p.id,
-        url,
-        ...(p.width != null && p.height != null
-          ? { width: p.width, height: p.height }
-          : {}),
-      });
-    }
-    return out;
-  }, [photos, signedUrlByPhotoId]);
+  const galleryItems = useMemo(
+    () => photosToGalleryItems(photos, signedUrlByPhotoId),
+    [photos, signedUrlByPhotoId],
+  );
 
-  const photoPlaceholders =
-    photosLoading && photos.length > 0
-      ? Math.max(0, photos.length - galleryItems.length)
-      : 0;
+  const photoPlaceholders = pinPhotoGalleryPlaceholderCount(
+    photos,
+    galleryItems,
+    photosLoading,
+  );
 
   const openMeteoGloballyEnabled = enabledPlugins.some(
     (p) => p.id === OPEN_METEO_PLUGIN_ID,
