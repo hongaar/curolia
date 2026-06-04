@@ -1,4 +1,7 @@
-import { inclusiveDayCount } from "./open-meteo-dates";
+import {
+  inclusiveDayCount,
+  type OpenMeteoWeatherKind,
+} from "./open-meteo-dates";
 
 export type DailyWeatherSeries = {
   dates: string[];
@@ -120,6 +123,48 @@ export function weatherCodeEmoji(code: number): string {
   return "🌤️";
 }
 
+export type OpenMeteoPinSubtitle = {
+  text: string;
+  kind: OpenMeteoWeatherKind;
+};
+
+function subtitleTempC(payload: {
+  weatherKind?: OpenMeteoWeatherKind;
+  maxTempC?: number;
+  tempC?: number;
+}): number | null {
+  const temp =
+    payload.weatherKind === "current" ? payload.tempC : payload.maxTempC;
+  if (temp == null || Number.isNaN(temp)) return null;
+  return temp;
+}
+
+export function openMeteoWeatherKindTooltip(
+  kind: OpenMeteoWeatherKind,
+): string {
+  if (kind === "current") {
+    return "Current weather at this location";
+  }
+  return "Historical weather for the pin’s dates";
+}
+
+export function openMeteoPinSubtitleFromPayload(payload: {
+  weatherKind?: OpenMeteoWeatherKind;
+  weatherCode: number;
+  maxTempC?: number;
+  tempC?: number;
+}): OpenMeteoPinSubtitle | null {
+  const temp = subtitleTempC(payload);
+  if (temp == null) return null;
+  const kind = payload.weatherKind ?? "historical";
+  const emoji = weatherCodeEmoji(payload.weatherCode);
+  const label = weatherCodeLabel(payload.weatherCode);
+  return {
+    kind,
+    text: `${emoji} ${label} · ${Math.round(temp)}°C`,
+  };
+}
+
 /** One-line weather fragment for pin detail subtitle. */
 export function formatOpenMeteoSubtitle(summary: PeriodWeatherSummary): string {
   const emoji = weatherCodeEmoji(summary.dominantWeatherCode);
@@ -130,11 +175,10 @@ export function formatOpenMeteoSubtitle(summary: PeriodWeatherSummary): string {
 
 /** Subtitle from a cached `plugin_entity_data` payload. */
 export function formatOpenMeteoSubtitleFromPayload(payload: {
+  weatherKind?: OpenMeteoWeatherKind;
   weatherCode: number;
-  maxTempC: number;
+  maxTempC?: number;
+  tempC?: number;
 }): string {
-  const emoji = weatherCodeEmoji(payload.weatherCode);
-  const label = weatherCodeLabel(payload.weatherCode);
-  const temp = Math.round(payload.maxTempC);
-  return `${emoji} ${label} · ${temp}°C`;
+  return openMeteoPinSubtitleFromPayload(payload)?.text ?? "";
 }

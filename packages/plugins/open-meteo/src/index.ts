@@ -5,25 +5,37 @@ export {
 } from "./config";
 export { openMeteoPluginManifest as pluginManifest } from "./manifest";
 export { OpenMeteoMapSettingsPanel } from "./map-settings-panel";
-export { fetchPeriodWeatherSummary } from "./open-meteo-api";
+export {
+  fetchCurrentWeather,
+  fetchPeriodWeatherSummary,
+} from "./open-meteo-api";
 export {
   clampPeriodEndToToday,
   inclusiveDayCount,
+  resolveOpenMeteoWeatherRequest,
   resolvePinPeriodYmd,
+  type OpenMeteoWeatherKind,
+  type OpenMeteoWeatherRequest,
 } from "./open-meteo-dates";
 export {
+  OPEN_METEO_CURRENT_WEATHER_MAX_AGE_MS,
+  openMeteoPayloadFromCurrent,
   openMeteoPayloadFromSummary,
   openMeteoPayloadMatches,
   parseOpenMeteoPinPayload,
   type OpenMeteoPinPayload,
 } from "./open-meteo-pin-data";
+export { OpenMeteoPinWeatherSubtitle } from "./open-meteo-pin-weather-subtitle";
 export {
   dominantWeatherCode,
   formatOpenMeteoSubtitle,
   formatOpenMeteoSubtitleFromPayload,
+  openMeteoPinSubtitleFromPayload,
+  openMeteoWeatherKindTooltip,
   summarizeDailySeries,
   weatherCodeLabel,
   type DailyWeatherSeries,
+  type OpenMeteoPinSubtitle,
   type PeriodWeatherSummary,
 } from "./open-meteo-weather";
 export {

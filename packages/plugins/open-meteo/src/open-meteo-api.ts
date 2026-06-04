@@ -52,6 +52,49 @@ function parseDailyResponse(
   };
 }
 
+export type CurrentWeatherSnapshot = {
+  tempC: number;
+  weatherCode: number;
+};
+
+type OpenMeteoCurrentResponse = {
+  current?: {
+    temperature_2m?: number;
+    weather_code?: number;
+  };
+};
+
+export async function fetchCurrentWeather(
+  lat: number,
+  lng: number,
+): Promise<CurrentWeatherSnapshot | null> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lng),
+    current: "temperature_2m,weather_code",
+    temperature_unit: "celsius",
+    timezone: "auto",
+  });
+
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if (!res.ok) return null;
+  const json = (await res.json()) as OpenMeteoCurrentResponse;
+  const current = json.current;
+  const tempC = current?.temperature_2m;
+  const weatherCode = current?.weather_code;
+  if (
+    tempC == null ||
+    weatherCode == null ||
+    Number.isNaN(tempC) ||
+    Number.isNaN(weatherCode)
+  ) {
+    return null;
+  }
+  return { tempC, weatherCode };
+}
+
 export async function fetchPeriodWeatherSummary(
   lat: number,
   lng: number,

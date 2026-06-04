@@ -42,13 +42,24 @@ describe("summarizeDailySeries", () => {
 });
 
 describe("formatOpenMeteoSubtitleFromPayload", () => {
-  it("matches summary formatting", () => {
+  it("matches summary formatting for historical payloads", () => {
     expect(
       formatOpenMeteoSubtitleFromPayload({
+        weatherKind: "historical",
         weatherCode: 2,
         maxTempC: 17.4,
       }),
     ).toBe("⛅ Cloudy · 17°C");
+  });
+
+  it("formats current weather from tempC", () => {
+    expect(
+      formatOpenMeteoSubtitleFromPayload({
+        weatherKind: "current",
+        weatherCode: 0,
+        tempC: 21.2,
+      }),
+    ).toBe("☀️ Clear · 21°C");
   });
 });
 

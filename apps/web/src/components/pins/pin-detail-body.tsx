@@ -3,7 +3,7 @@ import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { pinDetailHref } from "@/lib/app-paths";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
-import { combinePinDetailSubtitle } from "@/lib/pin-detail-subtitle";
+import { composePinDetailSubtitleParts } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
 import {
   photosToGalleryItems,
@@ -16,6 +16,7 @@ import { useAuth } from "@/providers/auth-provider";
 import type { Photo, Pin } from "@/types/database";
 import {
   OPEN_METEO_PLUGIN_ID,
+  OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
 import { contrastingForeground } from "@curolia/ui";
@@ -122,9 +123,11 @@ export function PinDetailBody({
     queryEnabled: openMeteoGloballyEnabled,
   });
 
-  const pinSubtitle = combinePinDetailSubtitle(
+  const pinSubtitle = composePinDetailSubtitleParts(
     formatPinDetailSubtitle(pinLocationLabel(pin), pin.date, pin.end_date),
-    weatherSubtitle,
+    weatherSubtitle ? (
+      <OpenMeteoPinWeatherSubtitle subtitle={weatherSubtitle} />
+    ) : null,
   );
 
   return (

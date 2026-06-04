@@ -57,13 +57,11 @@ export function OpenMeteoMapSettingsPanel({
       <PluginSettingsRow>
         <div>
           <PluginSettingsTitle>
-            <Label htmlFor="open-meteo-map-enabled">
-              Show historical weather on pins
-            </Label>
+            <Label htmlFor="open-meteo-map-enabled">Show weather on pins</Label>
           </PluginSettingsTitle>
           <PluginSettingsHint>
-            Pins with a date show weather from Open-Meteo in the pin subtitle
-            (averaged over multi-day stays).
+            Pins show Open-Meteo weather in the subtitle—current conditions when
+            no date is set, historical averages when dates are set.
           </PluginSettingsHint>
         </div>
         <Switch

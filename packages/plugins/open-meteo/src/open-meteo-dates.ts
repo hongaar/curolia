@@ -29,6 +29,30 @@ export function inclusiveDayCount(startYmd: string, endYmd: string): number {
   return Math.max(1, diff + 1);
 }
 
+export type OpenMeteoWeatherKind = "current" | "historical";
+
+export type OpenMeteoWeatherRequest = {
+  kind: OpenMeteoWeatherKind;
+  period: { start: string; end: string };
+};
+
+/** Weather source for a pin: historical when dated, current at the pin when not. */
+export function resolveOpenMeteoWeatherRequest(
+  date: string | null | undefined,
+  endDate: string | null | undefined,
+): OpenMeteoWeatherRequest | null {
+  const start = date?.trim();
+  if (!start) {
+    const today = localTodayYmd();
+    return { kind: "current", period: { start: today, end: today } };
+  }
+  const raw = resolvePinPeriodYmd(date, endDate);
+  if (!raw) return null;
+  const period = clampPeriodEndToToday(raw);
+  if (!period) return null;
+  return { kind: "historical", period };
+}
+
 /** Pin period: `date` required; `endDate` defaults to `date`. */
 export function resolvePinPeriodYmd(
   date: string | null | undefined,

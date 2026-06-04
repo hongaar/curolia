@@ -4,7 +4,7 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { formatPinDetailSubtitle } from "@/lib/pin-dates";
-import { combinePinDetailSubtitle } from "@/lib/pin-detail-subtitle";
+import { composePinDetailSubtitleParts } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
@@ -13,6 +13,7 @@ import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import {
   OPEN_METEO_PLUGIN_ID,
+  OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
 import { contrastingForeground } from "@curolia/ui";
@@ -266,15 +267,17 @@ export function PinMapMarkerPopover({
 
   const pinSubtitle =
     pin && !wrongMap
-      ? combinePinDetailSubtitle(
+      ? composePinDetailSubtitleParts(
           formatPinDetailSubtitle(
             pinLocationLabel(pin),
             pin.date,
             pin.end_date,
           ),
-          weatherSubtitle,
+          weatherSubtitle ? (
+            <OpenMeteoPinWeatherSubtitle subtitle={weatherSubtitle} />
+          ) : null,
         )
-      : "";
+      : null;
 
   const detailHref =
     mapSlug?.trim() && pin ? pinDetailHref(mapSlug.trim(), pin.slug) : "#";

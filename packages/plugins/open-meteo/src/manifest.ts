@@ -7,14 +7,14 @@ export const openMeteoPluginManifest: PluginPackageManifest = {
   id: openMeteoPluginMeta.typeId,
   displayName: openMeteoPluginMeta.displayName,
   description:
-    "Show historical weather from Open-Meteo on pins that have a date (averaged over multi-day stays).",
+    "Show current and historical weather from Open-Meteo on pins (current conditions when undated, historical averages when dates are set).",
   icon: OpenMeteoIcon,
   implemented: openMeteoPluginMeta.implemented,
   MapSettingsPanel: OpenMeteoMapSettingsPanel,
   contributions: {
     mapSettings: {
       panel: "inline",
-      title: "Historical weather",
+      title: "Weather",
     },
   },
 };

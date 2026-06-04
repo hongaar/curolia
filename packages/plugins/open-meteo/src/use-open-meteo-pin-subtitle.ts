@@ -6,17 +6,22 @@ import {
 } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { isOpenMeteoEnabledForMap, OPEN_METEO_PLUGIN_ID } from "./config";
-import { clampPeriodEndToToday, resolvePinPeriodYmd } from "./open-meteo-dates";
+import { resolveOpenMeteoWeatherRequest } from "./open-meteo-dates";
 import {
   openMeteoPayloadMatches,
   parseOpenMeteoPinPayload,
 } from "./open-meteo-pin-data";
-import { formatOpenMeteoSubtitleFromPayload } from "./open-meteo-weather";
+import {
+  openMeteoPinSubtitleFromPayload,
+  type OpenMeteoPinSubtitle,
+} from "./open-meteo-weather";
 import {
   openMeteoEntityDataQueryKey,
   openMeteoWeatherQueryKey,
 } from "./query-keys";
 import { syncOpenMeteoPinWeather } from "./sync-open-meteo-pin-weather";
+
+export type { OpenMeteoPinSubtitle };
 
 export type UseOpenMeteoPinSubtitleArgs = {
   supabase: SupabaseClient;
@@ -39,14 +44,13 @@ export function useOpenMeteoPinSubtitle({
   pinDate,
   pinEndDate,
   queryEnabled = true,
-}: UseOpenMeteoPinSubtitleArgs): string | null {
+}: UseOpenMeteoPinSubtitleArgs): OpenMeteoPinSubtitle | null {
   const qc = useQueryClient();
 
-  const period = useMemo(() => {
-    const raw = resolvePinPeriodYmd(pinDate, pinEndDate);
-    if (!raw) return null;
-    return clampPeriodEndToToday(raw);
-  }, [pinDate, pinEndDate]);
+  const request = useMemo(
+    () => resolveOpenMeteoWeatherRequest(pinDate, pinEndDate),
+    [pinDate, pinEndDate],
+  );
 
   const mapPluginQuery = useQuery({
     queryKey: ["map_plugins", mapId, OPEN_METEO_PLUGIN_ID],
@@ -68,9 +72,11 @@ export function useOpenMeteoPinSubtitle({
   const canSync =
     queryEnabled &&
     mapEnabled &&
-    period != null &&
+    request != null &&
     Boolean(pinId) &&
-    Boolean(mapId);
+    Boolean(mapId) &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng);
 
   const entityDataKey = useMemo(
     () => openMeteoEntityDataQueryKey(OPEN_METEO_PLUGIN_ID, pinId),
@@ -96,16 +102,23 @@ export function useOpenMeteoPinSubtitle({
 
   const cachedPayload = useMemo(() => {
     const p = parseOpenMeteoPinPayload(cachedRowQuery.data?.data);
-    if (!p || !period) return null;
-    if (!openMeteoPayloadMatches(p, period, lat, lng)) return null;
+    if (!p || !request) return null;
+    if (!openMeteoPayloadMatches(p, request, lat, lng)) return null;
     return p;
-  }, [cachedRowQuery.data, period, lat, lng]);
+  }, [cachedRowQuery.data, request, lat, lng]);
 
-  const needsSync = canSync && period != null && cachedPayload == null;
+  const needsSync = canSync && request != null && cachedPayload == null;
 
   const syncQuery = useQuery({
-    queryKey: period
-      ? openMeteoWeatherQueryKey(pinId, period.start, period.end, lat, lng)
+    queryKey: request
+      ? openMeteoWeatherQueryKey(
+          pinId,
+          request.kind,
+          request.period.start,
+          request.period.end,
+          lat,
+          lng,
+        )
       : ["open-meteo", "disabled"],
     queryFn: () =>
       syncOpenMeteoPinWeather(supabase, {
@@ -113,10 +126,11 @@ export function useOpenMeteoPinSubtitle({
         mapId,
         lat,
         lng,
-        period: period!,
+        request: request!,
       }),
     enabled: needsSync,
-    staleTime: Infinity,
+    staleTime:
+      request?.kind === "current" ? 15 * 60 * 1000 : Number.POSITIVE_INFINITY,
     retry: 1,
   });
 
@@ -127,5 +141,5 @@ export function useOpenMeteoPinSubtitle({
 
   const payload = cachedPayload ?? syncQuery.data ?? null;
   if (!canSync || !payload) return null;
-  return formatOpenMeteoSubtitleFromPayload(payload);
+  return openMeteoPinSubtitleFromPayload(payload);
 }

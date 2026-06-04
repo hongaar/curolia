@@ -1,11 +1,21 @@
 export function openMeteoWeatherQueryKey(
   pinId: string,
+  kind: "current" | "historical",
   startDate: string,
   endDate: string,
   lat: number,
   lng: number,
-): readonly ["open-meteo", "pin", string, string, string, number, number] {
-  return ["open-meteo", "pin", pinId, startDate, endDate, lat, lng];
+): readonly [
+  "open-meteo",
+  "pin",
+  string,
+  "current" | "historical",
+  string,
+  string,
+  number,
+  number,
+] {
+  return ["open-meteo", "pin", pinId, kind, startDate, endDate, lat, lng];
 }
 
 export function openMeteoEntityDataQueryKey(
