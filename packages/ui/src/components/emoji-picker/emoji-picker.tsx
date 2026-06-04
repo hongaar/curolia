@@ -1,13 +1,13 @@
 "use client";
 
 import {
+  EmojiPicker as EmojiPickerPrimitive,
   type EmojiPickerListCategoryHeaderProps,
   type EmojiPickerListEmojiProps,
   type EmojiPickerListRowProps,
-  EmojiPicker as EmojiPickerPrimitive,
 } from "frimousse";
 import { LoaderIcon, SearchIcon } from "lucide-react";
-import type * as React from "react";
+import { forwardRef, type ComponentProps } from "react";
 
 import { cn } from "../../lib/utils";
 import styles from "./emoji-picker.module.css";
@@ -15,7 +15,7 @@ import styles from "./emoji-picker.module.css";
 function EmojiPicker({
   className,
   ...props
-}: React.ComponentProps<typeof EmojiPickerPrimitive.Root>) {
+}: ComponentProps<typeof EmojiPickerPrimitive.Root>) {
   return (
     <EmojiPickerPrimitive.Root
       className={cn(styles.root, className)}
@@ -25,10 +25,10 @@ function EmojiPicker({
   );
 }
 
-function EmojiPickerSearch({
-  className,
-  ...props
-}: React.ComponentProps<typeof EmojiPickerPrimitive.Search>) {
+const EmojiPickerSearch = forwardRef<
+  HTMLInputElement,
+  ComponentProps<typeof EmojiPickerPrimitive.Search>
+>(function EmojiPickerSearch({ className, ...props }, ref) {
   return (
     <div
       className={cn(styles.searchWrapper, className)}
@@ -36,13 +36,14 @@ function EmojiPickerSearch({
     >
       <SearchIcon className={styles.searchIcon} />
       <EmojiPickerPrimitive.Search
+        ref={ref}
         className={styles.search}
         data-slot="emoji-picker-search"
         {...props}
       />
     </div>
   );
-}
+});
 
 function EmojiPickerRow({ children, ...props }: EmojiPickerListRowProps) {
   return (
@@ -86,7 +87,7 @@ function EmojiPickerCategoryHeader({
 function EmojiPickerContent({
   className,
   ...props
-}: React.ComponentProps<typeof EmojiPickerPrimitive.Viewport>) {
+}: ComponentProps<typeof EmojiPickerPrimitive.Viewport>) {
   return (
     <EmojiPickerPrimitive.Viewport
       className={cn(styles.viewport, className)}
@@ -118,10 +119,7 @@ function EmojiPickerContent({
   );
 }
 
-function EmojiPickerFooter({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function EmojiPickerFooter({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(styles.footer, className)}

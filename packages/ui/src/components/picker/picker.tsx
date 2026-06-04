@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { buttonClassName } from "../button";
 import {
@@ -113,6 +113,7 @@ export function EmojiFieldPicker({
   disabled = false,
 }: EmojiFieldPickerProps) {
   const [open, setOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const displayChar = value || "📍";
 
   return (
@@ -147,6 +148,7 @@ export function EmojiFieldPicker({
             align="start"
             sideOffset={6}
             className={styles.popoverEmoji}
+            initialFocus={searchRef}
           >
             <EmojiPickerRoot
               className={styles.emojiPickerRoot}
@@ -155,7 +157,7 @@ export function EmojiFieldPicker({
                 setOpen(false);
               }}
             >
-              <EmojiPickerSearch />
+              <EmojiPickerSearch ref={searchRef} />
               <EmojiPickerContent className={styles.emojiPickerContent} />
               <EmojiPickerFooter />
             </EmojiPickerRoot>
