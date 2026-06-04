@@ -1,5 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect -- reset form fields when dialog opens/closes */
+import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { PinLinksEditor } from "@/components/pins/pin-links-editor";
+import { PresetColorPicker } from "@/components/pins/preset-color-picker";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { imageDimensionsFromFile } from "@/lib/image-dimensions";
@@ -25,6 +27,7 @@ import {
 } from "@/lib/pin-geocode";
 import { fetchLinkMetadata, type LinkMetadata } from "@/lib/pin-links";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
+import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
 import { useAddPinLink } from "@/lib/use-add-pin-link";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
@@ -88,7 +91,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { Trash2, Upload } from "lucide-react";
+import { Plus, Trash2, Upload } from "lucide-react";
 import {
   useEffect,
   useLayoutEffect,
@@ -161,6 +164,11 @@ export function PinFormDialog({
   const [moving, setMoving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
+  const [newTagEmoji, setNewTagEmoji] = useState("📍");
+  const [tagSaving, setTagSaving] = useState(false);
   const floatingRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<{ x: number; y: number } | null>(null);
   const pendingLinkRef = useRef<LinkMetadata | null>(null);
@@ -412,8 +420,48 @@ export function PinFormDialog({
       setMoving(false);
       setDeleteOpen(false);
       setDeleting(false);
+      setTagDialogOpen(false);
+      setNewTagName("");
+      setNewTagColor(DEFAULT_PIN_TAG_COLOR);
+      setNewTagEmoji("📍");
+      setTagSaving(false);
     }
   }, [open]);
+
+  function openNewTagDialog() {
+    setNewTagName("");
+    setNewTagColor(DEFAULT_PIN_TAG_COLOR);
+    setNewTagEmoji("📍");
+    setTagDialogOpen(true);
+  }
+
+  async function createTag() {
+    if (!mapId || !newTagName.trim()) return;
+    setTagSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from("tags")
+        .insert({
+          map_id: mapId,
+          name: newTagName.trim(),
+          color: newTagColor,
+          icon_emoji: newTagEmoji || "📍",
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      if (!data?.id) throw new Error("No tag id");
+      toast.success("Tag created");
+      setTagDialogOpen(false);
+      setNewTagName("");
+      await qc.invalidateQueries({ queryKey: ["tags", mapId] });
+      setSelectedTags((prev) => new Set(prev).add(data.id));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not create tag");
+    } finally {
+      setTagSaving(false);
+    }
+  }
 
   async function confirmMovePin() {
     if (!pin || !moveTargetMapId) return;
@@ -894,11 +942,18 @@ export function PinFormDialog({
             </PinFormTagOption>
           ))}
           {tagsQuery.data?.length === 0 ? (
-            <FormMutedText>
-              No tags yet — add one from the Tags menu.
-            </FormMutedText>
+            <FormMutedText>No tags yet.</FormMutedText>
           ) : null}
         </PinFormTagBox>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={openNewTagDialog}
+        >
+          <Plus aria-hidden />
+          New tag…
+        </Button>
       </FormField>
       {pin
         ? enabledPlugins.map((p) => {
@@ -1053,6 +1108,63 @@ export function PinFormDialog({
     </Dialog>
   ) : null;
 
+  const tagFormDialog = (
+    <Dialog
+      open={tagDialogOpen}
+      onOpenChange={(next) => {
+        if (!next && tagSaving) return;
+        setTagDialogOpen(next);
+      }}
+    >
+      <PanelDialogContent showCloseButton={!tagSaving}>
+        <PanelDialogHeader>
+          <PanelDialogTitle>New tag</PanelDialogTitle>
+        </PanelDialogHeader>
+        <PanelDialogBody>
+          <PanelDialogFormStack>
+            <PanelDialogField>
+              <Label htmlFor={`pin-form-tag-name-${idSuffix}`}>Name</Label>
+              <Input
+                id={`pin-form-tag-name-${idSuffix}`}
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+              />
+            </PanelDialogField>
+            <PresetColorPicker
+              id={`pin-form-tag-color-${idSuffix}`}
+              label="Color"
+              value={newTagColor}
+              onChange={setNewTagColor}
+            />
+            <EmojiPicker
+              id={`pin-form-tag-emoji-${idSuffix}`}
+              label="Icon (emoji)"
+              value={newTagEmoji}
+              onChange={setNewTagEmoji}
+            />
+          </PanelDialogFormStack>
+        </PanelDialogBody>
+        <PanelDialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={tagSaving}
+            onClick={() => setTagDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={tagSaving || !newTagName.trim()}
+            onClick={() => void createTag()}
+          >
+            {tagSaving ? "Creating…" : "Create tag"}
+          </Button>
+        </PanelDialogFooter>
+      </PanelDialogContent>
+    </Dialog>
+  );
+
   const deletePinDialog = pin ? (
     <Dialog
       open={deleteOpen}
@@ -1099,6 +1211,7 @@ export function PinFormDialog({
           </PinFormPanelCard>
         </PinFormFloatingHost>
         {photoLightboxOverlay}
+        {tagFormDialog}
       </>
     );
   }
@@ -1115,6 +1228,7 @@ export function PinFormDialog({
         </PinFormPanelDialog>
       </Dialog>
       {photoLightboxOverlay}
+      {tagFormDialog}
       {movePinDialog}
       {deletePinDialog}
     </>
