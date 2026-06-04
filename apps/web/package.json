@@ -29,6 +29,7 @@
     "@curolia/plugin-lastfm": "file:../../packages/plugins/lastfm",
     "@curolia/plugin-open-meteo": "file:../../packages/plugins/open-meteo",
     "@curolia/plugin-spotify": "file:../../packages/plugins/spotify",
+    "@curolia/plugin-wikidata": "file:../../packages/plugins/wikidata",
     "@curolia/site": "file:../../packages/site",
     "@curolia/ui": "file:../../packages/ui",
     "@floating-ui/dom": "^1.7.6",

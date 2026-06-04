@@ -35,6 +35,7 @@ import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
+import type { PinEditorFieldSuggestion } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
 import { Checkbox } from "@curolia/ui/checkbox";
@@ -699,6 +700,18 @@ export function PinFormDialog({
   }
 
   const idSuffix = pin ? "e" : "n";
+  const latN = Number(lat);
+  const lngN = Number(lng);
+  const draftCoordsValid = Number.isFinite(latN) && Number.isFinite(lngN);
+
+  function applyPinSuggestion(fields: PinEditorFieldSuggestion) {
+    if (fields.title?.trim() && !title.trim()) {
+      setTitle(fields.title.trim());
+    }
+    if (fields.description?.trim() && !description.trim()) {
+      setDescription(fields.description.trim());
+    }
+  }
 
   async function onUploadPhotos(files: FileList | File[] | null) {
     if (!files?.length || !pin || !mapId) return;
@@ -797,6 +810,31 @@ export function PinFormDialog({
           placeholder="Notes about this place…"
         />
       </FormField>
+      {!pin && draftCoordsValid
+        ? enabledPlugins.map((p) => {
+            const Slot = p.PinDraftEnrichmentSlot;
+            if (!Slot) return null;
+            const PluginIcon = p.icon;
+            return (
+              <PinFormPluginSectionCard
+                key={`draft-${p.id}`}
+                icon={<PluginIcon size={4} />}
+                title={p.displayName}
+              >
+                <Slot
+                  supabase={supabase}
+                  userId={user?.id}
+                  mapId={mapId}
+                  lat={latN}
+                  lng={lngN}
+                  hasTitle={Boolean(title.trim())}
+                  hasDescription={Boolean(description.trim())}
+                  onApplySuggestion={applyPinSuggestion}
+                />
+              </PinFormPluginSectionCard>
+            );
+          })
+        : null}
       <FormField>
         <Label htmlFor={`t-location-detail-${idSuffix}`}>Location label</Label>
         <Select
@@ -973,6 +1011,11 @@ export function PinFormDialog({
                   mapId={mapId}
                   pinDate={pin.date}
                   pinEndDate={pin.end_date}
+                  pinLat={latN}
+                  pinLng={lngN}
+                  hasPinTitle={Boolean(title.trim())}
+                  hasPinDescription={Boolean(description.trim())}
+                  onApplyPinSuggestion={applyPinSuggestion}
                 />
               </PinFormPluginSectionCard>
             );

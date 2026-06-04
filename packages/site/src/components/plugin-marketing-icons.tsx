@@ -1,6 +1,11 @@
 import { PluginIconFrame } from "@curolia/ui/plugin-icon-frame";
 import type { ReactNode } from "react";
 
+import styles from "./plugin-marketing-icons.module.css";
+
+const wikipediaLogo = new URL("../assets/wikipedia-logo.svg", import.meta.url)
+  .href;
+
 type IconProps = {
   className?: string;
   size?: 4 | 5 | 6;
@@ -181,6 +186,44 @@ export function AppleCalendarIcon({ size = 5 }: IconProps) {
         >
           12
         </text>
+      </svg>
+    </MarketingPluginIcon>
+  );
+}
+
+/** Wikipedia puzzle globe (Wikimedia Commons, CC BY-SA 3.0). */
+export function WikipediaIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <img src={wikipediaLogo} alt="" className={styles.logoImg} />
+    </MarketingPluginIcon>
+  );
+}
+
+/** Open-Meteo weather tile. */
+export function OpenMeteoIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 32 32"
+        aria-hidden
+        width="100%"
+        height="100%"
+      >
+        <defs>
+          <linearGradient id="om-marketing-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="100%" stopColor="#0ea5e9" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="6" fill="url(#om-marketing-sky)" />
+        <circle cx="22" cy="10" r="5" fill="#fde047" />
+        <path
+          fill="#fff"
+          fillOpacity="0.95"
+          d="M6 22c2-4 6-6 10-6s9 2 11 6H6z"
+        />
       </svg>
     </MarketingPluginIcon>
   );

@@ -7,6 +7,7 @@ import { pluginManifest as pluginManifest1 } from "@curolia/plugin-ical";
 import { pluginManifest as pluginManifest2 } from "@curolia/plugin-lastfm";
 import { pluginManifest as pluginManifest3 } from "@curolia/plugin-open-meteo";
 import { pluginManifest as pluginManifest4 } from "@curolia/plugin-spotify";
+import { pluginManifest as pluginManifest5 } from "@curolia/plugin-wikidata";
 
 export const installedPluginManifests: PluginPackageManifest[] = [
   pluginManifest0,
@@ -14,4 +15,5 @@ export const installedPluginManifests: PluginPackageManifest[] = [
   pluginManifest2,
   pluginManifest3,
   pluginManifest4,
+  pluginManifest5,
 ];

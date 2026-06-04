@@ -17,6 +17,8 @@ export type {
 export type {
   MapSettingsPanelProps,
   PinContextProps,
+  PinDraftEnrichmentSlotProps,
+  PinEditorFieldSuggestion,
   PinPhotoImportSlotProps,
   PluginDefinition,
   PluginPackageManifest,

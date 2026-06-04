@@ -6,8 +6,10 @@ import {
   GooglePhotosIcon,
   IcalIcon,
   LastfmIcon,
+  OpenMeteoIcon,
   SpotifyIcon,
   StravaIcon,
+  WikipediaIcon,
 } from "../components/plugin-marketing-icons";
 
 export type LandingPluginStatus = "available" | "coming-soon";
@@ -48,6 +50,20 @@ export const landingPlugins: LandingPlugin[] = [
     description: "Attach tracks and playlists to pins",
     status: "available",
     icon: () => <SpotifyIcon size={6} />,
+  },
+  {
+    id: "wikidata",
+    name: "Wikipedia",
+    description: "Nearby landmarks with summaries on pins",
+    status: "available",
+    icon: () => <WikipediaIcon size={6} />,
+  },
+  {
+    id: "open-meteo",
+    name: "Open-Meteo",
+    description: "Historical weather on pin dates",
+    status: "available",
+    icon: () => <OpenMeteoIcon size={6} />,
   },
   {
     id: "strava",

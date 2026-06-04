@@ -94,6 +94,10 @@ export default defineConfig({
         repoRoot,
         "packages/plugins/oauth/src/index.ts",
       ),
+      "@curolia/plugin-wikidata": path.resolve(
+        repoRoot,
+        "packages/plugins/wikidata/src/index.ts",
+      ),
     },
   },
   server: {

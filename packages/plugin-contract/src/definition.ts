@@ -15,8 +15,33 @@ export type PinPhotoImportSlotProps = {
   pinEndDate?: string | null;
 };
 
+/** Title/description fields a plugin may suggest in the pin editor. */
+export type PinEditorFieldSuggestion = {
+  title?: string;
+  description?: string;
+};
+
 /** Shared pin-scoped props for plugin surfaces (photo slots, pin detail panels, …). */
-export type PinContextProps = PinPhotoImportSlotProps;
+export type PinContextProps = PinPhotoImportSlotProps & {
+  /** Coordinates from the open pin form (edit flow); omit on read-only surfaces. */
+  pinLat?: number | null;
+  pinLng?: number | null;
+  hasPinTitle?: boolean;
+  hasPinDescription?: boolean;
+  onApplyPinSuggestion?: (fields: PinEditorFieldSuggestion) => void;
+};
+
+/** Props for plugin enrichment while drafting a new pin (before `pinId` exists). */
+export type PinDraftEnrichmentSlotProps = {
+  supabase: SupabaseClient;
+  userId?: string | null;
+  mapId: string;
+  lat: number;
+  lng: number;
+  hasTitle: boolean;
+  hasDescription: boolean;
+  onApplySuggestion: (fields: PinEditorFieldSuggestion) => void;
+};
 
 /** Props for per-map plugin settings panels rendered in the map settings dialog. */
 export type MapSettingsPanelProps = {
@@ -65,6 +90,11 @@ export type PluginDefinition = {
    * Optional read-only block on the pin detail page.
    */
   PinDetailSection?: ComponentType<PinContextProps>;
+  /**
+   * Optional enrichment while creating a new pin (no `pinId` yet). Rendered when
+   * draft coordinates are valid.
+   */
+  PinDraftEnrichmentSlot?: ComponentType<PinDraftEnrichmentSlotProps>;
   /**
    * Optional per-map settings panel rendered inside the map settings dialog.
    * Replaces the hard-coded switch in the app shell.

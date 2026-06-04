@@ -222,3 +222,41 @@ export function PluginPinEmbed({
     />
   );
 }
+
+export function PluginPinArticlePreview({
+  title,
+  extract,
+  thumbnailUrl,
+  readMoreHref,
+  readMoreLabel = "Read more on Wikipedia",
+  readMoreIcon,
+  actions,
+}: {
+  title: string;
+  extract: string;
+  thumbnailUrl?: string | null;
+  readMoreHref: string;
+  readMoreLabel?: string;
+  readMoreIcon: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <article className={styles.article}>
+      <div className={styles.articleMediaRow}>
+        {thumbnailUrl ? (
+          <img src={thumbnailUrl} alt="" className={styles.articleThumb} />
+        ) : null}
+        <div className={styles.articleBody}>
+          <h4 className={styles.articleTitle}>{title}</h4>
+          <p className={styles.articleExtract}>{extract}</p>
+        </div>
+      </div>
+      <div className={styles.articleActions}>
+        <PluginPinInlineLink href={readMoreHref} icon={readMoreIcon}>
+          {readMoreLabel}
+        </PluginPinInlineLink>
+        {actions}
+      </div>
+    </article>
+  );
+}
