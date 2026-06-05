@@ -1,4 +1,13 @@
 import {
+  DEFAULT_MAP_STYLE_OPTIONS,
+  mapStyleCacheKey,
+  normalizeMapStylePreset,
+  resolveMapStyle,
+  syncMapStyleOverlays,
+  type MapStyleOptions,
+  type MapStylePreset,
+} from "@/lib/map-style";
+import {
   createMapMarkerMount,
   type MapMarkerMount,
 } from "@curolia/ui/map-marker";
@@ -12,21 +21,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
 
-const MAP_STYLE_LIGHT = "https://tiles.openfreemap.org/styles/positron";
-const MAP_STYLE_DARK = "https://tiles.openfreemap.org/styles/dark";
 const INSET_ZOOM = 5;
-
-function mapStyleUrlForTheme(resolvedTheme: string | undefined): string {
-  if (resolvedTheme === "dark") return MAP_STYLE_DARK;
-  if (resolvedTheme === "light") return MAP_STYLE_LIGHT;
-  if (
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark")
-  ) {
-    return MAP_STYLE_DARK;
-  }
-  return MAP_STYLE_LIGHT;
-}
 
 type PinDetailInsetMapViewProps = {
   lng: number;
@@ -35,6 +30,8 @@ type PinDetailInsetMapViewProps = {
   markerColor: string | null;
   mapHref: string;
   mapAriaLabel: string;
+  mapStyle?: MapStylePreset;
+  mapStyleOptions?: MapStyleOptions;
 };
 
 export function PinDetailInsetMapView({
@@ -44,22 +41,34 @@ export function PinDetailInsetMapView({
   markerColor,
   mapHref,
   mapAriaLabel,
+  mapStyle = "auto",
+  mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
 }: PinDetailInsetMapViewProps) {
   const { resolvedTheme } = useTheme();
+  const mapStylePreset = normalizeMapStylePreset(mapStyle);
+  const mapStyleOpts = mapStyleOptions;
+  const mapStylePresetRef = useRef(mapStylePreset);
+  const mapStyleOptsRef = useRef(mapStyleOpts);
+  mapStylePresetRef.current = mapStylePreset;
+  mapStyleOptsRef.current = mapStyleOpts;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const markerMountRef = useRef<MapMarkerMount | null>(null);
-  const appliedMapStyleUrlRef = useRef("");
+  const appliedMapStyleKeyRef = useRef("");
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const initialStyle =
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark")
-        ? MAP_STYLE_DARK
-        : MAP_STYLE_LIGHT;
-    appliedMapStyleUrlRef.current = initialStyle;
+    const initialStyle = resolveMapStyle(
+      mapStylePreset,
+      resolvedTheme,
+      mapStyleOpts,
+    );
+    appliedMapStyleKeyRef.current = mapStyleCacheKey(
+      mapStylePreset,
+      resolvedTheme,
+      mapStyleOpts,
+    );
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: initialStyle,
@@ -75,8 +84,17 @@ export function PinDetailInsetMapView({
       keyboard: false,
       touchZoomRotate: false,
     });
+    const onStyleLoad = () => {
+      syncMapStyleOverlays(
+        map,
+        mapStylePresetRef.current,
+        mapStyleOptsRef.current,
+      );
+    };
+    map.on("style.load", onStyleLoad);
     mapRef.current = map;
     return () => {
+      map.off("style.load", onStyleLoad);
       markerRef.current?.remove();
       markerRef.current = null;
       markerMountRef.current?.unmount();
@@ -90,11 +108,23 @@ export function PinDetailInsetMapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const url = mapStyleUrlForTheme(resolvedTheme);
-    if (appliedMapStyleUrlRef.current === url) return;
-    appliedMapStyleUrlRef.current = url;
-    map.setStyle(url);
-  }, [resolvedTheme]);
+    const key = mapStyleCacheKey(mapStylePreset, resolvedTheme, mapStyleOpts);
+    if (appliedMapStyleKeyRef.current === key) return;
+    appliedMapStyleKeyRef.current = key;
+    map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
+  }, [
+    mapStylePreset,
+    resolvedTheme,
+    mapStyleOpts.hillshades,
+    mapStyleOpts.satelliteLabels,
+  ]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (!map.isStyleLoaded()) return;
+    syncMapStyleOverlays(map, mapStylePreset, mapStyleOpts);
+  }, [mapStylePreset, mapStyleOpts.hillshades, mapStyleOpts.satelliteLabels]);
 
   useEffect(() => {
     const map = mapRef.current;

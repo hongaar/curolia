@@ -52,7 +52,7 @@ export function buildSatelliteStyle(labels: boolean): StyleSpecification {
 
   return {
     version: 8,
-    glyphs: labels ? OPENFREEMAP_GLYPHS : undefined,
+    ...(labels ? { glyphs: OPENFREEMAP_GLYPHS } : {}),
     sources,
     layers,
   };

@@ -3,6 +3,10 @@ import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
 import { mapHrefWithSearch, mapViewHref } from "@/lib/app-paths";
 import {
+  normalizeMapStyleOptions,
+  normalizeMapStylePreset,
+} from "@/lib/map-style";
+import {
   applyMapCameraToSearchParams,
   applySelectedPinToSearchParams,
   normalizeCameraForUrl,
@@ -64,6 +68,10 @@ export function PinDetailPage() {
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
 
   const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
+  const insetMapStyleOptions = useMemo(
+    () => normalizeMapStyleOptions(mapForRoute),
+    [mapForRoute?.style_hillshades, mapForRoute?.style_satellite_labels],
+  );
 
   if (pinQuery.isLoading) {
     return <PageCenteredLoading>Loading pin…</PageCenteredLoading>;
@@ -136,6 +144,8 @@ export function PinDetailPage() {
                 markerColor={insetMarkerTag?.color ?? null}
                 mapHref={mapHref}
                 mapAriaLabel="Open this pin on the map"
+                mapStyle={normalizeMapStylePreset(mapForRoute?.style)}
+                mapStyleOptions={insetMapStyleOptions}
               />
             ) : null
           }
