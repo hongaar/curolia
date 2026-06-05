@@ -202,11 +202,10 @@ export function BlogPage() {
     () => orderedVisible.map((t) => t.id),
     [orderedVisible],
   );
-  const {
-    photosByPinId,
-    signedUrlByPhotoId,
-    isLoading: photosLoading,
-  } = useMapPinsPhotosSignedUrls(activeMapId ?? undefined, visiblePinIds);
+  const { photosByPinId, signedUrlByPhotoId } = useMapPinsPhotosSignedUrls(
+    activeMapId ?? undefined,
+    visiblePinIds,
+  );
 
   const blogLightboxItems = useMemo(() => {
     if (!photoLightbox) return [];
@@ -413,7 +412,6 @@ export function BlogPage() {
                 const photoPlaceholders = pinPhotoGalleryPlaceholderCount(
                   pinPhotos,
                   galleryItems,
-                  photosLoading,
                 );
                 const detailHref = blogMapSlug
                   ? pinDetailHref(blogMapSlug, t.slug)

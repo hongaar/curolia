@@ -61,11 +61,7 @@ export function PinDetailPage() {
   });
 
   const pin = pinQuery.data;
-  const {
-    photos,
-    signedUrlByPhotoId,
-    isLoading: photosLoading,
-  } = usePinPhotosSignedUrls(pin?.id);
+  const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
 
   const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
 
@@ -131,7 +127,6 @@ export function PinDetailPage() {
           pin={pin}
           photos={photos}
           signedUrlByPhotoId={signedUrlByPhotoId}
-          photosLoading={photosLoading}
           topContent={
             mapHref ? (
               <PinDetailInsetMapView

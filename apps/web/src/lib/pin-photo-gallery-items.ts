@@ -23,8 +23,7 @@ export function photosToGalleryItems(
 export function pinPhotoGalleryPlaceholderCount(
   photos: Photo[],
   galleryItems: PinPhotoGalleryItem[],
-  loading: boolean,
 ): number {
-  if (!loading || photos.length === 0) return 0;
+  if (photos.length === 0) return 0;
   return Math.max(0, photos.length - galleryItems.length);
 }

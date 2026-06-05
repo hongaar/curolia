@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 import type * as React from "react";
+import { useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import {
@@ -132,15 +133,136 @@ export function PinFormPhotoGrid({ children }: { children: React.ReactNode }) {
   return <div className={styles.photoGrid}>{children}</div>;
 }
 
+function reorderItems<T>(items: T[], fromIndex: number, toIndex: number): T[] {
+  if (fromIndex === toIndex) return items;
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  if (!moved) return items;
+  next.splice(toIndex, 0, moved);
+  return next;
+}
+
+export type PinFormPhotoSortableRenderContext = {
+  isDragging: boolean;
+  isDropTarget: boolean;
+  dragHandle: React.ReactNode;
+};
+
+export function PinFormPhotoSortableGrid<T>({
+  items,
+  getItemId,
+  onReorder,
+  disabled = false,
+  renderItem,
+}: {
+  items: T[];
+  getItemId: (item: T) => string;
+  onReorder: (items: T[]) => void;
+  disabled?: boolean;
+  renderItem: (
+    item: T,
+    ctx: PinFormPhotoSortableRenderContext,
+  ) => React.ReactNode;
+}) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const sortable = items.length > 1 && !disabled;
+
+  function finishDrag(targetIndex: number | null) {
+    if (
+      dragIndex !== null &&
+      targetIndex !== null &&
+      dragIndex !== targetIndex
+    ) {
+      onReorder(reorderItems(items, dragIndex, targetIndex));
+    }
+    setDragIndex(null);
+    setOverIndex(null);
+  }
+
+  return (
+    <PinFormPhotoGrid>
+      {items.map((item, index) => {
+        const isDragging = dragIndex === index;
+        const isDropTarget = overIndex === index && dragIndex !== index;
+        const dragHandle = sortable ? (
+          <button
+            type="button"
+            className={styles.photoDragHandle}
+            draggable
+            disabled={disabled}
+            aria-label="Drag to reorder photo"
+            title="Drag to reorder"
+            onDragStart={(e) => {
+              setDragIndex(index);
+              setOverIndex(index);
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", getItemId(item));
+            }}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setOverIndex(null);
+            }}
+          >
+            <GripVertical className={styles.photoDragHandleIcon} aria-hidden />
+          </button>
+        ) : null;
+
+        return (
+          <div
+            key={getItemId(item)}
+            className={[
+              styles.photoSortableItem,
+              isDragging ? styles.photoSortableItemDragging : "",
+              isDropTarget ? styles.photoSortableItemOver : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            onDragOver={
+              sortable
+                ? (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    setOverIndex(index);
+                  }
+                : undefined
+            }
+            onDrop={
+              sortable
+                ? (e) => {
+                    e.preventDefault();
+                    finishDrag(index);
+                  }
+                : undefined
+            }
+            onDragLeave={
+              sortable
+                ? () => {
+                    setOverIndex((prev) => (prev === index ? null : prev));
+                  }
+                : undefined
+            }
+          >
+            {renderItem(item, { isDragging, isDropTarget, dragHandle })}
+          </div>
+        );
+      })}
+    </PinFormPhotoGrid>
+  );
+}
+
 export function PinFormPhotoThumb({
   children,
   removeButton,
+  dragHandle,
 }: {
   children: React.ReactNode;
   removeButton?: React.ReactNode;
+  dragHandle?: React.ReactNode;
 }) {
   return (
     <div className={styles.photoThumb}>
+      {dragHandle}
       {children}
       {removeButton}
     </div>

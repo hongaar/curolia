@@ -26,6 +26,10 @@ import {
   type PinGeocode,
 } from "@/lib/pin-geocode";
 import { fetchLinkMetadata, type LinkMetadata } from "@/lib/pin-links";
+import {
+  persistPinPhotoOrder,
+  reorderPhotosByIds,
+} from "@/lib/pin-photo-order";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
@@ -34,7 +38,7 @@ import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
-import type { Pin, Tag } from "@/types/database";
+import type { Photo, Pin, Tag } from "@/types/database";
 import type { PinEditorFieldSuggestion } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
@@ -64,8 +68,8 @@ import {
   PinFormMoveList,
   PinFormPanelCard,
   PinFormPanelDialog,
-  PinFormPhotoGrid,
   PinFormPhotoPlaceholder,
+  PinFormPhotoSortableGrid,
   PinFormPhotoRemoveButton,
   PinFormPhotoThumb,
   PinFormPluginSectionCard,
@@ -191,6 +195,35 @@ export function PinFormDialog({
     () => locationLabelDetailPreviewItems(geocode),
     [geocode],
   );
+
+  const reorderPhotosMut = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      if (!pin) throw new Error("missing_pin");
+      await persistPinPhotoOrder(orderedIds);
+    },
+    onMutate: async (orderedIds) => {
+      if (!pin) return;
+      await qc.cancelQueries({ queryKey: ["photos", pin.id] });
+      const previous = qc.getQueryData<Photo[]>(["photos", pin.id]);
+      qc.setQueryData<Photo[]>(["photos", pin.id], (current) =>
+        reorderPhotosByIds(current ?? [], orderedIds),
+      );
+      return { previous };
+    },
+    onError: (e, _orderedIds, context) => {
+      if (pin && context?.previous) {
+        qc.setQueryData(["photos", pin.id], context.previous);
+      }
+      toast.error(e instanceof Error ? e.message : "Could not reorder photos.");
+    },
+    onSettled: async () => {
+      if (!pin) return;
+      await qc.invalidateQueries({
+        queryKey: ["map-pin-photos", mapId],
+      });
+      await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pin.id] });
+    },
+  });
 
   const removePhotoMut = useMutation({
     mutationFn: async (photoId: string) => {
@@ -892,16 +925,25 @@ export function PinFormDialog({
         <>
           <FormField>
             <Label>Photos</Label>
+            {photos.length > 1 ? (
+              <FormMutedText>Drag photos to reorder.</FormMutedText>
+            ) : null}
             {photos.length > 0 ? (
-              <PinFormPhotoGrid>
-                {photos.map((p) => {
+              <PinFormPhotoSortableGrid
+                items={photos}
+                getItemId={(p) => p.id}
+                disabled={reorderPhotosMut.isPending}
+                onReorder={(next) => {
+                  reorderPhotosMut.mutate(next.map((p) => p.id));
+                }}
+                renderItem={(p, { dragHandle }) => {
                   const url = signedUrlByPhotoId[p.id];
                   const removing =
                     removePhotoMut.isPending &&
                     removePhotoMut.variables === p.id;
                   return url ? (
                     <PinFormPhotoThumb
-                      key={p.id}
+                      dragHandle={dragHandle}
                       removeButton={
                         <PinFormPhotoRemoveButton
                           onClick={() => removePhotoMut.mutate(p.id)}
@@ -915,12 +957,12 @@ export function PinFormDialog({
                       />
                     </PinFormPhotoThumb>
                   ) : (
-                    <PinFormPhotoPlaceholder key={p.id}>
-                      …
-                    </PinFormPhotoPlaceholder>
+                    <PinFormPhotoThumb dragHandle={dragHandle}>
+                      <PinFormPhotoPlaceholder>…</PinFormPhotoPlaceholder>
+                    </PinFormPhotoThumb>
                   );
-                })}
-              </PinFormPhotoGrid>
+                }}
+              />
             ) : null}
             <PinFormUploadRow>
               <PinFormUploadLabel

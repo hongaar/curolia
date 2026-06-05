@@ -246,12 +246,18 @@ export async function googlePhotosImport(
   };
 }
 
+export type GooglePhotosImportBatchedOptions = {
+  /** Called after each edge batch completes (useful for progressive UI refresh). */
+  onBatchComplete?: (batch: GooglePhotosImportResult) => void | Promise<void>;
+};
+
 /** Import in small batches so each edge request stays within local storage timeouts. */
 export async function googlePhotosImportBatched(
   supabase: SupabaseClient,
   pinId: string,
   mediaItemIds: string[],
   pickerSessionId: string,
+  options?: GooglePhotosImportBatchedOptions,
 ): Promise<GooglePhotosImportResult> {
   const merged: GooglePhotosImportResult = {
     importedIds: [],
@@ -275,6 +281,7 @@ export async function googlePhotosImportBatched(
     merged.skippedAlreadyOnPin.push(...batch.skippedAlreadyOnPin);
     merged.downloadFailed.push(...batch.downloadFailed);
     merged.storageFailed.push(...batch.storageFailed);
+    await options?.onBatchComplete?.(batch);
   }
   return merged;
 }

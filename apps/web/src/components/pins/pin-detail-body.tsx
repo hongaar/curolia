@@ -56,7 +56,6 @@ interface PinDetailBodyProps {
   pin: PinRow;
   photos: Photo[];
   signedUrlByPhotoId: Record<string, string>;
-  photosLoading: boolean;
   /** Extra elements rendered inside PinDetailActions alongside the Edit button. */
   extraActions?: ReactNode;
   /** Content rendered at the top of the content section (e.g. inset map). */
@@ -72,7 +71,6 @@ export function PinDetailBody({
   pin,
   photos,
   signedUrlByPhotoId,
-  photosLoading,
   extraActions,
   topContent,
   permalinkMapSlug,
@@ -106,7 +104,6 @@ export function PinDetailBody({
   const photoPlaceholders = pinPhotoGalleryPlaceholderCount(
     photos,
     galleryItems,
-    photosLoading,
   );
 
   const openMeteoGloballyEnabled = enabledPlugins.some(

@@ -21,6 +21,7 @@ import {
   googlePhotosPickerList,
   googlePhotosWaitForPickerSelection,
 } from "./google-photos-edge";
+import { syncPinPhotosToCache } from "./pin-photo-cache";
 import { googlePhotosLibrarySearchPasteLine } from "./google-photos-search-paste";
 import { GooglePhotosIcon } from "./icon";
 import { googlePhotosPluginMeta } from "./plugin-meta";
@@ -77,6 +78,9 @@ export function GooglePhotosPinPhotoImportSlot({
 }: PinPhotoImportSlotProps) {
   const qc = useQueryClient();
   const [pickPrepOpen, setPickPrepOpen] = useState(false);
+  const [importPhase, setImportPhase] = useState<"idle" | "picker" | "import">(
+    "idle",
+  );
 
   const searchPasteLine = useMemo(
     () => googlePhotosLibrarySearchPasteLine(pinDate, pinEndDate),
@@ -105,62 +109,70 @@ export function GooglePhotosPinPhotoImportSlot({
 
   const pickAndImportMut = useMutation({
     mutationFn: async () => {
-      const { sessionId, pickerUri, expireTime } =
-        await googlePhotosPickerCreate(supabase, pinId);
-      const openUrl = pickerUri.endsWith("/")
-        ? `${pickerUri}autoclose`
-        : `${pickerUri}/autoclose`;
-      const win = window.open(
-        openUrl,
-        "_blank",
-        "popup=yes,width=1100,height=800",
-      );
-      if (!win) {
-        throw new Error("popup_blocked");
-      }
+      setImportPhase("picker");
       try {
-        win.opener = null;
-      } catch {
-        /* cross-origin */
+        const { sessionId, pickerUri, expireTime } =
+          await googlePhotosPickerCreate(supabase, pinId);
+        const openUrl = pickerUri.endsWith("/")
+          ? `${pickerUri}autoclose`
+          : `${pickerUri}/autoclose`;
+        const win = window.open(
+          openUrl,
+          "_blank",
+          "popup=yes,width=1100,height=800",
+        );
+        if (!win) {
+          throw new Error("popup_blocked");
+        }
+        try {
+          win.opener = null;
+        } catch {
+          /* cross-origin */
+        }
+        const done = await googlePhotosWaitForPickerSelection(
+          supabase,
+          sessionId,
+          expireTime,
+          win,
+        );
+        if (!done) {
+          throw new Error("picker_cancelled_or_timed_out");
+        }
+        const { suggestions: items } = await googlePhotosPickerList(
+          supabase,
+          sessionId,
+        );
+        const ids = items
+          .map((i) => i.externalId)
+          .filter((id): id is string => Boolean(id));
+        if (ids.length === 0) {
+          return { kind: "none_selected" as const };
+        }
+
+        setImportPhase("import");
+        const importResult = await googlePhotosImportBatched(
+          supabase,
+          pinId,
+          ids,
+          sessionId,
+          {
+            onBatchComplete: async () => {
+              await syncPinPhotosToCache(qc, supabase, pinId, mapId);
+            },
+          },
+        );
+        return { kind: "imported" as const, ...importResult };
+      } finally {
+        setImportPhase("idle");
       }
-      const done = await googlePhotosWaitForPickerSelection(
-        supabase,
-        sessionId,
-        expireTime,
-        win,
-      );
-      if (!done) {
-        throw new Error("picker_cancelled_or_timed_out");
-      }
-      const { suggestions: items } = await googlePhotosPickerList(
-        supabase,
-        sessionId,
-      );
-      const ids = items
-        .map((i) => i.externalId)
-        .filter((id): id is string => Boolean(id));
-      if (ids.length === 0) {
-        return { kind: "none_selected" as const };
-      }
-      const importResult = await googlePhotosImportBatched(
-        supabase,
-        pinId,
-        ids,
-        sessionId,
-      );
-      return { kind: "imported" as const, ...importResult };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (!result || result.kind === "none_selected") {
         toast.message("No photos selected.");
         return;
       }
       toastGooglePhotosImportResult(result);
-      void qc.invalidateQueries({ queryKey: ["photos", pinId] });
-      void qc.invalidateQueries({ queryKey: ["photo-urls", pinId] });
-      void qc.invalidateQueries({
-        queryKey: ["map-pin-photos", mapId],
-      });
+      await syncPinPhotosToCache(qc, supabase, pinId, mapId);
     },
     onError: (e) => {
       const msg = e instanceof Error ? e.message : "pick_failed";
@@ -235,7 +247,7 @@ export function GooglePhotosPinPhotoImportSlot({
       >
         {busy ? <PanelDialogSpinner /> : null}
         <GooglePhotosIcon size={4} />
-        <span>{label}</span>
+        <span>{importPhase === "import" ? "Importing photos…" : label}</span>
       </PanelDialogImportButton>
     </>
   );

@@ -888,7 +888,37 @@ Deno.serve(async (req: Request) => {
           upErr.message?.toLowerCase().includes("already exists") ||
           upErr.statusCode === "409";
         if (duplicate) {
-          skippedAlreadyOnPin.push(mediaId);
+          if (existingMediaIds.has(mediaId)) {
+            skippedAlreadyOnPin.push(mediaId);
+          } else {
+            sort += 1;
+            const dimensions = pickerMediaDimensions(mf);
+            const { data: ins, error: insErr } = await admin
+              .from("photos")
+              .insert({
+                map_id: t.map_id,
+                pin_id: t.id,
+                storage_path: path,
+                sort_order: sort,
+                source_plugin_id: "google_photos",
+                external_ref,
+                captured_at: capturedAt
+                  ? new Date(capturedAt).toISOString()
+                  : null,
+                ...(dimensions
+                  ? { width: dimensions.width, height: dimensions.height }
+                  : {}),
+              })
+              .select("id")
+              .single();
+            if (insErr || !ins?.id) {
+              console.error(insErr);
+              downloadFailed.push(mediaId);
+            } else {
+              imported.push(ins.id as string);
+              existingMediaIds.add(mediaId);
+            }
+          }
         } else {
           console.error(upErr);
           if (isStorageUploadRetryable(upErr)) {

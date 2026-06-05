@@ -37,11 +37,7 @@ export function PinDetailSideSheet({
   });
 
   const pin = pinQuery.data;
-  const {
-    photos,
-    signedUrlByPhotoId,
-    isLoading: photosLoading,
-  } = usePinPhotosSignedUrls(pin?.id);
+  const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
 
   if (pinQuery.isLoading || !pin) {
     return null;
@@ -52,7 +48,6 @@ export function PinDetailSideSheet({
       pin={pin}
       photos={photos}
       signedUrlByPhotoId={signedUrlByPhotoId}
-      photosLoading={photosLoading}
       permalinkMapSlug={mapSlug ?? undefined}
       extraActions={
         <Button

@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import type { Photo } from "@/types/database";
-import { useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useMemo } from "react";
 
 function photoIdsKey(photos: Photo[]) {
@@ -8,6 +12,7 @@ function photoIdsKey(photos: Photo[]) {
 }
 
 export function usePinPhotosSignedUrls(pinId: string | undefined) {
+  const qc = useQueryClient();
   const photosQuery = useQuery({
     queryKey: ["photos", pinId],
     queryFn: async () => {
@@ -30,8 +35,16 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
     queryKey: ["photo-urls", pinId, idsKey],
     queryFn: async () => {
       const out: Record<string, string> = {};
+      if (pinId) {
+        for (const [, cached] of qc.getQueriesData<Record<string, string>>({
+          queryKey: ["photo-urls", pinId],
+        })) {
+          if (cached) Object.assign(out, cached);
+        }
+      }
+
       const paths = photos
-        .filter((p) => p.storage_path)
+        .filter((p) => p.storage_path && !out[p.id])
         .map((p) => ({ id: p.id, path: p.storage_path! }));
       if (paths.length === 0) return out;
 
@@ -52,7 +65,10 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
       }
       return out;
     },
-    enabled: Boolean(pinId) && photos.length > 0,
+    placeholderData: keepPreviousData,
+    // Wait until the photos list has settled so we don't sign URLs for a stale set
+    // (e.g. while a long Google Photos import is invalidating/refetching photos).
+    enabled: Boolean(pinId) && photos.length > 0 && !photosQuery.isFetching,
   });
 
   return {
@@ -68,6 +84,7 @@ export function useMapPinsPhotosSignedUrls(
   mapId: string | undefined,
   pinIds: string[],
 ) {
+  const qc = useQueryClient();
   const sortedIdsKey = useMemo(() => [...pinIds].sort().join(","), [pinIds]);
 
   const photosQuery = useQuery({
@@ -93,8 +110,16 @@ export function useMapPinsPhotosSignedUrls(
     queryKey: ["photo-urls-batch", mapId, idsKey],
     queryFn: async () => {
       const out: Record<string, string> = {};
+      if (mapId) {
+        for (const [, cached] of qc.getQueriesData<Record<string, string>>({
+          queryKey: ["photo-urls-batch", mapId],
+        })) {
+          if (cached) Object.assign(out, cached);
+        }
+      }
+
       const paths = photos
-        .filter((p) => p.storage_path)
+        .filter((p) => p.storage_path && !out[p.id])
         .map((p) => ({ id: p.id, path: p.storage_path! }));
       if (paths.length === 0) return out;
 
@@ -115,7 +140,8 @@ export function useMapPinsPhotosSignedUrls(
       }
       return out;
     },
-    enabled: Boolean(mapId) && photos.length > 0,
+    placeholderData: keepPreviousData,
+    enabled: Boolean(mapId) && photos.length > 0 && !photosQuery.isFetching,
   });
 
   const photosByPinId = useMemo(() => {
