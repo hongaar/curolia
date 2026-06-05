@@ -52,13 +52,6 @@ jobs:
           npx supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" --password "$SUPABASE_DB_PASSWORD" --yes
           npx supabase db push --yes
 
-      - name: Sync plugin dispatch secret to worker_config (pg_cron)
-        working-directory: packages/supabase
-        env:
-          PLUGIN_SYNC_DISPATCH_SECRET: ${{ secrets.PLUGIN_SYNC_DISPATCH_SECRET }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-        run: npm run db:sync-dispatch-secret
-
       - name: Deploy Edge Functions
         working-directory: packages/supabase
         env:

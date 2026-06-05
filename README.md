@@ -15,13 +15,7 @@ Plugin architecture details: `[packages/plugin-contract/README.md](packages/plug
 
 See `[AGENTS.md](AGENTS.md)` for codegen rules (including **never hand-editing** `database.types.ts`).
 
-Root scripts are Turborepo + Prettie
-
-```yaml
-PLUGIN_SYNC_DISPATCH_SECRET
-```
-
-r only; see `**AGENTS.md` → Monorepo scripts**. The root `**turbo.json`\*\* owns cross-package ordering: branding runs before the web plugin registry, web checks/builds depend on codegen, and mobile sync depends on the web build.
+Root scripts are Turborepo + Prettier only; see `**AGENTS.md` → Monorepo scripts**. The root `**turbo.json`\*\* owns cross-package ordering: branding runs before the web plugin registry, web checks/builds depend on codegen, and mobile sync depends on the web build.
 
 Common commands (from repo root):
 
@@ -208,7 +202,22 @@ Plugin-owned `**plugin-sync-dispatch**` / `***-dispatch**` workers process rows 
 
 3. Restart `**functions serve**` after editing `**.env**`.
 
-**Production:** set `**PLUGIN_SYNC_DISPATCH_SECRET`** in Supabase Edge Function secrets **and** as a GitHub `**production`** environment secret (same value). The deploy workflow runs `**npm run db:sync-dispatch-secret**`after`**db push**`so`**private.worker_config**` stays in sync.
+**Production (manual, one-time per secret rotation):**
+
+1. Set `**PLUGIN_SYNC_DISPATCH_SECRET**` in Supabase **Edge Function secrets** (Dashboard → Edge Functions → Secrets). Generate with `openssl rand -base64 32`.
+2. Copy the same value into `**private.worker_config**` so pg_cron can authenticate dispatch calls. In the Supabase SQL editor (or any linked `supabase db query --linked` session), run:
+
+```sql
+update private.worker_config
+set value = '<your-plugin-sync-dispatch-secret>'
+where key = 'plugin_sync_dispatch_secret';
+
+update private.worker_config
+set value = 'https://<project-ref>.supabase.co/functions/v1'
+where key = 'plugin_sync_functions_base';
+```
+
+Replace `<project-ref>` with your Supabase project ref and use the same secret as step 1. The deploy workflow does **not** run this automatically.
 
 ### Plugin OAuth + Edge config (local)
 
@@ -246,11 +255,11 @@ Link the CLI from `apps/web` (creates `apps/web/.vercel/`) if you deploy locally
 Production web deploy is orchestrated by GitHub Actions (`.github/workflows/deploy.yml`) from `**apps/web**` using the `vercel` npm scripts (`vercel pull` / `vercel build` / `vercel deploy --prebuilt`).
 Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEnabled: false`) so deployments happen only through the deploy workflow.
 
-The `[.github/workflows/deploy.yml](.github/workflows/deploy.yml)` workflow runs after `[.github/workflows/test.yml](.github/workflows/test.yml)` succeeds on a push to `main`. It runs `**npx turbo run functions:sync**` (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then `**supabase db push**`, `**npm run db:sync-dispatch-secret**` (writes `**PLUGIN_SYNC_DISPATCH_SECRET**` into `**private.worker_config**` for pg_cron), and `**supabase functions deploy --use-api**` from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
+The `[.github/workflows/deploy.yml](.github/workflows/deploy.yml)` workflow runs after `[.github/workflows/test.yml](.github/workflows/test.yml)` succeeds on a push to `main`. It runs `**npx turbo run functions:sync**` (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then `**supabase db push**` and `**supabase functions deploy --use-api**` from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output. Plugin sync dispatch credentials (`**PLUGIN_SYNC_DISPATCH_SECRET**` / `**private.worker_config**`) are configured manually — see **Plugin sync jobs** above.
 
 `supabase` deploy runs before the `vercel` and `**play-store**` jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile; Play Store is gated by `**ENABLE_PLAY_STORE_DEPLOY`\*\*).
 
-GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `**PLUGIN_SYNC_DISPATCH_SECRET**` (same value as the Supabase Edge Function secret; used by `**db:sync-dispatch-secret**`). The database password is the Supabase project **Database** password (Settings → Database).
+GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. The database password is the Supabase project **Database** password (Settings → Database). `**PLUGIN_SYNC_DISPATCH_SECRET**` is set only in Supabase (Edge Function secrets + `**private.worker_config**`), not in GitHub Actions.
 
 ### GitHub environment bootstrap (from scratch)
 
@@ -260,7 +269,6 @@ Create a GitHub Actions environment named `production` and add these secrets bef
   - `SUPABASE_ACCESS_TOKEN`
   - `SUPABASE_PROJECT_REF`
   - `SUPABASE_DB_PASSWORD`
-  - `PLUGIN_SYNC_DISPATCH_SECRET` (must match Supabase Edge Functions secret of the same name)
 - Vercel deploy:
   - `VERCEL_TOKEN`
   - `VERCEL_ORG_ID`
@@ -312,7 +320,8 @@ Production checklist:
 1. In each provider’s developer console, register the Supabase callback URL `https://<project-ref>.supabase.co/functions/v1/plugin-oauth?action=callback` where required.
 2. Vercel **Preview + Production**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
 3. `**config.toml`**: `plugin-oauth` keeps `**verify_jwt = false\*\*` (browser redirect has no JWT); other functions verify JWT in the handler if needed.
-4. Deploy: GitHub workflow runs `**functions:sync**`, `**supabase db push**`, `**supabase functions deploy --use-api**`, then Vercel prebuilt deploy.
+4. After setting Edge Function secrets, update `**private.worker_config**` for plugin sync dispatch (see **Plugin sync jobs**).
+5. Deploy: GitHub workflow runs `**functions:sync**`, `**supabase db push**`, `**supabase functions deploy --use-api**`, then Vercel prebuilt deploy.
 
 ## TODO
 

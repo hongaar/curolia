@@ -4,7 +4,7 @@
  * invoke plugin-sync-dispatch. Optionally updates plugin_sync_functions_base.
  *
  * Local: reads secret from packages/supabase/supabase/functions/.env
- * CI: set PLUGIN_SYNC_DISPATCH_SECRET (and PLUGIN_SYNC_FUNCTIONS_BASE or VITE_SUPABASE_URL)
+ * Production: configure Edge Function secrets + private.worker_config manually (see README).
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
