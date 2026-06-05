@@ -19,7 +19,7 @@ import {
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 const INSET_ZOOM = 5;
 
@@ -49,13 +49,16 @@ export function PinDetailInsetMapView({
   const mapStyleOpts = mapStyleOptions;
   const mapStylePresetRef = useRef(mapStylePreset);
   const mapStyleOptsRef = useRef(mapStyleOpts);
-  mapStylePresetRef.current = mapStylePreset;
-  mapStyleOptsRef.current = mapStyleOpts;
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const markerMountRef = useRef<MapMarkerMount | null>(null);
   const appliedMapStyleKeyRef = useRef("");
+
+  useLayoutEffect(() => {
+    mapStylePresetRef.current = mapStylePreset;
+    mapStyleOptsRef.current = mapStyleOpts;
+  }, [mapStylePreset, mapStyleOpts]);
 
   useEffect(() => {
     if (!containerRef.current) return;

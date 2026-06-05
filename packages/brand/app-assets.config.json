@@ -11,6 +11,7 @@
     "iconBackgroundColorDark": "#111111",
     "splashBackgroundColor": "#FFFFFF",
     "splashBackgroundColorDark": "#111111",
-    "logoSplashScale": 0.2
+    "logoSplashScale": 0.2,
+    "iconForegroundScale": 0.72
   }
 }
