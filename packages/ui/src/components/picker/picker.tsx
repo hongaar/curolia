@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { getEmojiLabel, loadEmojiLabels } from "../../lib/emoji-label";
 import { buttonClassName } from "../button";
 import {
   EmojiPickerContent,
@@ -113,8 +114,36 @@ export function EmojiFieldPicker({
   disabled = false,
 }: EmojiFieldPickerProps) {
   const [open, setOpen] = useState(false);
+  const [emojiLabel, setEmojiLabel] = useState<string | undefined>(() =>
+    value ? getEmojiLabel(value) : undefined,
+  );
   const searchRef = useRef<HTMLInputElement>(null);
   const displayChar = value || "📍";
+  const hintText = value ? emojiLabel : "Choose emoji";
+
+  useEffect(() => {
+    if (!value) {
+      setEmojiLabel(undefined);
+      return;
+    }
+
+    const cached = getEmojiLabel(value);
+    if (cached) {
+      setEmojiLabel(cached);
+      return;
+    }
+
+    let cancelled = false;
+    void loadEmojiLabels().then(() => {
+      if (!cancelled) {
+        setEmojiLabel(getEmojiLabel(value));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [value]);
 
   return (
     <div className={styles.root}>
@@ -140,7 +169,7 @@ export function EmojiFieldPicker({
               <span className={styles.emojiDisplay} aria-hidden>
                 {displayChar}
               </span>
-              <span className={styles.emojiHint}>Choose emoji</span>
+              <span className={styles.emojiHint}>{hintText}</span>
             </span>
             <ChevronDown className={styles.chevron} aria-hidden />
           </PopoverTrigger>
@@ -153,6 +182,7 @@ export function EmojiFieldPicker({
             <EmojiPickerRoot
               className={styles.emojiPickerRoot}
               onEmojiSelect={(emoji) => {
+                setEmojiLabel(emoji.label);
                 onChange(emoji.emoji);
                 setOpen(false);
               }}

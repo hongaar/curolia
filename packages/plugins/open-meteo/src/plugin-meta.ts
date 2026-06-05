@@ -1,5 +1,5 @@
 export const openMeteoPluginMeta = {
   typeId: "open-meteo",
-  displayName: "Open-Meteo",
+  displayName: "Weather",
   implemented: true,
 } as const;

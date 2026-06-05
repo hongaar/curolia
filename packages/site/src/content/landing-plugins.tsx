@@ -61,7 +61,7 @@ export const landingPlugins: LandingPlugin[] = [
   },
   {
     id: "open-meteo",
-    name: "Open-Meteo",
+    name: "Weather",
     description: "Current and historical weather on pins",
     status: "available",
     icon: () => <OpenMeteoIcon size={6} />,
