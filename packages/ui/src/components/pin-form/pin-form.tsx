@@ -2,6 +2,7 @@ import { GripVertical, X } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
 
+import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import {
   FormErrorText,
@@ -40,16 +41,33 @@ export function PinFormPanelCard({
   children,
   footer,
   footerBetween = false,
+  onClose,
 }: {
   title: React.ReactNode;
   children: React.ReactNode;
   footer: React.ReactNode;
   footerBetween?: boolean;
+  /** Header close control for map-anchored panels (dismiss without a primary action). */
+  onClose?: () => void;
 }) {
   return (
     <div className={styles.panelCard}>
-      <PanelDialogHeader>
+      <PanelDialogHeader
+        className={onClose ? styles.panelCardHeaderRow : undefined}
+      >
         <PanelCardTitle>{title}</PanelCardTitle>
+        {onClose ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className={styles.panelCardClose}
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <X className={styles.panelCardCloseIcon} aria-hidden />
+          </Button>
+        ) : null}
       </PanelDialogHeader>
       <PanelDialogBody>{children}</PanelDialogBody>
       <PanelDialogFooter between={footerBetween}>{footer}</PanelDialogFooter>

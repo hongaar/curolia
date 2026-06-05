@@ -866,6 +866,7 @@ export function MapPage() {
           setQuickAddAnchorScreen(null);
           setFullEditPin(t);
         }}
+        onOpen={(t) => onSelectPin(t.id)}
       />
       {canEdit && fullEditPin ? (
         <Suspense fallback={null}>

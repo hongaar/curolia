@@ -12,6 +12,27 @@
   backdrop-filter: blur(24px);
 }
 
+.panelCardHeaderRow {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.panelCardHeaderRow > :first-child {
+  min-width: 0;
+  flex: 1;
+}
+
+.panelCardClose {
+  flex-shrink: 0;
+}
+
+.panelCardCloseIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .panelCardFieldGroup {
   display: flex;
   flex-direction: column;

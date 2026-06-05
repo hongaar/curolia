@@ -35,6 +35,7 @@ type PinMapQuickAddDialogProps = {
   pin: Pin | null;
   anchorScreen?: { x: number; y: number } | null;
   onEdit: (pin: Pin) => void;
+  onOpen: (pin: Pin) => void;
 };
 
 export function PinMapQuickAddDialog({
@@ -44,6 +45,7 @@ export function PinMapQuickAddDialog({
   pin,
   anchorScreen = null,
   onEdit,
+  onOpen,
 }: PinMapQuickAddDialogProps) {
   const isNarrow = useMaxSm();
   const qc = useQueryClient();
@@ -185,6 +187,14 @@ export function PinMapQuickAddDialog({
 
   if (!open || !pin) return null;
 
+  const closePopover = () => {
+    void flushTitleIfNeeded().then(() => onOpenChange(false));
+  };
+
+  const openPin = () => {
+    void flushTitleIfNeeded().then(() => onOpen(pin));
+  };
+
   const footer = (
     <PinFormFooterSplit
       start={
@@ -209,14 +219,8 @@ export function PinMapQuickAddDialog({
           >
             Edit
           </Button>
-          <Button
-            type="button"
-            disabled={busy}
-            onClick={() => {
-              void flushTitleIfNeeded().then(() => onOpenChange(false));
-            }}
-          >
-            Done
+          <Button type="button" disabled={busy} onClick={openPin}>
+            Open
           </Button>
         </>
       }
@@ -249,7 +253,12 @@ export function PinMapQuickAddDialog({
   if (useFloatingPanel && anchorScreen) {
     return (
       <PinFormFloatingHost hostRef={floatingRef}>
-        <PinFormPanelCard title="New pin" footerBetween footer={footer}>
+        <PinFormPanelCard
+          title="New pin"
+          footerBetween
+          footer={footer}
+          onClose={closePopover}
+        >
           {fields}
         </PinFormPanelCard>
       </PinFormFloatingHost>
