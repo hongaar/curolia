@@ -1,1 +1,6 @@
-npm run validate
+# Pre-push validation is disabled by default (parallel agents on one branch).
+# Re-enable for a single push: CUROLIA_PRE_PUSH_VALIDATE=1 git push
+# Or flip the default below when you want it on for everyone again.
+if [ "${CUROLIA_PRE_PUSH_VALIDATE:-}" = "1" ]; then
+  npm run validate
+fi
