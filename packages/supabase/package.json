@@ -10,6 +10,7 @@
     "db:status": "supabase status",
     "db:reset": "supabase db reset",
     "db:migrate": "supabase migration up",
+    "db:sync-dispatch-secret": "node scripts/sync-dispatch-secret.mjs",
     "db:types": "supabase gen types typescript --local > ../../apps/web/src/lib/database.types.ts",
     "functions:sync": "node scripts/sync-plugins.mjs",
     "functions:start": "supabase functions serve",

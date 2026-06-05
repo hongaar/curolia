@@ -47,6 +47,24 @@ function runPluginOauthRegistryExtract() {
   }
 }
 
+function runPluginSyncRegistryExtract() {
+  const extractor = path.join(__dirname, "extract-plugin-sync-registry.ts");
+  const tsxBin = resolveTsxBin(repoRoot);
+  const useLocalTsx = tsxBin !== null;
+  const cmd = useLocalTsx ? tsxBin : "npx";
+  const args = useLocalTsx ? [extractor] : ["tsx", extractor];
+  const result = spawnSync(cmd, args, {
+    cwd: repoRoot,
+    stdio: "inherit",
+    shell: !useLocalTsx,
+    env: process.env,
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
 function rmrf(dir) {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
 }
@@ -67,6 +85,7 @@ if (!fs.existsSync(pluginsRoot)) {
 }
 
 runPluginOauthRegistryExtract();
+runPluginSyncRegistryExtract();
 
 let count = 0;
 for (const pkg of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {

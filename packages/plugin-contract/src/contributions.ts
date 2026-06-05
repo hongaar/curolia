@@ -59,10 +59,27 @@ export type PluginOAuthDeclaration = {
   scopes: readonly string[];
 };
 
+/**
+ * Declares backend sync jobs processed by a plugin-owned `*-dispatch` Edge function.
+ * Subscriptions are stored per map in `map_plugins.config.syncEvents` (not in SQL).
+ */
+export type SyncJobsDeclaration = {
+  /** Events this plugin handles (must match keys written to `map_plugins.config.syncEvents`). */
+  events: readonly string[];
+  /** Edge function slug for the dispatch worker, e.g. `osm-poi-dispatch`. */
+  dispatchFunctionSlug: string;
+  /**
+   * Env var for the dispatch bearer secret (convention:
+   * `PLUGIN_SYNC_DISPATCH_SECRET`; see `@curolia/plugin-contract` sync-jobs).
+   */
+  dispatchSecretEnvVar?: string;
+};
+
 export type PluginContributions = {
   globalSettings?: GlobalSettingsDeclaration;
   mapSettings?: MapSettingsDeclaration;
   appHooks?: AppHookDeclaration[];
   edgeFunctions?: EdgeFunctionDeclaration[];
   oauth?: PluginOAuthDeclaration[];
+  syncJobs?: SyncJobsDeclaration;
 };

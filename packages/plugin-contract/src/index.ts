@@ -13,6 +13,7 @@ export type {
   MapSettingsDeclaration,
   PluginContributions,
   PluginOAuthDeclaration,
+  SyncJobsDeclaration,
 } from "./contributions";
 export type {
   MapSettingsPanelProps,
@@ -89,6 +90,16 @@ export {
   type PinMetadataSubtitle,
   type PinMetadataSubtitlePart,
 } from "./pin-metadata-subtitle";
+export {
+  isPluginSyncJobActive,
+  PLUGIN_SYNC_DISPATCH_SECRET_ENV,
+  PLUGIN_SYNC_EVENT_PIN_COORDINATES_CHANGED,
+  pluginSyncEventsFromConfig,
+  withPluginSyncEvents,
+  type PluginSyncEvent,
+  type PluginSyncJobRow,
+  type PluginSyncJobStatus,
+} from "./sync-jobs";
 
 /** Pin photo suggestion payload (plugins return from Edge or client bridges). */
 export type PinPhotoSuggestionContext = {

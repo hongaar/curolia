@@ -4,18 +4,24 @@ Place memory app: **pins** (visits and spots) grouped in **maps** (collections y
 
 ## Monorepo
 
-- `apps/web` — SPA package **`@curolia/web`** (`turbo --filter=@curolia/web`)
-- `apps/mobile` — Capacitor host **`@curolia/mobile`** (`android/`, `ios/` live here)
-- `packages/supabase/supabase/` — Supabase project (migrations, `config.toml`, `functions/`) via **`@curolia/supabase`**
-- `packages/brand/` — app logo + theme config (**`@curolia/brand`**) and generators for web/native branding assets
+- `apps/web` — SPA package `**@curolia/web`\*\* (`turbo --filter=@curolia/web`)
+- `apps/mobile` — Capacitor host `**@curolia/mobile**` (`android/`, `ios/` live here)
+- `packages/supabase/supabase/` — Supabase project (migrations, `config.toml`, `functions/`) via `**@curolia/supabase**`
+- `packages/brand/` — app logo + theme config (`**@curolia/brand**`) and generators for web/native branding assets
 - `packages/plugin-contract` — shared plugin manifest / contribution types (`@curolia/plugin-contract`)
-- `packages/plugins/*` — optional plugin packages (e.g. `@curolia/plugin-ical`); Edge sources sync into `packages/supabase/supabase/functions/` via `npx turbo run functions:sync`. Structured plugin payloads attached to pins (and future entities) use **`public.plugin_entity_data`** (see migrations). Plugins that need OAuth or external dashboards document setup in **their own README** (e.g. [`packages/plugins/google-photos/README.md`](packages/plugins/google-photos/README.md), [`packages/plugins/spotify/README.md`](packages/plugins/spotify/README.md), [`packages/plugins/lastfm/README.md`](packages/plugins/lastfm/README.md)).
+- `packages/plugins/*` — optional plugin packages (e.g. `@curolia/plugin-ical`); Edge sources sync into `packages/supabase/supabase/functions/` via `npx turbo run functions:sync`. Structured plugin payloads attached to pins (and future entities) use `**public.plugin_entity_data**` (see migrations). Plugins that need OAuth or external dashboards document setup in **their own README** (e.g. `[packages/plugins/google-photos/README.md](packages/plugins/google-photos/README.md)`, `[packages/plugins/spotify/README.md](packages/plugins/spotify/README.md)`, `[packages/plugins/lastfm/README.md](packages/plugins/lastfm/README.md)`).
 
-Plugin architecture details: [`packages/plugin-contract/README.md`](packages/plugin-contract/README.md).
+Plugin architecture details: `[packages/plugin-contract/README.md](packages/plugin-contract/README.md)`.
 
-See [`AGENTS.md`](AGENTS.md) for codegen rules (including **never hand-editing** `database.types.ts`).
+See `[AGENTS.md](AGENTS.md)` for codegen rules (including **never hand-editing** `database.types.ts`).
 
-Root scripts are Turborepo + Prettier only; see **`AGENTS.md` → Monorepo scripts**. The root **`turbo.json`** owns cross-package ordering: branding runs before the web plugin registry, web checks/builds depend on codegen, and mobile sync depends on the web build.
+Root scripts are Turborepo + Prettie
+
+```yaml
+PLUGIN_SYNC_DISPATCH_SECRET
+```
+
+r only; see `**AGENTS.md` → Monorepo scripts**. The root `**turbo.json`\*\* owns cross-package ordering: branding runs before the web plugin registry, web checks/builds depend on codegen, and mobile sync depends on the web build.
 
 Common commands (from repo root):
 
@@ -29,12 +35,12 @@ npm run open:ios -w @curolia/mobile
 npm run open:android -w @curolia/mobile
 ```
 
-The production **Vercel** job runs **`npx turbo run codegen`** after install, then **`vercel build`** with **`apps/web/vercel.json`** **`buildCommand`**: **`npm run build`** (the **`@curolia/web`** Vite/TSC pipeline only).
+The production **Vercel** job runs `**npx turbo run codegen`** after install, then `**vercel build**`with`**apps/web/vercel.json**` `**buildCommand**`: `**npm run build**`(the`**@curolia/web\*\*` Vite/TSC pipeline only).
 
 ## Hybrid Mobile (PWA + Capacitor)
 
 - Web app ships as a PWA (installable + offline static shell caching).
-- Native shells live under **`apps/mobile/ios`** and **`apps/mobile/android`** and reuse **`apps/web/dist`** (`capacitor.config.json` is next to those folders).
+- Native shells live under `**apps/mobile/ios**` and `**apps/mobile/android**` and reuse `**apps/web/dist**` (`capacitor.config.json` is next to those folders).
 - From the repo root, let Turbo prepare mobile prerequisites:
   - `npx turbo run sync --filter=@curolia/mobile` — builds web with `apps/web/.env`, regenerates native icons/splash, and runs `cap sync`
   - `npm run open:ios -w @curolia/mobile`
@@ -63,32 +69,32 @@ Native builds are integrated into `.github/workflows/test.yml`:
 - `android` job (Linux): `gradlew` under `apps/mobile/android`
 - `ios` job (`macos-26`, Xcode 26 preinstalled): simulator `xcodebuild` under `apps/mobile/ios/App` (no signing)
 
-Both jobs depend on the main `ci` job, then run **`npx turbo run sync --filter=@curolia/mobile`** so Turbo prepares native assets and builds the web output before Capacitor sync.
+Both jobs depend on the main `ci` job, then run `**npx turbo run sync --filter=@curolia/mobile**` so Turbo prepares native assets and builds the web output before Capacitor sync.
 
-**GitHub Actions APK/IPA:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are injected per job (see workflow `ci`, `android`, `ios`). They must point at your **hosted** Supabase project (not `127.0.0.1`). Those jobs use **`environment: production`** so **GitHub environment secrets** work; a workflow-wide `env` block **cannot** read environment-only secrets. If the `production` environment limits which branches may deploy, pull-request runs might not see those secrets — use repository secrets for PR CI, relax the rule, or add a separate environment for builds.
+**GitHub Actions APK/IPA:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are injected per job (see workflow `ci`, `android`, `ios`). They must point at your **hosted** Supabase project (not `127.0.0.1`). Those jobs use `**environment: production`** so **GitHub environment secrets** work; a workflow-wide `env` block **cannot\*\* read environment-only secrets. If the `production` environment limits which branches may deploy, pull-request runs might not see those secrets — use repository secrets for PR CI, relax the rule, or add a separate environment for builds.
 
 ### Google Play (automated beta / internal testing)
 
-After [`.github/workflows/test.yml`](.github/workflows/test.yml) passes on a push to `main`, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) can build a signed **Android App Bundle** and publish it to Google Play when repository variable **`ENABLE_PLAY_STORE_DEPLOY`** is **`true`** (unset or any other value skips the job). By default the track is **`internal`** (Play Console → **Testing → Internal testing**). Set **`PLAY_STORE_TRACK`** to `alpha`, `beta`, or `production` to change the target.
+After `[.github/workflows/test.yml](.github/workflows/test.yml)` passes on a push to `main`, `[.github/workflows/deploy.yml](.github/workflows/deploy.yml)` can build a signed **Android App Bundle** and publish it to Google Play when repository variable `**ENABLE_PLAY_STORE_DEPLOY`** is `**true**`(unset or any other value skips the job). By default the track is`**internal**` (Play Console → **Testing → Internal testing**). Set `**PLAY_STORE_TRACK`** to `alpha`, `beta`, or `production` to change the target.
 
-The job runs after Supabase deploy (alongside Vercel). Each deploy uses **`versionCode = github.run_number`** (plus optional **`ANDROID_VERSION_CODE_OFFSET`** if you already shipped higher version codes manually). **`versionName`** is `1.0.<run_number>`.
+The job runs after Supabase deploy (alongside Vercel). Each deploy uses `**versionCode = github.run_number**` (plus optional `**ANDROID_VERSION_CODE_OFFSET**` if you already shipped higher version codes manually). `**versionName**` is `1.0.<run_number>`.
 
 #### One-time Play Console setup
 
-1. Create the app in [Google Play Console](https://play.google.com/console) with package name **`com.curolia.app`** and complete the initial store listing / content rating / data safety requirements so the app can accept uploads.
+1. Create the app in [Google Play Console](https://play.google.com/console) with package name `**com.curolia.app**` and complete the initial store listing / content rating / data safety requirements so the app can accept uploads.
 2. In [Google Cloud Console](https://console.cloud.google.com/), enable **Google Play Android Developer API** for the project linked to Play Console.
 3. Create a **service account**, download its JSON key, and in Play Console → **Users and permissions** → **Invite new users**, grant the service account **Release to testing tracks** (and **Release apps to production** only if you later point CI at production).
 4. Generate an upload keystore (keep it safe — you cannot replace it after the first Play upload):
 
-   ```bash
-   keytool -genkeypair -v \
-     -keystore curolia-release.keystore \
-     -alias curolia \
-     -keyalg RSA -keysize 2048 -validity 10000
-   base64 -i curolia-release.keystore | pbcopy   # paste into GitHub secret
-   ```
+```bash
+ keytool -genkeypair -v \
+   -keystore curolia-release.keystore \
+   -alias curolia \
+   -keyalg RSA -keysize 2048 -validity 10000
+ base64 -i curolia-release.keystore | pbcopy   # paste into GitHub secret
+```
 
-5. Optional: for FCM push in release builds, base64-encode your Firebase **`google-services.json`** (`base64 -i google-services.json | pbcopy`).
+5. Optional: for FCM push in release builds, base64-encode your Firebase `**google-services.json**` (`base64 -i google-services.json | pbcopy`).
 
 #### GitHub `production` environment secrets
 
@@ -128,15 +134,15 @@ npm run db:status -w @curolia/supabase
 
 Point the web app at the local API (defaults are stable):
 
-1. Create `apps/web/.env` (see [`apps/web/.env.example`](apps/web/.env.example)).
+1. Create `apps/web/.env` (see `[apps/web/.env.example](apps/web/.env.example)`).
 2. Set `VITE_SUPABASE_URL` to the **API URL** from `npm run db:status -w @curolia/supabase` (usually `http://127.0.0.1:54321`).
 3. Set `VITE_SUPABASE_PUBLISHABLE_KEY` to the **anon key** from that same command.
 
-Then run **`npm run dev`** from the **repo root** (Turbo runs **`@curolia/supabase#stack`** once: `supabase start` + **`functions:sync`**, then **`supabase functions serve`**, **Vite**, and **Storybook** (port 6006) in parallel after that). Open the web app URL from Vite's output. [Studio](http://127.0.0.1:54323) lists tables and auth users. [Mailpit](http://127.0.0.1:54324) catches auth emails if you turn confirmations back on.
+Then run `**npm run dev`** from the **repo root** (Turbo runs `**@curolia/supabase#stack`** once: `supabase start`+`**functions:sync**`, then `**supabase functions serve**`, **Vite**, and **Storybook** (port 6006) in parallel after that). Open the web app URL from Vite's output. [Studio](http://127.0.0.1:54323) lists tables and auth users. [Mailpit](http://127.0.0.1:54324) catches auth emails if you turn confirmations back on.
 
-Stopping: Ctrl+C stops the Turbo dev tasks; **`npm run db:stop -w @curolia/supabase`** stops Docker when you're done.
+Stopping: Ctrl+C stops the Turbo dev tasks; `**npm run db:stop -w @curolia/supabase`\*\* stops Docker when you're done.
 
-**Edge Functions:** **`npm run dev`** pulls plugin handlers in via **`stack`**. After changing files under **`packages/plugins/*/supabase/functions/`**, restart **`npm run dev`** (or run **`npx turbo run functions:sync`** and restart **`functions serve`** only).
+**Edge Functions:** `**npm run dev`** pulls plugin handlers in via `**stack**`. After changing files under `**packages/plugins/\*/supabase/functions/**`, restart `**npm run dev**`(or run`**npx turbo run functions:sync**`and restart`**functions serve\*\*` only).
 
 ### Push notifications (first mobile feature)
 
@@ -150,23 +156,21 @@ npx turbo run functions:sync
 npm run functions:start -w @curolia/supabase
 ```
 
-2. Set local function secrets for the dispatcher. The Supabase CLI has **no** `secrets set --local`; use an env file next to the functions instead:
+1. Set local function secrets for the dispatcher. The Supabase CLI has **no** `secrets set --local`; use an env file next to the functions instead:
 
-   ```bash
-   cp packages/supabase/supabase/functions/.env.example packages/supabase/supabase/functions/.env
-   # Edit `.env`: set PUSH_DISPATCH_SECRET and FCM_SERVER_KEY
-   ```
+```bash
+ cp packages/supabase/supabase/functions/.env.example packages/supabase/supabase/functions/.env
+ # Edit `.env`: set PUSH_DISPATCH_SECRET and FCM_SERVER_KEY
+```
 
-   Restart **`npm run functions:start -w @curolia/supabase`** (or your dev stack) after changing `packages/supabase/supabase/functions/.env`.
-
-3. Apply migrations and regenerate DB types:
+Restart `**npm run functions:start -w @curolia/supabase**` (or your dev stack) after changing `packages/supabase/supabase/functions/.env`. 2. Apply migrations and regenerate DB types:
 
 ```bash
 npm run db:migrate -w @curolia/supabase
 npm run db:types -w @curolia/supabase
 ```
 
-4. Build web, sync native shells, and run on device/emulator:
+1. Build web, sync native shells, and run on device/emulator:
 
 ```bash
 npx turbo run sync --filter=@curolia/mobile
@@ -174,7 +178,7 @@ npm run open:android -w @curolia/mobile
 # or npm run open:ios -w @curolia/mobile on macOS
 ```
 
-5. Trigger dispatch (example):
+1. Trigger dispatch (example):
 
 ```bash
 curl -X POST http://127.0.0.1:54321/functions/v1/push-dispatch \
@@ -189,9 +193,26 @@ Notes:
 - Pending deliveries are queued in `public.push_notification_outbox`.
 - The web/native app registers tokens only on native platforms and only when `notification_push_enabled` is true.
 
+### Plugin sync jobs (background POI sync, etc.)
+
+Plugin-owned `**plugin-sync-dispatch**` / `***-dispatch**` workers process rows in `**public.plugin_sync_jobs**`. `**pg_cron**` invokes dispatch using `**private.worker_config**` (not the browser).
+
+**Local:**
+
+1. Add `**PLUGIN_SYNC_DISPATCH_SECRET`** to `**packages/supabase/supabase/functions/.env**`(generate with`openssl rand -base64 32`; same pattern as `**PUSH_DISPATCH_SECRET\*\*`).
+2. After migrations, sync the secret into the local DB (so pg_cron can call dispatch):
+
+```bash
+ npm run db:sync-dispatch-secret -w @curolia/supabase
+```
+
+3. Restart `**functions serve**` after editing `**.env**`.
+
+**Production:** set `**PLUGIN_SYNC_DISPATCH_SECRET`** in Supabase Edge Function secrets **and** as a GitHub `**production`** environment secret (same value). The deploy workflow runs `**npm run db:sync-dispatch-secret**`after`**db push**`so`**private.worker_config**` stays in sync.
+
 ### Plugin OAuth + Edge config (local)
 
-Plugin OAuth is handled by the **`plugin-oauth`** Edge Function; encrypted tokens live in **`user_plugin_oauth_tokens`**. Provider client IDs/secrets and dashboard steps are **per plugin** — see:
+Plugin OAuth is handled by the `**plugin-oauth**` Edge Function; encrypted tokens live in `**user_plugin_oauth_tokens**`. Provider client IDs/secrets and dashboard steps are **per plugin** — see:
 
 - [Google Photos](packages/plugins/google-photos/README.md)
 - [Spotify](packages/plugins/spotify/README.md)
@@ -199,13 +220,10 @@ Plugin OAuth is handled by the **`plugin-oauth`** Edge Function; encrypted token
 
 Common steps:
 
-1. Run Supabase and functions (see above). After changing files under **`packages/plugins/*/supabase/functions/`**, run **`npx turbo run functions:sync`** and restart **`functions serve`** if needed.
-
-2. **`apps/web/.env`**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (see [`apps/web/.env.example`](apps/web/.env.example)).
-
-3. **`packages/supabase/supabase/functions/.env`**: copy from [`.env.example`](packages/supabase/supabase/functions/.env.example). Always set **`PLUGIN_OAUTH_ENCRYPTION_KEY`** (generate with `openssl rand -base64 32`) and **`PUBLIC_APP_ORIGIN`** (e.g. `http://127.0.0.1:5173`). Add provider vars for the plugins you use (**`GOOGLE_*`**, **`SPOTIFY_*`**, **`LASTFM_API_KEY`**). Restart **`npm run functions:start -w @curolia/supabase`** after edits.
-
-4. **`redirect_uri` / Kong:** locally, Edge may see `SUPABASE_URL` as **`http://kong:8000`**. **`plugin-oauth`** maps that to **`http://127.0.0.1:54321`** for the OAuth callback when the hostname is `kong`. Override with **`SUPABASE_PUBLIC_PORT`** or **`PLUGIN_OAUTH_CALLBACK_URL`** if needed.
+1. Run Supabase and functions (see above). After changing files under `**packages/plugins/*/supabase/functions/`**, run `**npx turbo run functions:sync**`and restart`**functions serve\*\*` if needed.
+2. `**apps/web/.env**`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (see `[apps/web/.env.example](apps/web/.env.example)`).
+3. `**packages/supabase/supabase/functions/.env**`: copy from `[.env.example](packages/supabase/supabase/functions/.env.example)`. Always set `**PLUGIN_OAUTH_ENCRYPTION_KEY**` (generate with `openssl rand -base64 32`) and `**PUBLIC_APP_ORIGIN**` (e.g. `http://127.0.0.1:5173`). Add provider vars for the plugins you use (`**GOOGLE_***`, `**SPOTIFY_***`, `**LASTFM_API_KEY**`). For push dispatch set `**PUSH_DISPATCH_SECRET**` / `**FCM_SERVER_KEY**`; for plugin sync jobs set `**PLUGIN_SYNC_DISPATCH_SECRET**` (see **Plugin sync jobs** above). Restart `**npm run functions:start -w @curolia/supabase`\*\* after edits.
+4. `**redirect_uri` / Kong:** locally, Edge may see `SUPABASE_URL` as `**http://kong:8000`**. `**plugin-oauth**`maps that to`**http://127.0.0.1:54321**`for the OAuth callback when the hostname is`kong`. Override with `**SUPABASE_PUBLIC_PORT**`or`**PLUGIN_OAUTH_CALLBACK_URL**` if needed.
 
 On first signup, a **profile**, personal **map**, and **owner** membership are created automatically (via the migration trigger).
 
@@ -215,9 +233,9 @@ Use `supabase link` against your cloud project, then `supabase db push` for migr
 
 ## Deploy (Vercel)
 
-Configure the Vercel project **Root Directory** to **`apps/web`** so it picks up [`apps/web/vercel.json`](apps/web/vercel.json).
+Configure the Vercel project **Root Directory** to `**apps/web`\*\* so it picks up `[apps/web/vercel.json](apps/web/vercel.json)`.
 
-That file installs from the repo root, runs **`npm run build`** inside **`apps/web`** (**`buildCommand`**). **`codegen`** is executed through Turbo in CI **before** `vercel build` so generated assets exist. **`outputDirectory`** is **`dist`** relative to **`apps/web`**.
+That file installs from the repo root, runs `**npm run build**` inside `**apps/web**` (`**buildCommand**`). `**codegen**` is executed through Turbo in CI **before** `vercel build` so generated assets exist. `**outputDirectory`** is `**dist**`relative to`**apps/web\*\*`.
 
 Set the same Supabase env vars for Production (and Preview): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
 
@@ -225,14 +243,14 @@ Link the CLI from `apps/web` (creates `apps/web/.vercel/`) if you deploy locally
 
 ### Production: Supabase (GitHub Actions) + web (Vercel Git)
 
-Production web deploy is orchestrated by GitHub Actions (`.github/workflows/deploy.yml`) from **`apps/web`** using the `vercel` npm scripts (`vercel pull` / `vercel build` / `vercel deploy --prebuilt`).
+Production web deploy is orchestrated by GitHub Actions (`.github/workflows/deploy.yml`) from `**apps/web**` using the `vercel` npm scripts (`vercel pull` / `vercel build` / `vercel deploy --prebuilt`).
 Vercel Git auto-deploy is disabled (`apps/web/vercel.json` → `git.deploymentEnabled: false`) so deployments happen only through the deploy workflow.
 
-The [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow runs after [`.github/workflows/test.yml`](.github/workflows/test.yml) succeeds on a push to `main`. It runs **`npx turbo run functions:sync`** (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then **`supabase db push`** and **`supabase functions deploy --use-api`** from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
+The `[.github/workflows/deploy.yml](.github/workflows/deploy.yml)` workflow runs after `[.github/workflows/test.yml](.github/workflows/test.yml)` succeeds on a push to `main`. It runs `**npx turbo run functions:sync**` (copies plugin packages’ function sources into `packages/supabase/supabase/functions/`), then `**supabase db push**`, `**npm run db:sync-dispatch-secret**` (writes `**PLUGIN_SYNC_DISPATCH_SECRET**` into `**private.worker_config**` for pg_cron), and `**supabase functions deploy --use-api**` from `packages/supabase`. This keeps deployed Edge code aligned with `packages/plugins/*`, not only last-run sync output.
 
-`supabase` deploy runs before the `vercel` and **`play-store`** jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile; Play Store is gated by **`ENABLE_PLAY_STORE_DEPLOY`**).
+`supabase` deploy runs before the `vercel` and `**play-store**` jobs so database/functions are updated before the production web deployment and Google Play upload (see **Google Play** under Hybrid Mobile; Play Store is gated by `**ENABLE_PLAY_STORE_DEPLOY`\*\*).
 
-GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. The database password is the Supabase project **Database** password (Settings → Database).
+GitHub [secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) for the `production` environment (or repository): `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `**PLUGIN_SYNC_DISPATCH_SECRET**` (same value as the Supabase Edge Function secret; used by `**db:sync-dispatch-secret**`). The database password is the Supabase project **Database** password (Settings → Database).
 
 ### GitHub environment bootstrap (from scratch)
 
@@ -242,6 +260,7 @@ Create a GitHub Actions environment named `production` and add these secrets bef
   - `SUPABASE_ACCESS_TOKEN`
   - `SUPABASE_PROJECT_REF`
   - `SUPABASE_DB_PASSWORD`
+  - `PLUGIN_SYNC_DISPATCH_SECRET` (must match Supabase Edge Functions secret of the same name)
 - Vercel deploy:
   - `VERCEL_TOKEN`
   - `VERCEL_ORG_ID`
@@ -271,13 +290,14 @@ When env vars are already configured in Vercel UI, copy these frontend vars manu
 
 ### Plugin OAuth + Edge config (production)
 
-Put **OAuth and plugin secrets in the Supabase project** (Dashboard → Edge Functions secrets or `supabase secrets set`), not in Vercel. Browser/build vars stay **`VITE_SUPABASE_*`** only.
+Put **OAuth and plugin secrets in the Supabase project** (Dashboard → Edge Functions secrets or `supabase secrets set`), not in Vercel. Browser/build vars stay `**VITE_SUPABASE_*`\*\* only.
 
-Generate **`PLUGIN_OAUTH_ENCRYPTION_KEY`** with `openssl rand -base64 32`. Include **`PUBLIC_APP_ORIGIN`** (your deployed web origin) plus whichever providers you enable, for example:
+Generate `**PLUGIN_OAUTH_ENCRYPTION_KEY**` with `openssl rand -base64 32`. Include `**PUBLIC_APP_ORIGIN**` (your deployed web origin) plus whichever providers you enable, for example:
 
 ```bash
 cd packages/supabase && npx supabase secrets set \
   PLUGIN_OAUTH_ENCRYPTION_KEY=<base64 32-byte key> \
+  PLUGIN_SYNC_DISPATCH_SECRET=<base64 32-byte key> \
   PUBLIC_APP_ORIGIN=https://<your-vercel-domain> \
   GOOGLE_CLIENT_ID=... \
   GOOGLE_CLIENT_SECRET=... \
@@ -285,20 +305,20 @@ cd packages/supabase && npx supabase secrets set \
   SPOTIFY_CLIENT_SECRET=...  # required for spotify Edge (track/playlist metadata)
 ```
 
-Provider-specific redirect URIs and dashboards: [Google Photos](packages/plugins/google-photos/README.md), [Spotify](packages/plugins/spotify/README.md), [Last.fm](packages/plugins/lastfm/README.md). The **`plugin-oauth`** callback path is always **`/functions/v1/plugin-oauth?action=callback`** on your Supabase API URL.
+Provider-specific redirect URIs and dashboards: [Google Photos](packages/plugins/google-photos/README.md), [Spotify](packages/plugins/spotify/README.md), [Last.fm](packages/plugins/lastfm/README.md). The `**plugin-oauth**` callback path is always `**/functions/v1/plugin-oauth?action=callback**` on your Supabase API URL.
 
 Production checklist:
 
 1. In each provider’s developer console, register the Supabase callback URL `https://<project-ref>.supabase.co/functions/v1/plugin-oauth?action=callback` where required.
 2. Vercel **Preview + Production**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. **`config.toml`**: `plugin-oauth` keeps **`verify_jwt = false`** (browser redirect has no JWT); other functions verify JWT in the handler if needed.
-4. Deploy: GitHub workflow runs **`functions:sync`**, **`supabase db push`**, **`supabase functions deploy --use-api`**, then Vercel prebuilt deploy.
+3. `**config.toml`**: `plugin-oauth` keeps `**verify_jwt = false\*\*` (browser redirect has no JWT); other functions verify JWT in the handler if needed.
+4. Deploy: GitHub workflow runs `**functions:sync**`, `**supabase db push**`, `**supabase functions deploy --use-api**`, then Vercel prebuilt deploy.
 
 ## TODO
 
 ### Dead code / unused exports cleanup
 
-A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root) flagged likely leftovers from refactors. Nothing is wired into CI yet — add a root **`knip.json`** (workspace entry points + ignore patterns) before treating output as authoritative.
+A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root) flagged likely leftovers from refactors. Nothing is wired into CI yet — add a root `**knip.json`\*\* (workspace entry points + ignore patterns) before treating output as authoritative.
 
 **Likely safe to remove (verify first):**
 

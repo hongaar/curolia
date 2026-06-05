@@ -1,7 +1,9 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { OsmPoiIcon } from "./icon";
 import { OsmPoiMapSettingsPanel } from "./map-settings-panel";
+import { OsmPoiPinFormSection } from "./pin-form-section";
 import { osmPoiPluginMeta } from "./plugin-meta";
+import { osmPoiSyncRegistry } from "./sync-registry";
 
 export const osmPoiPluginManifest: PluginPackageManifest = {
   id: osmPoiPluginMeta.typeId,
@@ -11,6 +13,7 @@ export const osmPoiPluginManifest: PluginPackageManifest = {
   icon: OsmPoiIcon,
   implemented: osmPoiPluginMeta.implemented,
   MapSettingsPanel: OsmPoiMapSettingsPanel,
+  PinFormSection: OsmPoiPinFormSection,
   contributions: {
     mapSettings: {
       panel: "inline",
@@ -23,6 +26,16 @@ export const osmPoiPluginManifest: PluginPackageManifest = {
         description:
           "Query the Overpass API for the nearest OSM feature at pin coordinates.",
       },
+      {
+        slug: osmPoiSyncRegistry.dispatchFunctionSlug,
+        verifyJwt: false,
+        description: "Process pending OSM POI sync jobs from plugin_sync_jobs.",
+      },
     ],
+    syncJobs: {
+      events: [...osmPoiSyncRegistry.events],
+      dispatchFunctionSlug: osmPoiSyncRegistry.dispatchFunctionSlug,
+      dispatchSecretEnvVar: osmPoiSyncRegistry.dispatchSecretEnvVar,
+    },
   },
 };

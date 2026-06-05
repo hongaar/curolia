@@ -15,3 +15,15 @@ export function osmPoiSyncQueryKey(
 export function pinMetadataQueryKey(pinId: string): readonly string[] {
   return ["pin_metadata", pinId] as const;
 }
+
+export function osmPoiNearbyCandidatesQueryKey(
+  pinId: string,
+  lat: number,
+  lng: number,
+): readonly (string | number)[] {
+  return ["osm-poi", "nearby_candidates", pinId, lat, lng] as const;
+}
+
+export function osmPoiSyncJobQueryKey(pinId: string): readonly string[] {
+  return ["osm-poi", "sync_job", pinId] as const;
+}

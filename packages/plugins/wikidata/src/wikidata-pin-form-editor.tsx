@@ -153,21 +153,21 @@ export function WikidataPinFormEditor({
         ? clearMutation.error.message
         : null;
 
-  const showSpinner =
-    rowQuery.isPending ||
-    setMutation.isPending ||
-    clearMutation.isPending ||
-    (showPicker && !autoSyncSettled && syncQuery.isFetching) ||
-    (showPicker && autoSyncSettled && candidatesQuery.isFetching);
+  const showPickerSpinner =
+    showPicker &&
+    ((rowQuery.isPending && !rowQuery.data) ||
+      syncQuery.isPending ||
+      (autoSyncSettled && candidatesQuery.isPending) ||
+      setMutation.isPending);
 
   return (
     <>
-      {showSpinner ? <PluginPinSpinner /> : null}
       {syncErr ? <PluginPinError>{syncErr}</PluginPinError> : null}
       {actionErr ? <PluginPinError>{actionErr}</PluginPinError> : null}
 
       {payload ? (
         <>
+          {clearMutation.isPending ? <PluginPinSpinner /> : null}
           <PluginPinList>
             <PluginPinItemRow>
               <PluginPinItemMain>
@@ -197,8 +197,7 @@ export function WikidataPinFormEditor({
             </PluginPinItemRow>
           </PluginPinList>
           <PluginPinMutedXs>
-            One landmark per pin. Remove to pick another from nearby Wikipedia
-            articles.
+            Remove to pick another from nearby Wikipedia articles.
           </PluginPinMutedXs>
         </>
       ) : (
@@ -206,6 +205,7 @@ export function WikidataPinFormEditor({
           <PluginPinMuted>
             Pick a nearby landmark from Wikipedia (sorted by distance).
           </PluginPinMuted>
+          {showPickerSpinner ? <PluginPinSpinner /> : null}
           {candidatesErr ? (
             <PluginPinError>{candidatesErr}</PluginPinError>
           ) : null}

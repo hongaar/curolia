@@ -1,5 +1,9 @@
 import type { MapSettingsPanelProps } from "@curolia/plugin-contract";
-import { mapPluginConfigRecord } from "@curolia/plugin-contract";
+import {
+  mapPluginConfigRecord,
+  pluginSyncEventsFromConfig,
+  withPluginSyncEvents,
+} from "@curolia/plugin-contract";
 import { Label } from "@curolia/ui/label";
 import {
   PluginSettingsBox,
@@ -10,9 +14,11 @@ import {
 } from "@curolia/ui/plugin-panel";
 import { Switch } from "@curolia/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import type { OsmPoiMapPluginRow } from "./config";
 import { isOsmPoiEnabledForMap, OSM_POI_PLUGIN_ID } from "./config";
+import { osmPoiSyncRegistry } from "./sync-registry";
 
 export function OsmPoiMapSettingsPanel({
   supabase,
@@ -27,7 +33,10 @@ export function OsmPoiMapSettingsPanel({
 
   const saveEnabled = useMutation({
     mutationFn: async (nextEnabled: boolean) => {
-      const config = mapPluginConfigRecord(jp);
+      const config = withPluginSyncEvents(
+        mapPluginConfigRecord(jp),
+        nextEnabled ? [...osmPoiSyncRegistry.events] : [],
+      );
       const { error } = await supabase.from("map_plugins").upsert(
         {
           map_id: mapId,
@@ -52,6 +61,20 @@ export function OsmPoiMapSettingsPanel({
       );
     },
   });
+
+  useEffect(() => {
+    if (
+      readOnly ||
+      !pluginGloballyEnabled ||
+      !enabled ||
+      saveEnabled.isPending
+    ) {
+      return;
+    }
+    const config = mapPluginConfigRecord(jp);
+    if (pluginSyncEventsFromConfig(config).length > 0) return;
+    void saveEnabled.mutate(true);
+  }, [enabled, jp, pluginGloballyEnabled, readOnly, saveEnabled]);
 
   return (
     <PluginSettingsBox>

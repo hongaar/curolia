@@ -236,6 +236,55 @@
   color: var(--muted-foreground);
 }
 
+.searchHitCompact {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 0.3125rem 0.5rem;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.searchHitCompact:hover {
+  background: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+
+.searchHitCompact:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.searchHitCompactBody {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.searchHitCompactTitle {
+  display: inline;
+  font-weight: 500;
+}
+
+.searchHitCompactSep,
+.searchHitCompactMeta {
+  display: inline;
+  font-weight: 400;
+}
+
+.searchHitCompactMeta {
+  color: var(--muted-foreground);
+}
+
 .embed {
   display: block;
   width: 100%;

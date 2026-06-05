@@ -200,6 +200,40 @@ export function PluginPinSearchHit({
   );
 }
 
+/** Text-only search row (no thumbnail column). */
+export function PluginPinSearchHitCompact({
+  title,
+  meta,
+  disabled,
+  onClick,
+}: {
+  title: string;
+  meta: string | null;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        className={styles.searchHitCompact}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        <span className={styles.searchHitCompactBody}>
+          <span className={styles.searchHitCompactTitle}>{title}</span>
+          {meta ? (
+            <>
+              <span className={styles.searchHitCompactSep}> · </span>
+              <span className={styles.searchHitCompactMeta}>{meta}</span>
+            </>
+          ) : null}
+        </span>
+      </button>
+    </li>
+  );
+}
+
 export function PluginPinEmbed({
   src,
   title,

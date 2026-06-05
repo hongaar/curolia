@@ -1,8 +1,10 @@
 import {
+  isPluginSyncJobActive,
   parsePinMetadataRow,
   resolveMapPinMetadataShow,
   type PinMetadataRow,
   type PinMetadataShowSettings,
+  type PluginSyncJobStatus,
 } from "@curolia/plugin-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -16,7 +18,7 @@ import {
   OSM_POI_PLUGIN_ID,
   type OsmPoiMapPluginRow,
 } from "./config";
-import { OSM_POI_CACHE_MAX_AGE_MS } from "./constants";
+import { osmMetadataIsFreshForPayload } from "./osm-poi-metadata-sync";
 import {
   osmPoiPayloadMatches,
   parseOsmPoiPinPayload,
@@ -24,10 +26,10 @@ import {
 } from "./osm-poi-pin-data";
 import {
   osmPoiEntityDataQueryKey,
-  osmPoiSyncQueryKey,
+  osmPoiSyncJobQueryKey,
   pinMetadataQueryKey,
 } from "./query-keys";
-import { syncOsmPoiPin } from "./sync-osm-poi-pin";
+import { OSM_POI_SYNC_EVENT } from "./sync-registry";
 
 export type UseOsmPoiPinSyncArgs = {
   supabase: SupabaseClient;
@@ -105,6 +107,7 @@ export function useOsmPoiPinSync({
     Number.isFinite(lng);
 
   const entityDataKey = useMemo(() => osmPoiEntityDataQueryKey(pinId), [pinId]);
+  const syncJobKey = useMemo(() => osmPoiSyncJobQueryKey(pinId), [pinId]);
 
   const cachedRowQuery = useQuery({
     queryKey: entityDataKey,
@@ -123,27 +126,46 @@ export function useOsmPoiPinSync({
     placeholderData: keepPreviousData,
   });
 
+  const syncJobQuery = useQuery({
+    queryKey: syncJobKey,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plugin_sync_jobs")
+        .select("id, status, last_error, updated_at")
+        .eq("plugin_type_id", OSM_POI_PLUGIN_ID)
+        .eq("entity_type", "pin")
+        .eq("entity_id", pinId)
+        .eq("event", OSM_POI_SYNC_EVENT)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        id: string;
+        status: PluginSyncJobStatus;
+        last_error: string | null;
+        updated_at: string;
+      } | null;
+    },
+    enabled: canSync,
+    refetchInterval: (query) =>
+      isPluginSyncJobActive(query.state.data?.status) ? 3000 : false,
+  });
+
+  useEffect(() => {
+    if (syncJobQuery.data?.status !== "completed") return;
+    void qc.invalidateQueries({ queryKey: entityDataKey });
+    void qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) });
+  }, [syncJobQuery.data?.status, qc, entityDataKey, pinId]);
+
   const cachedPayload = useMemo(() => {
     const p = parseOsmPoiPinPayload(cachedRowQuery.data?.data);
     if (!p || !osmPoiPayloadMatches(p, lat, lng)) return null;
     return p;
   }, [cachedRowQuery.data, lat, lng]);
 
-  const needsSync = canSync && cachedPayload == null;
-
-  const syncQuery = useQuery({
-    queryKey: osmPoiSyncQueryKey(pinId, lat, lng),
-    queryFn: () => syncOsmPoiPin(supabase, { pinId, lat, lng }),
-    enabled: needsSync,
-    staleTime: OSM_POI_CACHE_MAX_AGE_MS,
-    retry: 1,
-  });
-
-  useEffect(() => {
-    if (!syncQuery.isSuccess || syncQuery.data === undefined) return;
-    void qc.invalidateQueries({ queryKey: entityDataKey });
-    void qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) });
-  }, [syncQuery.isSuccess, syncQuery.data, qc, entityDataKey, pinId]);
+  const hasPendingSyncJob = isPluginSyncJobActive(syncJobQuery.data?.status);
+  const syncJobFailed = syncJobQuery.data?.status === "failed";
 
   const metadataQuery = useQuery({
     queryKey: [...pinMetadataQueryKey(pinId), OSM_POI_PLUGIN_ID],
@@ -160,19 +182,28 @@ export function useOsmPoiPinSync({
         .map((row) => parsePinMetadataRow(row))
         .filter((row): row is NonNullable<typeof row> => row != null);
     },
-    enabled: canSync && (cachedPayload != null || syncQuery.isSuccess),
+    enabled: canSync && cachedPayload != null,
     placeholderData: keepPreviousData,
   });
 
-  const payload = cachedPayload ?? syncQuery.data ?? null;
+  const payload = cachedPayload;
   const metadataRows = metadataQuery.data ?? [];
+  const hasPoiPayload = Boolean(
+    cachedPayload && !cachedPayload.noPoi && cachedPayload.tags,
+  );
+  const metadataIsFresh =
+    !hasPoiPayload ||
+    !cachedPayload ||
+    osmMetadataIsFreshForPayload(cachedPayload, metadataRows);
 
   const isMetadataLoading =
     canSync &&
-    (cachedRowQuery.isPending ||
-      (needsSync && (syncQuery.isPending || syncQuery.isFetching)) ||
-      (syncQuery.isSuccess &&
-        (metadataQuery.isPending || metadataQuery.isFetching)));
+    !syncJobFailed &&
+    ((cachedRowQuery.isPending && !cachedRowQuery.data) ||
+      hasPendingSyncJob ||
+      (hasPoiPayload &&
+        !metadataQuery.isError &&
+        (metadataQuery.isFetching || !metadataIsFresh)));
 
   return {
     mapEnabled,
