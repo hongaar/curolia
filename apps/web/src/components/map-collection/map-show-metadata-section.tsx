@@ -1,12 +1,8 @@
-import type { CuroliaMap } from "@/types/database";
 import {
   PIN_METADATA_SHOW_GROUPS,
   pinMetadataFieldLabel,
   pinMetadataShowSelectItems,
   pinMetadataShowSelectSummary,
-  pinMetadataShowSettingsEqual,
-  pinMetadataShowSettingsForStorage,
-  resolveMapPinMetadataShow,
   type PinMetadataShowFieldKey,
   type PinMetadataShowSettings,
 } from "@curolia/plugin-contract";
@@ -76,18 +72,4 @@ export function MapShowMetadataField({
       </Select>
     </FormField>
   );
-}
-
-export function mapShowMetadataDirty(
-  map: CuroliaMap,
-  settings: PinMetadataShowSettings,
-): boolean {
-  const saved = resolveMapPinMetadataShow(map.show_pin_metadata);
-  return !pinMetadataShowSettingsEqual(settings, saved);
-}
-
-export function mapShowMetadataForSave(
-  settings: PinMetadataShowSettings,
-): ReturnType<typeof pinMetadataShowSettingsForStorage> {
-  return pinMetadataShowSettingsForStorage(settings);
 }

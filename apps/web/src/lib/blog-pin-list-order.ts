@@ -42,7 +42,7 @@ export function blogPinListOrderLabel(order: BlogPinListOrder): string {
     case "alphabetical":
       return "alphabetical";
     case "created":
-      return "created";
+      return "added";
   }
 }
 

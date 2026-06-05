@@ -2,10 +2,10 @@ import { PageBackButton } from "@/components/layout/page-back-button";
 import { MapPluginsSection } from "@/components/map-collection/map-plugins-section";
 import { MapSharingSection } from "@/components/map-collection/map-sharing-section";
 import {
-  MapShowMetadataField,
   mapShowMetadataDirty,
   mapShowMetadataForSave,
-} from "@/components/map-collection/map-show-metadata-section";
+} from "@/components/map-collection/map-show-metadata";
+import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
 import {
   mapSettingsHref,
