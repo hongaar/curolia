@@ -84,6 +84,15 @@ export function MapControlsBottomStack({
   return <div className={styles.controlsBottomStack}>{children}</div>;
 }
 
+/** Floating control anchored to the bottom center of the map/blog view. */
+export function MapControlsBottomCenter({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.controlsBottomCenter}>{children}</div>;
+}
+
 /** Full-screen dismiss overlay behind the navigation sidebar on map view. */
 export function MapOverlayDismiss({
   open,

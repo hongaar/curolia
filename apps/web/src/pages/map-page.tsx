@@ -1,4 +1,5 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
+import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
 import {
   MapPointerContextMenu,
@@ -69,6 +70,7 @@ import { Dialog } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
+  MapControlsBottomCenter,
   MapControlsBottomStack,
   MapControlsLayer,
   MapHost,
@@ -796,6 +798,9 @@ export function MapPage() {
           />
         </MapHost>
         <MapControlsLayer>
+          <MapControlsBottomCenter>
+            <MapViewSwitcher />
+          </MapControlsBottomCenter>
           <MapControlsBottomStack>
             <MapTagFiltersControl
               tags={tags}

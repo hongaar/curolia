@@ -1,5 +1,6 @@
 import { FloatingPanel } from "@/components/layout/floating-panel";
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
+import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
@@ -61,7 +62,11 @@ import {
 } from "@curolia/ui/dropdown-menu";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
-import { MapControlsBottomStack, MapControlsLayer } from "@curolia/ui/map";
+import {
+  MapControlsBottomCenter,
+  MapControlsBottomStack,
+  MapControlsLayer,
+} from "@curolia/ui/map";
 import { PageMuted } from "@curolia/ui/page";
 import {
   PanelDialogBody,
@@ -273,6 +278,9 @@ export function BlogPage() {
   return (
     <BlogPageRoot>
       <MapControlsLayer>
+        <MapControlsBottomCenter>
+          <MapViewSwitcher />
+        </MapControlsBottomCenter>
         <MapControlsBottomStack>
           <MapTagFiltersControl
             tags={tags}

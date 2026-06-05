@@ -88,6 +88,17 @@
   }
 }
 
+.controlsBottomCenter {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  bottom: calc(1.5rem + var(--safe-bottom));
+  display: flex;
+  justify-content: center;
+  max-width: min(calc(100vw - 2rem), 22rem);
+  transform: translateX(-50%);
+}
+
 /* --- Map side panel (pin detail) --- */
 .sidePanel {
   position: absolute;

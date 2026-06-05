@@ -7,12 +7,14 @@ import styles from "./segmented-switcher.module.css";
 export function SegmentedSwitcher({
   children,
   "aria-label": ariaLabel,
+  size = "default",
 }: {
   children: React.ReactNode;
   "aria-label": string;
+  size?: "default" | "lg";
 }) {
   return (
-    <nav className={styles.root} aria-label={ariaLabel}>
+    <nav className={styles.root} data-size={size} aria-label={ariaLabel}>
       {children}
     </nav>
   );

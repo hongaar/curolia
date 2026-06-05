@@ -1,4 +1,3 @@
-import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { usePublicMapOwnerName } from "@/hooks/use-public-map-owner-name";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useMap } from "@/providers/map-provider";
@@ -13,13 +12,10 @@ export function PublicMapToolbarSlot() {
   const mapEmoji = activeMap.icon_emoji ?? defaultMapIcon();
 
   return (
-    <>
-      <PublicMapToolbarInfo
-        mapEmoji={mapEmoji}
-        mapName={activeMap.name.trim() || "Map"}
-        ownerName={ownerQuery.data}
-      />
-      <MapViewSwitcher />
-    </>
+    <PublicMapToolbarInfo
+      mapEmoji={mapEmoji}
+      mapName={activeMap.name.trim() || "Map"}
+      ownerName={ownerQuery.data}
+    />
   );
 }

@@ -18,7 +18,7 @@ export function MapViewSwitcher() {
   }
 
   return (
-    <SegmentedSwitcher aria-label="Map view">
+    <SegmentedSwitcher aria-label="Map view" size="lg">
       <SegmentedSwitcherLink
         to={mapViewSwitchHref("map", slug, search)}
         end
