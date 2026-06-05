@@ -9,17 +9,13 @@ import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
+import { usePinMetadataSubtitle } from "@/lib/use-pin-metadata-subtitle";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import {
   OPEN_METEO_PLUGIN_ID,
   OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
-import {
-  OSM_POI_PLUGIN_ID,
-  OsmPoiPinSubtitleContent,
-  useOsmPoiPinSubtitle,
-} from "@curolia/plugin-osm-poi";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
@@ -39,6 +35,7 @@ import {
   MapMarkerPopoverTagRow,
 } from "@curolia/ui/map-marker-popover";
 import { PinDetailTagBadge } from "@curolia/ui/pin-detail";
+import { PinMetadataSubtitleContent } from "@curolia/ui/pin-metadata-subtitle";
 import {
   PinPhotoLightbox,
   PinPhotoThumb,
@@ -135,9 +132,6 @@ export function PinMapMarkerPopover({
   const openMeteoGloballyEnabled = enabledPlugins.some(
     (p) => p.id === OPEN_METEO_PLUGIN_ID,
   );
-  const osmPoiGloballyEnabled = enabledPlugins.some(
-    (p) => p.id === OSM_POI_PLUGIN_ID,
-  );
   const weatherSubtitle = useOpenMeteoPinSubtitle({
     supabase,
     pinId: pin?.id ?? pinId,
@@ -151,16 +145,9 @@ export function PinMapMarkerPopover({
       Boolean(pin?.id ?? pinId) &&
       Boolean(pin?.map_id ?? mapId),
   });
-  const osmPoiSubtitle = useOsmPoiPinSubtitle({
-    supabase,
+  const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin?.id ?? pinId,
-    mapId: pin?.map_id ?? mapId ?? "",
-    lat: pin?.lat ?? 0,
-    lng: pin?.lng ?? 0,
-    queryEnabled:
-      osmPoiGloballyEnabled &&
-      Boolean(pin?.id ?? pinId) &&
-      Boolean(pin?.map_id ?? mapId),
+    mapId: pin?.map_id ?? mapId,
   });
 
   const anchorCoords = useMemo(() => {
@@ -293,8 +280,8 @@ export function PinMapMarkerPopover({
           weather: weatherSubtitle ? (
             <OpenMeteoPinWeatherSubtitle subtitle={weatherSubtitle} />
           ) : null,
-          enrichment: osmPoiSubtitle ? (
-            <OsmPoiPinSubtitleContent subtitle={osmPoiSubtitle} />
+          enrichment: metadataSubtitle ? (
+            <PinMetadataSubtitleContent subtitle={metadataSubtitle} />
           ) : null,
         })
       : [];

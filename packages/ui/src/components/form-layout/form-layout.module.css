@@ -79,5 +79,7 @@
 
 .selectTriggerFull {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: var(--radius-xl);
 }

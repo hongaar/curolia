@@ -14,7 +14,7 @@ export const osmPoiPluginManifest: PluginPackageManifest = {
   contributions: {
     mapSettings: {
       panel: "inline",
-      title: "Place context",
+      title: "OpenStreetMap",
     },
     edgeFunctions: [
       {

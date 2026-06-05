@@ -1,5 +1,8 @@
-import type { PinMetadataRow } from "@curolia/plugin-contract";
-import { osmPoiSubtitleFromMetadata } from "@curolia/plugin-osm-poi";
+import {
+  defaultPinMetadataShowSettings,
+  pinMetadataSubtitleFromRows,
+  type PinMetadataRow,
+} from "@curolia/plugin-contract";
 import { describe, expect, it } from "vitest";
 
 const base = {
@@ -9,8 +12,8 @@ const base = {
   created_at: "2026-01-01T00:00:00Z",
 };
 
-describe("osmPoiSubtitleFromMetadata", () => {
-  it("builds rich subtitle parts from pin metadata rows", () => {
+describe("pinMetadataSubtitleFromRows", () => {
+  it("builds subtitle parts from pin metadata rows regardless of source", () => {
     const rows: PinMetadataRow[] = [
       {
         ...base,
@@ -36,6 +39,7 @@ describe("osmPoiSubtitleFromMetadata", () => {
       {
         ...base,
         id: "4",
+        source_plugin_id: "wikidata",
         field_key: "place_categories",
         value: { food: true, outdoor: false },
         updated_at: "2026-01-01T00:00:00Z",
@@ -43,16 +47,12 @@ describe("osmPoiSubtitleFromMetadata", () => {
     ];
 
     expect(
-      osmPoiSubtitleFromMetadata(rows, {
-        food: true,
-        accessibility: true,
-        outdoor: true,
-      }),
+      pinMetadataSubtitleFromRows(rows, defaultPinMetadataShowSettings()),
     ).toEqual({
       parts: [
         { kind: "text", text: "Café" },
-        { kind: "wheelchair_friendly" },
         { kind: "text", text: "Italian" },
+        { kind: "wheelchair_friendly" },
       ],
     });
   });

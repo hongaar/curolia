@@ -1,8 +1,7 @@
 export {
   PinPlaceMetadataAttribution,
-  PinPlaceMetadataFactItem,
-  PinPlaceMetadataFactList,
   PinPlaceMetadataLink,
+  PinPlaceMetadataLoading,
   PinPlaceMetadataMultiline,
   PinPlaceMetadataRoot,
   PinPlaceMetadataRow,

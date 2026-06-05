@@ -7,14 +7,20 @@
 }
 
 .value {
-  display: flex;
+  display: block;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: left;
 }
 
 .trigger {
   display: flex;
-  width: fit-content;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: 0.375rem;
@@ -23,7 +29,7 @@
   background: transparent;
   padding: 0.5rem 0.5rem 0.5rem 0.625rem;
   font-size: 0.875rem;
-  white-space: nowrap;
+  overflow: hidden;
   color: var(--foreground);
   transition:
     border-color 150ms,

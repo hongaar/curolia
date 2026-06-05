@@ -1,10 +1,7 @@
 export {
   OSM_POI_PLUGIN_ID,
   isOsmPoiEnabledForMap,
-  resolveOsmPoiTagFamilies,
   type OsmPoiMapPluginRow,
-  type OsmPoiTagFamilies,
-  type OsmPoiTagFamily,
 } from "./config";
 export {
   OSM_POI_CACHE_MAX_AGE_MS,
@@ -14,16 +11,6 @@ export {
 export { osmPoiPluginManifest as pluginManifest } from "./manifest";
 export { OsmPoiMapSettingsPanel } from "./map-settings-panel";
 export { osmPoiSyncPin, type OsmPoiSyncResponse } from "./osm-poi-edge";
-export {
-  osmTagFamiliesForMetadata,
-  pinMetadataFromOsmTags,
-} from "./osm-poi-pin-metadata";
-export { OsmPoiPinSubtitleContent } from "./osm-poi-pin-subtitle";
-export {
-  osmPoiSubtitleFromMetadata,
-  type OsmPoiPinSubtitle,
-  type OsmPoiSubtitlePart,
-} from "./osm-poi-subtitle";
 export {
   formatOsmPoiSubtitle,
   isFoodPoi,
@@ -35,9 +22,14 @@ export {
   parseOsmPoiPinPayload,
   type OsmPoiPinPayload,
 } from "./osm-poi-pin-data";
-export { osmPoiEntityDataQueryKey, osmPoiSyncQueryKey } from "./query-keys";
-export { syncOsmPoiPin } from "./sync-osm-poi-pin";
 export {
+  osmTagFamiliesForMetadata,
+  pinMetadataFromOsmTags,
+} from "./osm-poi-pin-metadata";
+export {
+  osmPoiEntityDataQueryKey,
+  osmPoiSyncQueryKey,
   pinMetadataQueryKey,
-  useOsmPoiPinSubtitle,
-} from "./use-osm-poi-pin-subtitle";
+} from "./query-keys";
+export { syncOsmPoiPin } from "./sync-osm-poi-pin";
+export { useOsmPoiPinMetadataLoading } from "./use-osm-poi-pin-sync";

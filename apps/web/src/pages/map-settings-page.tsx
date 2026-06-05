@@ -1,6 +1,11 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { MapPluginsSection } from "@/components/map-collection/map-plugins-section";
 import { MapSharingSection } from "@/components/map-collection/map-sharing-section";
+import {
+  MapShowMetadataField,
+  mapShowMetadataDirty,
+  mapShowMetadataForSave,
+} from "@/components/map-collection/map-show-metadata-section";
 import { EmojiPicker } from "@/components/pins/emoji-picker";
 import {
   mapSettingsHref,
@@ -21,6 +26,7 @@ import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
+import { resolveMapPinMetadataShow } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
@@ -56,6 +62,9 @@ export function MapSettingsPage() {
     hillshades: false,
     satelliteLabels: false,
   });
+  const [showPinMetadata, setShowPinMetadata] = useState(
+    resolveMapPinMetadataShow(null),
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,6 +106,7 @@ export function MapSettingsPage() {
     setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
+    setShowPinMetadata(resolveMapPinMetadataShow(map.show_pin_metadata));
   }, [map]);
 
   async function save() {
@@ -111,6 +121,7 @@ export function MapSettingsPage() {
         style: mapStyle,
         style_hillshades: styleOptions.hillshades,
         style_satellite_labels: styleOptions.satelliteLabels,
+        show_pin_metadata: mapShowMetadataForSave(showPinMetadata),
         updated_at: new Date().toISOString(),
       })
       .eq("id", mapId);
@@ -121,7 +132,12 @@ export function MapSettingsPage() {
       return;
     }
     toast.success("Map settings saved");
-    if (user) await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+    if (user) {
+      await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+      await qc.invalidateQueries({
+        queryKey: ["maps", mapId, "show_pin_metadata"],
+      });
+    }
   }
 
   if (!mapSlugParam) {
@@ -162,12 +178,13 @@ export function MapSettingsPage() {
     mapStyle !== normalizeMapStylePreset(map.style) ||
     styleOptions.hillshades !== savedStyleOptions.hillshades ||
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
+  const metadataDirty = mapShowMetadataDirty(map, showPinMetadata);
   const controlsDisabled = !isOwner || roleQuery.isLoading;
 
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
-    (nameDirty || iconDirty || styleDirty) &&
+    (nameDirty || iconDirty || styleDirty || metadataDirty) &&
     !saving;
 
   return (
@@ -254,6 +271,12 @@ export function MapSettingsPage() {
               />
             </ChoiceCards>
           </FormField>
+          <MapShowMetadataField
+            mapId={map.id}
+            settings={showPinMetadata}
+            onChange={setShowPinMetadata}
+            disabled={controlsDisabled}
+          />
           {error ? <PageErrorText>{error}</PageErrorText> : null}
           <PageInlineActions>
             <Button disabled={!canSave} onClick={() => void save()}>

@@ -40,6 +40,12 @@
   color: var(--muted-foreground);
 }
 
+.detailSubtitle svg {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+}
+
 .tagRow {
   margin-top: 0.5rem;
   display: flex;

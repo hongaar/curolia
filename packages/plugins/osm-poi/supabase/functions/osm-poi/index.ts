@@ -244,7 +244,6 @@ type PinMetadataFieldKey =
   | "brand"
   | "operator"
   | "dietary_options"
-  | "place_facts"
   | "place_categories";
 
 type PinMetadataUpsert = {
@@ -317,27 +316,6 @@ const PRIMARY_TYPE_KEYS = [
   "healthcare",
   "craft",
 ];
-const CONSUMED_EXACT_KEYS = new Set([
-  "name",
-  "brand",
-  "operator",
-  "cuisine",
-  "wheelchair",
-  "dog",
-  "phone",
-  "mobile",
-  "website",
-  "url",
-  "email",
-  "opening_hours",
-  "contact:phone",
-  "contact:mobile",
-  "contact:website",
-  "contact:url",
-  "contact:email",
-  ...PRIMARY_TYPE_KEYS,
-]);
-
 function formatOpeningHoursDisplay(raw: string): string {
   return raw
     .split(";")
@@ -440,22 +418,6 @@ function parseDogLevel(value: string | undefined): string | null {
   return null;
 }
 
-function formatOsmTagKey(key: string): string {
-  const withoutPrefix = key.includes(":") ? (key.split(":").pop() ?? key) : key;
-  return formatTagValue(withoutPrefix.replace(/:/g, " "));
-}
-
-function shouldSkipFactKey(key: string): boolean {
-  if (CONSUMED_EXACT_KEYS.has(key)) return true;
-  if (key.startsWith("diet:")) return true;
-  return (
-    key === "source" ||
-    key.startsWith("created_by") ||
-    key.startsWith("fixme") ||
-    key.startsWith("note")
-  );
-}
-
 function dietaryLabelsFromTags(tags: Record<string, string>): string[] {
   const labels: string[] = [];
   for (const [key, raw] of Object.entries(tags)) {
@@ -553,19 +515,6 @@ function pinMetadataFromOsmTags(
       field_key: "opening_hours",
       value: { raw: hoursRaw, display: formatOpeningHoursDisplay(hoursRaw) },
     });
-  }
-
-  const placeFacts: { label: string; value: string }[] = [];
-  for (const [key, raw] of Object.entries(tags)) {
-    const value = raw.trim();
-    if (!value || shouldSkipFactKey(key)) continue;
-    placeFacts.push({
-      label: formatOsmTagKey(key),
-      value: formatTagValue(value),
-    });
-  }
-  if (placeFacts.length > 0) {
-    fields.push({ field_key: "place_facts", value: { facts: placeFacts } });
   }
 
   fields.push({

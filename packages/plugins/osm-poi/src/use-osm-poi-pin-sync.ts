@@ -1,3 +1,9 @@
+import {
+  parsePinMetadataRow,
+  resolveMapPinMetadataShow,
+  type PinMetadataRow,
+  type PinMetadataShowSettings,
+} from "@curolia/plugin-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   keepPreviousData,
@@ -5,30 +11,25 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import { parsePinMetadataRow } from "@curolia/plugin-contract";
 import {
   isOsmPoiEnabledForMap,
   OSM_POI_PLUGIN_ID,
-  resolveOsmPoiTagFamilies,
   type OsmPoiMapPluginRow,
 } from "./config";
+import { OSM_POI_CACHE_MAX_AGE_MS } from "./constants";
 import {
   osmPoiPayloadMatches,
   parseOsmPoiPinPayload,
+  type OsmPoiPinPayload,
 } from "./osm-poi-pin-data";
 import {
-  osmPoiSubtitleFromMetadata,
-  type OsmPoiPinSubtitle,
-} from "./osm-poi-subtitle";
-import { osmPoiEntityDataQueryKey, osmPoiSyncQueryKey } from "./query-keys";
+  osmPoiEntityDataQueryKey,
+  osmPoiSyncQueryKey,
+  pinMetadataQueryKey,
+} from "./query-keys";
 import { syncOsmPoiPin } from "./sync-osm-poi-pin";
 
-export type { OsmPoiPinSubtitle };
-
-export const pinMetadataQueryKey = (pinId: string) =>
-  ["pin_metadata", pinId] as const;
-
-export type UseOsmPoiPinSubtitleArgs = {
+export type UseOsmPoiPinSyncArgs = {
   supabase: SupabaseClient;
   pinId: string;
   mapId: string;
@@ -38,14 +39,23 @@ export type UseOsmPoiPinSubtitleArgs = {
   queryEnabled?: boolean;
 };
 
-export function useOsmPoiPinSubtitle({
+export type OsmPoiPinSyncState = {
+  mapEnabled: boolean;
+  canSync: boolean;
+  isMetadataLoading: boolean;
+  showSettings: PinMetadataShowSettings;
+  payload: OsmPoiPinPayload | null;
+  metadataRows: PinMetadataRow[];
+};
+
+export function useOsmPoiPinSync({
   supabase,
   pinId,
   mapId,
   lat,
   lng,
   queryEnabled = true,
-}: UseOsmPoiPinSubtitleArgs): OsmPoiPinSubtitle | null {
+}: UseOsmPoiPinSyncArgs): OsmPoiPinSyncState {
   const qc = useQueryClient();
 
   const mapPluginQuery = useQuery({
@@ -64,11 +74,26 @@ export function useOsmPoiPinSubtitle({
     placeholderData: keepPreviousData,
   });
 
+  const showMetadataQuery = useQuery({
+    queryKey: ["maps", mapId, "show_pin_metadata"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("maps")
+        .select("show_pin_metadata")
+        .eq("id", mapId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: Boolean(mapId) && queryEnabled,
+    placeholderData: keepPreviousData,
+  });
+
   const mapEnabled = isOsmPoiEnabledForMap(
     mapPluginQuery.data as OsmPoiMapPluginRow | undefined,
   );
-  const tagFamilies = resolveOsmPoiTagFamilies(
-    mapPluginQuery.data as OsmPoiMapPluginRow | undefined,
+  const showSettings = resolveMapPinMetadataShow(
+    showMetadataQuery.data?.show_pin_metadata,
   );
 
   const canSync =
@@ -110,7 +135,7 @@ export function useOsmPoiPinSubtitle({
     queryKey: osmPoiSyncQueryKey(pinId, lat, lng),
     queryFn: () => syncOsmPoiPin(supabase, { pinId, lat, lng }),
     enabled: needsSync,
-    staleTime: Number.POSITIVE_INFINITY,
+    staleTime: OSM_POI_CACHE_MAX_AGE_MS,
     retry: 1,
   });
 
@@ -140,9 +165,27 @@ export function useOsmPoiPinSubtitle({
   });
 
   const payload = cachedPayload ?? syncQuery.data ?? null;
+  const metadataRows = metadataQuery.data ?? [];
 
-  return useMemo(() => {
-    if (!canSync || !payload || payload.noPoi) return null;
-    return osmPoiSubtitleFromMetadata(metadataQuery.data ?? [], tagFamilies);
-  }, [canSync, payload, metadataQuery.data, tagFamilies]);
+  const isMetadataLoading =
+    canSync &&
+    (cachedRowQuery.isPending ||
+      (needsSync && (syncQuery.isPending || syncQuery.isFetching)) ||
+      (syncQuery.isSuccess &&
+        (metadataQuery.isPending || metadataQuery.isFetching)));
+
+  return {
+    mapEnabled,
+    canSync,
+    isMetadataLoading,
+    showSettings,
+    payload,
+    metadataRows,
+  };
+}
+
+export function useOsmPoiPinMetadataLoading(
+  args: UseOsmPoiPinSyncArgs,
+): boolean {
+  return useOsmPoiPinSync(args).isMetadataLoading;
 }

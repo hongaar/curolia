@@ -1,4 +1,7 @@
-import type { OsmPoiTagFamilies } from "./config";
+import {
+  isPinMetadataFieldShown,
+  type PinMetadataShowSettings,
+} from "@curolia/plugin-contract";
 
 const FOOD_AMENITIES = new Set([
   "restaurant",
@@ -159,37 +162,31 @@ function dogLabel(value: string | undefined): string | null {
 /** One-line OSM POI fragment for pin subtitles. */
 export function formatOsmPoiSubtitle(
   tags: Record<string, string>,
-  families: OsmPoiTagFamilies,
+  showSettings: PinMetadataShowSettings,
 ): string | null {
   const parts: string[] = [];
-  const primary = primaryPoiLabel(tags);
-  const food = isFoodPoi(tags);
-  const outdoor = isOutdoorPoi(tags);
 
-  if (primary) {
-    if (families.food && food) parts.push(primary);
-    else if (families.outdoor && outdoor) parts.push(primary);
-    else if (
-      families.food &&
-      families.outdoor &&
-      !food &&
-      !outdoor &&
-      !families.accessibility
-    ) {
-      parts.push(primary);
-    }
+  if (isPinMetadataFieldShown("place_type", showSettings)) {
+    const primary = primaryPoiLabel(tags);
+    if (primary) parts.push(primary);
   }
 
-  if (families.accessibility) {
-    const wheel = wheelchairLabel(tags.wheelchair);
-    if (wheel) parts.push(wheel);
-    const dog = dogLabel(tags.dog);
-    if (dog) parts.push(dog);
-  }
-
-  if (families.food && tags.cuisine?.trim()) {
+  if (
+    isPinMetadataFieldShown("cuisine", showSettings) &&
+    tags.cuisine?.trim()
+  ) {
     const cuisine = formatCuisine(tags.cuisine);
     if (cuisine && !parts.includes(cuisine)) parts.push(cuisine);
+  }
+
+  if (isPinMetadataFieldShown("wheelchair_access", showSettings)) {
+    const wheel = wheelchairLabel(tags.wheelchair);
+    if (wheel) parts.push(wheel);
+  }
+
+  if (isPinMetadataFieldShown("dog_policy", showSettings)) {
+    const dog = dogLabel(tags.dog);
+    if (dog) parts.push(dog);
   }
 
   if (parts.length === 0) return null;

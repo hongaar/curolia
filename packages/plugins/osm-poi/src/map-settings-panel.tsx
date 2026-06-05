@@ -1,9 +1,5 @@
 import type { MapSettingsPanelProps } from "@curolia/plugin-contract";
-import {
-  mapPluginConfigRecord,
-  mergeMapPluginConfig,
-} from "@curolia/plugin-contract";
-import { Checkbox } from "@curolia/ui/checkbox";
+import { mapPluginConfigRecord } from "@curolia/plugin-contract";
 import { Label } from "@curolia/ui/label";
 import {
   PluginSettingsBox,
@@ -15,34 +11,8 @@ import {
 import { Switch } from "@curolia/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { OsmPoiMapPluginRow, OsmPoiTagFamily } from "./config";
-import {
-  isOsmPoiEnabledForMap,
-  OSM_POI_PLUGIN_ID,
-  resolveOsmPoiTagFamilies,
-} from "./config";
-
-const TAG_FAMILY_OPTIONS: {
-  id: OsmPoiTagFamily;
-  label: string;
-  hint: string;
-}[] = [
-  {
-    id: "food",
-    label: "Food & drink",
-    hint: "Type, cuisine, and diet tags",
-  },
-  {
-    id: "accessibility",
-    label: "Accessibility",
-    hint: "Wheelchair access and dog-friendly tags",
-  },
-  {
-    id: "outdoor",
-    label: "Outdoor & travel",
-    hint: "Campsites, fuel, dump stations, and parks",
-  },
-];
+import type { OsmPoiMapPluginRow } from "./config";
+import { isOsmPoiEnabledForMap, OSM_POI_PLUGIN_ID } from "./config";
 
 export function OsmPoiMapSettingsPanel({
   supabase,
@@ -54,32 +24,15 @@ export function OsmPoiMapSettingsPanel({
   const qc = useQueryClient();
   const row = jp as OsmPoiMapPluginRow | undefined;
   const enabled = isOsmPoiEnabledForMap(row);
-  const tagFamilies = resolveOsmPoiTagFamilies(row);
 
-  const save = useMutation({
-    mutationFn: async (patch: {
-      enabled?: boolean;
-      tagFamilies?: Partial<Record<OsmPoiTagFamily, boolean>>;
-    }) => {
-      const config = mergeMapPluginConfig(
-        OSM_POI_PLUGIN_ID,
-        mapPluginConfigRecord(jp),
-        {
-          ...(patch.tagFamilies
-            ? {
-                tagFamilies: {
-                  ...resolveOsmPoiTagFamilies(row),
-                  ...patch.tagFamilies,
-                },
-              }
-            : {}),
-        },
-      );
+  const saveEnabled = useMutation({
+    mutationFn: async (nextEnabled: boolean) => {
+      const config = mapPluginConfigRecord(jp);
       const { error } = await supabase.from("map_plugins").upsert(
         {
           map_id: mapId,
           plugin_type_id: OSM_POI_PLUGIN_ID,
-          enabled: patch.enabled ?? enabled,
+          enabled: nextEnabled,
           config,
           status: "connected",
           updated_at: new Date().toISOString(),
@@ -105,58 +58,22 @@ export function OsmPoiMapSettingsPanel({
       <PluginSettingsRow>
         <div>
           <PluginSettingsTitle>
-            <Label htmlFor="osm-poi-map-enabled">Show OSM place context</Label>
+            <Label htmlFor="osm-poi-map-enabled">Sync OpenStreetMap data</Label>
           </PluginSettingsTitle>
           <PluginSettingsHint>
-            Pins are enriched from nearby OpenStreetMap features—amenity type,
-            cuisine, wheelchair access, and more—in the pin subtitle.
+            Fetch nearby OpenStreetMap features for pins on this map.
           </PluginSettingsHint>
         </div>
         <Switch
           id="osm-poi-map-enabled"
           checked={enabled}
-          disabled={readOnly || save.isPending || !pluginGloballyEnabled}
-          onCheckedChange={(c) =>
-            void save.mutateAsync({ enabled: c === true })
-          }
+          disabled={readOnly || saveEnabled.isPending || !pluginGloballyEnabled}
+          onCheckedChange={(c) => void saveEnabled.mutateAsync(c === true)}
         />
       </PluginSettingsRow>
-      {enabled && pluginGloballyEnabled ? (
-        <div>
-          <PluginSettingsTitle>Subtitle tag families</PluginSettingsTitle>
-          <PluginSettingsHint>
-            Choose which OSM tag groups appear on pins for this map.
-          </PluginSettingsHint>
-          <div>
-            {TAG_FAMILY_OPTIONS.map((option) => {
-              const inputId = `osm-poi-tag-${option.id}`;
-              return (
-                <PluginSettingsRow key={option.id}>
-                  <div>
-                    <PluginSettingsTitle>
-                      <Label htmlFor={inputId}>{option.label}</Label>
-                    </PluginSettingsTitle>
-                    <PluginSettingsHint>{option.hint}</PluginSettingsHint>
-                  </div>
-                  <Checkbox
-                    id={inputId}
-                    checked={tagFamilies[option.id]}
-                    disabled={readOnly || save.isPending}
-                    onCheckedChange={(checked) =>
-                      void save.mutateAsync({
-                        tagFamilies: { [option.id]: checked === true },
-                      })
-                    }
-                  />
-                </PluginSettingsRow>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
       {!pluginGloballyEnabled ? (
         <PluginStatusText size="sm">
-          Turn on OpenStreetMap under Plugins (user menu) to use place context
+          Turn on OpenStreetMap under Plugins (user menu) to sync place context
           on this map.
         </PluginStatusText>
       ) : null}

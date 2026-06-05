@@ -1,14 +1,18 @@
+import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinMetadata } from "@/lib/use-pin-metadata";
 import {
+  filterPinMetadataForDetailDisplay,
+  hasPinMetadataDetailDisplayEnabled,
   pinMetadataWebsiteDisplayLabel,
+  resolveMapPinMetadataShow,
   type PinMetadataDisplayItem,
 } from "@curolia/plugin-contract";
+import { useOsmPoiPinMetadataLoading } from "@curolia/plugin-osm-poi";
 import {
   PinPlaceMetadataAttribution,
-  PinPlaceMetadataFactItem,
-  PinPlaceMetadataFactList,
   PinPlaceMetadataLink,
+  PinPlaceMetadataLoading,
   PinPlaceMetadataMultiline,
   PinPlaceMetadataRoot,
   PinPlaceMetadataRow,
@@ -16,23 +20,78 @@ import {
   PinPlaceMetadataText,
   type PinPlaceMetadataFieldKey,
 } from "@curolia/ui/pin-place-metadata";
+import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 
 type PinPlaceMetadataListProps = {
   pinId: string;
+  mapId: string;
+  lat: number;
+  lng: number;
+  osmPoiEnabled?: boolean;
 };
 
-export function PinPlaceMetadataList({ pinId }: PinPlaceMetadataListProps) {
+export function PinPlaceMetadataList({
+  pinId,
+  mapId,
+  lat,
+  lng,
+  osmPoiEnabled = false,
+}: PinPlaceMetadataListProps) {
   const metadataQuery = usePinMetadata(pinId);
   const { plugins } = useEnabledPlugins();
   const items = metadataQuery.data ?? [];
-  if (items.length === 0) return null;
+
+  const showMetadataQuery = useQuery({
+    queryKey: ["maps", mapId, "show_pin_metadata"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("maps")
+        .select("show_pin_metadata")
+        .eq("id", mapId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: Boolean(mapId),
+  });
+
+  const showSettings = resolveMapPinMetadataShow(
+    showMetadataQuery.data?.show_pin_metadata,
+  );
+  const visibleItems = filterPinMetadataForDetailDisplay(
+    items,
+    showSettings,
+  ).filter(isRenderablePlaceMetadataItem);
+
+  const osmMetadataLoading = useOsmPoiPinMetadataLoading({
+    supabase,
+    pinId,
+    mapId,
+    lat,
+    lng,
+    queryEnabled: osmPoiEnabled,
+  });
+
+  const showOsmLoading =
+    osmPoiEnabled &&
+    hasPinMetadataDetailDisplayEnabled(showSettings) &&
+    osmMetadataLoading;
+
+  if (showOsmLoading) {
+    return (
+      <PinPlaceMetadataLoading>
+        Loading additional information…
+      </PinPlaceMetadataLoading>
+    );
+  }
+
+  if (visibleItems.length === 0) return null;
 
   const sourceLabelByPluginId = new Map(
     plugins.map((plugin) => [plugin.id, plugin.displayName]),
   );
 
-  const visibleItems = items.filter(isVisiblePlaceMetadataItem);
   const sourceLabels = [
     ...new Set(
       visibleItems
@@ -43,7 +102,11 @@ export function PinPlaceMetadataList({ pinId }: PinPlaceMetadataListProps) {
 
   return (
     <PinPlaceMetadataRoot
-      footer={<PinPlaceMetadataAttribution sources={sourceLabels} />}
+      footer={
+        sourceLabels.length > 0 ? (
+          <PinPlaceMetadataAttribution sources={sourceLabels} />
+        ) : null
+      }
     >
       {visibleItems.map((item) => (
         <PinPlaceMetadataItemRow key={item.fieldKey} item={item} />
@@ -52,7 +115,7 @@ export function PinPlaceMetadataList({ pinId }: PinPlaceMetadataListProps) {
   );
 }
 
-function isVisiblePlaceMetadataItem(
+function isRenderablePlaceMetadataItem(
   item: PinMetadataDisplayItem,
 ): item is VisiblePinMetadataItem {
   return item.fieldKey !== "place_categories";
@@ -118,19 +181,6 @@ function PinPlaceMetadataValue({ item }: { item: VisiblePinMetadataItem }) {
         </PinPlaceMetadataLink>
       );
     }
-    case "place_facts":
-      return (
-        <PinPlaceMetadataFactList>
-          {item.value.facts.map((fact) => (
-            <PinPlaceMetadataFactItem
-              key={`${fact.label}-${fact.value}`}
-              label={fact.label}
-            >
-              {fact.value}
-            </PinPlaceMetadataFactItem>
-          ))}
-        </PinPlaceMetadataFactList>
-      );
     default:
       return null;
   }
@@ -155,7 +205,7 @@ function WheelchairAccessValue({
   }
   return (
     <PinPlaceMetadataStatus>
-      Not wheelchair accessible <X size={14} strokeWidth={2.5} aria-hidden />
+      Wheelchair inaccessible <X size={14} strokeWidth={2.5} aria-hidden />
     </PinPlaceMetadataStatus>
   );
 }
@@ -170,7 +220,7 @@ function DogPolicyValue({ level }: { level: "yes" | "leashed" | "no" }) {
   }
   return (
     <PinPlaceMetadataStatus>
-      No dogs <X size={14} strokeWidth={2.5} aria-hidden />
+      Dogs unwelcome <X size={14} strokeWidth={2.5} aria-hidden />
     </PinPlaceMetadataStatus>
   );
 }

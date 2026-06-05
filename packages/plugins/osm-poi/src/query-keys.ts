@@ -11,3 +11,7 @@ export function osmPoiSyncQueryKey(
 ): readonly (string | number)[] {
   return ["osm-poi", "sync", pinId, lat, lng] as const;
 }
+
+export function pinMetadataQueryKey(pinId: string): readonly string[] {
+  return ["pin_metadata", pinId] as const;
+}

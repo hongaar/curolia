@@ -6,42 +6,7 @@ import {
 } from "@curolia/plugin-contract";
 import { isFoodPoi, isOutdoorPoi, primaryPoiLabel } from "./osm-poi-format";
 
-const PRIMARY_TYPE_KEYS = [
-  "amenity",
-  "shop",
-  "tourism",
-  "leisure",
-  "man_made",
-  "historic",
-  "office",
-  "healthcare",
-  "craft",
-] as const;
-
 const DIET_TAG_PREFIX = "diet:";
-
-const CONSUMED_EXACT_KEYS = new Set([
-  "name",
-  "brand",
-  "operator",
-  "cuisine",
-  "wheelchair",
-  "dog",
-  "phone",
-  "mobile",
-  "website",
-  "url",
-  "email",
-  "opening_hours",
-  "contact:phone",
-  "contact:mobile",
-  "contact:website",
-  "contact:url",
-  "contact:email",
-  ...PRIMARY_TYPE_KEYS,
-]);
-
-const SKIP_FACT_PREFIXES = ["source:", "created_by", "fixme", "note"];
 
 function firstTag(tags: Record<string, string>, keys: string[]): string | null {
   for (const key of keys) {
@@ -80,11 +45,6 @@ function formatCuisine(value: string): string {
     .join(", ");
 }
 
-function formatOsmTagKey(key: string): string {
-  const withoutPrefix = key.includes(":") ? (key.split(":").pop() ?? key) : key;
-  return formatTagValue(withoutPrefix.replace(/:/g, " "));
-}
-
 function parseWheelchairLevel(
   value: string | undefined,
 ): "yes" | "designated" | "limited" | "no" | null {
@@ -106,19 +66,6 @@ function parseDogLevel(
   if (v === "leashed") return "leashed";
   if (v === "no") return "no";
   return null;
-}
-
-function isConsumedTagKey(key: string): boolean {
-  if (CONSUMED_EXACT_KEYS.has(key)) return true;
-  if (key.startsWith(DIET_TAG_PREFIX)) return true;
-  return false;
-}
-
-function shouldSkipFactKey(key: string): boolean {
-  if (isConsumedTagKey(key)) return true;
-  return SKIP_FACT_PREFIXES.some(
-    (prefix) => key === prefix || key.startsWith(prefix),
-  );
 }
 
 function dietaryLabelsFromTags(tags: Record<string, string>): string[] {
@@ -257,22 +204,6 @@ export function pinMetadataFromOsmTags(
         raw: hoursRaw,
         display: formatOpeningHoursDisplay(hoursRaw),
       },
-    });
-  }
-
-  const placeFacts: { label: string; value: string }[] = [];
-  for (const [key, raw] of Object.entries(tags)) {
-    const value = raw.trim();
-    if (!value || shouldSkipFactKey(key)) continue;
-    placeFacts.push({
-      label: formatOsmTagKey(key),
-      value: formatTagValue(value),
-    });
-  }
-  if (placeFacts.length > 0) {
-    fields.push({
-      fieldKey: "place_facts",
-      value: { facts: placeFacts },
     });
   }
 

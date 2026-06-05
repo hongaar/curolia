@@ -231,11 +231,91 @@ async function upsertPayload(
   if (error) throw error;
 }
 
+type PinMetadataFieldKey =
+  | "phone"
+  | "website"
+  | "opening_hours"
+  | "email"
+  | "place_name"
+  | "place_type"
+  | "cuisine"
+  | "wheelchair_access"
+  | "dog_policy"
+  | "brand"
+  | "operator"
+  | "dietary_options"
+  | "place_categories";
+
 type PinMetadataUpsert = {
-  field_key: "phone" | "website" | "opening_hours" | "email";
+  field_key: PinMetadataFieldKey;
   value: Record<string, unknown>;
 };
 
+const FOOD_AMENITIES = new Set([
+  "restaurant",
+  "cafe",
+  "fast_food",
+  "bar",
+  "pub",
+  "food_court",
+  "ice_cream",
+  "bakery",
+  "biergarten",
+  "bbq",
+  "nightclub",
+  "canteen",
+]);
+const FOOD_SHOPS = new Set([
+  "bakery",
+  "butcher",
+  "confectionery",
+  "deli",
+  "greengrocer",
+  "seafood",
+  "wine",
+  "alcohol",
+  "cheese",
+  "chocolate",
+]);
+const OUTDOOR_TOURISM = new Set([
+  "camp_site",
+  "caravan_site",
+  "picnic_site",
+  "viewpoint",
+  "wilderness_hut",
+  "alpine_hut",
+  "hostel",
+  "hotel",
+  "motel",
+  "guest_hut",
+]);
+const OUTDOOR_AMENITIES = new Set([
+  "fuel",
+  "sanitary_dump_station",
+  "charging_station",
+  "bicycle_rental",
+  "toilets",
+]);
+const OUTDOOR_LEISURE = new Set([
+  "park",
+  "playground",
+  "nature_reserve",
+  "marina",
+  "pitch",
+  "track",
+  "slipway",
+]);
+const PRIMARY_TYPE_KEYS = [
+  "amenity",
+  "shop",
+  "tourism",
+  "leisure",
+  "man_made",
+  "historic",
+  "office",
+  "healthcare",
+  "craft",
+];
 function formatOpeningHoursDisplay(raw: string): string {
   return raw
     .split(";")
@@ -268,11 +348,134 @@ function firstTag(tags: Record<string, string>, keys: string[]): string | null {
   return null;
 }
 
+function titleCaseToken(token: string): string {
+  const t = token.trim();
+  if (!t) return "";
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+}
+
+function formatTagValue(value: string): string {
+  return value
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map(titleCaseToken)
+    .join(" ");
+}
+
+function formatCuisine(value: string): string {
+  return value
+    .split(/[;,]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) =>
+      part
+        .split(/[_\s]+/)
+        .filter(Boolean)
+        .map(titleCaseToken)
+        .join(" "),
+    )
+    .join(", ");
+}
+
+function primaryPoiLabel(tags: Record<string, string>): string | null {
+  for (const key of PRIMARY_TYPE_KEYS) {
+    const value = tags[key]?.trim();
+    if (value) return formatTagValue(value);
+  }
+  return null;
+}
+
+function isFoodPoi(tags: Record<string, string>): boolean {
+  const amenity = tags.amenity;
+  if (amenity && FOOD_AMENITIES.has(amenity)) return true;
+  const shop = tags.shop;
+  if (shop && FOOD_SHOPS.has(shop)) return true;
+  return Boolean(tags.cuisine?.trim());
+}
+
+function isOutdoorPoi(tags: Record<string, string>): boolean {
+  const tourism = tags.tourism;
+  if (tourism && OUTDOOR_TOURISM.has(tourism)) return true;
+  const amenity = tags.amenity;
+  if (amenity && OUTDOOR_AMENITIES.has(amenity)) return true;
+  const leisure = tags.leisure;
+  if (leisure && OUTDOOR_LEISURE.has(leisure)) return true;
+  return false;
+}
+
+function parseWheelchairLevel(value: string | undefined): string | null {
+  if (!value) return null;
+  const v = value.trim().toLowerCase();
+  if (v === "yes" || v === "designated" || v === "limited" || v === "no")
+    return v;
+  return null;
+}
+
+function parseDogLevel(value: string | undefined): string | null {
+  if (!value) return null;
+  const v = value.trim().toLowerCase();
+  if (v === "yes" || v === "leashed" || v === "no") return v;
+  return null;
+}
+
+function dietaryLabelsFromTags(tags: Record<string, string>): string[] {
+  const labels: string[] = [];
+  for (const [key, raw] of Object.entries(tags)) {
+    if (!key.startsWith("diet:")) continue;
+    const value = raw.trim().toLowerCase();
+    if (value !== "yes" && value !== "only") continue;
+    const slug = key.slice(5);
+    if (!slug) continue;
+    const label = formatTagValue(slug);
+    labels.push(value === "only" ? `${label} only` : label);
+  }
+  return labels;
+}
+
 /** Keep in sync with `packages/plugins/osm-poi/src/osm-poi-pin-metadata.ts`. */
 function pinMetadataFromOsmTags(
   tags: Record<string, string>,
 ): PinMetadataUpsert[] {
   const fields: PinMetadataUpsert[] = [];
+
+  const placeName = tags.name?.trim();
+  if (placeName)
+    fields.push({ field_key: "place_name", value: { label: placeName } });
+
+  const placeType = primaryPoiLabel(tags);
+  if (placeType)
+    fields.push({ field_key: "place_type", value: { label: placeType } });
+
+  const cuisineRaw = tags.cuisine?.trim();
+  if (cuisineRaw) {
+    fields.push({
+      field_key: "cuisine",
+      value: { label: formatCuisine(cuisineRaw) },
+    });
+  }
+
+  const dietary = dietaryLabelsFromTags(tags);
+  if (dietary.length > 0) {
+    fields.push({ field_key: "dietary_options", value: { labels: dietary } });
+  }
+
+  const wheelchair = parseWheelchairLevel(tags.wheelchair);
+  if (wheelchair) {
+    fields.push({
+      field_key: "wheelchair_access",
+      value: { level: wheelchair },
+    });
+  }
+
+  const dog = parseDogLevel(tags.dog);
+  if (dog) fields.push({ field_key: "dog_policy", value: { level: dog } });
+
+  const brand = tags.brand?.trim();
+  if (brand) fields.push({ field_key: "brand", value: { label: brand } });
+
+  const operator = tags.operator?.trim();
+  if (operator)
+    fields.push({ field_key: "operator", value: { label: operator } });
 
   const phoneRaw = firstTag(tags, [
     "phone",
@@ -285,10 +488,7 @@ function pinMetadataFromOsmTags(
     if (tel) {
       fields.push({
         field_key: "phone",
-        value: {
-          tel,
-          ...(phoneRaw !== tel ? { display: phoneRaw } : {}),
-        },
+        value: { tel, ...(phoneRaw !== tel ? { display: phoneRaw } : {}) },
       });
     }
   }
@@ -313,12 +513,14 @@ function pinMetadataFromOsmTags(
   if (hoursRaw) {
     fields.push({
       field_key: "opening_hours",
-      value: {
-        raw: hoursRaw,
-        display: formatOpeningHoursDisplay(hoursRaw),
-      },
+      value: { raw: hoursRaw, display: formatOpeningHoursDisplay(hoursRaw) },
     });
   }
+
+  fields.push({
+    field_key: "place_categories",
+    value: { food: isFoodPoi(tags), outdoor: isOutdoorPoi(tags) },
+  });
 
   return fields;
 }

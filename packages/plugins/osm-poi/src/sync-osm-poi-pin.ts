@@ -1,15 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { OSM_POI_PLUGIN_ID } from "./config";
 import { osmPoiSyncPin } from "./osm-poi-edge";
 import {
   osmPoiPayloadMatches,
   parseOsmPoiPinPayload,
+  type OsmPoiPinPayload,
 } from "./osm-poi-pin-data";
-import { OSM_POI_PLUGIN_ID } from "./config";
 
 export async function syncOsmPoiPin(
   supabase: SupabaseClient,
   args: { pinId: string; lat: number; lng: number },
-): Promise<ReturnType<typeof parseOsmPoiPinPayload>> {
+): Promise<OsmPoiPinPayload | null> {
   const { pinId, lat, lng } = args;
 
   const { data: row, error: readErr } = await supabase
@@ -29,6 +30,6 @@ export async function syncOsmPoiPin(
   const result = await osmPoiSyncPin(supabase, pinId);
   if ("error" in result) throw new Error(result.error);
   if ("skippedReason" in result) return null;
-
-  return result.payload;
+  if ("payload" in result) return result.payload;
+  return null;
 }

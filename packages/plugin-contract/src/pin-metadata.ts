@@ -12,7 +12,6 @@ export const PIN_METADATA_FIELD_KEYS = [
   "phone",
   "website",
   "email",
-  "place_facts",
   "place_categories",
 ] as const;
 
@@ -54,10 +53,6 @@ export type PinMetadataDietaryOptionsValue = {
   labels: string[];
 };
 
-export type PinMetadataPlaceFactsValue = {
-  facts: { label: string; value: string }[];
-};
-
 /** Hint for subtitle filtering (which tag families matched at sync time). */
 export type PinMetadataPlaceCategoriesValue = {
   food: boolean;
@@ -77,7 +72,6 @@ export type PinMetadataValueByKey = {
   wheelchair_access: PinMetadataWheelchairAccessValue;
   dog_policy: PinMetadataDogPolicyValue;
   dietary_options: PinMetadataDietaryOptionsValue;
-  place_facts: PinMetadataPlaceFactsValue;
   place_categories: PinMetadataPlaceCategoriesValue;
 };
 
@@ -154,10 +148,6 @@ export type PinMetadataDisplayItem =
       value: PinMetadataDietaryOptionsValue;
     })
   | (PinMetadataDisplayItemBase & {
-      fieldKey: "place_facts";
-      value: PinMetadataPlaceFactsValue;
-    })
-  | (PinMetadataDisplayItemBase & {
       fieldKey: "place_categories";
       value: PinMetadataPlaceCategoriesValue;
     });
@@ -175,7 +165,6 @@ const FIELD_LABELS: Record<PinMetadataFieldKey, string> = {
   phone: "Phone",
   website: "Website",
   email: "Email",
-  place_facts: "Details",
   place_categories: "Categories",
 };
 
@@ -196,7 +185,6 @@ export const PIN_METADATA_DISPLAY_ORDER: readonly PinMetadataFieldKey[] = [
   "phone",
   "website",
   "email",
-  "place_facts",
 ];
 
 export function isPinMetadataFieldKey(
@@ -293,26 +281,6 @@ function parseDietaryOptionsValue(
   return { labels: parsed };
 }
 
-function parsePlaceFactsValue(raw: unknown): PinMetadataPlaceFactsValue | null {
-  if (!raw || typeof raw !== "object") return null;
-  const facts = (raw as Record<string, unknown>).facts;
-  if (!Array.isArray(facts)) return null;
-  const parsed = facts
-    .map((fact) => {
-      if (!fact || typeof fact !== "object") return null;
-      const o = fact as Record<string, unknown>;
-      if (typeof o.label !== "string" || typeof o.value !== "string")
-        return null;
-      const label = o.label.trim();
-      const value = o.value.trim();
-      if (!label || !value) return null;
-      return { label, value };
-    })
-    .filter((fact): fact is { label: string; value: string } => fact != null);
-  if (parsed.length === 0) return null;
-  return { facts: parsed };
-}
-
 export function parsePinMetadataValue(
   fieldKey: PinMetadataFieldKey,
   raw: unknown,
@@ -338,8 +306,6 @@ export function parsePinMetadataValue(
       return parseDogPolicyValue(raw);
     case "dietary_options":
       return parseDietaryOptionsValue(raw);
-    case "place_facts":
-      return parsePlaceFactsValue(raw);
     case "place_categories": {
       if (!raw || typeof raw !== "object") return null;
       const o = raw as Record<string, unknown>;

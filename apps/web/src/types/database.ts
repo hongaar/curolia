@@ -35,6 +35,8 @@ export type CuroliaMap = {
   style_hillshades: boolean;
   /** Reference labels overlay when `style` is `satellite`. */
   style_satellite_labels: boolean;
+  /** Per-field pin metadata visibility (`{ fields: string[] }`). */
+  show_pin_metadata?: import("@/lib/database.types").Json | null;
   created_by_user_id: string;
   created_at: string;
   updated_at: string;

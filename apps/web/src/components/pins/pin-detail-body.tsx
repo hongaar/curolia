@@ -1,7 +1,7 @@
 import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger";
 import { PinLinksList } from "@/components/pins/pin-links-list";
-import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
+import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { pinDetailHref } from "@/lib/app-paths";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
@@ -12,6 +12,7 @@ import {
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
+import { usePinMetadataSubtitle } from "@/lib/use-pin-metadata-subtitle";
 import { useAuth } from "@/providers/auth-provider";
 import type { Photo, Pin } from "@/types/database";
 import {
@@ -19,11 +20,7 @@ import {
   OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
-import {
-  OSM_POI_PLUGIN_ID,
-  OsmPoiPinSubtitleContent,
-  useOsmPoiPinSubtitle,
-} from "@curolia/plugin-osm-poi";
+import { OSM_POI_PLUGIN_ID } from "@curolia/plugin-osm-poi";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import {
@@ -37,6 +34,7 @@ import {
   PinDetailTagRow,
   PinDetailTitle,
 } from "@curolia/ui/pin-detail";
+import { PinMetadataSubtitleContent } from "@curolia/ui/pin-metadata-subtitle";
 import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { Link2Icon } from "lucide-react";
@@ -127,13 +125,9 @@ export function PinDetailBody({
     pinEndDate: pin.end_date,
     queryEnabled: openMeteoGloballyEnabled,
   });
-  const osmPoiSubtitle = useOsmPoiPinSubtitle({
-    supabase,
+  const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin.id,
     mapId: pin.map_id,
-    lat: pin.lat,
-    lng: pin.lng,
-    queryEnabled: osmPoiGloballyEnabled,
   });
 
   const pinSubtitleRows = buildPinSubtitleRows({
@@ -143,8 +137,8 @@ export function PinDetailBody({
     weather: weatherSubtitle ? (
       <OpenMeteoPinWeatherSubtitle subtitle={weatherSubtitle} />
     ) : null,
-    enrichment: osmPoiSubtitle ? (
-      <OsmPoiPinSubtitleContent subtitle={osmPoiSubtitle} />
+    enrichment: metadataSubtitle ? (
+      <PinMetadataSubtitleContent subtitle={metadataSubtitle} />
     ) : null,
   });
 
@@ -204,7 +198,13 @@ export function PinDetailBody({
             onOpen={(photoId) => setPhotoLightbox({ photoId })}
           />
         ) : null}
-        <PinPlaceMetadataList pinId={pin.id} />
+        <PinPlaceMetadataList
+          pinId={pin.id}
+          mapId={pin.map_id}
+          lat={pin.lat}
+          lng={pin.lng}
+          osmPoiEnabled={osmPoiGloballyEnabled}
+        />
         <PinLinksList pinId={pin.id} />
         {enabledPlugins.map((p) => {
           const Section = p.PinDetailSection;

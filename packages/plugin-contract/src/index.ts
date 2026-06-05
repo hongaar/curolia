@@ -30,6 +30,28 @@ export {
   type MapPluginLike,
 } from "./map-config";
 export {
+  PIN_METADATA_SHOW_FIELD_KEYS,
+  PIN_METADATA_SHOW_GROUPS,
+  PIN_METADATA_SUBTITLE_FIELD_KEYS,
+  defaultPinMetadataShowSettings,
+  filterPinMetadataForDetailDisplay,
+  hasPinMetadataDetailDisplayEnabled,
+  isPinMetadataFieldShown,
+  isPinMetadataItemVisible,
+  isPinMetadataShowFieldKey,
+  isPinMetadataSubtitleField,
+  normalizePinMetadataShowSettings,
+  pinMetadataShowSelectItems,
+  pinMetadataShowSelectSummary,
+  pinMetadataShowSettingsEqual,
+  pinMetadataShowSettingsForStorage,
+  resolveMapPinMetadataShow,
+  type PinMetadataShowFieldKey,
+  type PinMetadataShowGroup,
+  type PinMetadataShowSettings,
+  type PinMetadataSubtitleFieldKey,
+} from "./map-pin-metadata-display";
+export {
   PIN_METADATA_DISPLAY_ORDER,
   PIN_METADATA_FIELD_KEYS,
   formatOpeningHoursDisplay,
@@ -52,7 +74,6 @@ export {
   type PinMetadataOpeningHoursValue,
   type PinMetadataPhoneValue,
   type PinMetadataPlaceCategoriesValue,
-  type PinMetadataPlaceFactsValue,
   type PinMetadataRow,
   type PinMetadataUpsert,
   type PinMetadataValueByKey,
@@ -63,6 +84,11 @@ export {
   replacePinMetadataForSource,
   type PublishPinMetadataArgs,
 } from "./pin-metadata-publish";
+export {
+  pinMetadataSubtitleFromRows,
+  type PinMetadataSubtitle,
+  type PinMetadataSubtitlePart,
+} from "./pin-metadata-subtitle";
 
 /** Pin photo suggestion payload (plugins return from Edge or client bridges). */
 export type PinPhotoSuggestionContext = {

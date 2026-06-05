@@ -8,7 +8,6 @@ import {
   Globe,
   Info,
   Leaf,
-  List,
   Mail,
   MapPin,
   Phone,
@@ -33,8 +32,7 @@ export type PinPlaceMetadataFieldKey =
   | "phone"
   | "website"
   | "opening_hours"
-  | "email"
-  | "place_facts";
+  | "email";
 
 const FIELD_LABELS: Record<PinPlaceMetadataFieldKey, string> = {
   place_name: "Name",
@@ -49,8 +47,19 @@ const FIELD_LABELS: Record<PinPlaceMetadataFieldKey, string> = {
   website: "Website",
   opening_hours: "Hours",
   email: "Email",
-  place_facts: "Details",
 };
+
+export function PinPlaceMetadataLoading({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={styles.panel}>
+      <p className={styles.loading}>{children}</p>
+    </div>
+  );
+}
 
 export function PinPlaceMetadataRoot({
   children,
@@ -60,11 +69,7 @@ export function PinPlaceMetadataRoot({
   footer?: React.ReactNode;
 }) {
   return (
-    <div
-      className={
-        footer ? `${styles.panel} ${styles.panelHasAttribution}` : styles.panel
-      }
-    >
+    <div className={styles.panel}>
       <dl className={styles.body}>{children}</dl>
       {footer ? <div className={styles.attribution}>{footer}</div> : null}
     </div>
@@ -103,29 +108,6 @@ export function PinPlaceMetadataMultiline({
   children: React.ReactNode;
 }) {
   return <span className={styles.multiline}>{children}</span>;
-}
-
-export function PinPlaceMetadataFactList({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <ul className={styles.factList}>{children}</ul>;
-}
-
-export function PinPlaceMetadataFactItem({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <li className={styles.factItem}>
-      <span className={styles.factLabel}>{label}</span>
-      <span className={styles.factValue}>{children}</span>
-    </li>
-  );
 }
 
 export function PinPlaceMetadataLink({
@@ -167,7 +149,11 @@ export function PinPlaceMetadataAttribution({
     labels.length === 1 ? `via ${labels[0]}` : `via ${labels.join(", ")}`;
 
   return (
-    <HoverTooltip content={tooltip}>
+    <HoverTooltip
+      content={tooltip}
+      side="top"
+      className={styles.attributionTooltipTrigger}
+    >
       <span className={styles.attributionTrigger} aria-label={tooltip}>
         <Info className={styles.attributionIcon} aria-hidden />
       </span>
@@ -214,8 +200,6 @@ function PinPlaceMetadataIcon({
       return <Globe className={className} aria-hidden />;
     case "email":
       return <Mail className={className} aria-hidden />;
-    case "place_facts":
-      return <List className={className} aria-hidden />;
     default:
       return null;
   }

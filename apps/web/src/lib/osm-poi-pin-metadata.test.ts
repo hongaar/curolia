@@ -14,7 +14,6 @@ describe("pinMetadataFromOsmTags", () => {
       opening_hours: "Mo-Fr 09:00-18:00; Sa 10:00-14:00",
       email: "hello@example.com",
       brand: "Local Roasters",
-      takeaway: "yes",
     });
 
     expect(fields).toEqual(
@@ -30,14 +29,6 @@ describe("pinMetadataFromOsmTags", () => {
         expect.objectContaining({
           fieldKey: "wheelchair_access",
           value: { level: "yes" },
-        }),
-        expect.objectContaining({
-          fieldKey: "place_facts",
-          value: expect.objectContaining({
-            facts: expect.arrayContaining([
-              { label: "Takeaway", value: "Yes" },
-            ]),
-          }),
         }),
         expect.objectContaining({
           fieldKey: "place_categories",
