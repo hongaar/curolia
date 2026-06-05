@@ -6,7 +6,7 @@ import type {
 
 export type WikidataSyncResponse =
   | {
-      skippedReason: "map_plugin_disabled" | "no_coordinates";
+      skippedReason: "no_coordinates";
       cleared?: boolean;
     }
   | {

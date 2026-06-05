@@ -60,9 +60,17 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
     );
   }
 
+  const pluginsWithMapSettings = implementedEnabled.filter(
+    (plugin) => plugin.MapSettingsPanel,
+  );
+
+  if (pluginsWithMapSettings.length === 0) {
+    return null;
+  }
+
   return (
     <>
-      {implementedEnabled.map((plugin) => {
+      {pluginsWithMapSettings.map((plugin) => {
         const Icon = plugin.icon;
         const title =
           plugin.contributions?.mapSettings?.title ?? plugin.displayName;

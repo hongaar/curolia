@@ -1,6 +1,5 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { WikidataIcon } from "./icon";
-import { WikidataMapSettingsPanel } from "./map-settings-panel";
 import { WikidataPinDetailSection } from "./pin-detail-section";
 import { WikidataPinDraftEnrichmentSlot } from "./pin-draft-enrichment-slot";
 import { WikidataPinFormSection } from "./pin-form-section";
@@ -13,15 +12,10 @@ export const wikidataPluginManifest: PluginPackageManifest = {
     "Show a short Wikipedia extract for the nearest notable place at each pin’s coordinates.",
   icon: WikidataIcon,
   implemented: wikidataPluginMeta.implemented,
-  MapSettingsPanel: WikidataMapSettingsPanel,
   PinDetailSection: WikidataPinDetailSection,
   PinFormSection: WikidataPinFormSection,
   PinDraftEnrichmentSlot: WikidataPinDraftEnrichmentSlot,
   contributions: {
-    mapSettings: {
-      panel: "inline",
-      title: "Wikipedia",
-    },
     appHooks: [
       {
         name: "pins.suggestFieldsFromCoordinates",

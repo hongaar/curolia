@@ -351,14 +351,6 @@ async function loadPinForUser(
     return { ok: false, status: 403, body: { error: "forbidden" } };
   }
 
-  if (!(await isMapPluginEnabled(admin, t.map_id))) {
-    return {
-      ok: false,
-      status: 403,
-      body: { error: "map_plugin_disabled" },
-    };
-  }
-
   return { ok: true, pin: t };
 }
 
@@ -401,20 +393,6 @@ async function assertMapMember(
     .eq("user_id", userId)
     .maybeSingle();
   return Boolean(data);
-}
-
-async function isMapPluginEnabled(
-  admin: ReturnType<typeof createClient>,
-  mapId: string,
-): Promise<boolean> {
-  const { data } = await admin
-    .from("map_plugins")
-    .select("enabled")
-    .eq("map_id", mapId)
-    .eq("plugin_type_id", "wikidata")
-    .maybeSingle();
-  if (!data) return true;
-  return data.enabled !== false;
 }
 
 Deno.serve(async (req: Request) => {
@@ -503,13 +481,6 @@ Deno.serve(async (req: Request) => {
 
     if (!(await assertMapMember(admin, mapId, userId))) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
-        status: 403,
-        headers: { ...cors(), "Content-Type": "application/json" },
-      });
-    }
-
-    if (!(await isMapPluginEnabled(admin, mapId))) {
-      return new Response(JSON.stringify({ error: "map_plugin_disabled" }), {
         status: 403,
         headers: { ...cors(), "Content-Type": "application/json" },
       });
@@ -707,23 +678,6 @@ Deno.serve(async (req: Request) => {
 
   const loaded = await loadPinForUser(admin, userId, body.pinId);
   if (!loaded.ok) {
-    if (loaded.status === 403 && loaded.body.error === "map_plugin_disabled") {
-      await admin
-        .from("plugin_entity_data")
-        .delete()
-        .eq("entity_type", "pin")
-        .eq("entity_id", body.pinId)
-        .eq("plugin_type_id", "wikidata");
-
-      return new Response(
-        JSON.stringify({ skippedReason: "map_plugin_disabled", cleared: true }),
-        {
-          status: 200,
-          headers: { ...cors(), "Content-Type": "application/json" },
-        },
-      );
-    }
-
     return new Response(JSON.stringify(loaded.body), {
       status: loaded.status,
       headers: { ...cors(), "Content-Type": "application/json" },

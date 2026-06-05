@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { isWikidataEnabledForMap } from "./config";
 import { wikidataPluginMeta } from "./plugin-meta";
 
 export function useWikidataPluginReady(
@@ -11,22 +10,6 @@ export function useWikidataPluginReady(
   },
 ) {
   const pid = wikidataPluginMeta.typeId;
-
-  const mapPluginQuery = useQuery({
-    queryKey: ["map_plugins", args.mapId, pid],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("map_plugins")
-        .select("enabled")
-        .eq("map_id", args.mapId)
-        .eq("plugin_type_id", pid)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: Boolean(args.mapId),
-    placeholderData: keepPreviousData,
-  });
 
   const userPluginQuery = useQuery({
     queryKey: ["user_plugins", args.userId, pid],
@@ -45,15 +28,11 @@ export function useWikidataPluginReady(
     placeholderData: keepPreviousData,
   });
 
-  const mapEnabled = isWikidataEnabledForMap(mapPluginQuery.data);
   const pluginReady =
-    mapEnabled &&
-    Boolean(userPluginQuery.data?.enabled) &&
-    wikidataPluginMeta.implemented;
+    Boolean(userPluginQuery.data?.enabled) && wikidataPluginMeta.implemented;
 
   return {
     pluginReady,
-    mapPluginQuery,
     userPluginQuery,
   };
 }
