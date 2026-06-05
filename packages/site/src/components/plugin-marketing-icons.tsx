@@ -241,14 +241,33 @@ export function OsmPoiIcon({ size = 5 }: IconProps) {
         height="100%"
       >
         <rect width="32" height="32" rx="6" fill="#7ebc6f" />
+        <path fill="#b1e479" d="M3 5c5 0 9 4 14 3s8-4 12-1v25H3V5z" />
         <path
-          fill="#fff"
-          fillOpacity="0.9"
-          d="M6 8h8v8H6zm12 0h8v8h-8zM6 18h8v8H6zm12 0h8v8h-8z"
+          fill="#9ec5e8"
+          fillOpacity="0.8"
+          d="M4 22c4-3 9-2 13 1s9 3 11 0v9H4v-10z"
+        />
+        <circle cx="16" cy="13" r="6.5" fill="#fff" fillOpacity="0.22" />
+        <circle
+          cx="16"
+          cy="13"
+          r="6.5"
+          fill="none"
+          stroke="#2d3335"
+          strokeWidth="2.5"
         />
         <path
-          fill="#2d6a4f"
-          d="M10 10h2v2h-2zm14 0h2v2h-2zM10 20h2v2h-2zm14 0h2v2h-2z"
+          stroke="#2d3335"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          d="M20.5 17.5 25.5 22.5"
+        />
+        <path
+          stroke="#6d7f42"
+          strokeWidth="0.9"
+          strokeLinecap="round"
+          fill="none"
+          d="M13 11.5h6M12.5 14.5h7M14 17h4"
         />
       </svg>
     </MarketingPluginIcon>
