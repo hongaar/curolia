@@ -10,5 +10,6 @@ export {
   MapMarkerPopoverSheetContent,
   MapMarkerPopoverSheetTitle,
   MapMarkerPopoverStatus,
+  MapMarkerPopoverStatusStack,
   MapMarkerPopoverTagRow,
 } from "./map-marker-popover";

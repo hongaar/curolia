@@ -312,8 +312,10 @@ export type Database = {
       pin_links: {
         Row: {
           created_at: string;
+          description: string | null;
           favicon_url: string | null;
           id: string;
+          image_url: string | null;
           map_id: string;
           pin_id: string;
           sort_order: number;
@@ -323,8 +325,10 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          description?: string | null;
           favicon_url?: string | null;
           id?: string;
+          image_url?: string | null;
           map_id: string;
           pin_id: string;
           sort_order?: number;
@@ -334,8 +338,10 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          description?: string | null;
           favicon_url?: string | null;
           id?: string;
+          image_url?: string | null;
           map_id?: string;
           pin_id?: string;
           sort_order?: number;
@@ -353,6 +359,54 @@ export type Database = {
           },
           {
             foreignKeyName: "pin_links_pin_id_fkey";
+            columns: ["pin_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pin_metadata: {
+        Row: {
+          created_at: string;
+          field_key: string;
+          id: string;
+          map_id: string;
+          pin_id: string;
+          source_plugin_id: string;
+          updated_at: string;
+          value: Json;
+        };
+        Insert: {
+          created_at?: string;
+          field_key: string;
+          id?: string;
+          map_id: string;
+          pin_id: string;
+          source_plugin_id: string;
+          updated_at?: string;
+          value?: Json;
+        };
+        Update: {
+          created_at?: string;
+          field_key?: string;
+          id?: string;
+          map_id?: string;
+          pin_id?: string;
+          source_plugin_id?: string;
+          updated_at?: string;
+          value?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pin_metadata_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pin_metadata_pin_id_fkey";
             columns: ["pin_id"];
             isOneToOne: false;
             referencedRelation: "pins";

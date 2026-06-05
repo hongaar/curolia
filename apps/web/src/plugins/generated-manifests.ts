@@ -6,8 +6,9 @@ import { pluginManifest as pluginManifest0 } from "@curolia/plugin-google-photos
 import { pluginManifest as pluginManifest1 } from "@curolia/plugin-ical";
 import { pluginManifest as pluginManifest2 } from "@curolia/plugin-lastfm";
 import { pluginManifest as pluginManifest3 } from "@curolia/plugin-open-meteo";
-import { pluginManifest as pluginManifest4 } from "@curolia/plugin-spotify";
-import { pluginManifest as pluginManifest5 } from "@curolia/plugin-wikidata";
+import { pluginManifest as pluginManifest4 } from "@curolia/plugin-osm-poi";
+import { pluginManifest as pluginManifest5 } from "@curolia/plugin-spotify";
+import { pluginManifest as pluginManifest6 } from "@curolia/plugin-wikidata";
 
 export const installedPluginManifests: PluginPackageManifest[] = [
   pluginManifest0,
@@ -16,4 +17,5 @@ export const installedPluginManifests: PluginPackageManifest[] = [
   pluginManifest3,
   pluginManifest4,
   pluginManifest5,
+  pluginManifest6,
 ];

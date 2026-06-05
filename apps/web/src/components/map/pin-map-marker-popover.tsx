@@ -3,8 +3,7 @@ import type { PinMapHandle } from "@/components/map/pin-map";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
-import { formatPinDetailSubtitle } from "@/lib/pin-dates";
-import { composePinDetailSubtitleParts } from "@/lib/pin-detail-subtitle";
+import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
 import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
@@ -16,6 +15,11 @@ import {
   OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
+import {
+  OSM_POI_PLUGIN_ID,
+  OsmPoiPinSubtitleContent,
+  useOsmPoiPinSubtitle,
+} from "@curolia/plugin-osm-poi";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
@@ -31,6 +35,7 @@ import {
   MapMarkerPopoverSheetContent,
   MapMarkerPopoverSheetTitle,
   MapMarkerPopoverStatus,
+  MapMarkerPopoverStatusStack,
   MapMarkerPopoverTagRow,
 } from "@curolia/ui/map-marker-popover";
 import { PinDetailTagBadge } from "@curolia/ui/pin-detail";
@@ -130,6 +135,9 @@ export function PinMapMarkerPopover({
   const openMeteoGloballyEnabled = enabledPlugins.some(
     (p) => p.id === OPEN_METEO_PLUGIN_ID,
   );
+  const osmPoiGloballyEnabled = enabledPlugins.some(
+    (p) => p.id === OSM_POI_PLUGIN_ID,
+  );
   const weatherSubtitle = useOpenMeteoPinSubtitle({
     supabase,
     pinId: pin?.id ?? pinId,
@@ -140,6 +148,17 @@ export function PinMapMarkerPopover({
     pinEndDate: pin?.end_date,
     queryEnabled:
       openMeteoGloballyEnabled &&
+      Boolean(pin?.id ?? pinId) &&
+      Boolean(pin?.map_id ?? mapId),
+  });
+  const osmPoiSubtitle = useOsmPoiPinSubtitle({
+    supabase,
+    pinId: pin?.id ?? pinId,
+    mapId: pin?.map_id ?? mapId ?? "",
+    lat: pin?.lat ?? 0,
+    lng: pin?.lng ?? 0,
+    queryEnabled:
+      osmPoiGloballyEnabled &&
       Boolean(pin?.id ?? pinId) &&
       Boolean(pin?.map_id ?? mapId),
   });
@@ -265,19 +284,20 @@ export function PinMapMarkerPopover({
     ? "Loading…"
     : pin?.title || "Untitled place";
 
-  const pinSubtitle =
+  const pinSubtitleRows =
     pin && !wrongMap
-      ? composePinDetailSubtitleParts(
-          formatPinDetailSubtitle(
-            pinLocationLabel(pin),
-            pin.date,
-            pin.end_date,
-          ),
-          weatherSubtitle ? (
+      ? buildPinSubtitleRows({
+          date: pin.date,
+          endDate: pin.end_date,
+          locationLabel: pinLocationLabel(pin),
+          weather: weatherSubtitle ? (
             <OpenMeteoPinWeatherSubtitle subtitle={weatherSubtitle} />
           ) : null,
-        )
-      : null;
+          enrichment: osmPoiSubtitle ? (
+            <OsmPoiPinSubtitleContent subtitle={osmPoiSubtitle} />
+          ) : null,
+        })
+      : [];
 
   const detailHref =
     mapSlug?.trim() && pin ? pinDetailHref(mapSlug.trim(), pin.slug) : "#";
@@ -309,8 +329,8 @@ export function PinMapMarkerPopover({
         </MapMarkerPopoverStatus>
       ) : (
         <>
-          {pinSubtitle ? (
-            <MapMarkerPopoverStatus>{pinSubtitle}</MapMarkerPopoverStatus>
+          {pinSubtitleRows.length > 0 ? (
+            <MapMarkerPopoverStatusStack rows={pinSubtitleRows} />
           ) : null}
           {tagBadges.length > 0 ? (
             <MapMarkerPopoverTagRow>

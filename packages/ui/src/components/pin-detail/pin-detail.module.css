@@ -27,8 +27,15 @@
   letter-spacing: -0.025em;
 }
 
-.detailSubtitle {
+.detailSubtitleStack {
   margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.detailSubtitle {
+  margin: 0;
   font-size: 0.875rem;
   color: var(--muted-foreground);
 }

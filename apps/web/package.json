@@ -28,6 +28,7 @@
     "@curolia/plugin-ical": "file:../../packages/plugins/ical",
     "@curolia/plugin-lastfm": "file:../../packages/plugins/lastfm",
     "@curolia/plugin-open-meteo": "file:../../packages/plugins/open-meteo",
+    "@curolia/plugin-osm-poi": "file:../../packages/plugins/osm-poi",
     "@curolia/plugin-spotify": "file:../../packages/plugins/spotify",
     "@curolia/plugin-wikidata": "file:../../packages/plugins/wikidata",
     "@curolia/site": "file:../../packages/site",

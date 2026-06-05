@@ -1,3 +1,4 @@
+import { formatPinDateRange } from "@/lib/pin-dates";
 import { Fragment, type ReactNode } from "react";
 
 /** Join location/date and optional plugin fragments for pin detail subtitle. */
@@ -27,5 +28,32 @@ export function composePinDetailSubtitleParts(
         </Fragment>
       ))}
     </>
+  );
+}
+
+export type PinSubtitleRowArgs = {
+  date?: string | null;
+  endDate?: string | null;
+  locationLabel?: string | null;
+  weather?: ReactNode | null;
+  enrichment?: ReactNode | null;
+};
+
+/** Build stacked subtitle rows: dates, then location + weather, then enrichment. */
+export function buildPinSubtitleRows({
+  date,
+  endDate,
+  locationLabel,
+  weather,
+  enrichment,
+}: PinSubtitleRowArgs): (ReactNode | null)[] {
+  const dateRow = formatPinDateRange(date, endDate) || null;
+  const locationWeatherRow = composePinDetailSubtitleParts(
+    locationLabel?.trim() || null,
+    weather ?? null,
+  );
+  const enrichmentRow = enrichment ?? null;
+  return [dateRow, locationWeatherRow, enrichmentRow].filter(
+    (row) => row != null && row !== "" && row !== false,
   );
 }

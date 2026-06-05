@@ -64,6 +64,27 @@ export function MapMarkerPopoverStatus({
   return <p className={styles.status}>{children}</p>;
 }
 
+/** Stacked status rows for pin subtitles (dates, location/weather, enrichment). */
+export function MapMarkerPopoverStatusStack({
+  rows,
+}: {
+  rows: (React.ReactNode | null | undefined | false)[];
+}) {
+  const filtered = rows.filter(
+    (row) => row != null && row !== "" && row !== false,
+  );
+  if (filtered.length === 0) return null;
+  return (
+    <div className={styles.statusStack}>
+      {filtered.map((row, index) => (
+        <p key={index} className={styles.status}>
+          {row}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export function MapMarkerPopoverTagRow({
   children,
 }: {

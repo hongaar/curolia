@@ -116,9 +116,25 @@ export type PinLink = {
   url: string;
   /** Page title imported from the URL when added (editable). */
   title: string | null;
+  /** Page description imported from the URL when added. */
+  description: string | null;
+  /** Preview image URL imported from the URL when added. */
+  image_url: string | null;
   /** Resolved favicon URL discovered when the link was added. */
   favicon_url: string | null;
   sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Provider-agnostic structured facts on a pin (`pin_metadata`). */
+export type PinMetadata = {
+  id: string;
+  map_id: string;
+  pin_id: string;
+  field_key: string;
+  source_plugin_id: string;
+  value: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };
@@ -255,6 +271,23 @@ export type Database = {
           map_id?: string;
         };
         Update: Partial<PinLink>;
+      };
+      pin_metadata: {
+        Row: PinMetadata;
+        Insert: Omit<
+          PinMetadata,
+          "id" | "map_id" | "created_at" | "updated_at"
+        > & {
+          id?: string;
+          /** Set automatically by trigger from the parent pin. */
+          map_id?: string;
+        };
+        Update: Partial<
+          Pick<
+            PinMetadata,
+            "field_key" | "source_plugin_id" | "value" | "map_id" | "pin_id"
+          >
+        >;
       };
       plugin_entity_data: {
         Row: PluginEntityData;

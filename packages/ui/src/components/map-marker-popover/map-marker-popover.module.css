@@ -58,7 +58,14 @@
   gap: 0.75rem;
 }
 
+.statusStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .status {
+  margin: 0;
   font-size: 0.875rem;
   color: var(--muted-foreground);
 }

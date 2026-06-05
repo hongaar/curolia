@@ -30,6 +30,27 @@ export function PinDetailSubtitle({ children }: { children: React.ReactNode }) {
   return <p className={styles.detailSubtitle}>{children}</p>;
 }
 
+/** Stacked subtitle rows (dates, location/weather, enrichment). */
+export function PinDetailSubtitleStack({
+  rows,
+}: {
+  rows: (React.ReactNode | null | undefined | false)[];
+}) {
+  const filtered = rows.filter(
+    (row) => row != null && row !== "" && row !== false,
+  );
+  if (filtered.length === 0) return null;
+  return (
+    <div className={styles.detailSubtitleStack}>
+      {filtered.map((row, index) => (
+        <p key={index} className={styles.detailSubtitle}>
+          {row}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export function PinDetailTagRow({ children }: { children: React.ReactNode }) {
   return <div className={styles.tagRow}>{children}</div>;
 }

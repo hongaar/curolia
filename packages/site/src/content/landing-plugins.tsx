@@ -7,6 +7,7 @@ import {
   IcalIcon,
   LastfmIcon,
   OpenMeteoIcon,
+  OsmPoiIcon,
   SpotifyIcon,
   StravaIcon,
   WikipediaIcon,
@@ -64,6 +65,13 @@ export const landingPlugins: LandingPlugin[] = [
     description: "Current and historical weather on pins",
     status: "available",
     icon: () => <OpenMeteoIcon size={6} />,
+  },
+  {
+    id: "osm-poi",
+    name: "OpenStreetMap",
+    description: "Nearby place tags—cafés, accessibility, campsites",
+    status: "available",
+    icon: () => <OsmPoiIcon size={6} />,
   },
   {
     id: "strava",
