@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { useStoryArgs } from "../../storybook/args";
+import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { storyFrameStyles } from "../../storybook/story-frame";
 import { Label } from "../label";
 import { Switch } from "./switch";
@@ -21,7 +21,47 @@ export const Default: Story = {
   parameters: storyDocs("Controlled switch paired with a label."),
   args: {
     checked: false,
+    size: "default",
   },
+  render: function Render() {
+    const [{ checked, size }, updateArgs] = useStoryArgs<{
+      checked: boolean;
+      size: "sm" | "default";
+    }>();
+    return (
+      <Label className={storyFrameStyles.labelGap}>
+        <Switch
+          size={size}
+          checked={checked}
+          onCheckedChange={(value) => updateArgs({ checked: value === true })}
+        />
+        {checked ? "On" : "Off"}
+      </Label>
+    );
+  },
+};
+
+export const Small: Story = {
+  parameters: storyDocs('`size="sm"` compact switch.'),
+  args: { checked: false, size: "sm" },
+  render: function Render() {
+    const [{ checked }, updateArgs] = useStoryArgs<{ checked: boolean }>();
+    return (
+      <Label className={storyFrameStyles.labelGap}>
+        <Switch
+          size="sm"
+          checked={checked}
+          onCheckedChange={(value) => updateArgs({ checked: value === true })}
+        />
+        Small
+      </Label>
+    );
+  },
+};
+
+export const Checked: Story = {
+  parameters: storyDocs("Pre-checked switch."),
+  args: { checked: true },
   render: function Render() {
     const [{ checked }, updateArgs] = useStoryArgs<{ checked: boolean }>();
     return (
@@ -30,8 +70,19 @@ export const Default: Story = {
           checked={checked}
           onCheckedChange={(value) => updateArgs({ checked: value === true })}
         />
-        {checked ? "Enabled" : "Disabled"}
+        On
       </Label>
     );
   },
+};
+
+export const Disabled: Story = {
+  parameters: storyDocs("`disabled` blocks interaction."),
+  args: { checked: false, disabled: true },
+  render: (args) => (
+    <Label className={storyFrameStyles.labelGap}>
+      <Switch {...args} />
+      Disabled
+    </Label>
+  ),
 };

@@ -21,3 +21,11 @@ export const Default: Story = {
     onClick: () => undefined,
   },
 };
+
+export const CustomLabel: Story = {
+  parameters: storyDocs("Custom `label` for context-specific navigation."),
+  args: {
+    label: "Map settings",
+    onClick: () => undefined,
+  },
+};

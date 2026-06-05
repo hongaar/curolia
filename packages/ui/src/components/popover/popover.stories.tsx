@@ -45,7 +45,13 @@ export const Default: Story = {
   ),
 };
 
-export const Positioning: Story = {
+type PositioningArgs = {
+  side: "top" | "bottom" | "left" | "right";
+  align: "start" | "center" | "end";
+  sideOffset: number;
+};
+
+export const Positioning: StoryObj<PositioningArgs> = {
   parameters: storyDocs(
     "`side`, `align`, and `sideOffset` on `PopoverContent` control placement.",
   ),
@@ -66,11 +72,7 @@ export const Positioning: Story = {
     sideOffset: { control: { type: "number", min: 0, max: 32 } },
   },
   render: function PositioningStory(args) {
-    const { side, align, sideOffset } = args as {
-      side: "top" | "bottom" | "left" | "right";
-      align: "start" | "center" | "end";
-      sideOffset: number;
-    };
+    const { side, align, sideOffset } = args;
     return (
       <div className={styles.positioningDemo}>
         <Popover defaultOpen>

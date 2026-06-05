@@ -38,3 +38,38 @@ export const Default: Story = {
     );
   },
 };
+
+export const Empty: Story = {
+  parameters: storyDocs("Empty value with placeholder copy."),
+  args: {
+    value: "",
+    placeholder: "Notes about this place…",
+    rows: 4,
+  },
+  render: function Render(args) {
+    const [value, setValue] = useState(args.value);
+    return (
+      <StoryFrame width="md">
+        <MarkdownEditor {...args} value={value} onChange={setValue} />
+      </StoryFrame>
+    );
+  },
+};
+
+export const Disabled: Story = {
+  parameters: storyDocs("`disabled` read-only editor."),
+  args: {
+    value: "Saved description text.",
+    placeholder: "Notes about this place…",
+    rows: 4,
+    disabled: true,
+  },
+  render: function Render(args) {
+    const [value, setValue] = useState(args.value);
+    return (
+      <StoryFrame width="md">
+        <MarkdownEditor {...args} value={value} onChange={setValue} />
+      </StoryFrame>
+    );
+  },
+};

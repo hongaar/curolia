@@ -27,10 +27,10 @@ const meta = {
     logoSrc: "/favicon.png",
     brandLabel: "Curolia",
   },
-} satisfies Meta<typeof MainToolbar>;
+} satisfies Meta;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 function DemoMapPicker() {
   return (

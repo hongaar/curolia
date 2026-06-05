@@ -48,3 +48,33 @@ export const Default: Story = {
     </StoryFrame>
   ),
 };
+
+export const Small: Story = {
+  parameters: storyDocs('`size="sm"` compact card padding.'),
+  render: () => (
+    <StoryFrame width="md">
+      <Card size="sm">
+        <CardHeader>
+          <CardTitle>Compact card</CardTitle>
+          <CardDescription>Smaller inner spacing.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p style={{ margin: 0 }}>Card body content.</p>
+        </CardContent>
+      </Card>
+    </StoryFrame>
+  ),
+};
+
+export const ContentOnly: Story = {
+  parameters: storyDocs("Content region without header or footer."),
+  render: () => (
+    <StoryFrame width="md">
+      <Card>
+        <CardContent>
+          <p style={{ margin: 0 }}>Standalone card body.</p>
+        </CardContent>
+      </Card>
+    </StoryFrame>
+  ),
+};

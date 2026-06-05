@@ -28,3 +28,16 @@ export const Default: Story = {
     </StoryFrame>
   ),
 };
+
+export const Empty: Story = {
+  parameters: storyDocs("Empty or whitespace `markdown` renders nothing."),
+  args: { markdown: "" },
+  render: (args) => (
+    <StoryFrame width="md">
+      <MarkdownContent {...args} />
+      <p style={{ margin: "1rem 0 0", fontSize: "0.875rem", opacity: 0.6 }}>
+        (No content above — component returned null.)
+      </p>
+    </StoryFrame>
+  ),
+};

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { toast } from "sonner";
+import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryRow } from "../../storybook/story-frame";
 import { Button } from "../button";
 import { Toaster } from "./sonner";
@@ -24,9 +24,27 @@ export const Default: Story = {
       <Toaster />
       <StoryRow>
         <Button variant="outline" onClick={() => toast("Event saved")}>
-          Show toast
+          Default
         </Button>
         <Button onClick={() => toast.success("Pin saved")}>Success</Button>
+        <Button
+          variant="outline"
+          onClick={() => toast.error("Could not save pin")}
+        >
+          Error
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => toast.warning("Map is read-only")}
+        >
+          Warning
+        </Button>
+        <Button variant="outline" onClick={() => toast.info("Syncing photos…")}>
+          Info
+        </Button>
+        <Button variant="outline" onClick={() => toast.loading("Uploading…")}>
+          Loading
+        </Button>
       </StoryRow>
     </>
   ),
