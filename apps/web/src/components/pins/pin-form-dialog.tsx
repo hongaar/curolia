@@ -710,6 +710,8 @@ export function PinFormDialog({
           pin_id: pinId,
           url: pendingLink.finalUrl || pendingLink.url,
           title: pendingLink.title,
+          description: pendingLink.description,
+          image_url: pendingLink.imageUrl,
           favicon_url: pendingLink.faviconUrl,
           sort_order: 0,
         });

@@ -1,5 +1,6 @@
 import { isValidLatLng, parseLatLngPair, pickBestLocation } from "./coords.ts";
 import type { ExtractedLocation } from "./types.ts";
+import { extractTitleFromUrl } from "./url-title.ts";
 
 function loc(
   lat: number,
@@ -46,29 +47,34 @@ function googleMaps(url: URL): ExtractedLocation | null {
     (host.endsWith(".google.com") && url.pathname.startsWith("/maps"));
   if (!isMapsContext) return null;
 
+  const label = extractTitleFromUrl(url);
+
   const place3d = url.href.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
   if (place3d) {
     const found = loc(
       Number(place3d[1]),
       Number(place3d[2]),
       "google-maps:!3d4d",
+      label,
     );
     if (found) return found;
   }
 
   const at = url.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
   if (at) {
-    const found = loc(Number(at[1]), Number(at[2]), "google-maps:@");
+    const found = loc(Number(at[1]), Number(at[2]), "google-maps:@", label);
     if (found) return found;
   }
 
   const ll = url.searchParams.get("ll");
   if (ll) {
     const pair = parseLatLngPair(ll);
-    if (pair) return loc(pair.lat, pair.lng, "google-maps:ll");
+    if (pair) return loc(pair.lat, pair.lng, "google-maps:ll", label);
   }
 
-  return fromQueryParams(url, "google-maps:query");
+  const fromQuery = fromQueryParams(url, "google-maps:query");
+  if (fromQuery && label) return { ...fromQuery, label };
+  return fromQuery;
 }
 
 function appleMaps(url: URL): ExtractedLocation | null {

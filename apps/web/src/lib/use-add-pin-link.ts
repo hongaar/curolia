@@ -15,11 +15,15 @@ export function useAddPinLink(pinId: string | undefined, mapId: string) {
       const normalized = normalizeUrlInput(rawUrl);
       if (!normalized) throw new Error("Enter a valid http(s) URL.");
       let title: string | null = null;
+      let description: string | null = null;
+      let imageUrl: string | null = null;
       let faviconUrl: string | null = null;
       let urlToStore = normalized;
       try {
         const meta = await fetchLinkMetadata(normalized);
         title = meta.title;
+        description = meta.description;
+        imageUrl = meta.imageUrl;
         faviconUrl = meta.faviconUrl;
         urlToStore = meta.finalUrl || normalized;
       } catch (e) {
@@ -34,6 +38,8 @@ export function useAddPinLink(pinId: string | undefined, mapId: string) {
         pin_id: pinId,
         url: urlToStore,
         title,
+        description,
+        image_url: imageUrl,
         favicon_url: faviconUrl,
         sort_order: sortOrder,
       });

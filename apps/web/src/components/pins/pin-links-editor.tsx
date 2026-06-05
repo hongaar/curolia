@@ -1,5 +1,5 @@
 import { LinkFavicon } from "@/components/pins/pin-links-list";
-import { linkDisplayDomain } from "@/lib/pin-links";
+import { linkDisplayDomain, linkDisplayTitle } from "@/lib/pin-links";
 import { supabase } from "@/lib/supabase";
 import { useAddPinLink } from "@/lib/use-add-pin-link";
 import { usePinLinks } from "@/lib/use-pin-links";
@@ -108,7 +108,7 @@ type PinLinkEditorRowProps = {
 
 function PinLinkEditorRow({ link, onRemove, removing }: PinLinkEditorRowProps) {
   const domain = link.url ? linkDisplayDomain(link.url) : "";
-  const title = (link.title ?? "").trim() || domain || link.url;
+  const title = linkDisplayTitle(link);
   return (
     <PinLinkRowEditor>
       <LinkFavicon faviconUrl={link.favicon_url} domain={domain} />

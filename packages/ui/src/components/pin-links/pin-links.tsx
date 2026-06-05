@@ -11,16 +11,21 @@ export function PinLinksListRoot({ children }: { children: React.ReactNode }) {
 export function PinLinkRowLink({
   href,
   children,
+  variant = "compact",
 }: {
   href: string;
   children: React.ReactNode;
+  variant?: "compact" | "preview";
 }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={styles.rowLink}
+      className={cn(
+        styles.rowLink,
+        variant === "compact" && styles.rowLinkCompact,
+      )}
     >
       {children}
     </a>
@@ -63,6 +68,49 @@ export function PinLinkRowTitleLink({
 
 export function PinLinkRowDomain({ children }: { children: React.ReactNode }) {
   return <p className={styles.rowDomain}>{children}</p>;
+}
+
+export function PinLinkRowDescription({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.rowDescription}>{children}</p>;
+}
+
+export function PinLinkRowPreview({ children }: { children: React.ReactNode }) {
+  return <div className={styles.rowPreview}>{children}</div>;
+}
+
+export function PinLinkRowPreviewImage({
+  src,
+  onError,
+}: {
+  src: string;
+  onError?: () => void;
+}) {
+  return (
+    <img
+      src={src}
+      alt=""
+      className={styles.previewImage}
+      loading="lazy"
+      referrerPolicy="strict-origin-when-cross-origin"
+      onError={onError}
+    />
+  );
+}
+
+export function PinLinkRowPreviewBody({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.previewBody}>{children}</div>;
+}
+
+export function PinLinkRowHeader({ children }: { children: React.ReactNode }) {
+  return <div className={styles.rowHeader}>{children}</div>;
 }
 
 export function PinLinkExternalIcon() {

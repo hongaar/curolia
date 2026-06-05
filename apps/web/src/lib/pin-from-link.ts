@@ -65,6 +65,8 @@ export async function createPinFromLinkMetadata({
     pin_id: row.id,
     url: urlToStore,
     title: meta.title,
+    description: meta.description,
+    image_url: meta.imageUrl,
     favicon_url: meta.faviconUrl,
     sort_order: 0,
   });

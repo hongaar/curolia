@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { ExternalLink, Globe } from "lucide-react";
-import { linkDisplayDomain } from "@/lib/pin-links";
+import { linkDisplayDomain, linkDisplayTitle } from "@/lib/pin-links";
 import { usePinLinks } from "@/lib/use-pin-links";
 import type { PinLink } from "@/types/database";
 import {
   PinLinkExternalIcon,
   PinLinkFavicon,
   PinLinkRowBody,
+  PinLinkRowDescription,
   PinLinkRowDomain,
+  PinLinkRowHeader,
   PinLinkRowLink,
+  PinLinkRowPreview,
+  PinLinkRowPreviewBody,
+  PinLinkRowPreviewImage,
   PinLinkRowTitle,
   PinLinksListRoot,
 } from "@curolia/ui/pin-links";
@@ -38,16 +42,55 @@ type PinLinkRowProps = {
 
 export function PinLinkRow({ link }: PinLinkRowProps) {
   const domain = link.url ? linkDisplayDomain(link.url) : "";
-  const title = (link.title ?? "").trim() || domain || link.url;
+  const title = linkDisplayTitle(link);
+  const description = (link.description ?? "").trim();
+  const imageUrl = (link.image_url ?? "").trim();
+  const hasPreview = Boolean(description || imageUrl);
+
+  if (!hasPreview) {
+    return (
+      <PinLinkRowLink href={link.url} variant="compact">
+        <LinkFavicon faviconUrl={link.favicon_url} domain={domain} />
+        <PinLinkRowBody>
+          <PinLinkRowTitle>{title}</PinLinkRowTitle>
+          {domain ? <PinLinkRowDomain>{domain}</PinLinkRowDomain> : null}
+        </PinLinkRowBody>
+        <PinLinkExternalIcon />
+      </PinLinkRowLink>
+    );
+  }
+
   return (
-    <PinLinkRowLink href={link.url}>
-      <LinkFavicon faviconUrl={link.favicon_url} domain={domain} />
-      <PinLinkRowBody>
-        <PinLinkRowTitle>{title}</PinLinkRowTitle>
-        {domain ? <PinLinkRowDomain>{domain}</PinLinkRowDomain> : null}
-      </PinLinkRowBody>
+    <PinLinkRowLink href={link.url} variant="preview">
+      <PinLinkRowPreview>
+        {imageUrl ? <LinkPreviewImage imageUrl={imageUrl} /> : null}
+        <PinLinkRowPreviewBody>
+          <PinLinkRowHeader>
+            <LinkFavicon faviconUrl={link.favicon_url} domain={domain} />
+            <PinLinkRowBody>
+              <PinLinkRowTitle>{title}</PinLinkRowTitle>
+              {domain ? <PinLinkRowDomain>{domain}</PinLinkRowDomain> : null}
+            </PinLinkRowBody>
+          </PinLinkRowHeader>
+          {description ? (
+            <PinLinkRowDescription>{description}</PinLinkRowDescription>
+          ) : null}
+        </PinLinkRowPreviewBody>
+      </PinLinkRowPreview>
       <PinLinkExternalIcon />
     </PinLinkRowLink>
+  );
+}
+
+type LinkPreviewImageProps = {
+  imageUrl: string;
+};
+
+function LinkPreviewImage({ imageUrl }: LinkPreviewImageProps) {
+  const [errored, setErrored] = useState(false);
+  if (errored) return null;
+  return (
+    <PinLinkRowPreviewImage src={imageUrl} onError={() => setErrored(true)} />
   );
 }
 
@@ -67,5 +110,3 @@ export function LinkFavicon({ faviconUrl, domain }: LinkFaviconProps) {
     />
   );
 }
-
-export { Globe, ExternalLink };

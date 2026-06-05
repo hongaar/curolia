@@ -2,6 +2,7 @@ import { parsePageMetadata } from "./html-parse.ts";
 import { domainFromUrl } from "./normalize-url.ts";
 import type { ExtractedLocation, LinkMetadataExtract } from "./types.ts";
 import { extractLocationFromUrl } from "./url-location.ts";
+import { resolveLinkTitle } from "./url-title.ts";
 
 export type AssembleLinkMetadataInput = {
   /** User-supplied URL (normalized). */
@@ -51,16 +52,21 @@ export function assembleLinkMetadata(
   }
 
   const location = mergeLocations(urlLocation, htmlLocation);
+  const resolvedTitle = resolveLinkTitle({
+    parsedTitle: title,
+    finalUrl: input.finalUrl,
+    locationLabel: location?.label,
+  });
   const locationWithLabel =
-    location && !location.label && title
-      ? { ...location, label: title }
+    location && !location.label && resolvedTitle
+      ? { ...location, label: resolvedTitle }
       : location;
 
   return {
     url: input.url,
     finalUrl: input.finalUrl,
     domain: domainFromUrl(final),
-    title,
+    title: resolvedTitle,
     description,
     faviconUrl,
     imageUrl,

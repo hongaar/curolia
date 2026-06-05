@@ -51,6 +51,82 @@ export function linkDisplayDomain(url: string): string {
   }
 }
 
+const GENERIC_LINK_TITLES = [
+  /^google maps$/i,
+  /^maps\s*[-–—]?\s*google$/i,
+  /^apple maps$/i,
+  /^maps$/i,
+];
+
+function isGenericLinkTitle(title: string): boolean {
+  return GENERIC_LINK_TITLES.some((pattern) => pattern.test(title));
+}
+
+function decodeUrlSegment(segment: string): string {
+  try {
+    return decodeURIComponent(segment.replace(/\+/g, " "));
+  } catch {
+    return segment.replace(/\+/g, " ");
+  }
+}
+
+function looksLikeCoordinates(value: string): boolean {
+  return /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/.test(value.trim());
+}
+
+/** Place or query name embedded in common map URL patterns. */
+export function linkTitleFromUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./i, "");
+    const isGoogleMaps =
+      host === "maps.google.com" ||
+      host === "maps.app.goo.gl" ||
+      parsed.pathname.startsWith("/maps") ||
+      (host.endsWith(".google.com") && parsed.pathname.startsWith("/maps"));
+
+    if (isGoogleMaps) {
+      const place = parsed.pathname.match(/\/maps\/place\/([^/@]+)/i);
+      if (place?.[1]) return decodeUrlSegment(place[1]).trim() || null;
+
+      const search = parsed.pathname.match(/\/maps\/search\/([^/@?]+)/i);
+      if (search?.[1]) return decodeUrlSegment(search[1]).trim() || null;
+
+      for (const key of ["q", "query", "place"]) {
+        const value = parsed.searchParams.get(key);
+        if (!value || looksLikeCoordinates(value)) continue;
+        const label = decodeUrlSegment(value).trim();
+        if (label) return label;
+      }
+    }
+
+    if (host.includes("maps.apple.com")) {
+      for (const key of ["q", "address", "name"]) {
+        const value = parsed.searchParams.get(key);
+        if (!value || looksLikeCoordinates(value)) continue;
+        const label = decodeUrlSegment(value).trim();
+        if (label) return label;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** Best label for a stored pin link (handles generic titles like "Google Maps"). */
+export function linkDisplayTitle(link: {
+  title: string | null;
+  url: string;
+}): string {
+  const stored = (link.title ?? "").trim();
+  if (stored && !isGenericLinkTitle(stored)) return stored;
+  const fromUrl = linkTitleFromUrl(link.url);
+  if (fromUrl) return fromUrl;
+  const domain = link.url ? linkDisplayDomain(link.url) : "";
+  return stored || domain || link.url;
+}
+
 export async function fetchLinkMetadata(url: string): Promise<LinkMetadata> {
   const { data, error } = await supabase.functions.invoke<{
     url?: string;

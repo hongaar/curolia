@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assembleLinkMetadata } from "./extract.ts";
 import { parsePageMetadata } from "./html-parse.ts";
 import { extractLocationFromUrl } from "./url-location.ts";
+import { extractTitleFromUrl, resolveLinkTitle } from "./url-title.ts";
 
 describe("extractLocationFromUrl", () => {
   it("parses Google Maps @ coordinates", () => {
@@ -60,6 +61,54 @@ describe("parsePageMetadata", () => {
   });
 });
 
+describe("extractTitleFromUrl", () => {
+  it("reads Google Maps place path", () => {
+    expect(
+      extractTitleFromUrl(
+        "https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z",
+      ),
+    ).toBe("Eiffel Tower");
+  });
+
+  it("reads Google Maps search path", () => {
+    expect(
+      extractTitleFromUrl(
+        "https://www.google.com/maps/search/coffee+shop/@37.77,-122.41,14z",
+      ),
+    ).toBe("coffee shop");
+  });
+
+  it("reads Google Maps q= query", () => {
+    expect(
+      extractTitleFromUrl("https://maps.google.com/maps?q=Central+Park"),
+    ).toBe("Central Park");
+  });
+});
+
+describe("resolveLinkTitle", () => {
+  it("replaces generic Google Maps page title with URL place name", () => {
+    expect(
+      resolveLinkTitle({
+        parsedTitle: "Google Maps",
+        finalUrl:
+          "https://www.google.com/maps/place/Louvre+Museum/@48.8606,2.3376,17z",
+        locationLabel: null,
+      }),
+    ).toBe("Louvre Museum");
+  });
+
+  it("keeps a specific parsed title", () => {
+    expect(
+      resolveLinkTitle({
+        parsedTitle: "Louvre Museum — Google Maps",
+        finalUrl:
+          "https://www.google.com/maps/place/Louvre+Museum/@48.8606,2.3376,17z",
+        locationLabel: "Louvre Museum",
+      }),
+    ).toBe("Louvre Museum — Google Maps");
+  });
+});
+
 describe("assembleLinkMetadata", () => {
   it("prefers URL coords over HTML when both present", () => {
     const html = `<html><head>
@@ -72,5 +121,21 @@ describe("assembleLinkMetadata", () => {
       html,
     });
     expect(result.location).toMatchObject({ lat: 37.33, lng: -122.03 });
+  });
+
+  it("uses place name from Google Maps URL when HTML title is generic", () => {
+    const html = `<html><head><title>Google Maps</title></head><body></body></html>`;
+    const result = assembleLinkMetadata({
+      url: "https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z",
+      finalUrl:
+        "https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z",
+      html,
+    });
+    expect(result.title).toBe("Eiffel Tower");
+    expect(result.location).toMatchObject({
+      lat: 48.8584,
+      lng: 2.2945,
+      label: "Eiffel Tower",
+    });
   });
 });
