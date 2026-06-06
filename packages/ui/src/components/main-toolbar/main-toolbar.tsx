@@ -19,10 +19,20 @@ export type MainToolbarProps = {
 export function MainToolbarBrand({
   logoSrc = "/favicon.png",
   label = "Curolia",
+  /** Mobile map overlay: fixed light/dark wordmark over the basemap (ignores app theme). */
+  overlayNameTone,
 }: {
   logoSrc?: string;
   label?: string;
+  overlayNameTone?: "light" | "dark";
 }) {
+  const brandNameClassName =
+    overlayNameTone === "light"
+      ? `${styles.brandName} ${styles.brandNameOverlayLight}`
+      : overlayNameTone === "dark"
+        ? `${styles.brandName} ${styles.brandNameOverlayDark}`
+        : styles.brandName;
+
   return (
     <>
       <img
@@ -34,7 +44,7 @@ export function MainToolbarBrand({
         className={styles.brandIcon}
         aria-hidden
       />
-      <span className={styles.brandName}>{label}</span>
+      <span className={brandNameClassName}>{label}</span>
     </>
   );
 }
