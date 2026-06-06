@@ -4,7 +4,7 @@ import {
 } from "@curolia/plugin-contract";
 import { OSM_POI_PLUGIN_ID } from "./config";
 
-/** Backend sync registration for the OSM POI plugin (consumed by manifest + map settings). */
+/** Backend sync registration for the OSM POI plugin (dispatch registry only). */
 export const osmPoiSyncRegistry = {
   pluginTypeId: OSM_POI_PLUGIN_ID,
   events: [PLUGIN_SYNC_EVENT_PIN_COORDINATES_CHANGED] as const,

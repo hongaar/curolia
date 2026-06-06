@@ -7,7 +7,7 @@ import type {
 export type OsmPoiSyncResponse =
   | { synced: true; payload: OsmPoiPinPayload }
   | { synced: false; reason: "nothing_nearby"; payload: OsmPoiPinPayload }
-  | { skippedReason: "map_plugin_disabled" | "no_coordinates" }
+  | { skippedReason: "plugin_disabled" | "no_coordinates" }
   | { error: string };
 
 export type OsmPoiListCandidatesResponse =

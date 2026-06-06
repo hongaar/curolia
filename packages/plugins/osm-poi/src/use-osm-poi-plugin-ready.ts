@@ -1,33 +1,37 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { isOsmPoiEnabledForMap, OSM_POI_PLUGIN_ID } from "./config";
+import { OSM_POI_PLUGIN_ID } from "./config";
 import { osmPoiPluginMeta } from "./plugin-meta";
 
 export function useOsmPoiPluginReady(
   supabase: SupabaseClient,
-  args: { mapId: string },
+  args: {
+    userId?: string | null;
+    mapId: string;
+  },
 ) {
-  const mapPluginQuery = useQuery({
-    queryKey: ["map_plugins", args.mapId, OSM_POI_PLUGIN_ID],
+  const userPluginQuery = useQuery({
+    queryKey: ["user_plugins", args.userId, OSM_POI_PLUGIN_ID],
     queryFn: async () => {
+      if (!args.userId) return null;
       const { data, error } = await supabase
-        .from("map_plugins")
-        .select("enabled, config")
-        .eq("map_id", args.mapId)
+        .from("user_plugins")
+        .select("enabled")
+        .eq("user_id", args.userId)
         .eq("plugin_type_id", OSM_POI_PLUGIN_ID)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
-    enabled: Boolean(args.mapId),
+    enabled: Boolean(args.userId),
     placeholderData: keepPreviousData,
   });
 
   const pluginReady =
-    isOsmPoiEnabledForMap(mapPluginQuery.data) && osmPoiPluginMeta.implemented;
+    Boolean(userPluginQuery.data?.enabled) && osmPoiPluginMeta.implemented;
 
   return {
     pluginReady,
-    mapPluginQuery,
+    userPluginQuery,
   };
 }

@@ -1086,24 +1086,24 @@ Deno.serve(async (req: Request) => {
     return { ok: true, pin: t };
   }
 
-  async function assertMapPluginEnabled(
-    mapId: string,
+  async function assertUserPluginEnabled(
+    asSkippedReason = false,
   ): Promise<Response | null> {
-    const { data: mapPlugin } = await admin
-      .from("map_plugins")
+    const { data: userPlugin } = await admin
+      .from("user_plugins")
       .select("enabled")
-      .eq("map_id", mapId)
+      .eq("user_id", userId)
       .eq("plugin_type_id", PLUGIN_TYPE_ID)
       .maybeSingle();
 
-    if (!mapPlugin || mapPlugin.enabled !== true) {
-      return new Response(
-        JSON.stringify({ skippedReason: "map_plugin_disabled" }),
-        {
-          status: 200,
-          headers: { ...cors(), "Content-Type": "application/json" },
-        },
-      );
+    if (!userPlugin?.enabled) {
+      const body = asSkippedReason
+        ? { skippedReason: "plugin_disabled" }
+        : { error: "plugin_disabled" };
+      return new Response(JSON.stringify(body), {
+        status: asSkippedReason ? 200 : 403,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
     }
     return null;
   }
@@ -1125,7 +1125,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const disabled = await assertMapPluginEnabled(loaded.pin.map_id);
+    const disabled = await assertUserPluginEnabled();
     if (disabled) return disabled;
 
     const lat = loaded.pin.lat;
@@ -1186,7 +1186,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const disabled = await assertMapPluginEnabled(loaded.pin.map_id);
+    const disabled = await assertUserPluginEnabled();
     if (disabled) return disabled;
 
     const lat = loaded.pin.lat;
@@ -1256,6 +1256,9 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const disabled = await assertUserPluginEnabled();
+    if (disabled) return disabled;
+
     await admin
       .from("plugin_entity_data")
       .delete()
@@ -1293,7 +1296,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const t = loaded.pin;
-  const disabled = await assertMapPluginEnabled(t.map_id);
+  const disabled = await assertUserPluginEnabled(true);
   if (disabled) return disabled;
 
   const lat = t.lat;

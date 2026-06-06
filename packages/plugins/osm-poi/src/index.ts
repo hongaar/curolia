@@ -1,8 +1,4 @@
-export {
-  OSM_POI_PLUGIN_ID,
-  isOsmPoiEnabledForMap,
-  type OsmPoiMapPluginRow,
-} from "./config";
+export { OSM_POI_PLUGIN_ID } from "./config";
 export {
   OSM_POI_CACHE_MAX_AGE_MS,
   OSM_POI_COORD_EPSILON,
@@ -10,7 +6,6 @@ export {
   OSM_POI_SEARCH_RADIUS_M,
 } from "./constants";
 export { osmPoiPluginManifest as pluginManifest } from "./manifest";
-export { OsmPoiMapSettingsPanel } from "./map-settings-panel";
 export {
   osmPoiClearPinPoi,
   osmPoiListNearbyCandidates,

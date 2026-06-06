@@ -6,12 +6,13 @@ import { useOsmPoiPluginReady } from "./use-osm-poi-plugin-ready";
 /** Card header (icon + name) is provided by the pin editor shell. */
 export function OsmPoiPinFormSection({
   supabase,
+  userId,
   mapId,
   pinId,
   pinLat,
   pinLng,
 }: PinContextProps) {
-  const { pluginReady } = useOsmPoiPluginReady(supabase, { mapId });
+  const { pluginReady } = useOsmPoiPluginReady(supabase, { userId, mapId });
 
   const lat = pinLat ?? null;
   const lng = pinLng ?? null;

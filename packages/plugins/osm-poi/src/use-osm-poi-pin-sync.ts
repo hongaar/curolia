@@ -13,11 +13,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import {
-  isOsmPoiEnabledForMap,
-  OSM_POI_PLUGIN_ID,
-  type OsmPoiMapPluginRow,
-} from "./config";
+import { OSM_POI_PLUGIN_ID } from "./config";
 import { osmMetadataIsFreshForPayload } from "./osm-poi-metadata-sync";
 import {
   osmPoiPayloadMatches,
@@ -37,12 +33,12 @@ export type UseOsmPoiPinSyncArgs = {
   mapId: string;
   lat: number;
   lng: number;
-  /** When false, skips map plugin lookup and POI fetch. */
+  /** When false, skips POI metadata fetch (e.g. plugin disabled account-wide). */
   queryEnabled?: boolean;
 };
 
 export type OsmPoiPinSyncState = {
-  mapEnabled: boolean;
+  pluginEnabled: boolean;
   canSync: boolean;
   isMetadataLoading: boolean;
   showSettings: PinMetadataShowSettings;
@@ -60,22 +56,6 @@ export function useOsmPoiPinSync({
 }: UseOsmPoiPinSyncArgs): OsmPoiPinSyncState {
   const qc = useQueryClient();
 
-  const mapPluginQuery = useQuery({
-    queryKey: ["map_plugins", mapId, OSM_POI_PLUGIN_ID],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("map_plugins")
-        .select("enabled, config")
-        .eq("map_id", mapId)
-        .eq("plugin_type_id", OSM_POI_PLUGIN_ID)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: Boolean(mapId) && queryEnabled,
-    placeholderData: keepPreviousData,
-  });
-
   const showMetadataQuery = useQuery({
     queryKey: ["maps", mapId, "show_pin_metadata"],
     queryFn: async () => {
@@ -91,16 +71,13 @@ export function useOsmPoiPinSync({
     placeholderData: keepPreviousData,
   });
 
-  const mapEnabled = isOsmPoiEnabledForMap(
-    mapPluginQuery.data as OsmPoiMapPluginRow | undefined,
-  );
+  const pluginEnabled = queryEnabled;
   const showSettings = resolveMapPinMetadataShow(
     showMetadataQuery.data?.show_pin_metadata,
   );
 
   const canSync =
-    queryEnabled &&
-    mapEnabled &&
+    pluginEnabled &&
     Boolean(pinId) &&
     Boolean(mapId) &&
     Number.isFinite(lat) &&
@@ -206,7 +183,7 @@ export function useOsmPoiPinSync({
         (metadataQuery.isFetching || !metadataIsFresh)));
 
   return {
-    mapEnabled,
+    pluginEnabled,
     canSync,
     isMetadataLoading,
     showSettings,
