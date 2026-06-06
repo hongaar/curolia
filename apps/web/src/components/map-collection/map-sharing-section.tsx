@@ -234,9 +234,6 @@ export function MapSharingSection({
       queryKey: ["map_member_role", mapId, user?.id],
     });
     void qc.invalidateQueries({ queryKey: ["map_plugins", mapId] });
-    void qc.invalidateQueries({
-      queryKey: ["map_ical_feed_token", mapId],
-    });
     void qc.invalidateQueries({ queryKey: ["maps", user?.id] });
     toast.success("Ownership transferred");
   }
@@ -532,8 +529,8 @@ export function MapSharingSection({
               <PanelDialogHeader>
                 <PanelDialogTitle>Transfer ownership</PanelDialogTitle>
                 <DialogDescription>
-                  This cannot be undone from here. Connectors and iCal tokens
-                  for this map will be cleared.
+                  This cannot be undone from here. Plugins for this map will be
+                  cleared.
                 </DialogDescription>
               </PanelDialogHeader>
               <PanelDialogBody>

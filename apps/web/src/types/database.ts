@@ -74,12 +74,6 @@ export type Pin = {
   updated_at: string;
 };
 
-export type MapIcalFeedToken = {
-  map_id: string;
-  token: string;
-  created_at: string;
-};
-
 export type Tag = {
   id: string;
   map_id: string;
@@ -316,11 +310,6 @@ export type Database = {
           id?: string;
         };
         Update: Partial<UserPlugin>;
-      };
-      map_ical_feed_tokens: {
-        Row: MapIcalFeedToken;
-        Insert: { map_id: string; token?: string };
-        Update: Partial<Pick<MapIcalFeedToken, "token">>;
       };
       map_invitations: {
         Row: MapInvitation;

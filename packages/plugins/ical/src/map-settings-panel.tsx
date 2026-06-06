@@ -16,40 +16,11 @@ import {
   PluginStatusText,
 } from "@curolia/ui/plugin-panel";
 import { Switch } from "@curolia/ui/switch";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 import { ICAL_PLUGIN_ID, parseIcalMapConfig } from "./config";
 import { icalFeedPublicUrl } from "./ical-feed-url";
-
-async function ensureIcalFeedToken(
-  supabase: MapSettingsPanelProps["supabase"],
-  mapId: string,
-): Promise<string> {
-  const first = await supabase
-    .from("map_ical_feed_tokens")
-    .select("token")
-    .eq("map_id", mapId)
-    .maybeSingle();
-  if (first.error) throw first.error;
-  if (first.data?.token) return first.data.token as string;
-
-  const ins = await supabase
-    .from("map_ical_feed_tokens")
-    .insert({ map_id: mapId })
-    .select("token")
-    .single();
-  if (!ins.error && ins.data?.token) return ins.data.token as string;
-
-  const again = await supabase
-    .from("map_ical_feed_tokens")
-    .select("token")
-    .eq("map_id", mapId)
-    .single();
-  if (again.error) throw ins.error ?? again.error;
-  if (!again.data?.token) throw new Error("Could not create feed token");
-  return again.data.token as string;
-}
 
 export function IcalMapSettingsPanel({
   supabase,
@@ -62,31 +33,16 @@ export function IcalMapSettingsPanel({
   const qc = useQueryClient();
   const parsed = parseIcalMapConfig(mapPluginConfigRecord(jp));
 
-  const tokenQuery = useQuery({
-    queryKey: ["map_ical_feed_token", mapId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("map_ical_feed_tokens")
-        .select("token")
-        .eq("map_id", mapId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data?.token as string | null | undefined) ?? null;
-    },
-    enabled: Boolean(mapId) && pluginGloballyEnabled && parsed.publishFeed,
-  });
-
   const saveConfig = useMutation({
     mutationFn: async (next: { publishFeed: boolean }) => {
-      let token: string | null = tokenQuery.data ?? null;
-      if (next.publishFeed) {
-        token = await ensureIcalFeedToken(supabase, mapId);
-      }
-      const config = mergeMapPluginConfig(
-        ICAL_PLUGIN_ID,
-        mapPluginConfigRecord(jp),
-        { publishFeed: next.publishFeed },
-      );
+      const existing = mapPluginConfigRecord(jp);
+      const feedToken =
+        parsed.feedToken ??
+        (next.publishFeed ? crypto.randomUUID() : undefined);
+      const config = mergeMapPluginConfig(ICAL_PLUGIN_ID, existing, {
+        publishFeed: next.publishFeed,
+        ...(feedToken ? { feedToken } : {}),
+      });
       const { error } = await supabase.from("map_plugins").upsert(
         {
           map_id: mapId,
@@ -99,13 +55,9 @@ export function IcalMapSettingsPanel({
         { onConflict: "map_id,plugin_type_id" },
       );
       if (error) throw error;
-      return { token: next.publishFeed ? token : null };
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["map_plugins", mapId] });
-      await qc.invalidateQueries({
-        queryKey: ["map_ical_feed_token", mapId],
-      });
     },
     onError: (e) => {
       toast.error(
@@ -115,8 +67,8 @@ export function IcalMapSettingsPanel({
   });
 
   const feedUrl =
-    parsed.publishFeed && tokenQuery.data && supabaseUrl
-      ? icalFeedPublicUrl(supabaseUrl, tokenQuery.data)
+    parsed.publishFeed && parsed.feedToken && supabaseUrl
+      ? icalFeedPublicUrl(supabaseUrl, parsed.feedToken)
       : null;
 
   return (
@@ -148,7 +100,7 @@ export function IcalMapSettingsPanel({
       ) : null}
       {parsed.publishFeed && pluginGloballyEnabled ? (
         <div>
-          {tokenQuery.isLoading ? (
+          {saveConfig.isPending ? (
             <PluginStatusText size="sm">Preparing feed URL…</PluginStatusText>
           ) : feedUrl ? (
             <>

@@ -34,32 +34,6 @@ export type Database = {
   };
   public: {
     Tables: {
-      map_ical_feed_tokens: {
-        Row: {
-          created_at: string;
-          map_id: string;
-          token: string;
-        };
-        Insert: {
-          created_at?: string;
-          map_id: string;
-          token?: string;
-        };
-        Update: {
-          created_at?: string;
-          map_id?: string;
-          token?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "map_ical_feed_tokens_map_id_fkey";
-            columns: ["map_id"];
-            isOneToOne: true;
-            referencedRelation: "maps";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       map_invitations: {
         Row: {
           created_at: string;
@@ -530,7 +504,7 @@ export type Database = {
           entity_id: string;
           entity_type: string;
           id: string;
-          map_id: string;
+          map_id: string | null;
           plugin_type_id: string;
           updated_at: string;
         };
@@ -540,7 +514,7 @@ export type Database = {
           entity_id: string;
           entity_type: string;
           id?: string;
-          map_id: string;
+          map_id?: string | null;
           plugin_type_id: string;
           updated_at?: string;
         };
@@ -550,7 +524,7 @@ export type Database = {
           entity_id?: string;
           entity_type?: string;
           id?: string;
-          map_id?: string;
+          map_id?: string | null;
           plugin_type_id?: string;
           updated_at?: string;
         };
@@ -593,6 +567,66 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [];
+      };
+      plugin_sync_jobs: {
+        Row: {
+          attempts: number;
+          created_at: string;
+          entity_id: string;
+          entity_type: string;
+          event: string;
+          id: string;
+          last_error: string | null;
+          map_id: string;
+          payload: Json;
+          plugin_type_id: string;
+          status: Database["public"]["Enums"]["plugin_sync_job_status"];
+          updated_at: string;
+        };
+        Insert: {
+          attempts?: number;
+          created_at?: string;
+          entity_id: string;
+          entity_type?: string;
+          event: string;
+          id?: string;
+          last_error?: string | null;
+          map_id: string;
+          payload?: Json;
+          plugin_type_id: string;
+          status?: Database["public"]["Enums"]["plugin_sync_job_status"];
+          updated_at?: string;
+        };
+        Update: {
+          attempts?: number;
+          created_at?: string;
+          entity_id?: string;
+          entity_type?: string;
+          event?: string;
+          id?: string;
+          last_error?: string | null;
+          map_id?: string;
+          payload?: Json;
+          plugin_type_id?: string;
+          status?: Database["public"]["Enums"]["plugin_sync_job_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "plugin_sync_jobs_entity_id_fkey";
+            columns: ["entity_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "plugin_sync_jobs_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -938,6 +972,7 @@ export type Database = {
         | "map_invitation_accepted"
         | "map_ownership_received";
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
+      plugin_sync_job_status: "pending" | "processing" | "completed" | "failed";
       push_delivery_status: "pending" | "sent" | "failed";
     };
     CompositeTypes: {
@@ -1081,6 +1116,7 @@ export const Constants = {
         "map_ownership_received",
       ],
       plugin_link_status: ["disabled", "pending", "error", "connected"],
+      plugin_sync_job_status: ["pending", "processing", "completed", "failed"],
       push_delivery_status: ["pending", "sent", "failed"],
     },
   },

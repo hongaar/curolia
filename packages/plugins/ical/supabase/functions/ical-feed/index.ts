@@ -124,20 +124,29 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
-  const { data: feedRow, error: feedErr } = await admin
-    .from("map_ical_feed_tokens")
-    .select("map_id")
-    .eq("token", token)
+  const { data: pluginRow, error: pluginErr } = await admin
+    .from("map_plugins")
+    .select("map_id, config")
+    .eq("plugin_type_id", "ical")
+    .filter("config->>feedToken", "eq", token)
     .maybeSingle();
 
-  if (feedErr || !feedRow?.map_id) {
+  if (pluginErr || !pluginRow?.map_id) {
     return new Response("Not found", {
       status: 404,
       headers: { "Access-Control-Allow-Origin": "*" },
     });
   }
 
-  const mapId = feedRow.map_id as string;
+  const mapId = pluginRow.map_id as string;
+  const cfg = pluginRow.config as Record<string, unknown> | null;
+  const publish = cfg?.publishFeed === true;
+  if (!publish) {
+    return new Response("Not found", {
+      status: 404,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
+  }
 
   const { data: ownerRow, error: ownerErr } = await admin
     .from("map_members")
@@ -161,29 +170,6 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (ucErr || !uc?.enabled) {
-    return new Response("Not found", {
-      status: 404,
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
-  }
-
-  const { data: jc, error: jcErr } = await admin
-    .from("map_plugins")
-    .select("config")
-    .eq("map_id", mapId)
-    .eq("plugin_type_id", "ical")
-    .maybeSingle();
-
-  if (jcErr || !jc) {
-    return new Response("Not found", {
-      status: 404,
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
-  }
-
-  const cfg = jc.config as Record<string, unknown> | null;
-  const publish = cfg?.publishFeed === true;
-  if (!publish) {
     return new Response("Not found", {
       status: 404,
       headers: { "Access-Control-Allow-Origin": "*" },
