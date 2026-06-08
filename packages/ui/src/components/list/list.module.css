@@ -159,8 +159,33 @@
   transition: background 150ms;
 }
 
+.selectListItem:first-child .selectListLabel {
+  border-top-left-radius: calc(var(--radius-xl) - 1px);
+  border-top-right-radius: calc(var(--radius-xl) - 1px);
+}
+
+.selectListItem:last-child .selectListLabel {
+  border-bottom-left-radius: calc(var(--radius-xl) - 1px);
+  border-bottom-right-radius: calc(var(--radius-xl) - 1px);
+}
+
 .selectListItemSelected .selectListLabel {
   background: color-mix(in oklch, var(--primary) 8%, transparent);
+}
+
+.selectListItemDisabled .selectListLabel {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.selectListItemDisabled .selectListLabel:hover,
+.selectListItemDisabled.selectListItemSelected .selectListLabel:hover {
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
+}
+
+.selectListItemDisabled .selectListLabel:focus-within {
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
+  box-shadow: none;
 }
 
 .selectListLabel:hover {

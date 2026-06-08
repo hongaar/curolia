@@ -52,8 +52,23 @@ export type CachedExportData = {
   };
 };
 
-function collectionId(name: string): string {
+export function collectionId(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, "-");
+}
+
+export function listSourceToOptionId(source: ImportSource): string {
+  return source.type === "starred" ? "starred" : collectionId(source.name);
+}
+
+export function mergeImportedListIds(
+  existing: string[] | undefined,
+  sources: ImportSource[],
+): string[] {
+  const next = new Set(existing ?? []);
+  for (const source of sources) {
+    next.add(listSourceToOptionId(source));
+  }
+  return [...next];
 }
 
 export function listTagNameForSource(source: ImportSource): string {

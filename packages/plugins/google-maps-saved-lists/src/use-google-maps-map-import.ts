@@ -20,8 +20,8 @@ import {
 } from "./google-maps-saved-lists-edge";
 import {
   buildGoogleMapsImportListOptions,
-  GOOGLE_MAPS_STARRED_LIST_ID,
   listOptionIdFromSource,
+  resolveImportedListOptionIds,
 } from "./import-list-options";
 import {
   formatImportSummary,
@@ -49,11 +49,9 @@ export function useGoogleMapsMapImport({
   const qc = useQueryClient();
   const parsed = parseGoogleMapsSavedListsMapConfig(mapPluginConfigRecord(jp));
 
-  const [selectedListIds, setSelectedListIds] = useState<Set<string>>(() => {
-    const saved = parsed.importedListIds;
-    if (saved?.length) return new Set(saved);
-    return new Set([GOOGLE_MAPS_STARRED_LIST_ID]);
-  });
+  const [selectedListIds, setSelectedListIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [wizardImportResult, setWizardImportResult] =
     useState<WizardImportSessionResult | null>(null);
 
@@ -98,13 +96,26 @@ export function useGoogleMapsMapImport({
   );
 
   const importedListIds = useMemo(() => {
-    if (parsed.importedListIds?.length) return parsed.importedListIds;
     const job = statusQuery.data?.importJob ?? parsed.importJob;
-    if (job?.status === "completed") {
-      return [...new Set(job.sources.map(listOptionIdFromSource))];
-    }
-    return [];
-  }, [parsed.importedListIds, parsed.importJob, statusQuery.data?.importJob]);
+    return resolveImportedListOptionIds({
+      configIds: parsed.importedListIds,
+      statusIds: statusQuery.data?.importedListIds,
+      completedJobSources:
+        job?.status === "completed" ? job.sources : undefined,
+      options: importListOptions,
+    });
+  }, [
+    parsed.importedListIds,
+    parsed.importJob,
+    statusQuery.data?.importJob,
+    statusQuery.data?.importedListIds,
+    importListOptions,
+  ]);
+
+  const importedListIdSet = useMemo(
+    () => new Set(importedListIds),
+    [importedListIds],
+  );
 
   const importJob = statusQuery.data?.importJob ?? parsed.importJob;
   const lastSyncAt = statusQuery.data?.lastSyncAt ?? parsed.lastSyncAt;
@@ -117,6 +128,7 @@ export function useGoogleMapsMapImport({
   const importSessionActiveRef = useRef(false);
   const discoverySessionActiveRef = useRef(false);
   const repairedStaleImportRef = useRef(false);
+  const selectionRestoredRef = useRef(false);
 
   const saveConfig = useMutation({
     mutationFn: async (patch: {
@@ -218,8 +230,15 @@ export function useGoogleMapsMapImport({
   }, [listDiscoveryJob?.status, listDiscoveryJob?.id]);
 
   useEffect(() => {
-    if (!wizardOpen || importListOptions.length === 0) return;
+    if (!wizardOpen) {
+      selectionRestoredRef.current = false;
+      return;
+    }
+    if (selectionRestoredRef.current || importListOptions.length === 0) return;
+
+    selectionRestoredRef.current = true;
     if (importedListIds.length === 0) return;
+
     const valid = new Set(importListOptions.map((option) => option.id));
     const restored = new Set(importedListIds.filter((id) => valid.has(id)));
     if (restored.size > 0) {
@@ -229,13 +248,19 @@ export function useGoogleMapsMapImport({
 
   useEffect(() => {
     if (importListOptions.length === 0) return;
+    const valid = new Set(importListOptions.map((option) => option.id));
     setSelectedListIds((current) => {
-      const valid = new Set(importListOptions.map((option) => option.id));
       const next = new Set([...current].filter((id) => valid.has(id)));
-      if (next.size > 0) return next;
-      const saved = importedListIds.filter((id) => valid.has(id));
-      if (saved.length > 0) return new Set(saved);
-      return new Set([importListOptions[0]!.id]);
+      for (const id of importedListIds) {
+        if (valid.has(id)) next.add(id);
+      }
+      if (
+        next.size === current.size &&
+        [...current].every((id) => next.has(id))
+      ) {
+        return current;
+      }
+      return next;
     });
   }, [importListOptions, importedListIds]);
 
@@ -315,9 +340,12 @@ export function useGoogleMapsMapImport({
   const selectedSources = useMemo(
     () =>
       importListOptions
-        .filter((option) => selectedListIds.has(option.id))
+        .filter(
+          (option) =>
+            selectedListIds.has(option.id) && !importedListIdSet.has(option.id),
+        )
         .map((option) => option.source),
-    [importListOptions, selectedListIds],
+    [importListOptions, selectedListIds, importedListIdSet],
   );
 
   const startDownloadMut = useMutation({
@@ -407,10 +435,14 @@ export function useGoogleMapsMapImport({
     listDiscoveryActive;
 
   function toggleListId(id: string, checked: boolean) {
+    if (importedListIdSet.has(id)) return;
     setSelectedListIds((current) => {
       const next = new Set(current);
       if (checked) next.add(id);
       else next.delete(id);
+      for (const importedId of importedListIds) {
+        next.add(importedId);
+      }
       return next;
     });
   }
@@ -420,7 +452,8 @@ export function useGoogleMapsMapImport({
   }
 
   function deselectAllLists() {
-    setSelectedListIds(new Set());
+    const valid = new Set(importListOptions.map((option) => option.id));
+    setSelectedListIds(new Set(importedListIds.filter((id) => valid.has(id))));
   }
 
   const resolvedHasExportCache =

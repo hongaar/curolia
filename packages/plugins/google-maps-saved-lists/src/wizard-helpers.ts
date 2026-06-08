@@ -450,7 +450,7 @@ export function buildImportTaskProgress(args: {
   const selectionDetail =
     args.selectedSources.length > 0
       ? `Import ${formatListCount(args.selectedSources.length)} (${formatPlaceCount(args.selectedPlaceCount)}) to this map. Each list becomes a tag on the pins.`
-      : "Select lists on the previous step to import.";
+      : "No lists selected. Go back to choose lists or close this wizard.";
 
   if (args.wizardImportResult?.status === "completed") {
     return {
@@ -500,7 +500,8 @@ export function buildImportTaskProgress(args: {
 
   return {
     title: "Importing to map",
-    phase: "Ready to import",
+    phase:
+      args.selectedSources.length > 0 ? "Ready to import" : "Nothing to import",
     detail: selectionDetail,
     status: "unstarted",
     progress: 0,

@@ -225,14 +225,21 @@ export function CheckListOption<T extends string>({
   description,
   meta,
   icon,
+  disabled: optionDisabled = false,
 }: {
   value: T;
   label: string;
   description?: string;
   meta?: ReactNode;
   icon?: ReactNode;
+  disabled?: boolean;
 }) {
-  const { selected, onToggle, disabled } = useCheckListContext<T>();
+  const {
+    selected,
+    onToggle,
+    disabled: listDisabled,
+  } = useCheckListContext<T>();
+  const disabled = listDisabled || optionDisabled;
   const checked = selected.has(value);
 
   return (
@@ -240,13 +247,17 @@ export function CheckListOption<T extends string>({
       className={cn(
         styles.selectListItem,
         checked && styles.selectListItemSelected,
+        optionDisabled && styles.selectListItemDisabled,
       )}
     >
       <label className={styles.selectListLabel}>
         <Checkbox
           checked={checked}
           disabled={disabled}
-          onCheckedChange={(next) => onToggle(value, next === true)}
+          onCheckedChange={(next) => {
+            if (optionDisabled) return;
+            onToggle(value, next === true);
+          }}
         />
         {icon ? <span className={styles.selectListIcon}>{icon}</span> : null}
         <span className={styles.selectListBody}>

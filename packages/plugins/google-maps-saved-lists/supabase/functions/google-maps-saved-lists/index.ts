@@ -16,6 +16,7 @@ import {
   loadCachedExport,
   loadUserExportPluginData,
   mergeCachedExport,
+  mergeImportedListIds,
   parseExportBundle,
   patchUserExportPluginData,
   placesForSource,
@@ -229,6 +230,7 @@ type MapPluginConfig = {
   lastSyncAt?: string;
   lastSyncSummary?: Record<string, unknown>;
   importJob?: ImportJob;
+  importedListIds?: string[];
 };
 
 type ListDiscoveryJobStatus =
@@ -506,6 +508,7 @@ async function runImportJob(
           ...cfg,
           lastSyncAt: now,
           lastSyncSummary: aggregate,
+          importedListIds: mergeImportedListIds(cfg.importedListIds, sources),
           importJob: {
             id: jobId,
             status: "completed",
@@ -1088,6 +1091,7 @@ async function handleSyncStatus(
     lastSyncAt: cfg.lastSyncAt,
     lastSyncSummary: cfg.lastSyncSummary,
     importJob: cfg.importJob,
+    importedListIds: cfg.importedListIds,
   });
 }
 

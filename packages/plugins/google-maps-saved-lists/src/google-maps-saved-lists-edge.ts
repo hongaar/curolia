@@ -40,6 +40,7 @@ export type GoogleMapsSyncStatusResponse = {
   lastSyncAt?: string;
   lastSyncSummary?: GoogleMapsSavedListsSyncSummary;
   importJob?: GoogleMapsImportJob;
+  importedListIds?: string[];
 };
 
 async function invoke<T>(

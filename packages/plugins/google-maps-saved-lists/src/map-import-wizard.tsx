@@ -54,6 +54,7 @@ export function GoogleMapsMapImportWizard({
     pluginGloballyEnabled,
     linked,
     selectedListIds,
+    importedListIds,
     toggleListId,
     selectAllLists,
     deselectAllLists,
@@ -78,18 +79,25 @@ export function GoogleMapsMapImportWizard({
   } = state;
 
   const currentStep = WIZARD_STEPS[step] ?? WIZARD_STEPS[0];
+  const importedListIdSet = new Set(importedListIds);
+  const importableListOptions = importListOptions.filter(
+    (option) => !importedListIdSet.has(option.id),
+  );
   const allListsSelected =
-    importListOptions.length > 0 &&
-    importListOptions.every((option) => selectedListIds.has(option.id));
+    importableListOptions.length > 0 &&
+    importableListOptions.every((option) => selectedListIds.has(option.id));
+  const hasImportedLists = importedListIds.length > 0;
 
   const canAdvanceFromIntro = pluginGloballyEnabled && linked && !readOnly;
   const canAdvanceFromDownload =
     hasExportCache && !listDiscoveryActive && !listDiscoveryFailed;
-  const canAdvanceFromLists =
-    selectedListIds.size > 0 && importListOptions.length > 0;
+  const canAdvanceFromLists = importListOptions.length > 0;
 
   const selectedPlaceCount = importListOptions
-    .filter((option) => selectedListIds.has(option.id))
+    .filter(
+      (option) =>
+        selectedListIds.has(option.id) && !importedListIdSet.has(option.id),
+    )
     .reduce((sum, option) => sum + option.itemCount, 0);
 
   function formatListCount(count: number): string {
@@ -116,7 +124,11 @@ export function GoogleMapsMapImportWizard({
   }
 
   function handleListsPrimary() {
-    handleImport();
+    if (selectedSources.length > 0) {
+      handleImport();
+    } else {
+      clearWizardImportResult();
+    }
     setStep(3);
   }
 
@@ -130,7 +142,7 @@ export function GoogleMapsMapImportWizard({
       return listDiscoveryFailed ? "Try again" : "Continue";
     }
     if (currentStep.id === "lists") {
-      const listTotal = selectedListIds.size;
+      const listTotal = selectedSources.length;
       if (listTotal === 0) return "Add to map";
       const listLabel = formatListCount(listTotal);
       const placeLabel = formatPlaceCount(selectedPlaceCount);
@@ -181,6 +193,12 @@ export function GoogleMapsMapImportWizard({
 
   const importStepComplete = wizardImportResult?.status === "completed";
   const importStepFailed = wizardImportResult?.status === "failed";
+  const importStepSkipped =
+    currentStep.id === "import" &&
+    selectedSources.length === 0 &&
+    !importInProgress &&
+    !importMut.isPending &&
+    !importStepFailed;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -265,8 +283,11 @@ export function GoogleMapsMapImportWizard({
                   Your Google Maps lists
                 </PluginSettingsTitle>
                 <PluginSettingsHint>
-                  Starred places appear first. Select one or more lists to
-                  import to this map.
+                  Starred places appear first. Select the lists you want to
+                  import, or continue without importing any.
+                  {hasImportedLists
+                    ? " Lists already on this map are checked and cannot be selected again."
+                    : null}
                 </PluginSettingsHint>
                 {importListOptions.length > 0 ? (
                   <Stack gap="sm" direction="row" justify="end">
@@ -283,7 +304,13 @@ export function GoogleMapsMapImportWizard({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      disabled={readOnly || busy || selectedListIds.size === 0}
+                      disabled={
+                        readOnly ||
+                        busy ||
+                        importableListOptions.every(
+                          (option) => !selectedListIds.has(option.id),
+                        )
+                      }
                       onClick={deselectAllLists}
                     >
                       Deselect all
@@ -313,26 +340,32 @@ export function GoogleMapsMapImportWizard({
                   aria-labelledby={listsTitleId}
                   flush
                 >
-                  {importListOptions.map((option) => (
-                    <CheckListOption
-                      key={option.id}
-                      value={option.id}
-                      label={option.label}
-                      description={
-                        option.id === GOOGLE_MAPS_STARRED_LIST_ID
-                          ? "Your starred favorites on Google Maps"
-                          : "Saved list from Google Maps"
-                      }
-                      meta={formatPlaceCount(option.itemCount)}
-                      icon={
-                        option.id === GOOGLE_MAPS_STARRED_LIST_ID ? (
-                          <Star aria-hidden />
-                        ) : (
-                          <List aria-hidden />
-                        )
-                      }
-                    />
-                  ))}
+                  {importListOptions.map((option) => {
+                    const alreadyImported = importedListIdSet.has(option.id);
+                    return (
+                      <CheckListOption
+                        key={option.id}
+                        value={option.id}
+                        label={option.label}
+                        disabled={alreadyImported}
+                        description={
+                          alreadyImported
+                            ? "Already imported to this map"
+                            : option.id === GOOGLE_MAPS_STARRED_LIST_ID
+                              ? "Your starred favorites on Google Maps"
+                              : "Saved list from Google Maps"
+                        }
+                        meta={formatPlaceCount(option.itemCount)}
+                        icon={
+                          option.id === GOOGLE_MAPS_STARRED_LIST_ID ? (
+                            <Star aria-hidden />
+                          ) : (
+                            <List aria-hidden />
+                          )
+                        }
+                      />
+                    );
+                  })}
                 </CheckList>
               )}
             </>
@@ -363,7 +396,12 @@ export function GoogleMapsMapImportWizard({
         </PanelDialogBody>
 
         <PanelDialogFooter
-          between={step > 0 || importStepComplete || importStepFailed}
+          between={
+            step > 0 ||
+            importStepComplete ||
+            importStepFailed ||
+            importStepSkipped
+          }
         >
           {importStepComplete ? (
             <>
@@ -374,6 +412,20 @@ export function GoogleMapsMapImportWizard({
                 onClick={handleImportMore}
               >
                 Import more lists
+              </Button>
+              <Button type="button" onClick={() => onOpenChange(false)}>
+                Done
+              </Button>
+            </>
+          ) : importStepSkipped ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={readOnly}
+                onClick={handleImportMore}
+              >
+                Choose lists
               </Button>
               <Button type="button" onClick={() => onOpenChange(false)}>
                 Done
