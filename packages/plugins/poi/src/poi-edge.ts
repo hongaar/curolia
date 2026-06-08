@@ -54,7 +54,7 @@ async function invokePoiEdge<T extends object>(
       return { error: data.error } as T;
     }
     if (!data || typeof data !== "object") {
-      return { error: "osm_poi_invalid_response" } as T;
+      return { error: "poi_invalid_response" } as T;
     }
     return data;
   }
@@ -69,7 +69,7 @@ async function invokePoiEdge<T extends object>(
     return { error: message } as T;
   }
 
-  return { error: "osm_poi_request_failed" } as T;
+  return { error: "poi_request_failed" } as T;
 }
 
 export async function poiSyncPin(
@@ -98,6 +98,7 @@ export async function poiSetPinPoi(
     pinId: string;
     osmType: "node" | "way" | "relation";
     osmId: number;
+    tags?: Record<string, string>;
   },
 ): Promise<PoiSetPinPoiResponse> {
   return invokePoiEdge<PoiSetPinPoiResponse>(supabase, {
@@ -105,6 +106,7 @@ export async function poiSetPinPoi(
     pinId: args.pinId,
     osmType: args.osmType,
     osmId: args.osmId,
+    ...(args.tags ? { tags: args.tags } : {}),
   });
 }
 

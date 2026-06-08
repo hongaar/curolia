@@ -33,11 +33,14 @@ import {
   formatPoiDistanceM,
   poiCandidateLine,
   poiElementUrl,
+  poiPayloadFromCandidate,
   parsePoiPinPayload,
   resolvePoiLinkedView,
   type PoiNearbyCandidate,
 } from "./poi-pin-data";
+import { pinMetadataFromOsmTags } from "./poi-pin-metadata";
 import { poiPluginMeta } from "./plugin-meta";
+import { POI_PLUGIN_ID } from "./config";
 import {
   poiEntityDataQueryKey,
   poiNearbyCandidatesQueryKey,
@@ -103,13 +106,39 @@ export function PoiPinFormEditor({
         pinId,
         osmType: candidate.osmType,
         osmId: candidate.osmId,
+        tags: candidate.tags,
       });
       if ("error" in res) throw new Error(res.error);
       return res.payload;
     },
     onMutate: (candidate) => {
       setPendingCandidate(candidate);
-      resetPoiPinMetadataCaches(qc, pinId);
+
+      // Optimistically seed payload so the linked view shows immediately
+      const optimisticPayload = poiPayloadFromCandidate(lat, lng, candidate);
+      qc.setQueryData(dataRowQueryKey, { data: optimisticPayload });
+
+      // Optimistically seed pin metadata from candidate tags so the
+      // detail view shows metadata without waiting for the server.
+      if (candidate.tags && Object.keys(candidate.tags).length > 0) {
+        const fields = pinMetadataFromOsmTags(candidate.tags);
+        const metadataRows = fields.map((f) => ({
+          id: `optimistic-${f.fieldKey}`,
+          map_id: "",
+          pin_id: pinId,
+          field_key: f.fieldKey,
+          source_plugin_id: POI_PLUGIN_ID,
+          value: f.value,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+        qc.setQueryData(
+          [...pinMetadataQueryKey(pinId), POI_PLUGIN_ID],
+          metadataRows,
+        );
+      } else {
+        resetPoiPinMetadataCaches(qc, pinId);
+      }
     },
     onSuccess: (serverPayload) => {
       setPendingCandidate(null);
@@ -118,6 +147,8 @@ export function PoiPinFormEditor({
     },
     onError: () => {
       setPendingCandidate(null);
+      resetPoiPinMetadataCaches(qc, pinId);
+      void qc.invalidateQueries({ queryKey: dataRowQueryKey });
     },
   });
 

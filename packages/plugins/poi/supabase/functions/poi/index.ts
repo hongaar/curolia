@@ -41,6 +41,181 @@ const POI_TAG_KEYS_LITE = ["amenity", "shop", "tourism"] as const;
 const USER_AGENT =
   "Curolia/1.0 (https://github.com/curolia/curolia; plugin-poi)";
 
+// ---------------------------------------------------------------------------
+// Geoapify Places API
+// ---------------------------------------------------------------------------
+const GEOAPIFY_PLACES_URL = "https://api.geoapify.com/v2/places";
+const GEOAPIFY_FETCH_TIMEOUT_MS = 15_000;
+
+/**
+ * Focused subset of Geoapify categories for a place-memory / travel app.
+ * Full list: https://apidocs.geoapify.com/docs/places/#categories
+ */
+const GEOAPIFY_CATEGORIES = [
+  "accommodation",
+  "catering",
+  "commercial.food_and_drink",
+  "commercial.marketplace",
+  "commercial.supermarket",
+  "leisure",
+  "natural",
+  "national_park",
+  "beach",
+  "camping",
+  "tourism",
+  "entertainment",
+  "heritage",
+  "religion",
+  "sport",
+] as const;
+
+type GeoapifyFeature = {
+  type: string;
+  properties: {
+    name?: string;
+    categories?: string[];
+    distance?: number;
+    lat?: number;
+    lon?: number;
+    datasource?: {
+      sourcename?: string;
+      raw?: Record<string, unknown>;
+    };
+    place_id?: string;
+    website?: string;
+    opening_hours?: string;
+    contact?: { phone?: string; email?: string };
+    [k: string]: unknown;
+  };
+};
+
+type GeoapifyResponse = {
+  type: string;
+  features: GeoapifyFeature[];
+};
+
+function geoapifyOsmType(
+  raw: Record<string, unknown>,
+): "node" | "way" | "relation" {
+  const t = String(raw.osm_type ?? "N").toUpperCase();
+  if (t === "W" || t === "WAY") return "way";
+  if (t === "R" || t === "RELATION") return "relation";
+  return "node";
+}
+
+function geoapifyOsmId(raw: Record<string, unknown>): number {
+  const id = raw.osm_id;
+  if (typeof id === "number" && Number.isFinite(id)) return id;
+  const parsed = Number(id);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function tagsFromGeoapifyRaw(
+  raw: Record<string, unknown>,
+): Record<string, string> {
+  const tags: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (key === "osm_id" || key === "osm_type") continue;
+    if (typeof value === "string") tags[key] = value;
+    else if (typeof value === "number" || typeof value === "boolean")
+      tags[key] = String(value);
+  }
+  return tags;
+}
+
+function tagsFromGeoapifyFeature(
+  feat: GeoapifyFeature,
+): Record<string, string> {
+  const raw = feat.properties.datasource?.raw;
+  if (raw && typeof raw === "object" && Object.keys(raw).length > 0) {
+    return tagsFromGeoapifyRaw(raw);
+  }
+  // Fallback: synthesize pseudo-tags from top-level properties
+  const tags: Record<string, string> = {};
+  if (feat.properties.name) tags.name = feat.properties.name;
+  if (feat.properties.website) tags.website = feat.properties.website;
+  if (feat.properties.opening_hours)
+    tags.opening_hours = feat.properties.opening_hours;
+  if (feat.properties.contact?.phone)
+    tags.phone = feat.properties.contact.phone;
+  if (feat.properties.contact?.email)
+    tags.email = feat.properties.contact.email;
+  const cats = feat.properties.categories ?? [];
+  for (const cat of cats) {
+    if (cat.startsWith("catering.")) tags.amenity = cat.split(".").pop()!;
+    else if (cat.startsWith("accommodation."))
+      tags.tourism = cat.split(".").pop()!;
+    else if (cat.startsWith("tourism.")) tags.tourism = cat.split(".").pop()!;
+    else if (cat.startsWith("leisure.")) tags.leisure = cat.split(".").pop()!;
+    else if (cat.startsWith("commercial.")) tags.shop = cat.split(".").pop()!;
+  }
+  return tags;
+}
+
+function candidateFromGeoapifyFeature(
+  lat: number,
+  lng: number,
+  feat: GeoapifyFeature,
+): PoiNearbyCandidate | null {
+  const raw = feat.properties.datasource?.raw;
+  const osmType = raw ? geoapifyOsmType(raw) : "node";
+  const osmId = raw ? geoapifyOsmId(raw) : 0;
+  const tags = tagsFromGeoapifyFeature(feat);
+  if (!hasPoiTags(tags) && !feat.properties.name) return null;
+  const fLat = feat.properties.lat;
+  const fLng = feat.properties.lon;
+  const distanceM =
+    typeof feat.properties.distance === "number"
+      ? Math.round(feat.properties.distance)
+      : typeof fLat === "number" && typeof fLng === "number"
+        ? Math.round(haversineM(lat, lng, fLat, fLng))
+        : 0;
+  if (distanceM > SEARCH_RADIUS_M) return null;
+  return {
+    osmType,
+    osmId,
+    name: tags.name?.trim() || feat.properties.name?.trim() || null,
+    placeType: primaryPoiLabel(tags),
+    distanceM,
+    tags,
+  };
+}
+
+async function fetchGeoapifyPlaces(
+  lat: number,
+  lng: number,
+  apiKey: string,
+  limit = NEARBY_CANDIDATES_LIMIT,
+): Promise<PoiNearbyCandidate[]> {
+  const params = new URLSearchParams({
+    categories: GEOAPIFY_CATEGORIES.join(","),
+    filter: `circle:${lng},${lat},${SEARCH_RADIUS_M}`,
+    bias: `proximity:${lng},${lat}`,
+    limit: String(limit),
+    apiKey,
+  });
+  const res = await fetch(`${GEOAPIFY_PLACES_URL}?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+    signal: AbortSignal.timeout(GEOAPIFY_FETCH_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    throw new Error(`geoapify_http_${res.status}`);
+  }
+  const body = (await res.json()) as GeoapifyResponse;
+  const candidates: PoiNearbyCandidate[] = [];
+  for (const feat of body.features ?? []) {
+    const c = candidateFromGeoapifyFeature(lat, lng, feat);
+    if (c) candidates.push(c);
+  }
+  candidates.sort((a, b) => a.distanceM - b.distanceM);
+  return candidates;
+}
+
+function getGeoapifyApiKey(): string | null {
+  const key = Deno.env.get("GEOAPIFY_API_KEY")?.trim();
+  return key || null;
+}
+
 type PoiPinPayload = {
   schemaVersion: 1;
   lat: number;
@@ -448,6 +623,12 @@ async function queryNearbyPois(
   limit = NEARBY_CANDIDATES_LIMIT,
   mode: OverpassFetchMode = "sync",
 ): Promise<PoiNearbyCandidate[]> {
+  // Prefer Geoapify when an API key is configured
+  const geoapifyKey = getGeoapifyApiKey();
+  if (geoapifyKey) {
+    return fetchGeoapifyPlaces(lat, lng, geoapifyKey, limit);
+  }
+  // Fallback to Overpass
   const elements = await fetchOverpassElements(lat, lng, mode);
   const candidates: PoiNearbyCandidate[] = [];
 
@@ -508,16 +689,12 @@ async function queryNearestPoi(
   return payloadFromCandidate(lat, lng, candidates[0]);
 }
 
-function publicCandidate(
-  candidate: PoiNearbyCandidate,
-): Omit<PoiNearbyCandidate, "tags"> {
-  return {
-    osmType: candidate.osmType,
-    osmId: candidate.osmId,
-    name: candidate.name,
-    placeType: candidate.placeType,
-    distanceM: candidate.distanceM,
-  };
+/**
+ * Return a candidate including tags so the client can optimistically
+ * display metadata without a server round-trip.
+ */
+function publicCandidate(candidate: PoiNearbyCandidate): PoiNearbyCandidate {
+  return candidate;
 }
 
 function parsePayload(raw: unknown): PoiPinPayload | null {
@@ -1057,6 +1234,7 @@ Deno.serve(async (req: Request) => {
     pinId?: string;
     osmType?: string;
     osmId?: number;
+    tags?: Record<string, string>;
     limit?: number;
   };
   try {
@@ -1255,19 +1433,42 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      const el = await fetchOsmElementById(osmType, osmId);
-      if (!el) {
-        return new Response(JSON.stringify({ error: "poi_not_found" }), {
-          status: 400,
-          headers: { ...cors(), "Content-Type": "application/json" },
-        });
-      }
-      const candidate = candidateFromElement(lat, lng, el);
-      if (!candidate) {
-        return new Response(JSON.stringify({ error: "poi_not_nearby" }), {
-          status: 400,
-          headers: { ...cors(), "Content-Type": "application/json" },
-        });
+      let candidate: PoiNearbyCandidate;
+
+      // When the client passes tags from the candidate list, skip the
+      // provider round-trip entirely (Geoapify already returned them).
+      const clientTags = body.tags;
+      if (
+        clientTags &&
+        typeof clientTags === "object" &&
+        Object.keys(clientTags).length > 0
+      ) {
+        const tags = normalizeTags(clientTags);
+        candidate = {
+          osmType: osmType as "node" | "way" | "relation",
+          osmId,
+          name: tags.name?.trim() || null,
+          placeType: primaryPoiLabel(tags),
+          distanceM: 0,
+          tags,
+        };
+      } else {
+        // Legacy path: fetch element from provider by OSM id
+        const el = await fetchOsmElementById(osmType, osmId);
+        if (!el) {
+          return new Response(JSON.stringify({ error: "poi_not_found" }), {
+            status: 400,
+            headers: { ...cors(), "Content-Type": "application/json" },
+          });
+        }
+        const c = candidateFromElement(lat, lng, el);
+        if (!c) {
+          return new Response(JSON.stringify({ error: "poi_not_nearby" }), {
+            status: 400,
+            headers: { ...cors(), "Content-Type": "application/json" },
+          });
+        }
+        candidate = c;
       }
 
       const payload = payloadFromCandidate(lat, lng, candidate);
