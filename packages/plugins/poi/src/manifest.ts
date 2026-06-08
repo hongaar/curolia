@@ -2,6 +2,7 @@ import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { PoiIcon } from "./icon";
 import { PoiMapSettingsPanel } from "./map-settings-panel";
 import { PoiPinFormSection } from "./pin-form-section";
+import { PoiPinSuggestionSlot } from "./pin-suggestion-slot";
 import { poiPluginMeta } from "./plugin-meta";
 
 export const poiPluginManifest: PluginPackageManifest = {
@@ -12,6 +13,7 @@ export const poiPluginManifest: PluginPackageManifest = {
   icon: PoiIcon,
   implemented: poiPluginMeta.implemented,
   PinFormSection: PoiPinFormSection,
+  PinSuggestionSlot: PoiPinSuggestionSlot,
   MapSettingsPanel: PoiMapSettingsPanel,
   contributions: {
     edgeFunctions: [

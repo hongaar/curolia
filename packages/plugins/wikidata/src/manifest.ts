@@ -3,6 +3,7 @@ import { WikidataIcon } from "./icon";
 import { WikidataPinDetailSection } from "./pin-detail-section";
 import { WikidataPinDraftEnrichmentSlot } from "./pin-draft-enrichment-slot";
 import { WikidataPinFormSection } from "./pin-form-section";
+import { WikidataPinSuggestionSlot } from "./pin-suggestion-slot";
 import { wikidataPluginMeta } from "./plugin-meta";
 
 export const wikidataPluginManifest: PluginPackageManifest = {
@@ -14,6 +15,7 @@ export const wikidataPluginManifest: PluginPackageManifest = {
   implemented: wikidataPluginMeta.implemented,
   PinDetailSection: WikidataPinDetailSection,
   PinFormSection: WikidataPinFormSection,
+  PinSuggestionSlot: WikidataPinSuggestionSlot,
   PinDraftEnrichmentSlot: WikidataPinDraftEnrichmentSlot,
   contributions: {
     appHooks: [

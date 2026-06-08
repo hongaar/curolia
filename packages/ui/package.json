@@ -66,6 +66,7 @@
     "./sonner": "./src/components/sonner/index.ts",
     "./stack": "./src/components/stack/index.ts",
     "./status-center": "./src/components/status-center/index.ts",
+    "./suggestion-card": "./src/components/suggestion-card/index.ts",
     "./switch": "./src/components/switch/index.ts",
     "./tabs": "./src/components/tabs/index.ts",
     "./task-progress": {

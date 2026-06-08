@@ -4,10 +4,18 @@ export {
   POI_COORD_EPSILON,
   POI_NEARBY_CANDIDATES_LIMIT,
   POI_SEARCH_RADIUS_M,
+  POI_SUGGESTION_MAX_DISTANCE_M,
+  POI_SUGGESTION_STALE_TIME_MS,
 } from "./constants";
 export { poiPluginManifest as pluginManifest } from "./manifest";
 export { PoiMapSettingsPanel } from "./map-settings-panel";
 export { PoiPinFormSection } from "./pin-form-section";
+export { PoiPinSuggestionSlot } from "./pin-suggestion-slot";
+export {
+  poiPinHasAttachedPoi,
+  selectPoiSuggestionCandidate,
+  type PoiSuggestionInput,
+} from "./poi-suggestion";
 export {
   isMapPoiAutoLookupEnabled,
   poiMapPluginQueryKey,
