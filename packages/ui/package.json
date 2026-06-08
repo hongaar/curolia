@@ -98,7 +98,7 @@
   },
   "scripts": {
     "dev": "storybook dev -p 6006",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest run"
   },
   "dependencies": {
