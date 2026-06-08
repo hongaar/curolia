@@ -144,6 +144,8 @@ export type MapMarkerMount = {
   element: HTMLDivElement;
   update: (patch: Partial<MapMarkerMountOptions>) => void;
   setZIndex: (zIndex: string) => void;
+  /** Strip expensive shadows/outlines while the map camera is moving. */
+  setCameraMoving: (moving: boolean) => void;
   unmount: () => void;
 };
 
@@ -231,6 +233,9 @@ export function createMapMarkerMount(
 
   return {
     element: wrapper,
+    setCameraMoving(moving) {
+      wrapper.classList.toggle(styles.cameraMoving, moving);
+    },
     update(patch) {
       const next = { ...props, ...patch };
       const visualChanged =

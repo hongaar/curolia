@@ -146,6 +146,50 @@ const CAMERA_FIT_PADDING_WIDTH_FRACTION = 0.1;
 const CAMERA_FIT_PADDING_MIN_PX = 48;
 const CAMERA_MAX_ZOOM = 14;
 const SINGLE_PIN_ZOOM = 10;
+const MARKER_ADD_BATCH_SIZE = 48;
+/** Expand visible bounds before culling so pins do not pop at the edges. */
+const VIEWPORT_BOUNDS_PADDING_RATIO = 0.35;
+
+type PinMarkerVisual = {
+  emoji: string;
+  fill: string | null;
+};
+
+function pinMarkerVisual(t: PinWithTags): PinMarkerVisual {
+  const tag0 = t.pin_tags?.[0]?.tags;
+  return {
+    emoji: tag0?.icon_emoji ?? "📍",
+    fill: tag0?.color ?? null,
+  };
+}
+
+function clampLatitude(lat: number): number {
+  return Math.max(-90, Math.min(90, lat));
+}
+
+function paddedMapBounds(map: maplibregl.Map): maplibregl.LngLatBounds {
+  const bounds = map.getBounds();
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+  const lngSpan = Math.abs(ne.lng - sw.lng);
+  const latSpan = Math.abs(ne.lat - sw.lat);
+  const lngPad = lngSpan * VIEWPORT_BOUNDS_PADDING_RATIO;
+  const latPad = latSpan * VIEWPORT_BOUNDS_PADDING_RATIO;
+  const south = clampLatitude(Math.min(sw.lat, ne.lat) - latPad);
+  const north = clampLatitude(Math.max(sw.lat, ne.lat) + latPad);
+  return new maplibregl.LngLatBounds(
+    [sw.lng - lngPad, south],
+    [ne.lng + lngPad, north],
+  );
+}
+
+function pinInMapBounds(
+  lng: number,
+  lat: number,
+  bounds: maplibregl.LngLatBounds,
+): boolean {
+  return bounds.contains([lng, lat]);
+}
 
 function cameraFitPaddingPx(map: maplibregl.Map): number {
   const width = map.getContainer().clientWidth;
@@ -242,7 +286,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     [],
   );
   const appliedMapStyleKeyRef = useRef<string>("");
-  const markersRef = useRef<maplibregl.Marker[]>([]);
+  const markerByPinIdRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   const markerMountByPinIdRef = useRef<Map<string, MapMarkerMount>>(new Map());
   const markerVisualByPinIdRef = useRef(
     new Map<
@@ -250,6 +294,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       { selected: boolean; hovered: boolean; dimmed: boolean; zIndex: string }
     >(),
   );
+  const markerContentByPinIdRef = useRef<Map<string, PinMarkerVisual>>(
+    new Map(),
+  );
+  const filteredByIdRef = useRef<Map<string, PinWithTags>>(new Map());
+  const pendingMarkerAddsRef = useRef<PinWithTags[]>([]);
+  const markerAddRafRef = useRef<number | null>(null);
+  const markerSyncRafRef = useRef<number | null>(null);
+  const markerSyncGenerationRef = useRef(0);
+  const mapCameraMovingRef = useRef(false);
   const previewMarkerRef = useRef<maplibregl.Marker | null>(null);
   const placementDraftMarkerRef = useRef<maplibregl.Marker | null>(null);
   const placementDraftMountRef = useRef<MapMarkerMount | null>(null);
@@ -280,6 +333,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const filteredRef = useRef(filtered);
   const selectedPinIdRef = useRef(selectedPinId);
   const latestPinHoverIdRef = useRef<string | null>(null);
+  const placementModeRef = useRef(placementMode);
 
   useLayoutEffect(() => {
     onPlacementClickRef.current = onPlacementClick;
@@ -289,8 +343,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onMapContextMenuRef.current = onMapContextMenu;
     onPinContextMenuRef.current = onPinContextMenu;
     filteredRef.current = filtered;
+    filteredByIdRef.current = new Map(filtered.map((p) => [p.id, p]));
     selectedPinIdRef.current = selectedPinId;
     latestPinHoverIdRef.current = pinHover?.pin.id ?? null;
+    placementModeRef.current = placementMode;
   }, [
     onPlacementClick,
     onSelectPin,
@@ -301,19 +357,39 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     filtered,
     selectedPinId,
     pinHover,
+    placementMode,
   ]);
+
+  const setMarkersCameraMoving = useCallback((moving: boolean) => {
+    if (mapCameraMovingRef.current === moving) return;
+    mapCameraMovingRef.current = moving;
+    for (const mount of markerMountByPinIdRef.current.values()) {
+      mount.setCameraMoving(moving);
+    }
+  }, []);
+
+  const removeMarkerForPin = useCallback((pinId: string) => {
+    markerByPinIdRef.current.get(pinId)?.remove();
+    markerByPinIdRef.current.delete(pinId);
+    const mount = markerMountByPinIdRef.current.get(pinId);
+    mount?.unmount();
+    markerMountByPinIdRef.current.delete(pinId);
+    markerVisualByPinIdRef.current.delete(pinId);
+    markerContentByPinIdRef.current.delete(pinId);
+  }, []);
 
   const applyMarkerHoverStack = useCallback((hoveredId: string | null) => {
     const hasSelection = selectedPinIdRef.current !== null;
-    for (const t of filteredRef.current) {
-      const mount = markerMountByPinIdRef.current.get(t.id);
-      if (!mount) continue;
-      const selected = t.id === selectedPinIdRef.current;
-      const hovered = hoveredId !== null && t.id === hoveredId;
+    const selectedId = selectedPinIdRef.current;
+    for (const [pinId, mount] of markerMountByPinIdRef.current) {
+      const t = filteredByIdRef.current.get(pinId);
+      if (!t) continue;
+      const selected = pinId === selectedId;
+      const hovered = hoveredId !== null && pinId === hoveredId;
       const dimmed = hasSelection && !selected;
       const zIndex = selected || hovered ? "3" : "1";
 
-      const prev = markerVisualByPinIdRef.current.get(t.id);
+      const prev = markerVisualByPinIdRef.current.get(pinId);
       if (
         prev?.selected === selected &&
         prev?.hovered === hovered &&
@@ -322,7 +398,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       ) {
         continue;
       }
-      markerVisualByPinIdRef.current.set(t.id, {
+      markerVisualByPinIdRef.current.set(pinId, {
         selected,
         hovered,
         dimmed,
@@ -330,9 +406,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       });
       mount.setZIndex(zIndex);
 
-      const tag0 = t.pin_tags?.[0]?.tags;
-      const fill = tag0?.color ?? null;
-      const emoji = tag0?.icon_emoji ?? "📍";
+      const { emoji, fill } = pinMarkerVisual(t);
       mount.update({
         emoji,
         fill,
@@ -359,6 +433,196 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       setPinHover(null);
     }, HOVER_LEAVE_MS);
   }, [applyMarkerHoverStack]);
+
+  const shouldMountPinMarker = useCallback(
+    (
+      pin: PinWithTags,
+      bounds: maplibregl.LngLatBounds,
+      selectedId: string | null,
+      hoveredId: string | null,
+    ) => {
+      if (pin.id === selectedId || pin.id === hoveredId) return true;
+      return pinInMapBounds(pin.lng, pin.lat, bounds);
+    },
+    [],
+  );
+
+  const createMarkerForPin = useCallback(
+    (t: PinWithTags) => {
+      const map = mapRef.current;
+      if (!map || markerMountByPinIdRef.current.has(t.id)) return;
+
+      const { emoji, fill } = pinMarkerVisual(t);
+      const initialSelected = t.id === selectedPinIdRef.current;
+      const hasSelection = selectedPinIdRef.current !== null;
+      const mount = createMapMarkerMount({
+        emoji,
+        fill,
+        selected: initialSelected,
+        hovered: false,
+        dimmed: hasSelection && !initialSelected,
+        interactive: true,
+        ariaLabel: t.title?.trim() || "Open pin",
+        onPointerDown: () => {
+          markerPointerDownGenerationRef.current =
+            pinSelectGenerationRef.current;
+        },
+        onClick: (e) => {
+          e.stopPropagation();
+          if (
+            markerPointerDownGenerationRef.current !==
+            pinSelectGenerationRef.current
+          ) {
+            return;
+          }
+          onSelectPinRef.current(t.id);
+        },
+        onContextMenu: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (placementModeRef.current) return;
+          onPinContextMenuRef.current?.(t.id, e.clientX, e.clientY);
+        },
+        onMouseEnter: () => {
+          cancelHidePreview();
+          const mapInst = mapRef.current;
+          const wrap = containerRef.current;
+          let x = 0;
+          let y = 0;
+          if (mapInst && wrap) {
+            const p = mapInst.project([t.lng, t.lat]);
+            const r = wrap.getBoundingClientRect();
+            x = r.left + p.x;
+            y = r.top + p.y;
+          }
+          setPinHover({ pin: t, lng: t.lng, lat: t.lat, x, y });
+        },
+        onMouseLeave: () => {
+          requestHidePreview();
+        },
+      });
+      mount.setCameraMoving(mapCameraMovingRef.current);
+      mount.element.dataset.pinId = t.id;
+      markerMountByPinIdRef.current.set(t.id, mount);
+      markerContentByPinIdRef.current.set(t.id, { emoji, fill });
+      markerVisualByPinIdRef.current.set(t.id, {
+        selected: initialSelected,
+        hovered: false,
+        dimmed: hasSelection && !initialSelected,
+        zIndex: initialSelected ? "3" : "1",
+      });
+      const marker = new maplibregl.Marker({ element: mount.element })
+        .setLngLat([t.lng, t.lat])
+        .addTo(map);
+      markerByPinIdRef.current.set(t.id, marker);
+    },
+    [cancelHidePreview, requestHidePreview],
+  );
+
+  const flushMarkerAdds = useCallback(() => {
+    markerAddRafRef.current = null;
+    const batch = pendingMarkerAddsRef.current.splice(0, MARKER_ADD_BATCH_SIZE);
+    for (const pin of batch) {
+      if (!filteredByIdRef.current.has(pin.id)) continue;
+      createMarkerForPin(pin);
+    }
+    if (pendingMarkerAddsRef.current.length > 0) {
+      markerAddRafRef.current = requestAnimationFrame(flushMarkerAdds);
+    } else {
+      applyMarkerHoverStack(latestPinHoverIdRef.current);
+    }
+  }, [applyMarkerHoverStack, createMarkerForPin]);
+
+  const scheduleMarkerAdds = useCallback(
+    (pins: PinWithTags[]) => {
+      if (pins.length === 0) return;
+      pendingMarkerAddsRef.current.push(...pins);
+      if (markerAddRafRef.current !== null) return;
+      markerAddRafRef.current = requestAnimationFrame(flushMarkerAdds);
+    },
+    [flushMarkerAdds],
+  );
+
+  const cancelMarkerAdds = useCallback(() => {
+    pendingMarkerAddsRef.current = [];
+    if (markerAddRafRef.current !== null) {
+      cancelAnimationFrame(markerAddRafRef.current);
+      markerAddRafRef.current = null;
+    }
+  }, []);
+
+  const syncVisibleMarkers = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    const gen = ++markerSyncGenerationRef.current;
+    let bounds: maplibregl.LngLatBounds | null = null;
+    try {
+      bounds = paddedMapBounds(map);
+    } catch {
+      // MapLibre can reject padded bounds at world zoom; mount every pin that frame.
+      bounds = null;
+    }
+    const selectedId = selectedPinIdRef.current;
+    const hoveredId = latestPinHoverIdRef.current;
+    const shouldMount = new Set<string>();
+
+    for (const pin of filteredRef.current) {
+      if (
+        bounds === null ||
+        shouldMountPinMarker(pin, bounds, selectedId, hoveredId)
+      ) {
+        shouldMount.add(pin.id);
+      }
+    }
+
+    for (const pinId of markerMountByPinIdRef.current.keys()) {
+      if (!shouldMount.has(pinId)) {
+        removeMarkerForPin(pinId);
+      }
+    }
+
+    pendingMarkerAddsRef.current = pendingMarkerAddsRef.current.filter((p) =>
+      shouldMount.has(p.id),
+    );
+
+    const toAdd: PinWithTags[] = [];
+    for (const pinId of shouldMount) {
+      const pin = filteredByIdRef.current.get(pinId);
+      if (!pin) continue;
+      if (!markerMountByPinIdRef.current.has(pinId)) {
+        toAdd.push(pin);
+        continue;
+      }
+      const visual = pinMarkerVisual(pin);
+      const prev = markerContentByPinIdRef.current.get(pinId);
+      if (prev?.emoji !== visual.emoji || prev?.fill !== visual.fill) {
+        markerContentByPinIdRef.current.set(pinId, visual);
+        markerMountByPinIdRef.current.get(pinId)?.update({
+          emoji: visual.emoji,
+          fill: visual.fill,
+        });
+      }
+      markerByPinIdRef.current.get(pinId)?.setLngLat([pin.lng, pin.lat]);
+    }
+
+    if (gen !== markerSyncGenerationRef.current) return;
+    scheduleMarkerAdds(toAdd);
+    applyMarkerHoverStack(hoveredId);
+  }, [
+    applyMarkerHoverStack,
+    removeMarkerForPin,
+    scheduleMarkerAdds,
+    shouldMountPinMarker,
+  ]);
+
+  const scheduleSyncVisibleMarkers = useCallback(() => {
+    if (markerSyncRafRef.current !== null) return;
+    markerSyncRafRef.current = requestAnimationFrame(() => {
+      markerSyncRafRef.current = null;
+      syncVisibleMarkers();
+    });
+  }, [syncVisibleMarkers]);
 
   useEffect(() => () => cancelHidePreview(), [cancelHidePreview]);
 
@@ -943,95 +1207,77 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const map = mapRef.current;
     if (!map) return;
 
-    for (const mount of markerMountByPinIdRef.current.values()) {
-      mount.unmount();
-    }
-    markerMountByPinIdRef.current.clear();
-    markerVisualByPinIdRef.current.clear();
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    for (const t of filtered) {
-      const tag0 = t.pin_tags?.[0]?.tags;
-      const fill = tag0?.color ?? null;
-      const emoji = tag0?.icon_emoji ?? "📍";
-      const initialSelected = t.id === selectedPinIdRef.current;
-      const hasSelection = selectedPinIdRef.current !== null;
-      const mount = createMapMarkerMount({
-        emoji,
-        fill,
-        selected: initialSelected,
-        hovered: false,
-        dimmed: hasSelection && !initialSelected,
-        interactive: true,
-        ariaLabel: t.title?.trim() || "Open pin",
-        onPointerDown: () => {
-          markerPointerDownGenerationRef.current =
-            pinSelectGenerationRef.current;
-        },
-        onClick: (e) => {
-          e.stopPropagation();
-          if (
-            markerPointerDownGenerationRef.current !==
-            pinSelectGenerationRef.current
-          ) {
-            return;
-          }
-          onSelectPinRef.current(t.id);
-        },
-        onContextMenu: (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (placementMode) return;
-          onPinContextMenuRef.current?.(t.id, e.clientX, e.clientY);
-        },
-        onMouseEnter: () => {
-          cancelHidePreview();
-          const mapInst = mapRef.current;
-          const wrap = containerRef.current;
-          let x = 0;
-          let y = 0;
-          if (mapInst && wrap) {
-            const p = mapInst.project([t.lng, t.lat]);
-            const r = wrap.getBoundingClientRect();
-            x = r.left + p.x;
-            y = r.top + p.y;
-          }
-          setPinHover({ pin: t, lng: t.lng, lat: t.lat, x, y });
-        },
-        onMouseLeave: () => {
-          requestHidePreview();
-        },
-      });
-      mount.element.dataset.pinId = t.id;
-      markerMountByPinIdRef.current.set(t.id, mount);
-      markerVisualByPinIdRef.current.set(t.id, {
-        selected: initialSelected,
-        hovered: false,
-        dimmed: hasSelection && !initialSelected,
-        zIndex: initialSelected ? "3" : "1",
-      });
-      const marker = new maplibregl.Marker({ element: mount.element })
-        .setLngLat([t.lng, t.lat])
-        .addTo(map);
-      markersRef.current.push(marker);
+    cancelMarkerAdds();
+    const filteredIds = new Set(filtered.map((p) => p.id));
+    for (const pinId of [...markerMountByPinIdRef.current.keys()]) {
+      if (!filteredIds.has(pinId)) {
+        removeMarkerForPin(pinId);
+      }
     }
 
     setPinHover((h) => {
       if (!h) return null;
-      if (!filtered.some((x) => x.id === h.pin.id)) return null;
+      if (!filteredIds.has(h.pin.id)) return null;
       return h;
     });
 
-    applyMarkerHoverStack(latestPinHoverIdRef.current);
-    // Recreate markers only when the filtered pin set changes.
+    const runSync = () => syncVisibleMarkers();
+    if (map.isStyleLoaded()) {
+      runSync();
+    } else {
+      map.once("load", runSync);
+    }
+
+    return () => {
+      map.off("load", runSync);
+    };
+  }, [filtered, cancelMarkerAdds, removeMarkerForPin, syncVisibleMarkers]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const onMoveStart = () => setMarkersCameraMoving(true);
+    const onMoveEnd = () => {
+      setMarkersCameraMoving(false);
+      syncVisibleMarkers();
+    };
+    const onMove = () => scheduleSyncVisibleMarkers();
+
+    map.on("movestart", onMoveStart);
+    map.on("moveend", onMoveEnd);
+    map.on("move", onMove);
+    map.on("zoom", onMove);
+
+    const onLoad = () => syncVisibleMarkers();
+    if (map.isStyleLoaded()) {
+      onLoad();
+    } else {
+      map.once("load", onLoad);
+    }
+
+    return () => {
+      map.off("movestart", onMoveStart);
+      map.off("moveend", onMoveEnd);
+      map.off("move", onMove);
+      map.off("zoom", onMove);
+      map.off("load", onLoad);
+      if (markerSyncRafRef.current !== null) {
+        cancelAnimationFrame(markerSyncRafRef.current);
+        markerSyncRafRef.current = null;
+      }
+      cancelMarkerAdds();
+    };
   }, [
-    filtered,
-    placementMode,
-    applyMarkerHoverStack,
-    cancelHidePreview,
-    requestHidePreview,
+    cancelMarkerAdds,
+    scheduleSyncVisibleMarkers,
+    setMarkersCameraMoving,
+    syncVisibleMarkers,
   ]);
+
+  useEffect(() => {
+    scheduleSyncVisibleMarkers();
+  }, [selectedPinId, pinHover?.pin.id, scheduleSyncVisibleMarkers]);
 
   const staticDraftPin = useMemo((): PinMapPreviewPin | null => {
     if (previewPin) return previewPin;

@@ -7,11 +7,17 @@
   border-radius: 9999px;
   border: 2px solid rgb(255 255 255 / 0.8);
   font-size: 1.125rem;
-  box-shadow: var(--shadow-md);
   transition:
     box-shadow 150ms,
     background-color 150ms,
     filter 150ms;
+  contain: layout style paint;
+}
+
+/* Cheaper paint while MapLibre repositions markers every frame. */
+.cameraMoving .face {
+  transition: none;
+  filter: none;
 }
 
 .interactive {
