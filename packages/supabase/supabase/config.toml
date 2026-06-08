@@ -38,7 +38,7 @@ verify_jwt = false
 [functions.push-dispatch]
 verify_jwt = false
 
-[functions.osm-poi-dispatch]
+[functions.poi-dispatch]
 verify_jwt = false
 
 [functions.plugin-sync-dispatch]

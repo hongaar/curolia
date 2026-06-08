@@ -1,10 +1,10 @@
 import type { PinContextProps } from "@curolia/plugin-contract";
 import { PluginPinMuted } from "@curolia/ui/plugin-pin";
-import { OsmPoiPinFormEditor } from "./osm-poi-pin-form-editor";
-import { useOsmPoiPluginReady } from "./use-osm-poi-plugin-ready";
+import { PoiPinFormEditor } from "./poi-pin-form-editor";
+import { usePoiPluginReady } from "./use-poi-plugin-ready";
 
 /** Card header (icon + name) is provided by the pin editor shell. */
-export function OsmPoiPinFormSection({
+export function PoiPinFormSection({
   supabase,
   userId,
   mapId,
@@ -12,7 +12,7 @@ export function OsmPoiPinFormSection({
   pinLat,
   pinLng,
 }: PinContextProps) {
-  const { pluginReady } = useOsmPoiPluginReady(supabase, { userId, mapId });
+  const { pluginReady } = usePoiPluginReady(supabase, { userId, mapId });
 
   const lat = pinLat ?? null;
   const lng = pinLng ?? null;
@@ -26,18 +26,11 @@ export function OsmPoiPinFormSection({
 
   if (!hasCoords) {
     return (
-      <PluginPinMuted>
-        Set coordinates to link an OpenStreetMap place.
-      </PluginPinMuted>
+      <PluginPinMuted>Set coordinates to link a nearby place.</PluginPinMuted>
     );
   }
 
   return (
-    <OsmPoiPinFormEditor
-      supabase={supabase}
-      pinId={pinId}
-      lat={lat}
-      lng={lng}
-    />
+    <PoiPinFormEditor supabase={supabase} pinId={pinId} lat={lat} lng={lng} />
   );
 }

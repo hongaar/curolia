@@ -1,8 +1,8 @@
-import { OSM_POI_CACHE_MAX_AGE_MS, OSM_POI_COORD_EPSILON } from "./constants";
-import { primaryPoiLabel } from "./osm-poi-format";
+import { POI_CACHE_MAX_AGE_MS, POI_COORD_EPSILON } from "./constants";
+import { primaryPoiLabel } from "./poi-format";
 
 /** Nearby OSM place row for the pin editor picker. */
-export type OsmPoiNearbyCandidate = {
+export type PoiNearbyCandidate = {
   osmType: "node" | "way" | "relation";
   osmId: number;
   name: string | null;
@@ -10,8 +10,8 @@ export type OsmPoiNearbyCandidate = {
   distanceM: number;
 };
 
-/** Shape stored in `plugin_entity_data.data` for `plugin_type_id = osm-poi`. */
-export type OsmPoiPinPayload = {
+/** Shape stored in `plugin_entity_data.data` for `plugin_type_id = poi`. */
+export type PoiPinPayload = {
   schemaVersion: 1;
   lat: number;
   lng: number;
@@ -23,7 +23,7 @@ export type OsmPoiPinPayload = {
   tags?: Record<string, string>;
 };
 
-export function parseOsmPoiPinPayload(raw: unknown): OsmPoiPinPayload | null {
+export function parsePoiPinPayload(raw: unknown): PoiPinPayload | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   if (o.schemaVersion !== 1) return null;
@@ -65,43 +65,43 @@ export function parseOsmPoiPinPayload(raw: unknown): OsmPoiPinPayload | null {
   };
 }
 
-export function formatOsmPoiDistanceM(distanceM: number): string {
+export function formatPoiDistanceM(distanceM: number): string {
   if (distanceM < 1000) return `${distanceM} m`;
   return `${(distanceM / 1000).toFixed(distanceM < 10_000 ? 1 : 0)} km`;
 }
 
-export function osmPoiLabelFromTags(tags: Record<string, string>): string {
+export function poiLabelFromTags(tags: Record<string, string>): string {
   const name = tags.name?.trim();
   if (name) return name;
   return primaryPoiLabel(tags) ?? "Unnamed place";
 }
 
-export function osmPoiCandidateTitle(candidate: OsmPoiNearbyCandidate): string {
+export function poiCandidateTitle(candidate: PoiNearbyCandidate): string {
   if (candidate.name) return candidate.name;
   return candidate.placeType ?? "Unnamed place";
 }
 
-export function osmPoiCandidateMeta(candidate: OsmPoiNearbyCandidate): string {
+export function poiCandidateMeta(candidate: PoiNearbyCandidate): string {
   const parts: string[] = [];
   if (candidate.name && candidate.placeType) {
     parts.push(candidate.placeType);
   }
-  parts.push(formatOsmPoiDistanceM(candidate.distanceM));
+  parts.push(formatPoiDistanceM(candidate.distanceM));
   return parts.join(" · ");
 }
 
-export type OsmPoiLinkedPoiView = {
+export type PoiLinkedPoiView = {
   label: string;
   distanceM: number;
   osmType: "node" | "way" | "relation";
   osmId: number;
 };
 
-export function osmPoiPayloadFromCandidate(
+export function poiPayloadFromCandidate(
   lat: number,
   lng: number,
-  candidate: OsmPoiNearbyCandidate,
-): OsmPoiPinPayload {
+  candidate: PoiNearbyCandidate,
+): PoiPinPayload {
   const tags: Record<string, string> = {};
   if (candidate.name) tags.name = candidate.name;
   return {
@@ -116,10 +116,10 @@ export function osmPoiPayloadFromCandidate(
   };
 }
 
-export function resolveOsmPoiLinkedView(
-  payload: OsmPoiPinPayload | null,
-  pendingCandidate: OsmPoiNearbyCandidate | null,
-): OsmPoiLinkedPoiView | null {
+export function resolvePoiLinkedView(
+  payload: PoiPinPayload | null,
+  pendingCandidate: PoiNearbyCandidate | null,
+): PoiLinkedPoiView | null {
   if (
     payload &&
     !payload.noPoi &&
@@ -128,7 +128,7 @@ export function resolveOsmPoiLinkedView(
     payload.osmId
   ) {
     return {
-      label: osmPoiLabelFromTags(payload.tags),
+      label: poiLabelFromTags(payload.tags),
       distanceM: payload.distanceM ?? 0,
       osmType: payload.osmType,
       osmId: payload.osmId,
@@ -136,7 +136,7 @@ export function resolveOsmPoiLinkedView(
   }
   if (pendingCandidate) {
     return {
-      label: osmPoiCandidateTitle(pendingCandidate),
+      label: poiCandidateTitle(pendingCandidate),
       distanceM: pendingCandidate.distanceM,
       osmType: pendingCandidate.osmType,
       osmId: pendingCandidate.osmId,
@@ -146,7 +146,7 @@ export function resolveOsmPoiLinkedView(
 }
 
 /** Single-line label for compact picker rows: name · type · distance. */
-export function osmPoiCandidateLine(candidate: OsmPoiNearbyCandidate): string {
+export function poiCandidateLine(candidate: PoiNearbyCandidate): string {
   const parts: string[] = [];
   if (candidate.name) {
     parts.push(candidate.name);
@@ -156,28 +156,28 @@ export function osmPoiCandidateLine(candidate: OsmPoiNearbyCandidate): string {
   } else {
     parts.push("Unnamed place");
   }
-  parts.push(formatOsmPoiDistanceM(candidate.distanceM));
+  parts.push(formatPoiDistanceM(candidate.distanceM));
   return parts.join(" · ");
 }
 
-export function osmPoiElementUrl(
+export function poiElementUrl(
   osmType: "node" | "way" | "relation",
   osmId: number,
 ): string {
   return `https://www.openstreetmap.org/${osmType}/${osmId}`;
 }
 
-export function osmPoiPayloadMatches(
-  payload: OsmPoiPinPayload,
+export function poiPayloadMatches(
+  payload: PoiPinPayload,
   lat: number,
   lng: number,
 ): boolean {
   if (
-    Math.abs(payload.lat - lat) >= OSM_POI_COORD_EPSILON ||
-    Math.abs(payload.lng - lng) >= OSM_POI_COORD_EPSILON
+    Math.abs(payload.lat - lat) >= POI_COORD_EPSILON ||
+    Math.abs(payload.lng - lng) >= POI_COORD_EPSILON
   ) {
     return false;
   }
   const age = Date.now() - new Date(payload.fetchedAt).getTime();
-  return age >= 0 && age <= OSM_POI_CACHE_MAX_AGE_MS;
+  return age >= 0 && age <= POI_CACHE_MAX_AGE_MS;
 }

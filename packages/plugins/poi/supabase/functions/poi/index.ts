@@ -2,12 +2,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { AsyncLruCache } from "./lib/_services/lru-cache.ts";
 
-/** Keep in sync with `packages/plugins/osm-poi/src/constants.ts`. */
+/** Keep in sync with `packages/plugins/poi/src/constants.ts`. */
 const SEARCH_RADIUS_M = 40;
 const NEARBY_CANDIDATES_LIMIT = 15;
 const COORD_EPSILON = 0.0001;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const PLUGIN_TYPE_ID = "osm-poi";
+const PLUGIN_TYPE_ID = "poi";
 const SYNC_EVENT_PIN_COORDINATES_CHANGED = "pin_coordinates_changed";
 const PLUGIN_SYNC_DISPATCH_SECRET_ENV = "PLUGIN_SYNC_DISPATCH_SECRET";
 
@@ -39,9 +39,9 @@ const POI_TAG_KEYS_FULL = [
 ] as const;
 const POI_TAG_KEYS_LITE = ["amenity", "shop", "tourism"] as const;
 const USER_AGENT =
-  "Curolia/1.0 (https://github.com/curolia/curolia; plugin-osm-poi)";
+  "Curolia/1.0 (https://github.com/curolia/curolia; plugin-poi)";
 
-type OsmPoiPinPayload = {
+type PoiPinPayload = {
   schemaVersion: 1;
   lat: number;
   lng: number;
@@ -69,7 +69,7 @@ type OverpassElement = {
   tags?: Record<string, string>;
 };
 
-type OsmPoiNearbyCandidate = {
+type PoiNearbyCandidate = {
   osmType: "node" | "way" | "relation";
   osmId: number;
   name: string | null;
@@ -346,7 +346,7 @@ async function fetchOverpassElementsUncached(
     }
   }
 
-  console.error("osm-poi overpass exhausted", { attemptErrors, lastError });
+  console.error("poi overpass exhausted", { attemptErrors, lastError });
 
   const err = new Error(lastError) as Error & { attemptErrors?: string[] };
   err.attemptErrors = attemptErrors;
@@ -409,7 +409,7 @@ function candidateFromElement(
   lat: number,
   lng: number,
   el: OverpassElement,
-): OsmPoiNearbyCandidate | null {
+): PoiNearbyCandidate | null {
   if (!hasPoiTags(el.tags)) return null;
   const coords = elementCoords(el);
   if (!coords) return null;
@@ -427,11 +427,11 @@ function candidateFromElement(
 }
 
 function finalizeNearbyCandidates(
-  candidates: OsmPoiNearbyCandidate[],
+  candidates: PoiNearbyCandidate[],
   maxResults: number,
-): OsmPoiNearbyCandidate[] {
+): PoiNearbyCandidate[] {
   const seen = new Set<string>();
-  const out: OsmPoiNearbyCandidate[] = [];
+  const out: PoiNearbyCandidate[] = [];
   for (const candidate of candidates) {
     const key = `${candidate.osmType}/${candidate.osmId}`;
     if (seen.has(key)) continue;
@@ -447,9 +447,9 @@ async function queryNearbyPois(
   lng: number,
   limit = NEARBY_CANDIDATES_LIMIT,
   mode: OverpassFetchMode = "sync",
-): Promise<OsmPoiNearbyCandidate[]> {
+): Promise<PoiNearbyCandidate[]> {
   const elements = await fetchOverpassElements(lat, lng, mode);
-  const candidates: OsmPoiNearbyCandidate[] = [];
+  const candidates: PoiNearbyCandidate[] = [];
 
   for (const el of elements) {
     if (!hasPoiTags(el.tags)) continue;
@@ -476,8 +476,8 @@ async function queryNearbyPois(
 function payloadFromCandidate(
   lat: number,
   lng: number,
-  candidate: OsmPoiNearbyCandidate,
-): OsmPoiPinPayload {
+  candidate: PoiNearbyCandidate,
+): PoiPinPayload {
   return {
     schemaVersion: 1,
     lat,
@@ -493,7 +493,7 @@ function payloadFromCandidate(
 async function queryNearestPoi(
   lat: number,
   lng: number,
-): Promise<OsmPoiPinPayload | null> {
+): Promise<PoiPinPayload | null> {
   const candidates = await queryNearbyPois(lat, lng, 1);
   const fetchedAt = new Date().toISOString();
   if (candidates.length === 0) {
@@ -509,8 +509,8 @@ async function queryNearestPoi(
 }
 
 function publicCandidate(
-  candidate: OsmPoiNearbyCandidate,
-): Omit<OsmPoiNearbyCandidate, "tags"> {
+  candidate: PoiNearbyCandidate,
+): Omit<PoiNearbyCandidate, "tags"> {
   return {
     osmType: candidate.osmType,
     osmId: candidate.osmId,
@@ -520,17 +520,17 @@ function publicCandidate(
   };
 }
 
-function parsePayload(raw: unknown): OsmPoiPinPayload | null {
+function parsePayload(raw: unknown): PoiPinPayload | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   if (o.schemaVersion !== 1) return null;
   if (typeof o.lat !== "number" || typeof o.lng !== "number") return null;
   if (typeof o.fetchedAt !== "string") return null;
-  return raw as OsmPoiPinPayload;
+  return raw as PoiPinPayload;
 }
 
 function payloadMatches(
-  payload: OsmPoiPinPayload,
+  payload: PoiPinPayload,
   lat: number,
   lng: number,
 ): boolean {
@@ -548,7 +548,7 @@ async function upsertPayload(
   admin: ReturnType<typeof createClient>,
   mapId: string,
   pinId: string,
-  payload: OsmPoiPinPayload,
+  payload: PoiPinPayload,
 ): Promise<void> {
   const { error } = await admin.from("plugin_entity_data").upsert(
     {
@@ -764,7 +764,7 @@ function dietaryLabelsFromTags(tags: Record<string, string>): string[] {
   return labels;
 }
 
-/** Keep in sync with `packages/plugins/osm-poi/src/osm-poi-pin-metadata.ts`. */
+/** Keep in sync with `packages/plugins/poi/src/poi-pin-metadata.ts`. */
 function pinMetadataFromOsmTags(
   tags: Record<string, string>,
 ): PinMetadataUpsert[] {
@@ -1050,7 +1050,7 @@ Deno.serve(async (req: Request) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const dispatchSecret =
     Deno.env.get(PLUGIN_SYNC_DISPATCH_SECRET_ENV) ??
-    Deno.env.get("OSM_POI_DISPATCH_SECRET");
+    Deno.env.get("POI_DISPATCH_SECRET");
 
   let body: {
     action?: string;
@@ -1208,7 +1208,7 @@ Deno.serve(async (req: Request) => {
         },
       );
     } catch (e) {
-      console.error("osm-poi list_nearby_candidates failed", e);
+      console.error("poi list_nearby_candidates failed", e);
       return jsonResponse(overpassErrorBody(e), overpassErrorHttpStatus(e));
     }
   }
@@ -1285,7 +1285,7 @@ Deno.serve(async (req: Request) => {
         headers: { ...cors(), "Content-Type": "application/json" },
       });
     } catch (e) {
-      console.error("osm-poi set_pin_poi failed", e);
+      console.error("poi set_pin_poi failed", e);
       return jsonResponse(overpassErrorBody(e), overpassErrorHttpStatus(e));
     }
   }

@@ -1,5 +1,5 @@
 {
-  "name": "@curolia/plugin-osm-poi",
+  "name": "@curolia/plugin-poi",
   "version": "0.0.0",
   "private": true,
   "type": "module",

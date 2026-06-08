@@ -9,7 +9,7 @@ function jsonResponse(status: number, body: Record<string, unknown>) {
   });
 }
 
-/** Forwards to osm-poi `process_sync_jobs` (Overpass logic stays in the plugin function). */
+/** Forwards to poi `process_sync_jobs` (Overpass logic stays in the plugin function). */
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return jsonResponse(405, { error: "Method not allowed" });
@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 
   const dispatchSecret =
     Deno.env.get(PLUGIN_SYNC_DISPATCH_SECRET_ENV) ??
-    Deno.env.get("OSM_POI_DISPATCH_SECRET");
+    Deno.env.get("POI_DISPATCH_SECRET");
   if (!dispatchSecret) {
     return jsonResponse(500, {
       error: `${PLUGIN_SYNC_DISPATCH_SECRET_ENV} is not configured`,
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
   const body = (await req.json().catch(() => ({}))) as { limit?: number };
   const limit = Math.min(Math.max(body.limit ?? 10, 1), 50);
 
-  const res = await fetch(`${supabaseUrl}/functions/v1/osm-poi`, {
+  const res = await fetch(`${supabaseUrl}/functions/v1/poi`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${dispatchSecret}`,

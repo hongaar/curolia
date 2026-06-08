@@ -4,7 +4,7 @@ import {
   normalizePhoneTel,
   normalizeWebsiteUrl,
 } from "@curolia/plugin-contract";
-import { isFoodPoi, isOutdoorPoi, primaryPoiLabel } from "./osm-poi-format";
+import { isFoodPoi, isOutdoorPoi, primaryPoiLabel } from "./poi-format";
 
 const DIET_TAG_PREFIX = "diet:";
 

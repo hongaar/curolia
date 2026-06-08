@@ -13,21 +13,21 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import { OSM_POI_PLUGIN_ID } from "./config";
-import { osmMetadataIsFreshForPayload } from "./osm-poi-metadata-sync";
+import { POI_PLUGIN_ID } from "./config";
+import { poiMetadataIsFreshForPayload } from "./poi-metadata-sync";
 import {
-  osmPoiPayloadMatches,
-  parseOsmPoiPinPayload,
-  type OsmPoiPinPayload,
-} from "./osm-poi-pin-data";
+  poiPayloadMatches,
+  parsePoiPinPayload,
+  type PoiPinPayload,
+} from "./poi-pin-data";
 import {
-  osmPoiEntityDataQueryKey,
-  osmPoiSyncJobQueryKey,
+  poiEntityDataQueryKey,
+  poiSyncJobQueryKey,
   pinMetadataQueryKey,
 } from "./query-keys";
-import { OSM_POI_SYNC_EVENT } from "./sync-registry";
+import { POI_SYNC_EVENT } from "./sync-registry";
 
-export type UseOsmPoiPinSyncArgs = {
+export type UsePoiPinSyncArgs = {
   supabase: SupabaseClient;
   pinId: string;
   mapId: string;
@@ -37,23 +37,23 @@ export type UseOsmPoiPinSyncArgs = {
   queryEnabled?: boolean;
 };
 
-export type OsmPoiPinSyncState = {
+export type PoiPinSyncState = {
   pluginEnabled: boolean;
   canSync: boolean;
   isMetadataLoading: boolean;
   showSettings: PinMetadataShowSettings;
-  payload: OsmPoiPinPayload | null;
+  payload: PoiPinPayload | null;
   metadataRows: PinMetadataRow[];
 };
 
-export function useOsmPoiPinSync({
+export function usePoiPinSync({
   supabase,
   pinId,
   mapId,
   lat,
   lng,
   queryEnabled = true,
-}: UseOsmPoiPinSyncArgs): OsmPoiPinSyncState {
+}: UsePoiPinSyncArgs): PoiPinSyncState {
   const qc = useQueryClient();
 
   const showMetadataQuery = useQuery({
@@ -83,8 +83,8 @@ export function useOsmPoiPinSync({
     Number.isFinite(lat) &&
     Number.isFinite(lng);
 
-  const entityDataKey = useMemo(() => osmPoiEntityDataQueryKey(pinId), [pinId]);
-  const syncJobKey = useMemo(() => osmPoiSyncJobQueryKey(pinId), [pinId]);
+  const entityDataKey = useMemo(() => poiEntityDataQueryKey(pinId), [pinId]);
+  const syncJobKey = useMemo(() => poiSyncJobQueryKey(pinId), [pinId]);
 
   const cachedRowQuery = useQuery({
     queryKey: entityDataKey,
@@ -94,7 +94,7 @@ export function useOsmPoiPinSync({
         .select("data")
         .eq("entity_type", "pin")
         .eq("entity_id", pinId)
-        .eq("plugin_type_id", OSM_POI_PLUGIN_ID)
+        .eq("plugin_type_id", POI_PLUGIN_ID)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -109,10 +109,10 @@ export function useOsmPoiPinSync({
       const { data, error } = await supabase
         .from("plugin_sync_jobs")
         .select("id, status, last_error, updated_at")
-        .eq("plugin_type_id", OSM_POI_PLUGIN_ID)
+        .eq("plugin_type_id", POI_PLUGIN_ID)
         .eq("entity_type", "pin")
         .eq("entity_id", pinId)
-        .eq("event", OSM_POI_SYNC_EVENT)
+        .eq("event", POI_SYNC_EVENT)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -136,8 +136,8 @@ export function useOsmPoiPinSync({
   }, [syncJobQuery.data?.status, qc, entityDataKey, pinId]);
 
   const cachedPayload = useMemo(() => {
-    const p = parseOsmPoiPinPayload(cachedRowQuery.data?.data);
-    if (!p || !osmPoiPayloadMatches(p, lat, lng)) return null;
+    const p = parsePoiPinPayload(cachedRowQuery.data?.data);
+    if (!p || !poiPayloadMatches(p, lat, lng)) return null;
     return p;
   }, [cachedRowQuery.data, lat, lng]);
 
@@ -145,7 +145,7 @@ export function useOsmPoiPinSync({
   const syncJobFailed = syncJobQuery.data?.status === "failed";
 
   const metadataQuery = useQuery({
-    queryKey: [...pinMetadataQueryKey(pinId), OSM_POI_PLUGIN_ID],
+    queryKey: [...pinMetadataQueryKey(pinId), POI_PLUGIN_ID],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pin_metadata")
@@ -153,7 +153,7 @@ export function useOsmPoiPinSync({
           "id, map_id, pin_id, field_key, source_plugin_id, value, created_at, updated_at",
         )
         .eq("pin_id", pinId)
-        .eq("source_plugin_id", OSM_POI_PLUGIN_ID);
+        .eq("source_plugin_id", POI_PLUGIN_ID);
       if (error) throw error;
       return (data ?? [])
         .map((row) => parsePinMetadataRow(row))
@@ -171,7 +171,7 @@ export function useOsmPoiPinSync({
   const metadataIsFresh =
     !hasPoiPayload ||
     !cachedPayload ||
-    osmMetadataIsFreshForPayload(cachedPayload, metadataRows);
+    poiMetadataIsFreshForPayload(cachedPayload, metadataRows);
 
   const isMetadataLoading =
     canSync &&
@@ -192,8 +192,6 @@ export function useOsmPoiPinSync({
   };
 }
 
-export function useOsmPoiPinMetadataLoading(
-  args: UseOsmPoiPinSyncArgs,
-): boolean {
-  return useOsmPoiPinSync(args).isMetadataLoading;
+export function usePoiPinMetadataLoading(args: UsePoiPinSyncArgs): boolean {
+  return usePoiPinSync(args).isMetadataLoading;
 }

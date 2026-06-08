@@ -1,26 +1,23 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type {
-  OsmPoiNearbyCandidate,
-  OsmPoiPinPayload,
-} from "./osm-poi-pin-data";
+import type { PoiNearbyCandidate, PoiPinPayload } from "./poi-pin-data";
 
-export type OsmPoiSyncResponse =
-  | { synced: true; payload: OsmPoiPinPayload }
-  | { synced: false; reason: "nothing_nearby"; payload: OsmPoiPinPayload }
+export type PoiSyncResponse =
+  | { synced: true; payload: PoiPinPayload }
+  | { synced: false; reason: "nothing_nearby"; payload: PoiPinPayload }
   | { skippedReason: "plugin_disabled" | "no_coordinates" }
   | { error: string };
 
-export type OsmPoiListCandidatesResponse =
-  | { candidates: OsmPoiNearbyCandidate[] }
+export type PoiListCandidatesResponse =
+  | { candidates: PoiNearbyCandidate[] }
   | { error: string };
 
-export type OsmPoiSetPinPoiResponse =
-  | { payload: OsmPoiPinPayload }
+export type PoiSetPinPoiResponse =
+  | { payload: PoiPinPayload }
   | { error: string };
 
-export type OsmPoiClearPinPoiResponse = { cleared: true } | { error: string };
+export type PoiClearPinPoiResponse = { cleared: true } | { error: string };
 
-type OsmPoiEdgeBody = Record<string, unknown>;
+type PoiEdgeBody = Record<string, unknown>;
 
 async function parseFunctionInvokeError(
   error: unknown,
@@ -39,11 +36,11 @@ async function parseFunctionInvokeError(
   return null;
 }
 
-async function invokeOsmPoiEdge<T extends object>(
+async function invokePoiEdge<T extends object>(
   supabase: SupabaseClient,
-  body: OsmPoiEdgeBody,
+  body: PoiEdgeBody,
 ): Promise<T> {
-  const { data, error } = await supabase.functions.invoke<T>("osm-poi", {
+  const { data, error } = await supabase.functions.invoke<T>("poi", {
     body,
   });
 
@@ -75,35 +72,35 @@ async function invokeOsmPoiEdge<T extends object>(
   return { error: "osm_poi_request_failed" } as T;
 }
 
-export async function osmPoiSyncPin(
+export async function poiSyncPin(
   supabase: SupabaseClient,
   pinId: string,
-): Promise<OsmPoiSyncResponse> {
-  return invokeOsmPoiEdge<OsmPoiSyncResponse>(supabase, {
+): Promise<PoiSyncResponse> {
+  return invokePoiEdge<PoiSyncResponse>(supabase, {
     action: "sync_pin_poi",
     pinId,
   });
 }
 
-export async function osmPoiListNearbyCandidates(
+export async function poiListNearbyCandidates(
   supabase: SupabaseClient,
   pinId: string,
-): Promise<OsmPoiListCandidatesResponse> {
-  return invokeOsmPoiEdge<OsmPoiListCandidatesResponse>(supabase, {
+): Promise<PoiListCandidatesResponse> {
+  return invokePoiEdge<PoiListCandidatesResponse>(supabase, {
     action: "list_nearby_candidates",
     pinId,
   });
 }
 
-export async function osmPoiSetPinPoi(
+export async function poiSetPinPoi(
   supabase: SupabaseClient,
   args: {
     pinId: string;
     osmType: "node" | "way" | "relation";
     osmId: number;
   },
-): Promise<OsmPoiSetPinPoiResponse> {
-  return invokeOsmPoiEdge<OsmPoiSetPinPoiResponse>(supabase, {
+): Promise<PoiSetPinPoiResponse> {
+  return invokePoiEdge<PoiSetPinPoiResponse>(supabase, {
     action: "set_pin_poi",
     pinId: args.pinId,
     osmType: args.osmType,
@@ -111,11 +108,11 @@ export async function osmPoiSetPinPoi(
   });
 }
 
-export async function osmPoiClearPinPoi(
+export async function poiClearPinPoi(
   supabase: SupabaseClient,
   pinId: string,
-): Promise<OsmPoiClearPinPoiResponse> {
-  return invokeOsmPoiEdge<OsmPoiClearPinPoiResponse>(supabase, {
+): Promise<PoiClearPinPoiResponse> {
+  return invokePoiEdge<PoiClearPinPoiResponse>(supabase, {
     action: "clear_pin_poi",
     pinId,
   });

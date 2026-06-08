@@ -66,7 +66,7 @@ export type PluginOAuthDeclaration = {
 export type SyncJobsDeclaration = {
   /** Events this plugin handles (must match keys written to `map_plugins.config.syncEvents`). */
   events: readonly string[];
-  /** Edge function slug for the dispatch worker, e.g. `osm-poi-dispatch`. */
+  /** Edge function slug for the dispatch worker, e.g. `poi-dispatch`. */
   dispatchFunctionSlug: string;
   /**
    * Env var for the dispatch bearer secret (convention:

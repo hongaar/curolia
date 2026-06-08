@@ -46,8 +46,8 @@ packages/supabase/supabase/functions/google-maps-saved-lists/
 packages/supabase/supabase/functions/google-photos/
 packages/supabase/supabase/functions/ical-feed/
 packages/supabase/supabase/functions/lastfm/
-packages/supabase/supabase/functions/osm-poi/
-packages/supabase/supabase/functions/osm-poi-dispatch/
+packages/supabase/supabase/functions/poi/
+packages/supabase/supabase/functions/poi-dispatch/
 packages/supabase/supabase/functions/plugin-oauth/
 packages/supabase/supabase/functions/spotify/
 packages/supabase/supabase/functions/wikidata/

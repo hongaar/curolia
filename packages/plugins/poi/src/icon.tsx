@@ -1,7 +1,7 @@
 import { PluginIconFrame } from "@curolia/ui/plugin-icon-frame";
 
-/** OpenStreetMap mark (magnifying glass over map, simplified from the OSM logo). */
-export function OsmPoiIcon({
+/** POI icon (magnifying glass over map). */
+export function PoiIcon({
   size = 5,
 }: {
   className?: string;

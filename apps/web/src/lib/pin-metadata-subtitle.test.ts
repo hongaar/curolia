@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 const base = {
   map_id: "map",
   pin_id: "pin",
-  source_plugin_id: "osm-poi",
+  source_plugin_id: "poi",
   created_at: "2026-01-01T00:00:00Z",
 };
 
