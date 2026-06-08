@@ -1,13 +1,12 @@
-import type { Json } from "@/lib/database.types";
-import type { PhotonProps } from "@/lib/photon-geocode";
+import type { GeocodeProperties } from "./types.ts";
 
-/** Stored on `pins.geocode` — Photon reverse-geocode snapshot. */
+/** Stored on `pins.geocode` — reverse-geocode snapshot. */
 export type PinGeocode = {
   source: "photon";
   lat: number;
   lng: number;
   fetchedAt: string;
-  properties: PhotonProps;
+  properties: GeocodeProperties;
 };
 
 type GeocodeLevel = "street" | "city" | "region" | "country";
@@ -56,7 +55,7 @@ function pickLabel(...values: (string | undefined)[]): string | null {
 }
 
 export function geocodeLevelValues(
-  properties: PhotonProps | undefined,
+  properties: GeocodeProperties | undefined,
 ): GeocodeLevelValues {
   const p = properties ?? {};
   return {
@@ -167,9 +166,10 @@ export function geocodeMatchesCoords(
   );
 }
 
-export function pinGeocodeToJson(geocode: PinGeocode | null): Json | null {
-  if (!geocode) return null;
-  return geocode as unknown as Json;
+export function pinGeocodeToJson(
+  geocode: PinGeocode | null,
+): PinGeocode | null {
+  return geocode;
 }
 
 export function parsePinGeocode(raw: unknown): PinGeocode | null {
@@ -183,7 +183,7 @@ export function parsePinGeocode(raw: unknown): PinGeocode | null {
     typeof o.fetchedAt === "string" ? o.fetchedAt : new Date(0).toISOString();
   const properties =
     o.properties && typeof o.properties === "object"
-      ? (o.properties as PhotonProps)
+      ? (o.properties as GeocodeProperties)
       : {};
   return { source: "photon", lat, lng, fetchedAt, properties };
 }

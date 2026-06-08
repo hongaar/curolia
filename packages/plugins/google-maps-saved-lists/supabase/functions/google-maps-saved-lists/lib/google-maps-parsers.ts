@@ -1,9 +1,9 @@
 import {
-  extractLocationFromGoogleMapsUrl,
-  extractTitleFromGoogleMapsUrl,
-  isGoogleMapsPlaceUrl,
-  normalizeGoogleMapsPlaceKey,
-} from "./google-maps-url.ts";
+  extractLocationFromMapShareUrl,
+  extractTitleFromMapShareUrl,
+  isMapShareUrl,
+  normalizeMapPlaceKey,
+} from "./_services/geocoding/index.ts";
 
 export type ParsedPlace = {
   dedupKey: string;
@@ -70,11 +70,11 @@ export function parseStarredGeoJson(text: string): ParsedPlace[] {
     const locObj = Array.isArray(loc) ? loc[0] : loc;
     const title =
       (typeof locObj?.name === "string" && locObj.name.trim()) ||
-      extractTitleFromGoogleMapsUrl(googleMapsUrl) ||
+      extractTitleFromMapShareUrl(googleMapsUrl) ||
       "Place";
 
     out.push({
-      dedupKey: normalizeGoogleMapsPlaceKey(googleMapsUrl),
+      dedupKey: normalizeMapPlaceKey(googleMapsUrl),
       title,
       note: null,
       googleMapsUrl,
@@ -195,17 +195,17 @@ export function parseSavedCollectionsCsv(
   for (let i = headerIdx + 1; i < rows.length; i++) {
     const r = rows[i]!;
     const url = r[urlIdx]?.trim() ?? "";
-    if (!url || !isGoogleMapsPlaceUrl(url)) continue;
+    if (!url || !isMapShareUrl(url)) continue;
 
     const title =
       (titleIdx >= 0 ? r[titleIdx]?.trim() : "") ||
-      extractTitleFromGoogleMapsUrl(url) ||
+      extractTitleFromMapShareUrl(url) ||
       "Place";
     const note = noteIdx >= 0 ? r[noteIdx]?.trim() || null : null;
-    const loc = extractLocationFromGoogleMapsUrl(url);
+    const loc = extractLocationFromMapShareUrl(url);
 
     places.push({
-      dedupKey: normalizeGoogleMapsPlaceKey(url),
+      dedupKey: normalizeMapPlaceKey(url),
       title,
       note,
       googleMapsUrl: url,
@@ -223,4 +223,4 @@ export function parseSavedCollectionsCsv(
   };
 }
 
-export { normalizeGoogleMapsPlaceKey };
+export { normalizeMapPlaceKey };

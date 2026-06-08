@@ -1,4 +1,4 @@
-import type { Coords } from "./resolve-place-coords.ts";
+import type { Coords } from "../coords.ts";
 
 const GEOAPIFY_FETCH_TIMEOUT_MS = 12_000;
 const GEOAPIFY_GEOCODE_URL = "https://api.geoapify.com/v1/geocode/search";

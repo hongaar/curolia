@@ -1,4 +1,9 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import {
+  DEFAULT_LIST_EMOJI,
+  suggestEmojiForNameSync,
+} from "./_services/emoji/index.ts";
+import { coordsForPlace } from "./_services/geocoding/resolver.ts";
 import type { ExportBundle } from "./dataportability.ts";
 import {
   parseSavedCollectionsCsv,
@@ -6,7 +11,6 @@ import {
   type ParsedCollection,
   type ParsedPlace,
 } from "./parsers.ts";
-import { coordsForPlace } from "./resolve-place-coords.ts";
 
 export const PLUGIN_TYPE_ID = "google_maps_saved_lists";
 export const STARRED_LIST_LABEL = "Starred places";
@@ -57,7 +61,9 @@ export function listTagNameForSource(source: ImportSource): string {
 }
 
 export function listTagEmojiForSource(source: ImportSource): string {
-  return source.type === "starred" ? "⭐" : "📋";
+  return suggestEmojiForNameSync(listTagNameForSource(source), {
+    fallback: DEFAULT_LIST_EMOJI,
+  }).emoji;
 }
 
 type GooglePinIndexEntry = {

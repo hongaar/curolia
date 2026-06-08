@@ -1,6 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
+  countPlacesNeedingCoords,
+  countUniqueUrlsNeedingCoords,
+  resolveMissingCoordsInCacheBatch,
+  type CoordResolverConfig,
+} from "./lib/_services/geocoding/resolver.ts";
+import {
   DATA_PORTABILITY_MAX_POLL_MS,
   runPortabilityExport,
   type DataPortabilityResource,
@@ -24,27 +30,21 @@ import {
   listDiscoveryCoordProgress,
   listDiscoveryExportProgress,
 } from "./lib/list-discovery-progress.ts";
-import {
-  countPlacesNeedingCoords,
-  countUniqueUrlsNeedingCoords,
-  resolveMissingCoordsInCacheBatch,
-  type ApiCoordResolverConfig,
-} from "./lib/resolve-place-coords.ts";
 
 const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
 
-function coordResolverConfig(): ApiCoordResolverConfig {
+function coordResolverConfig(): CoordResolverConfig {
   const placesKey = (Deno.env.get("GOOGLE_PLACES_API_KEY") ?? "").trim();
   const mapsKey = (Deno.env.get("GOOGLE_MAPS_API_KEY") ?? "").trim();
   return {
-    googlePlacesApiKey: placesKey || mapsKey || undefined,
-    geoapifyApiKey:
+    placesLookupApiKey: placesKey || mapsKey || undefined,
+    forwardGeocodeApiKey:
       (Deno.env.get("GEOAPIFY_API_KEY") ?? "").trim() || undefined,
   };
 }
 
-function hasCoordResolverKeys(config: ApiCoordResolverConfig): boolean {
-  return Boolean(config.googlePlacesApiKey || config.geoapifyApiKey);
+function hasCoordResolverKeys(config: CoordResolverConfig): boolean {
+  return Boolean(config.placesLookupApiKey || config.forwardGeocodeApiKey);
 }
 
 function cors(): HeadersInit {
@@ -661,7 +661,7 @@ async function runCoordResolutionBatch(
   cache = result.cache;
   await saveCachedExport(admin, userId, cache);
 
-  const placesKeyIssue = result.googlePlacesKeyIssue;
+  const placesKeyIssue = result.placesLookupKeyIssue;
   if (placesKeyIssue && result.placesResolved === 0) {
     await patchListDiscoveryJob(admin, userId, jobId, {
       status: "failed",

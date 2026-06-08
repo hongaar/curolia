@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@curolia/plugin-contract": "file:../../plugin-contract",
-    "@curolia/plugin-oauth": "file:../oauth"
+    "@curolia/plugin-oauth": "file:../oauth",
+    "@curolia/services": "file:../../services"
   },
   "peerDependencies": {
     "@curolia/ui": "*",

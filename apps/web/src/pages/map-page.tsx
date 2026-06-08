@@ -10,9 +10,8 @@ import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
 import { AddPinFab } from "@/components/pins/add-pin-fab";
-import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
-import { PresetColorPicker } from "@/components/pins/preset-color-picker";
+import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMinMd } from "@/hooks/use-min-md";
@@ -44,31 +43,27 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import {
-  reversePhotonGeocode,
-  reversePhotonPlaceDetails,
-} from "@/lib/photon-geocode";
-import {
   fileFromClipboardData,
   isPinFormTextEntryPasteTarget,
   urlFromClipboardData,
 } from "@/lib/pin-form-clipboard";
 import { createPinFromLinkMetadata } from "@/lib/pin-from-link";
-import {
-  defaultLocationLabelDetail,
-  pinGeocodeToJson,
-} from "@/lib/pin-geocode";
 import { fetchLinkMetadata } from "@/lib/pin-links";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
-import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
+import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
 import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
+import {
+  defaultLocationLabelDetail,
+  pinGeocodeToJson,
+  reverseGeocodeDetails,
+  reverseGeocodeForStorage,
+} from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
 import { Dialog } from "@curolia/ui/dialog";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
 import {
   MapControlsBottomCenter,
   MapControlsBottomStack,
@@ -83,7 +78,6 @@ import {
 import {
   PanelDialogBody,
   PanelDialogContent,
-  PanelDialogField,
   PanelDialogFooter,
   PanelDialogFormStack,
   PanelDialogHeader,
@@ -187,7 +181,7 @@ export function MapPage() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
+  const [newTagColor, setNewTagColor] = useState(randomPresetTagColor);
   const [newTagEmoji, setNewTagEmoji] = useState("📍");
   const linkPasteBusyRef = useRef(false);
   useEffect(() => {
@@ -330,7 +324,7 @@ export function MapPage() {
   const openNewTagDialog = () => {
     setTagEditTarget(null);
     setNewTagName("");
-    setNewTagColor(DEFAULT_PIN_TAG_COLOR);
+    setNewTagColor(randomPresetTagColor());
     setNewTagEmoji("📍");
     setTagDialogOpen(true);
   };
@@ -529,8 +523,8 @@ export function MapPage() {
 
       try {
         const [{ shortTitle }, geocode] = await Promise.all([
-          reversePhotonPlaceDetails(lat, lng, zoom),
-          reversePhotonGeocode(lat, lng),
+          reverseGeocodeDetails(lat, lng, zoom),
+          reverseGeocodeForStorage(lat, lng),
         ]);
         const labelDetail = defaultLocationLabelDetail(geocode);
         const { data: row, error } = await supabase
@@ -900,25 +894,16 @@ export function MapPage() {
           </PanelDialogHeader>
           <PanelDialogBody>
             <PanelDialogFormStack>
-              <PanelDialogField>
-                <Label htmlFor="tag-name">Name</Label>
-                <Input
-                  id="tag-name"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                />
-              </PanelDialogField>
-              <PresetColorPicker
-                id="tag-color"
-                label="Color"
-                value={newTagColor}
-                onChange={setNewTagColor}
-              />
-              <EmojiPicker
-                id="tag-emoji"
-                label="Icon (emoji)"
-                value={newTagEmoji}
-                onChange={setNewTagEmoji}
+              <TagEntityLabelInput
+                id="tag-name"
+                label="Tag"
+                name={newTagName}
+                onNameChange={setNewTagName}
+                placeholder="Tag name"
+                color={newTagColor}
+                onColorChange={setNewTagColor}
+                emoji={newTagEmoji}
+                onEmojiChange={setNewTagEmoji}
               />
             </PanelDialogFormStack>
           </PanelDialogBody>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coordsFromMapShareUrl } from "./_services/geocoding/map-url.ts";
+import { coordsFromMapShareUrl } from "./map-url.ts";
 import {
   coordsForPlace,
   countPlacesNeedingCoords,
@@ -10,19 +10,26 @@ import {
   type CoordResolver,
   type Coords,
   type UrlLookupContext,
-} from "./_services/geocoding/resolver.ts";
-import type { ParsedPlace } from "./parsers.ts";
+} from "./resolver.ts";
+
+type TestPlace = {
+  googleMapsUrl: string;
+  title: string;
+  note?: string | null;
+  collectionName?: string;
+  lat?: number | null;
+  lng?: number | null;
+  coordLookupAttempted?: boolean;
+};
 
 function place(
-  overrides: Partial<ParsedPlace> & Pick<ParsedPlace, "googleMapsUrl">,
-): ParsedPlace {
+  overrides: Partial<TestPlace> & Pick<TestPlace, "googleMapsUrl">,
+): TestPlace {
   return {
-    dedupKey: "test",
     title: "Test place",
     note: null,
     lat: null,
     lng: null,
-    source: "collection",
     ...overrides,
   };
 }
@@ -32,7 +39,7 @@ function mockResolver(
 ): CoordResolver {
   return {
     resolveUrl,
-    resolveUrlsBatch: async (contexts) => {
+    resolveUrlsBatch: async (contexts: readonly UrlLookupContext[]) => {
       const map = new Map<string, Coords | null>();
       for (const ctx of contexts) {
         map.set(ctx.url, await resolveUrl(ctx));
@@ -53,37 +60,43 @@ describe("coordsFromMapShareUrl", () => {
 });
 
 describe("coordsForPlace", () => {
-  it("uses URL coords when lat/lng missing", () => {
-    const coords = coordsForPlace(
-      place({
-        googleMapsUrl:
-          "https://www.google.com/maps/place/Cafe/@41.9,-87.6,17z/data=!3d41.901!4d-87.601",
-      }),
-    );
-    expect(coords).toEqual({ lat: 41.901, lng: -87.601 });
+  it("uses stored lat/lng when present", () => {
+    expect(
+      coordsForPlace(
+        place({
+          googleMapsUrl: "https://maps.google.com/",
+          lat: 1,
+          lng: 2,
+        }),
+      ),
+    ).toEqual({ lat: 1, lng: 2 });
   });
 });
 
 describe("resolveMissingCoordsInCache", () => {
-  it("fills coords from URL patterns without HTTP", async () => {
+  it("resolves coords via injected resolver", async () => {
     const cache = {
       starred: {
         places: [
           place({
-            googleMapsUrl:
-              "https://www.google.com/maps/place/Cafe/@41.9,-87.6,17z/data=!3d41.901!4d-87.601",
+            googleMapsUrl: "https://example.com/no-coords",
+            title: "Mystery Cafe",
           }),
         ],
       },
     };
-    await resolveMissingCoordsInCache(cache);
-    expect(cache.starred.places[0]?.lat).toBe(41.901);
-    expect(cache.starred.places[0]?.lng).toBe(-87.601);
+
+    await resolveMissingCoordsInCache(cache, {
+      resolver: mockResolver(async () => ({ lat: 10, lng: 20 })),
+    });
+
+    expect(cache.starred.places[0]?.lat).toBe(10);
+    expect(cache.starred.places[0]?.lng).toBe(20);
   });
 });
 
 describe("resolveMissingCoordsInCacheBatch", () => {
-  it("reports complete when sync coords resolve all URLs", async () => {
+  it("marks batch complete when all URLs resolved", async () => {
     const url =
       "https://www.google.com/maps/place/Cafe/@41.9,-87.6,17z/data=!3d41.901!4d-87.601";
     const cache = {
@@ -95,9 +108,11 @@ describe("resolveMissingCoordsInCacheBatch", () => {
         },
       },
     };
+
     const result = await resolveMissingCoordsInCacheBatch(cache, {
       resolver: mockResolver(async () => null),
     });
+
     expect(result.complete).toBe(true);
     expect(result.placesResolved).toBe(1);
   });

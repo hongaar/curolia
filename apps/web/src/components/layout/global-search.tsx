@@ -10,8 +10,6 @@ import {
   normalizeCameraForUrl,
   PIN_FOCUS_ZOOM,
 } from "@/lib/map-view-params";
-import { searchPhotonPlaces, type PhotonPlace } from "@/lib/photon-geocode";
-import { pinLocationLabel } from "@/lib/pin-geocode";
 import {
   searchPinsInMaps,
   sortPinsByPreferredMap,
@@ -19,6 +17,11 @@ import {
 } from "@/lib/pin-text-search";
 import { useMap } from "@/providers/map-provider";
 import type { CuroliaMap } from "@/types/database";
+import {
+  pinLocationLabel,
+  searchPlaces,
+  type PlaceSearchResult,
+} from "@curolia/services/geocoding";
 import {
   GlobalSearchEmptyHint,
   GlobalSearchFooter,
@@ -174,7 +177,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
   const placesQuery = useQuery({
     queryKey: ["global-search-places", debounced],
-    queryFn: () => searchPhotonPlaces(debounced),
+    queryFn: () => searchPlaces(debounced),
     enabled: open && isMapRoute && debounced.length >= 2,
     staleTime: 60_000,
   });
@@ -222,7 +225,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     closeSearch();
   }
 
-  function onPickPlace(p: PhotonPlace) {
+  function onPickPlace(p: PlaceSearchResult) {
     const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
     const slug = map?.slug?.trim();
     if (!slug) {

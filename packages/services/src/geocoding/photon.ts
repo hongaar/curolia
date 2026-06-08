@@ -1,5 +1,9 @@
-import { isValidMapBbox, type MapBbox } from "@/lib/map-view-params";
-import type { PinGeocode } from "@/lib/pin-geocode";
+import { isValidMapBbox, type MapBbox } from "../coords.ts";
+import type { PinGeocode } from "./pin-geocode.ts";
+import type { GeocodeProperties } from "./types.ts";
+
+/** @internal Photon provider — use {@link searchPlaces} etc. from `./client.ts`. */
+export type PhotonProps = GeocodeProperties;
 
 export type PhotonPlace = {
   id: string;
@@ -18,24 +22,9 @@ type PhotonResponse = {
     /** GeoJSON Feature bbox: west, south, east, north (minLon, minLat, maxLon, maxLat). */
     bbox?: [number, number, number, number];
     geometry?: { type?: string; coordinates?: [number, number] };
-    properties?: {
-      name?: string;
-      street?: string;
-      city?: string;
-      town?: string;
-      village?: string;
-      state?: string;
-      country?: string;
-      type?: string;
-      /** Some Photon builds expose OSM extent as four numbers. */
-      extent?: unknown;
-    };
+    properties?: GeocodeProperties;
   }[];
 };
-
-export type PhotonProps = NonNullable<
-  PhotonResponse["features"]
->[number]["properties"];
 
 export function photonLabel(props: PhotonProps | undefined): string {
   if (!props) return "Place";

@@ -1,17 +1,30 @@
 /* eslint-disable react-hooks/set-state-in-effect -- reset form fields when dialog opens/closes */
-import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { PinLinksEditor } from "@/components/pins/pin-links-editor";
-import { PresetColorPicker } from "@/components/pins/preset-color-picker";
+import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { imageDimensionsFromFile } from "@/lib/image-dimensions";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
-import { reversePhotonGeocode } from "@/lib/photon-geocode";
 import {
   fileFromClipboardData,
   isPinFormTextEntryPasteTarget,
   urlFromClipboardData,
 } from "@/lib/pin-form-clipboard";
+import { fetchLinkMetadata, type LinkMetadata } from "@/lib/pin-links";
+import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
+import {
+  persistPinPhotoOrder,
+  reorderPhotosByIds,
+} from "@/lib/pin-photo-order";
+import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
+import { supabase } from "@/lib/supabase";
+import { useAddPinLink } from "@/lib/use-add-pin-link";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
+import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
+import { useAuth } from "@/providers/auth-provider";
+import { useMap } from "@/providers/map-provider";
+import type { Photo, Pin, Tag } from "@/types/database";
+import type { PinEditorFieldSuggestion } from "@curolia/plugin-contract";
 import {
   availableLocationLabelPatterns,
   DEFAULT_LOCATION_LABEL_DETAIL,
@@ -22,24 +35,10 @@ import {
   locationLabelForDetail,
   parsePinGeocode,
   pinGeocodeToJson,
+  reverseGeocodeForStorage,
   type LocationLabelDetail,
   type PinGeocode,
-} from "@/lib/pin-geocode";
-import { fetchLinkMetadata, type LinkMetadata } from "@/lib/pin-links";
-import {
-  persistPinPhotoOrder,
-  reorderPhotosByIds,
-} from "@/lib/pin-photo-order";
-import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
-import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
-import { supabase } from "@/lib/supabase";
-import { useAddPinLink } from "@/lib/use-add-pin-link";
-import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
-import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
-import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
-import type { Photo, Pin, Tag } from "@/types/database";
-import type { PinEditorFieldSuggestion } from "@curolia/plugin-contract";
+} from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
 import { Checkbox } from "@curolia/ui/checkbox";
@@ -69,8 +68,8 @@ import {
   PinFormPanelCard,
   PinFormPanelDialog,
   PinFormPhotoPlaceholder,
-  PinFormPhotoSortableGrid,
   PinFormPhotoRemoveButton,
+  PinFormPhotoSortableGrid,
   PinFormPhotoThumb,
   PinFormPluginSectionCard,
   PinFormTagBox,
@@ -171,7 +170,7 @@ export function PinFormDialog({
   const [deleting, setDeleting] = useState(false);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
+  const [newTagColor, setNewTagColor] = useState(randomPresetTagColor);
   const [newTagEmoji, setNewTagEmoji] = useState("📍");
   const [tagSaving, setTagSaving] = useState(false);
   const floatingRef = useRef<HTMLDivElement>(null);
@@ -415,7 +414,7 @@ export function PinFormDialog({
       setLocationLookupPending(true);
       void (async () => {
         try {
-          const next = await reversePhotonGeocode(latN, lngN);
+          const next = await reverseGeocodeForStorage(latN, lngN);
           if (!cancelled) setGeocode(next);
         } catch {
           if (!cancelled) setGeocode(null);
@@ -456,7 +455,7 @@ export function PinFormDialog({
       setDeleting(false);
       setTagDialogOpen(false);
       setNewTagName("");
-      setNewTagColor(DEFAULT_PIN_TAG_COLOR);
+      setNewTagColor(randomPresetTagColor());
       setNewTagEmoji("📍");
       setTagSaving(false);
     }
@@ -464,7 +463,7 @@ export function PinFormDialog({
 
   function openNewTagDialog() {
     setNewTagName("");
-    setNewTagColor(DEFAULT_PIN_TAG_COLOR);
+    setNewTagColor(randomPresetTagColor());
     setNewTagEmoji("📍");
     setTagDialogOpen(true);
   }
@@ -1209,25 +1208,16 @@ export function PinFormDialog({
         </PanelDialogHeader>
         <PanelDialogBody>
           <PanelDialogFormStack>
-            <PanelDialogField>
-              <Label htmlFor={`pin-form-tag-name-${idSuffix}`}>Name</Label>
-              <Input
-                id={`pin-form-tag-name-${idSuffix}`}
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-              />
-            </PanelDialogField>
-            <PresetColorPicker
-              id={`pin-form-tag-color-${idSuffix}`}
-              label="Color"
-              value={newTagColor}
-              onChange={setNewTagColor}
-            />
-            <EmojiPicker
-              id={`pin-form-tag-emoji-${idSuffix}`}
-              label="Icon (emoji)"
-              value={newTagEmoji}
-              onChange={setNewTagEmoji}
+            <TagEntityLabelInput
+              id={`pin-form-tag-name-${idSuffix}`}
+              label="Tag"
+              name={newTagName}
+              onNameChange={setNewTagName}
+              placeholder="Tag name"
+              color={newTagColor}
+              onColorChange={setNewTagColor}
+              emoji={newTagEmoji}
+              onEmojiChange={setNewTagEmoji}
             />
           </PanelDialogFormStack>
         </PanelDialogBody>

@@ -6,7 +6,7 @@ export const MAP_VIEW_PARAM = {
   zoom: "zoom",
   /** West,south,east,north (WGS84), optional — fit map to this extent. */
   bbox: "bbox",
-  /** Open map sidebar for this pin (slug preferred; UUID still accepted). */
+  /** Open map side panel for this pin (slug preferred; UUID still accepted). */
   pin: "pin",
   /** Comma-separated URL tag slugs (OR filter within the map). */
   filter: "filter",
@@ -142,22 +142,8 @@ export function applySelectedPinToSearchParams(
 
 export type MapCamera = { lat: number; lng: number; zoom: number };
 
-/** Geographic bounding box (west/south/east/north in degrees). */
-export type MapBbox = {
-  west: number;
-  south: number;
-  east: number;
-  north: number;
-};
-
-export function isValidMapBbox(b: MapBbox): boolean {
-  const { west, south, east, north } = b;
-  if (![west, south, east, north].every((x) => Number.isFinite(x)))
-    return false;
-  if (west >= east || south >= north) return false;
-  if (south < -90 || north > 90 || west < -180 || east > 180) return false;
-  return true;
-}
+import type { MapBbox } from "@curolia/services/coords";
+import { isValidMapBbox } from "@curolia/services/coords";
 
 export function normalizeBboxForUrl(b: MapBbox): MapBbox {
   return {

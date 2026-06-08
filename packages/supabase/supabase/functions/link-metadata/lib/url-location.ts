@@ -1,5 +1,9 @@
-import { isValidLatLng, parseLatLngPair, pickBestLocation } from "./coords.ts";
-import { extractLocationFromGoogleMapsUrl } from "./google-maps-url.ts";
+import {
+  isValidLatLng,
+  parseLatLngPair,
+  pickBestLocation,
+} from "./_services/coords.ts";
+import { extractLocationFromMapShareUrl } from "./_services/geocoding/map-url.ts";
 import type { ExtractedLocation } from "./types.ts";
 import { extractTitleFromUrl } from "./url-title.ts";
 
@@ -40,7 +44,7 @@ function hostIncludes(url: URL, fragment: string): boolean {
 }
 
 function googleMaps(url: URL): ExtractedLocation | null {
-  const found = extractLocationFromGoogleMapsUrl(url);
+  const found = extractLocationFromMapShareUrl(url);
   if (!found) return null;
   const label = extractTitleFromUrl(url);
   if (label && !found.label) return { ...found, label };

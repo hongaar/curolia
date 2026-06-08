@@ -1,14 +1,12 @@
-import {
-  reversePhotonGeocode,
-  reversePhotonPlaceDetails,
-} from "@/lib/photon-geocode";
-import {
-  defaultLocationLabelDetail,
-  pinGeocodeToJson,
-} from "@/lib/pin-geocode";
 import type { LinkMetadata } from "@/lib/pin-links";
 import { supabase } from "@/lib/supabase";
 import type { Pin } from "@/types/database";
+import {
+  defaultLocationLabelDetail,
+  pinGeocodeToJson,
+  reverseGeocodeDetails,
+  reverseGeocodeForStorage,
+} from "@curolia/services/geocoding";
 
 export type CreatePinFromLinkOptions = {
   mapId: string;
@@ -31,8 +29,8 @@ export async function createPinFromLinkMetadata({
 
   const { lat, lng } = meta.location;
   const [{ shortTitle }, geocode] = await Promise.all([
-    reversePhotonPlaceDetails(lat, lng, zoom),
-    reversePhotonGeocode(lat, lng),
+    reverseGeocodeDetails(lat, lng, zoom),
+    reverseGeocodeForStorage(lat, lng),
   ]);
 
   const labelDetail = defaultLocationLabelDetail(geocode);

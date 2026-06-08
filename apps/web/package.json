@@ -24,6 +24,7 @@
     "@capacitor/geolocation": "^8.0.2",
     "@capacitor/push-notifications": "^8.0.3",
     "@curolia/plugin-contract": "file:../../packages/plugin-contract",
+    "@curolia/services": "file:../../packages/services",
     "@curolia/plugin-google-photos": "file:../../packages/plugins/google-photos",
     "@curolia/plugin-google-maps-saved-lists": "file:../../packages/plugins/google-maps-saved-lists",
     "@curolia/plugin-ical": "file:../../packages/plugins/ical",

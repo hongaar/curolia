@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import {
   availableLocationLabelPatterns,
   defaultLocationLabelDetail,
@@ -6,8 +7,7 @@ import {
   locationLabelForDetail,
   pinLocationLabel,
   type PinGeocode,
-} from "@/lib/pin-geocode";
-import { describe, expect, it } from "vitest";
+} from "./pin-geocode.ts";
 
 const parisSample: PinGeocode = {
   source: "photon",

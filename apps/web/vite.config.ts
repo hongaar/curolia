@@ -82,6 +82,7 @@ export default defineConfig({
         repoRoot,
         "packages/plugin-contract/src/index.ts",
       ),
+      "@curolia/services": path.resolve(repoRoot, "packages/services/src"),
       "@curolia/plugin-google-photos": path.resolve(
         repoRoot,
         "packages/plugins/google-photos/src/index.ts",

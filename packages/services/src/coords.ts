@@ -1,3 +1,13 @@
+export type Coords = { lat: number; lng: number };
+
+/** Geographic bounding box (west/south/east/north in degrees). */
+export type MapBbox = {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+};
+
 export function isValidLatLng(lat: number, lng: number): boolean {
   return (
     Number.isFinite(lat) &&
@@ -9,10 +19,17 @@ export function isValidLatLng(lat: number, lng: number): boolean {
   );
 }
 
+export function isValidMapBbox(b: MapBbox): boolean {
+  const { west, south, east, north } = b;
+  if (![west, south, east, north].every((x) => Number.isFinite(x)))
+    return false;
+  if (west >= east || south >= north) return false;
+  if (south < -90 || north > 90 || west < -180 || east > 180) return false;
+  return true;
+}
+
 /** Parse "lat,lng" or "lat lng" with optional cardinal suffixes. */
-export function parseLatLngPair(
-  raw: string,
-): { lat: number; lng: number } | null {
+export function parseLatLngPair(raw: string): Coords | null {
   const s = raw.trim();
   if (!s) return null;
 

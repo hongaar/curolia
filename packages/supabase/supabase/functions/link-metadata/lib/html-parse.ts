@@ -1,4 +1,8 @@
-import { isValidLatLng, parseLatLngPair, pickBestLocation } from "./coords.ts";
+import {
+  isValidLatLng,
+  parseLatLngPair,
+  pickBestLocation,
+} from "./_services/coords.ts";
 import type { ExtractedLocation, ParsedPageHead } from "./types.ts";
 
 const MAX_HEAD_BYTES = 512_000;

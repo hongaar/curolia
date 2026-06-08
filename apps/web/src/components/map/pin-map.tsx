@@ -10,13 +10,12 @@ import {
 import {
   cameraToSyncKey,
   camerasCloseEnough,
-  isValidMapBbox,
   normalizeCameraForUrl,
-  type MapBbox,
   type MapCamera,
 } from "@/lib/map-view-params";
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
 import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
+import { isValidMapBbox, type MapBbox } from "@curolia/services/coords";
 import { MapCanvas } from "@curolia/ui/map";
 import {
   createMapMarkerMount,

@@ -57,9 +57,9 @@ export type Pin = {
   title: string | null;
   description: string | null;
   /** Photon reverse-geocode snapshot; client derives the location label. */
-  geocode: import("@/lib/pin-geocode").PinGeocode | null;
+  geocode: import("@curolia/services/geocoding").PinGeocode | null;
   /** Granularity for the derived location label. */
-  location_label_detail: import("@/lib/pin-geocode").LocationLabelDetail;
+  location_label_detail: import("@curolia/services/geocoding").LocationLabelDetail;
   lat: number;
   lng: number;
   /** Start calendar day (YYYY-MM-DD), optional. */

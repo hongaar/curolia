@@ -1,9 +1,10 @@
+import type { Coords } from "../coords.ts";
 import {
   buildGeoapifySearchText,
   createGeoapifyClient,
   GEOAPIFY_BATCH_MIN_SIZE,
   type GeoapifyClient,
-} from "./geoapify-client.ts";
+} from "./geoapify.ts";
 import {
   coordsFromGoogleMapsUrl,
   extractGoogleMapsCidFromUrl,
@@ -12,73 +13,67 @@ import {
 import {
   createGooglePlacesClient,
   type GooglePlacesClient,
-} from "./google-places-client.ts";
-import type { ParsedPlace } from "./parsers.ts";
+} from "./google-places.ts";
+import type {
+  CoordResolver,
+  CoordResolverConfig,
+  UrlLookupContext,
+} from "./types.ts";
 
-const DEFAULT_CONCURRENCY = 5;
 const DEFAULT_BATCH_MAX_URLS = 40;
 const DEFAULT_BATCH_TIME_BUDGET_MS = 90_000;
 
-export type Coords = { lat: number; lng: number };
+export type { Coords, UrlLookupContext };
+
+export type CoordLookupPlace = {
+  googleMapsUrl: string;
+  title: string;
+  note?: string | null;
+  collectionName?: string;
+  lat?: number | null;
+  lng?: number | null;
+  coordLookupAttempted?: boolean;
+};
 
 export type ExportCacheLike = {
-  starred?: { places: ParsedPlace[] };
-  collections?: { byName: Record<string, { places: ParsedPlace[] }> };
+  starred?: { places: CoordLookupPlace[] };
+  collections?: { byName: Record<string, { places: CoordLookupPlace[] }> };
 };
 
-export type UrlLookupContext = {
-  url: string;
-  title: string;
-  collectionName?: string;
-  note?: string | null;
-};
+export type { CoordResolver, CoordResolverConfig };
 
-export type ApiCoordResolverConfig = {
-  googlePlacesApiKey?: string;
-  geoapifyApiKey?: string;
-};
-
-export type ApiCoordResolver = {
-  resolveUrl: (context: UrlLookupContext) => Promise<Coords | null>;
-  resolveUrlsBatch: (
-    contexts: readonly UrlLookupContext[],
-    options?: { timeBudgetMs?: number },
-  ) => Promise<Map<string, Coords | null>>;
-  getGooglePlacesKeyIssue: () => string | null;
-};
-
-export function createApiCoordResolver(
-  config: ApiCoordResolverConfig,
-): ApiCoordResolver {
-  const googlePlaces = createGooglePlacesClient(config.googlePlacesApiKey);
-  const geoapify = createGeoapifyClient(config.geoapifyApiKey);
+export function createCoordResolver(
+  config: CoordResolverConfig,
+): CoordResolver {
+  const googlePlaces = createGooglePlacesClient(config.placesLookupApiKey);
+  const geoapify = createGeoapifyClient(config.forwardGeocodeApiKey);
 
   return {
     resolveUrl: (context) =>
       resolveUrlWithApis(context, googlePlaces, geoapify, {
-        allowGeoapify: true,
+        allowForwardGeocode: true,
       }),
     resolveUrlsBatch: (contexts, options) =>
       resolveUrlsBatchWithApis(contexts, googlePlaces, geoapify, options),
-    getGooglePlacesKeyIssue: () => googlePlaces?.getKeyIssue() ?? null,
+    getPlacesLookupKeyIssue: () => googlePlaces?.getKeyIssue() ?? null,
   };
 }
 
-export function placeHasCoords(place: ParsedPlace): boolean {
+export function placeHasCoords(place: CoordLookupPlace): boolean {
   return place.lat != null && place.lng != null;
 }
 
-export { coordsFromGoogleMapsUrl };
-
-export function coordsForPlace(place: ParsedPlace): Coords | null {
+export function coordsForPlace(place: CoordLookupPlace): Coords | null {
   if (placeHasCoords(place)) {
     return { lat: place.lat!, lng: place.lng! };
   }
   return coordsFromGoogleMapsUrl(place.googleMapsUrl);
 }
 
-export function collectCachedPlaces(cache: ExportCacheLike): ParsedPlace[] {
-  const places: ParsedPlace[] = [];
+export function collectCachedPlaces(
+  cache: ExportCacheLike,
+): CoordLookupPlace[] {
+  const places: CoordLookupPlace[] = [];
   if (cache.starred?.places) places.push(...cache.starred.places);
   for (const collection of Object.values(cache.collections?.byName ?? {})) {
     places.push(...collection.places);
@@ -86,7 +81,7 @@ export function collectCachedPlaces(cache: ExportCacheLike): ParsedPlace[] {
   return places;
 }
 
-export function placeNeedsCoordLookup(place: ParsedPlace): boolean {
+export function placeNeedsCoordLookup(place: CoordLookupPlace): boolean {
   return !placeHasCoords(place) && place.coordLookupAttempted !== true;
 }
 
@@ -175,7 +170,7 @@ async function resolveUrlWithApis(
   context: UrlLookupContext,
   googlePlaces: GooglePlacesClient | null,
   geoapify: GeoapifyClient | null,
-  options: { allowGeoapify: boolean },
+  options: { allowForwardGeocode: boolean },
 ): Promise<Coords | null> {
   const sync = coordsFromGoogleMapsUrl(context.url);
   if (sync) return sync;
@@ -183,7 +178,7 @@ async function resolveUrlWithApis(
   const fromPlaces = await resolveUrlWithGooglePlaces(context, googlePlaces);
   if (fromPlaces) return fromPlaces;
 
-  if (!options.allowGeoapify || !geoapify) return null;
+  if (!options.allowForwardGeocode || !geoapify) return null;
 
   const geocodeText = buildPlacesTextQuery(context);
   if (!geocodeText) return null;
@@ -254,28 +249,10 @@ async function resolveUrlsBatchWithApis(
   return results;
 }
 
-async function mapWithConcurrency<T>(
-  items: readonly T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-): Promise<void> {
-  if (items.length === 0) return;
-  let index = 0;
-  async function worker(): Promise<void> {
-    while (index < items.length) {
-      const current = items[index]!;
-      index += 1;
-      await fn(current);
-    }
-  }
-  const workers = Math.min(concurrency, items.length);
-  await Promise.all(Array.from({ length: workers }, () => worker()));
-}
-
 export type ResolveMissingCoordsOptions = {
   concurrency?: number;
-  resolver?: ApiCoordResolver;
-  resolverConfig?: ApiCoordResolverConfig;
+  resolver?: CoordResolver;
+  resolverConfig?: CoordResolverConfig;
   onProgress?: (update: {
     done: number;
     total: number;
@@ -301,7 +278,7 @@ export type ResolveMissingCoordsBatchResult = {
   placesResolved: number;
   placesTotal: number;
   complete: boolean;
-  googlePlacesKeyIssue: string | null;
+  placesLookupKeyIssue: string | null;
 };
 
 function progressPhase(done: number, total: number, resolved: number): string {
@@ -322,9 +299,9 @@ function applySyncCoordsPass(cache: ExportCacheLike): void {
 
 function resolveApiResolver(
   options?: ResolveMissingCoordsOptions,
-): ApiCoordResolver {
+): CoordResolver {
   if (options?.resolver) return options.resolver;
-  return createApiCoordResolver(options?.resolverConfig ?? {});
+  return createCoordResolver(options?.resolverConfig ?? {});
 }
 
 /**
@@ -336,7 +313,6 @@ export async function resolveMissingCoordsInCacheBatch(
   options?: ResolveMissingCoordsBatchOptions,
 ): Promise<ResolveMissingCoordsBatchResult> {
   const resolver = resolveApiResolver(options);
-  const concurrency = options?.concurrency ?? DEFAULT_CONCURRENCY;
   const maxUrls = options?.maxUrls ?? DEFAULT_BATCH_MAX_URLS;
   const timeBudgetMs = options?.timeBudgetMs ?? DEFAULT_BATCH_TIME_BUDGET_MS;
   const startedAt = Date.now();
@@ -362,7 +338,7 @@ export async function resolveMissingCoordsInCacheBatch(
       placesResolved: countPlacesWithCoords(cache),
       placesTotal,
       complete: true,
-      googlePlacesKeyIssue: resolver.getGooglePlacesKeyIssue(),
+      placesLookupKeyIssue: resolver.getPlacesLookupKeyIssue(),
     };
   }
 
@@ -412,7 +388,7 @@ export async function resolveMissingCoordsInCacheBatch(
     placesResolved: countPlacesWithCoords(cache),
     placesTotal,
     complete: urlsRemaining === 0,
-    googlePlacesKeyIssue: resolver.getGooglePlacesKeyIssue(),
+    placesLookupKeyIssue: resolver.getPlacesLookupKeyIssue(),
   };
 }
 

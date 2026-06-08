@@ -1,4 +1,4 @@
-import { isValidLatLng, parseLatLngPair, pickBestLocation } from "./coords.ts";
+import { isValidLatLng, parseLatLngPair, pickBestLocation } from "../coords.ts";
 
 export type ExtractedLocation = {
   lat: number;
@@ -119,6 +119,40 @@ function googleMaps(url: URL): ExtractedLocation | null {
   return fromQuery;
 }
 
+/** Google feature / data ID embedded in Maps place URLs (`0x…:0x…`). */
+export function extractGoogleMapsFeatureIdFromUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const haystack = u.pathname + u.search + u.hash;
+    const match =
+      haystack.match(/!1s(0x[a-f0-9]+:0x[a-f0-9]+)/i) ??
+      haystack.match(/(?:^|[/?&])1s(0x[a-f0-9]+:0x[a-f0-9]+)/i);
+    return match?.[1]?.toLowerCase() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Decimal CID used by legacy Places Details (`?cid=` or derived from feature id).
+ * @see https://outscraper.com/place-id-feature-id-cid/
+ */
+export function extractGoogleMapsCidFromUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const cidParam = u.searchParams.get("cid")?.trim();
+    if (cidParam && /^\d+$/.test(cidParam)) return cidParam;
+
+    const featureId = extractGoogleMapsFeatureIdFromUrl(url);
+    if (!featureId) return null;
+    const rightHex = featureId.split(":")[1];
+    if (!rightHex || !/^0x[a-f0-9]+$/.test(rightHex)) return null;
+    return BigInt(rightHex).toString(10);
+  } catch {
+    return null;
+  }
+}
+
 /** Stable dedup key from a Google Maps place URL (place CID when present). */
 export function normalizeGoogleMapsPlaceKey(url: string): string {
   try {
@@ -157,4 +191,17 @@ export function extractLocationFromGoogleMapsUrl(
 ): ExtractedLocation | null {
   const u = typeof url === "string" ? new URL(url) : url;
   return pickBestLocation([googleMaps(u)]);
+}
+
+/** Lat/lng from embedded URL patterns only (no network). */
+export function coordsFromGoogleMapsUrl(
+  url: string,
+): { lat: number; lng: number } | null {
+  try {
+    const location = extractLocationFromGoogleMapsUrl(url);
+    if (!location) return null;
+    return { lat: location.lat, lng: location.lng };
+  } catch {
+    return null;
+  }
 }

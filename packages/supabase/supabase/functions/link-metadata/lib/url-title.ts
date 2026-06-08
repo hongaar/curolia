@@ -1,4 +1,4 @@
-import { parseLatLngPair } from "./coords.ts";
+import { parseLatLngPair } from "./_services/coords.ts";
 
 const GENERIC_TITLE_PATTERNS = [
   /^google maps$/i,

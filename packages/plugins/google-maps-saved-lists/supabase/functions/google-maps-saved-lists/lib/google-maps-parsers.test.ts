@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { normalizeMapPlaceKey } from "./_services/geocoding/index.ts";
 import {
-  normalizeGoogleMapsPlaceKey,
   parseSavedCollectionsCsv,
   parseStarredGeoJson,
 } from "./google-maps-parsers.ts";
@@ -28,7 +28,7 @@ describe("parseStarredGeoJson", () => {
     expect(places[0]?.lat).toBeCloseTo(41.948, 2);
     expect(places[0]?.lng).toBeCloseTo(-87.653, 2);
     expect(places[0]?.dedupKey).toBe(
-      normalizeGoogleMapsPlaceKey(places[0]!.googleMapsUrl),
+      normalizeMapPlaceKey(places[0]!.googleMapsUrl),
     );
   });
 });

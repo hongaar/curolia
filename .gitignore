@@ -55,3 +55,7 @@ packages/supabase/supabase/functions/wikidata/
 # Generated Edge Function registries (built by functions:sync extractors)
 packages/supabase/supabase/functions/plugin-sync-dispatch/dispatch-registry.gen.ts
 packages/plugins/**/scopes-registry.gen.ts
+
+# Synced @curolia/services copy for Edge Functions (built by functions:sync)
+packages/plugins/**/lib/_services/
+packages/supabase/supabase/functions/**/lib/_services/

@@ -4,7 +4,6 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
-import { pinLocationLabel } from "@/lib/pin-geocode";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +15,7 @@ import {
   OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
+import { pinLocationLabel } from "@curolia/services/geocoding";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";

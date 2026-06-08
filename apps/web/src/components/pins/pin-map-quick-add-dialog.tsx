@@ -1,8 +1,8 @@
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
-import { pinLocationLabel } from "@/lib/pin-geocode";
 import { supabase } from "@/lib/supabase";
 import type { Pin } from "@/types/database";
+import { pinLocationLabel } from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
 import { Dialog } from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";

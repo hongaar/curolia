@@ -79,6 +79,17 @@ function copyDir(src, dest) {
   }
 }
 
+const servicesSrc = path.join(repoRoot, "packages", "services", "src");
+
+/** Copy @curolia/services sources into an Edge Function `lib/_services/` tree. */
+function syncServicesIntoLib(libDir) {
+  if (!fs.existsSync(libDir)) return;
+  const dest = path.join(libDir, "_services");
+  rmrf(dest);
+  copyDir(servicesSrc, dest);
+  console.log(`synced services -> ${path.relative(repoRoot, dest)}`);
+}
+
 if (!fs.existsSync(pluginsRoot)) {
   console.warn("sync-plugins: no packages/plugins directory");
   process.exit(0);
@@ -99,11 +110,18 @@ for (const pkg of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
     const dest = path.join(destRoot, slug.name);
     rmrf(dest);
     copyDir(src, dest);
+    syncServicesIntoLib(path.join(src, "lib"));
+    syncServicesIntoLib(path.join(dest, "lib"));
     console.log(
       `synced ${path.relative(repoRoot, src)} -> ${path.relative(repoRoot, dest)}`,
     );
     count += 1;
   }
+}
+
+const linkMetadataLib = path.join(destRoot, "link-metadata", "lib");
+if (fs.existsSync(linkMetadataLib)) {
+  syncServicesIntoLib(linkMetadataLib);
 }
 
 if (count === 0) console.log("sync-plugins: no plugin functions found");

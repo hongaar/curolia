@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { photonDefaultTitleForZoom } from "./photon-geocode";
+import { defaultPlaceTitleForZoom } from "./client.ts";
 
-describe("photonDefaultTitleForZoom", () => {
+describe("defaultPlaceTitleForZoom", () => {
   const props = {
     name: "Rue de Rivoli",
     street: "Rue de Rivoli",
@@ -12,25 +12,25 @@ describe("photonDefaultTitleForZoom", () => {
 
   it("uses country when zoomed far out", () => {
     expect(
-      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 4),
+      defaultPlaceTitleForZoom(props, "Rue de Rivoli, Paris, France", 4),
     ).toBe("France");
   });
 
   it("uses city once past country zoom band", () => {
     expect(
-      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 7),
+      defaultPlaceTitleForZoom(props, "Rue de Rivoli, Paris, France", 7),
     ).toBe("Paris");
   });
 
   it("uses city at metro zoom", () => {
     expect(
-      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 10),
+      defaultPlaceTitleForZoom(props, "Rue de Rivoli, Paris, France", 10),
     ).toBe("Paris");
   });
 
   it("uses street or POI name when zoomed in", () => {
     expect(
-      photonDefaultTitleForZoom(props, "Rue de Rivoli, Paris, France", 13),
+      defaultPlaceTitleForZoom(props, "Rue de Rivoli, Paris, France", 13),
     ).toBe("Rue de Rivoli");
   });
 });

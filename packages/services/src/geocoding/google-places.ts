@@ -1,4 +1,4 @@
-import type { Coords } from "./resolve-place-coords.ts";
+import type { Coords } from "../coords.ts";
 
 const PLACES_FETCH_TIMEOUT_MS = 12_000;
 const LEGACY_DETAILS_URL =

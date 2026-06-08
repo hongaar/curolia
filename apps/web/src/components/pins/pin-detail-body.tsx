@@ -4,7 +4,6 @@ import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { pinDetailHref } from "@/lib/app-paths";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
-import { pinLocationLabel } from "@/lib/pin-geocode";
 import {
   photosToGalleryItems,
   pinPhotoGalleryPlaceholderCount,
@@ -21,6 +20,7 @@ import {
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
 import { OSM_POI_PLUGIN_ID } from "@curolia/plugin-osm-poi";
+import { pinLocationLabel } from "@curolia/services/geocoding";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
 import {

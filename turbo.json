@@ -56,6 +56,10 @@
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false
     },
+    "@curolia/plugin-google-maps-saved-lists#typecheck": {
+      "dependsOn": ["@curolia/supabase#functions:sync"],
+      "cache": false
+    },
     "@curolia/mobile#sync": {
       "dependsOn": ["@curolia/brand#generate:native", "@curolia/web#build"],
       "cache": false
