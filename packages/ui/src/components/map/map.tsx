@@ -93,30 +93,6 @@ export function MapControlsBottomCenter({
   return <div className={styles.controlsBottomCenter}>{children}</div>;
 }
 
-/** Full-screen dismiss overlay behind the navigation sidebar on map view. */
-export function MapOverlayDismiss({
-  open,
-  onDismiss,
-}: {
-  open: boolean;
-  onDismiss: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      tabIndex={open ? 0 : -1}
-      className={
-        open
-          ? `${styles.overlayDismiss} ${styles.overlayDismissOpen}`
-          : `${styles.overlayDismiss} ${styles.overlayDismissClosed}`
-      }
-      aria-hidden={!open}
-      aria-label={open ? "Dismiss navigation sidebar" : undefined}
-      onClick={open ? onDismiss : undefined}
-    />
-  );
-}
-
 export function MapPlacementHint({ children }: { children: React.ReactNode }) {
   return (
     <div className={styles.placementHint}>

@@ -6,13 +6,13 @@ import {
   DropdownMenuSeparator,
 } from "@curolia/ui/dropdown-menu";
 import {
-  MapDropdownEditButton,
-  SidebarCheckIcon,
-  SidebarCheckSpacer,
-  SidebarDropdownMenuItem,
-  SidebarDropdownRow,
-  SidebarTagName,
-} from "@curolia/ui/navigation-sidebar";
+  DropdownMenuCheckIcon,
+  DropdownMenuCheckItem,
+  DropdownMenuCheckSpacer,
+  DropdownMenuEditButton,
+  DropdownMenuEditRow,
+  DropdownMenuItemName,
+} from "@curolia/ui/dropdown-menu-list";
 import { Check, Pencil, Plus } from "lucide-react";
 import type { SetStateAction } from "react";
 
@@ -21,7 +21,7 @@ type TagsFilterMenuContentProps = {
   filterTagIds: Set<string>;
   setFilterTagIds: (action: SetStateAction<Set<string>>) => void;
   onNewTag?: () => void;
-  onEditTag: (tag: Tag) => void;
+  onEditTag?: (tag: Tag) => void;
   canEdit?: boolean;
 };
 
@@ -43,8 +43,8 @@ export function TagsFilterMenuContent({
           tags.map((tag) => {
             const selected = filterTagIds.has(tag.id);
             return (
-              <SidebarDropdownRow key={tag.id}>
-                <SidebarDropdownMenuItem
+              <DropdownMenuEditRow key={tag.id}>
+                <DropdownMenuCheckItem
                   closeOnClick={false}
                   onClick={() => {
                     setFilterTagIds((prev) => {
@@ -56,30 +56,30 @@ export function TagsFilterMenuContent({
                   }}
                 >
                   <span aria-hidden>{tag.icon_emoji}</span>
-                  <SidebarTagName selected={selected}>
+                  <DropdownMenuItemName selected={selected}>
                     {tag.name}
-                  </SidebarTagName>
+                  </DropdownMenuItemName>
                   {selected ? (
-                    <SidebarCheckIcon>
+                    <DropdownMenuCheckIcon>
                       <Check aria-hidden />
-                    </SidebarCheckIcon>
+                    </DropdownMenuCheckIcon>
                   ) : (
-                    <SidebarCheckSpacer />
+                    <DropdownMenuCheckSpacer />
                   )}
-                </SidebarDropdownMenuItem>
+                </DropdownMenuCheckItem>
                 {canEdit ? (
-                  <MapDropdownEditButton
+                  <DropdownMenuEditButton
                     title="Edit tag"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      onEditTag(tag);
+                      onEditTag?.(tag);
                     }}
                   >
                     <Pencil aria-hidden />
-                  </MapDropdownEditButton>
+                  </DropdownMenuEditButton>
                 ) : null}
-              </SidebarDropdownRow>
+              </DropdownMenuEditRow>
             );
           })
         )}

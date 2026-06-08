@@ -29,7 +29,7 @@ export function resolveMapFromSettingsParam(
   return maps.find((m) => m.id === param) ?? null;
 }
 
-/** Map uses the fullscreen / overlay sidebar chrome. */
+/** Map uses fullscreen chrome (floating toolbar, no page chrome). */
 export function isMapFullscreenPathname(pathname: string): boolean {
   return pathname === "/" || /^\/map\/[^/]+\/?$/.test(pathname);
 }

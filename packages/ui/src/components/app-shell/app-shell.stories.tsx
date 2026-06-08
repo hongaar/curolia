@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Map, Settings } from "lucide-react";
+import { Map } from "lucide-react";
 import { useState } from "react";
 import { withMemoryRouter } from "../../storybook/decorators";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
@@ -19,18 +19,12 @@ import {
 } from "../map";
 import { MapPickerContent, MapPickerTrigger } from "../map-picker";
 import { MapToolbar, MapToolbarButton } from "../map-toolbar";
-import {
-  NavigationSidebarLabel,
-  NavigationSidebarNavLink,
-  NavigationSidebarRoot,
-  NavigationSidebarSection,
-} from "../navigation-sidebar";
 import { UserAvatar } from "../user-avatar";
 import { AppShellLayout } from "./app-shell";
 
 const appShellMeta = componentStoryMeta(
-  "Authenticated layout: sidebar slot, main outlet, toolbar header.",
-  "Pass `sidebar`, `children` (usually map or page), and optional `header` (floating nav). Control `sidebarOpen` and `overlayMain` from app state.",
+  "Authenticated layout: main outlet and floating toolbar header.",
+  "Pass `children` (usually map or page) and optional `header` (floating nav).",
 );
 
 const meta = {
@@ -73,44 +67,9 @@ function MapChromeDemo() {
   );
 }
 
-function SidebarDemo() {
-  return (
-    <NavigationSidebarRoot>
-      <NavigationSidebarSection>
-        <NavigationSidebarLabel>Map</NavigationSidebarLabel>
-        <p style={{ margin: 0, fontSize: "0.875rem", padding: "0 0.5rem" }}>
-          Summer 2025
-        </p>
-      </NavigationSidebarSection>
-      <NavigationSidebarSection gap="lg">
-        <NavigationSidebarLabel spaced>Navigate</NavigationSidebarLabel>
-        <NavigationSidebarNavLink to="/map" end icon={<Map aria-hidden />}>
-          Map
-        </NavigationSidebarNavLink>
-        <NavigationSidebarNavLink
-          to="/settings"
-          icon={<Settings aria-hidden />}
-        >
-          Settings
-        </NavigationSidebarNavLink>
-      </NavigationSidebarSection>
-    </NavigationSidebarRoot>
-  );
-}
-
-function ShellDemo({
-  sidebarOpen: initialOpen = true,
-  overlayMain = false,
-}: {
-  sidebarOpen?: boolean;
-  overlayMain?: boolean;
-}) {
-  const [sidebarOpen] = useState(initialOpen);
+function ShellDemo() {
   return (
     <AppShellLayout
-      sidebarOpen={sidebarOpen}
-      overlayMain={overlayMain}
-      sidebar={<SidebarDemo />}
       header={
         <MainToolbar
           logoSrc="/favicon.png"
@@ -155,16 +114,8 @@ function ShellDemo({
 }
 
 export const Default: Story = {
-  parameters: storyDocs("Desktop layout with sidebar open beside the map."),
-  render: () => <ShellDemo sidebarOpen />,
-};
-
-export const SidebarClosed: Story = {
-  parameters: storyDocs("Sidebar collapsed; map uses full width."),
-  render: () => <ShellDemo sidebarOpen={false} />,
-};
-
-export const OverlaySidebar: Story = {
-  parameters: storyDocs("Sidebar overlays the map (mobile-style)."),
-  render: () => <ShellDemo sidebarOpen overlayMain />,
+  parameters: storyDocs(
+    "Map page with floating toolbar over full-width content.",
+  ),
+  render: () => <ShellDemo />,
 };

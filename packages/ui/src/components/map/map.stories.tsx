@@ -26,7 +26,6 @@ import {
   MapControlsTopRight,
   MapHost,
   MapLayer,
-  MapOverlayDismiss,
   MapPageRoot,
   MapPlacementHint,
   MapVignette,
@@ -63,10 +62,6 @@ export const Default: Story = {
             </MapHost>
             <MapVignette />
           </MapLayer>
-          <MapOverlayDismiss
-            open={popoverOpen}
-            onDismiss={() => setPopoverOpen(false)}
-          />
           <MapControlsLayer>
             <MapControlsTopRight>
               <MapToolbar>

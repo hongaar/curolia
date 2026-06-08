@@ -1,4 +1,4 @@
-import { TagsFilterMenuContent } from "@/components/map/tags-filter-menu-content";
+import { TagsFilterMenuContent } from "@/components/tags/tags-filter-menu-content";
 import type { Tag } from "@/types/database";
 import { DropdownMenu, DropdownMenuContent } from "@curolia/ui/dropdown-menu";
 import { MapToolbarMenuTrigger } from "@curolia/ui/map-toolbar";

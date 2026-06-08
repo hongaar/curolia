@@ -8,14 +8,14 @@ import {
   DropdownMenuSeparator,
 } from "@curolia/ui/dropdown-menu";
 import {
-  MapDropdownEditButton,
-  MapDropdownRow,
-  SidebarCheckIcon,
-  SidebarCheckSpacer,
-  SidebarDropdownMenuItem,
-  SidebarMapEmoji,
-  SidebarMapName,
-} from "@curolia/ui/navigation-sidebar";
+  DropdownMenuCheckIcon,
+  DropdownMenuCheckItem,
+  DropdownMenuCheckSpacer,
+  DropdownMenuEditButton,
+  DropdownMenuEditRow,
+  DropdownMenuItemEmoji,
+  DropdownMenuItemName,
+} from "@curolia/ui/dropdown-menu-list";
 import { Check, Pencil, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -46,23 +46,25 @@ export function MapPickerMenuContent({
         {maps.map((j) => {
           const selected = j.id === activeMapId;
           return (
-            <MapDropdownRow key={j.id}>
-              <SidebarDropdownMenuItem
+            <DropdownMenuEditRow key={j.id}>
+              <DropdownMenuCheckItem
                 onClick={() => {
                   navigate(mapSwitchHref(j, pathname, search));
                 }}
               >
-                <SidebarMapEmoji>{mapEmoji(j)}</SidebarMapEmoji>
-                <SidebarMapName selected={selected}>{j.name}</SidebarMapName>
+                <DropdownMenuItemEmoji>{mapEmoji(j)}</DropdownMenuItemEmoji>
+                <DropdownMenuItemName selected={selected}>
+                  {j.name}
+                </DropdownMenuItemName>
                 {selected ? (
-                  <SidebarCheckIcon>
+                  <DropdownMenuCheckIcon>
                     <Check aria-hidden />
-                  </SidebarCheckIcon>
+                  </DropdownMenuCheckIcon>
                 ) : (
-                  <SidebarCheckSpacer />
+                  <DropdownMenuCheckSpacer />
                 )}
-              </SidebarDropdownMenuItem>
-              <MapDropdownEditButton
+              </DropdownMenuCheckItem>
+              <DropdownMenuEditButton
                 title="Edit map"
                 onClick={(e) => {
                   e.preventDefault();
@@ -71,8 +73,8 @@ export function MapPickerMenuContent({
                 }}
               >
                 <Pencil aria-hidden />
-              </MapDropdownEditButton>
-            </MapDropdownRow>
+              </DropdownMenuEditButton>
+            </DropdownMenuEditRow>
           );
         })}
       </DropdownMenuGroup>

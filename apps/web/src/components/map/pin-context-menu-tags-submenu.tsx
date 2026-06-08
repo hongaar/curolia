@@ -5,11 +5,11 @@ import {
   DropdownMenuLabel,
 } from "@curolia/ui/dropdown-menu";
 import {
-  SidebarCheckIcon,
-  SidebarCheckSpacer,
-  SidebarDropdownMenuItem,
-  SidebarTagName,
-} from "@curolia/ui/navigation-sidebar";
+  DropdownMenuCheckIcon,
+  DropdownMenuCheckItem,
+  DropdownMenuCheckSpacer,
+  DropdownMenuItemName,
+} from "@curolia/ui/dropdown-menu-list";
 import { Check } from "lucide-react";
 
 type PinContextMenuTagsSubmenuProps = {
@@ -34,22 +34,24 @@ export function PinContextMenuTagsSubmenu({
         tags.map((tag) => {
           const selected = selectedTagIds.has(tag.id);
           return (
-            <SidebarDropdownMenuItem
+            <DropdownMenuCheckItem
               key={tag.id}
               closeOnClick={false}
               disabled={disabled}
               onClick={() => onToggleTag(tag.id, !selected)}
             >
               <span aria-hidden>{tag.icon_emoji}</span>
-              <SidebarTagName selected={selected}>{tag.name}</SidebarTagName>
+              <DropdownMenuItemName selected={selected}>
+                {tag.name}
+              </DropdownMenuItemName>
               {selected ? (
-                <SidebarCheckIcon>
+                <DropdownMenuCheckIcon>
                   <Check aria-hidden />
-                </SidebarCheckIcon>
+                </DropdownMenuCheckIcon>
               ) : (
-                <SidebarCheckSpacer />
+                <DropdownMenuCheckSpacer />
               )}
-            </SidebarDropdownMenuItem>
+            </DropdownMenuCheckItem>
           );
         })
       )}

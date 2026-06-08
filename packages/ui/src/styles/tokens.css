@@ -1,11 +1,6 @@
 /* Parchment + atlas field-map design tokens */
 :root {
-  --nav-sidebar-expanded-w: min(18rem, calc(100vw - 0.75rem));
   --nav-shell-pad: 0.75rem;
-  --nav-toolbar-w: max(
-    0px,
-    calc(var(--nav-sidebar-expanded-w) - (var(--nav-shell-pad) * 2))
-  );
   --radius: 0.875rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
