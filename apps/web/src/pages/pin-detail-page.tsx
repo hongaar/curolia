@@ -72,7 +72,7 @@ export function PinDetailPage() {
   const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
   const insetMapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(mapForRoute),
-    [mapForRoute?.style_hillshades, mapForRoute?.style_satellite_labels],
+    [mapForRoute],
   );
 
   if (pinQuery.isLoading) {

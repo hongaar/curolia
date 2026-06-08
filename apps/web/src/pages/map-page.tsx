@@ -153,7 +153,7 @@ export function MapPage() {
     useOnboardingPlacement();
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
-    [activeMap?.style_hillshades, activeMap?.style_satellite_labels],
+    [activeMap],
   );
   const prevMapIdRef = useRef<string | null>(null);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);

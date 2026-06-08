@@ -406,7 +406,8 @@ export function PinFormDialog({
     const lngN = Number(lng);
     if (Number.isNaN(latN) || Number.isNaN(lngN)) return;
 
-    const stored = pin ? parsePinGeocode(pin.geocode) : null;
+    const pinGeocode = pin?.geocode;
+    const stored = pinGeocode != null ? parsePinGeocode(pinGeocode) : null;
     if (stored && geocodeMatchesCoords(stored, latN, lngN)) {
       setGeocode(stored);
       setLocationLookupPending(false);

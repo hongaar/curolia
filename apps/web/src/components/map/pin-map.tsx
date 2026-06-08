@@ -946,19 +946,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (appliedMapStyleKeyRef.current === key) return;
     appliedMapStyleKeyRef.current = key;
     map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
-  }, [
-    mapStylePreset,
-    resolvedTheme,
-    mapStyleOpts.hillshades,
-    mapStyleOpts.satelliteLabels,
-  ]);
+  }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     if (!map.isStyleLoaded()) return;
     syncMapStyleOverlays(map, mapStylePreset, mapStyleOpts);
-  }, [mapStylePreset, mapStyleOpts.hillshades, mapStyleOpts.satelliteLabels]);
+  }, [mapStylePreset, mapStyleOpts]);
 
   /**
    * Apply camera/bbox from URL when it represents external navigation (search, shared link),
