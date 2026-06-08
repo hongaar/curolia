@@ -6,7 +6,6 @@ import {
   mapShowMetadataForSave,
 } from "@/components/map-collection/map-show-metadata";
 import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
-import { EmojiPicker } from "@/components/pins/emoji-picker";
 import {
   mapSettingsHref,
   mapViewHref,
@@ -30,8 +29,8 @@ import { resolveMapPinMetadataShow } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
+import { EntityLabelInput } from "@curolia/ui/entity-label-input";
 import { FormField } from "@curolia/ui/form-layout";
-import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
@@ -199,21 +198,18 @@ export function MapSettingsPage() {
             <PageMuted>Only owners can change map settings.</PageMuted>
           ) : null}
           <FormField>
-            <Label htmlFor="jn-name">Map name</Label>
-            <Input
+            <EntityLabelInput
               id="jn-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              label="Map"
+              name={name}
+              onNameChange={setName}
+              placeholder="Map name"
               disabled={!isOwner || roleQuery.isLoading}
+              emoji={iconEmoji}
+              onEmojiChange={setIconEmoji}
+              emojiFallback={defaultMapIcon()}
             />
           </FormField>
-          <EmojiPicker
-            id="jn-settings-icon"
-            label="Icon"
-            value={iconEmoji}
-            onChange={setIconEmoji}
-            disabled={!isOwner || roleQuery.isLoading}
-          />
           <FormField>
             <Label id="map-style-label">Map style</Label>
             <ChoiceCards<MapStylePreset>

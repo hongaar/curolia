@@ -3,8 +3,7 @@ import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loade
 import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
-import { EmojiPicker } from "@/components/pins/emoji-picker";
-import { PresetColorPicker } from "@/components/pins/preset-color-picker";
+import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useBlogPinListSort } from "@/hooks/use-blog-pin-list-order";
 import {
   blogPinListDirectionAriaLabel,
@@ -25,7 +24,6 @@ import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
 import { useMapPinsPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useMap } from "@/providers/map-provider";
-import { useMountTagSidebarRegistration } from "@/providers/tag-sidebar-provider";
 import type { Tag } from "@/types/database";
 import { contrastingForeground } from "@curolia/ui";
 import {
@@ -60,8 +58,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@curolia/ui/dropdown-menu";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
 import {
   MapControlsBottomCenter,
   MapControlsBottomStack,
@@ -71,7 +67,6 @@ import { PageMuted } from "@curolia/ui/page";
 import {
   PanelDialogBody,
   PanelDialogContent,
-  PanelDialogField,
   PanelDialogFooter,
   PanelDialogFormStack,
   PanelDialogHeader,
@@ -182,13 +177,6 @@ export function BlogPage() {
     setNewTagEmoji(tag.icon_emoji || "📍");
     setTagDialogOpen(true);
   };
-
-  useMountTagSidebarRegistration({
-    tags,
-    filterTagIds,
-    setFilterTagIds,
-    onEditTag: canEdit ? openEditTagDialog : undefined,
-  });
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
   const visible = useMemo(
@@ -519,25 +507,16 @@ export function BlogPage() {
           </PanelDialogHeader>
           <PanelDialogBody>
             <PanelDialogFormStack>
-              <PanelDialogField>
-                <Label htmlFor="blog-tag-name">Name</Label>
-                <Input
-                  id="blog-tag-name"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                />
-              </PanelDialogField>
-              <PresetColorPicker
-                id="blog-tag-color"
-                label="Color"
-                value={newTagColor}
-                onChange={setNewTagColor}
-              />
-              <EmojiPicker
-                id="blog-tag-emoji"
-                label="Icon (emoji)"
-                value={newTagEmoji}
-                onChange={setNewTagEmoji}
+              <TagEntityLabelInput
+                id="blog-tag-name"
+                label="Tag"
+                name={newTagName}
+                onNameChange={setNewTagName}
+                placeholder="Tag name"
+                color={newTagColor}
+                onColorChange={setNewTagColor}
+                emoji={newTagEmoji}
+                onEmojiChange={setNewTagEmoji}
               />
             </PanelDialogFormStack>
           </PanelDialogBody>

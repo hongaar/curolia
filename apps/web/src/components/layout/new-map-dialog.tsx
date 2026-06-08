@@ -1,15 +1,12 @@
-import { EmojiPicker } from "@/components/pins/emoji-picker";
 import { mapViewHref } from "@/lib/app-paths";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
 import { Dialog } from "@curolia/ui/dialog";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
+import { EntityLabelInput } from "@curolia/ui/entity-label-input";
 import {
   PanelDialogBody,
   PanelDialogContent,
-  PanelDialogField,
   PanelDialogFooter,
   PanelDialogFormStack,
   PanelDialogHeader,
@@ -58,20 +55,15 @@ export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
         </PanelDialogHeader>
         <PanelDialogBody>
           <PanelDialogFormStack>
-            <PanelDialogField>
-              <Label htmlFor="jn">Name</Label>
-              <Input
-                id="jn"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Family trips"
-              />
-            </PanelDialogField>
-            <EmojiPicker
-              id="jn-icon"
-              label="Icon"
-              value={icon}
-              onChange={setIcon}
+            <EntityLabelInput
+              id="jn"
+              label="Map"
+              name={name}
+              onNameChange={setName}
+              placeholder="Family trips"
+              emoji={icon}
+              onEmojiChange={setIcon}
+              emojiFallback={defaultMapIcon()}
             />
           </PanelDialogFormStack>
         </PanelDialogBody>

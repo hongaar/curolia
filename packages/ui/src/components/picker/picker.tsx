@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { getEmojiLabel, loadEmojiLabels } from "../../lib/emoji-label";
 import { buttonClassName } from "../button";
 import {
+  ColorPicker,
+  ColorPickerGrid,
+  ColorPickerTitle,
+} from "../color-picker";
+import {
   EmojiPickerContent,
   EmojiPickerFooter,
   EmojiPicker as EmojiPickerRoot,
@@ -63,34 +68,10 @@ export function PresetColorPicker({
             sideOffset={6}
             className={styles.popoverWide}
           >
-            <p className={styles.popoverTitle}>Preset colors</p>
-            <div
-              className={styles.colorGrid}
-              role="listbox"
-              aria-label="Color presets"
-            >
-              {colors.map((row, ri) =>
-                row.map((hex, ci) => {
-                  const selected = hex.toLowerCase() === normalized;
-                  return (
-                    <button
-                      key={`${ri}-${ci}`}
-                      type="button"
-                      role="option"
-                      aria-selected={selected}
-                      className={
-                        selected
-                          ? `${styles.colorSwatchButton} ${styles.colorSwatchButtonSelected}`
-                          : styles.colorSwatchButton
-                      }
-                      style={{ backgroundColor: hex }}
-                      title={hex}
-                      onClick={() => onChange(hex)}
-                    />
-                  );
-                }),
-              )}
-            </div>
+            <ColorPicker value={value} colors={colors} onColorSelect={onChange}>
+              <ColorPickerTitle>Preset colors</ColorPickerTitle>
+              <ColorPickerGrid />
+            </ColorPicker>
           </PopoverContent>
         </Popover>
       </div>

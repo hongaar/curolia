@@ -1,3 +1,5 @@
+import { randomFromColorGrid } from "@curolia/ui/color-picker";
+
 /** Convert HSL (h 0–360, s/l 0–100) to lowercase #rrggbb. */
 export function hslToHex(h: number, s: number, l: number): string {
   const hue = ((h % 360) + 360) % 360;
@@ -62,3 +64,7 @@ export const PRESET_PIN_TAG_COLOR_GRID: string[][] = ROW_SLICES.map(
 PRESET_PIN_TAG_COLOR_GRID[4][3] = "#2d6a5d";
 
 export const DEFAULT_PIN_TAG_COLOR = "#2d6a5d";
+
+export function randomPresetTagColor(): string {
+  return randomFromColorGrid(PRESET_PIN_TAG_COLOR_GRID);
+}
