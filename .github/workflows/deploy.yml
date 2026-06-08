@@ -88,6 +88,7 @@ jobs:
   vercel:
     name: Vercel
     needs: supabase
+    if: always() && needs.supabase.result == 'success'
     runs-on: ubuntu-latest
     environment: production
     env:
