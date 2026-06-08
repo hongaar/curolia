@@ -1,8 +1,20 @@
-import { GripVertical, X } from "lucide-react";
 import type * as React from "react";
-import { useState } from "react";
 
+import { BulletList } from "../bullet-list";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import {
+  FileUploadInput,
+  FileUploadLabel,
+  FileUploadRow,
+} from "../file-upload";
+import { OptionList, OptionListItem } from "../option-list";
+import {
+  PhotoGrid,
+  PhotoGridPlaceholder,
+  PhotoGridRemoveButton,
+  PhotoGridThumb,
+  type PhotoGridSortableRenderContext,
+} from "../photo-grid";
 import styles from "./pin-form.module.css";
 
 export {
@@ -60,258 +72,41 @@ export function PinFormPlaceText({
   );
 }
 
-export function PinFormPhotoGrid({ children }: { children: React.ReactNode }) {
-  return <div className={styles.photoGrid}>{children}</div>;
-}
+/** @deprecated Use `PhotoGrid` from `@curolia/ui/photo-grid`. */
+export const PinFormPhotoGrid = PhotoGrid;
 
-function reorderItems<T>(items: T[], fromIndex: number, toIndex: number): T[] {
-  if (fromIndex === toIndex) return items;
-  const next = [...items];
-  const [moved] = next.splice(fromIndex, 1);
-  if (!moved) return items;
-  next.splice(toIndex, 0, moved);
-  return next;
-}
+/** @deprecated Use `PhotoGrid` with `items` from `@curolia/ui/photo-grid`. */
+export const PinFormPhotoSortableGrid = PhotoGrid;
 
-export type PinFormPhotoSortableRenderContext = {
-  isDragging: boolean;
-  isDropTarget: boolean;
-  dragHandle: React.ReactNode;
-};
+/** @deprecated Use `PhotoGridSortableRenderContext` from `@curolia/ui/photo-grid`. */
+export type PinFormPhotoSortableRenderContext = PhotoGridSortableRenderContext;
 
-export function PinFormPhotoSortableGrid<T>({
-  items,
-  getItemId,
-  onReorder,
-  disabled = false,
-  renderItem,
-}: {
-  items: T[];
-  getItemId: (item: T) => string;
-  onReorder: (items: T[]) => void;
-  disabled?: boolean;
-  renderItem: (
-    item: T,
-    ctx: PinFormPhotoSortableRenderContext,
-  ) => React.ReactNode;
-}) {
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
-  const sortable = items.length > 1 && !disabled;
+/** @deprecated Use `PhotoGridThumb` from `@curolia/ui/photo-grid`. */
+export const PinFormPhotoThumb = PhotoGridThumb;
 
-  function finishDrag(targetIndex: number | null) {
-    if (
-      dragIndex !== null &&
-      targetIndex !== null &&
-      dragIndex !== targetIndex
-    ) {
-      onReorder(reorderItems(items, dragIndex, targetIndex));
-    }
-    setDragIndex(null);
-    setOverIndex(null);
-  }
+/** @deprecated Use `PhotoGridRemoveButton` from `@curolia/ui/photo-grid`. */
+export const PinFormPhotoRemoveButton = PhotoGridRemoveButton;
 
-  return (
-    <PinFormPhotoGrid>
-      {items.map((item, index) => {
-        const isDragging = dragIndex === index;
-        const isDropTarget = overIndex === index && dragIndex !== index;
-        const dragHandle = sortable ? (
-          <button
-            type="button"
-            className={styles.photoDragHandle}
-            draggable
-            disabled={disabled}
-            aria-label="Drag to reorder photo"
-            title="Drag to reorder"
-            onDragStart={(e) => {
-              setDragIndex(index);
-              setOverIndex(index);
-              e.dataTransfer.effectAllowed = "move";
-              e.dataTransfer.setData("text/plain", getItemId(item));
-            }}
-            onDragEnd={() => {
-              setDragIndex(null);
-              setOverIndex(null);
-            }}
-          >
-            <GripVertical className={styles.photoDragHandleIcon} aria-hidden />
-          </button>
-        ) : null;
+/** @deprecated Use `PhotoGridPlaceholder` from `@curolia/ui/photo-grid`. */
+export const PinFormPhotoPlaceholder = PhotoGridPlaceholder;
 
-        return (
-          <div
-            key={getItemId(item)}
-            className={[
-              styles.photoSortableItem,
-              isDragging ? styles.photoSortableItemDragging : "",
-              isDropTarget ? styles.photoSortableItemOver : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            onDragOver={
-              sortable
-                ? (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "move";
-                    setOverIndex(index);
-                  }
-                : undefined
-            }
-            onDrop={
-              sortable
-                ? (e) => {
-                    e.preventDefault();
-                    finishDrag(index);
-                  }
-                : undefined
-            }
-            onDragLeave={
-              sortable
-                ? () => {
-                    setOverIndex((prev) => (prev === index ? null : prev));
-                  }
-                : undefined
-            }
-          >
-            {renderItem(item, { isDragging, isDropTarget, dragHandle })}
-          </div>
-        );
-      })}
-    </PinFormPhotoGrid>
-  );
-}
+/** @deprecated Use `FileUploadRow` from `@curolia/ui/file-upload`. */
+export const PinFormUploadRow = FileUploadRow;
 
-export function PinFormPhotoThumb({
-  children,
-  removeButton,
-  dragHandle,
-}: {
-  children: React.ReactNode;
-  removeButton?: React.ReactNode;
-  dragHandle?: React.ReactNode;
-}) {
-  return (
-    <div className={styles.photoThumb}>
-      {dragHandle}
-      {children}
-      {removeButton}
-    </div>
-  );
-}
+/** @deprecated Use `FileUploadLabel` from `@curolia/ui/file-upload`. */
+export const PinFormUploadLabel = FileUploadLabel;
 
-export function PinFormPhotoRemoveButton({
-  onClick,
-  disabled,
-  ariaLabel = "Remove photo",
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  ariaLabel?: string;
-}) {
-  return (
-    <button
-      type="button"
-      className={styles.photoRemove}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick();
-      }}
-      disabled={disabled}
-      aria-label={ariaLabel}
-      title="Remove photo"
-    >
-      <X className={styles.photoRemoveIcon} aria-hidden />
-    </button>
-  );
-}
+/** @deprecated Use `FileUploadInput` from `@curolia/ui/file-upload`. */
+export const PinFormUploadInput = FileUploadInput;
 
-export function PinFormPhotoPlaceholder({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.photoPlaceholder}>{children}</div>;
-}
+/** @deprecated Use `OptionList` from `@curolia/ui/option-list`. */
+export const PinFormTagBox = OptionList;
 
-export function PinFormUploadRow({ children }: { children: React.ReactNode }) {
-  return <div className={styles.uploadRow}>{children}</div>;
-}
+/** @deprecated Use `OptionListItem` from `@curolia/ui/option-list`. */
+export const PinFormTagOption = OptionListItem;
 
-export function PinFormUploadLabel({
-  children,
-  input,
-}: {
-  children: React.ReactNode;
-  input: React.ReactNode;
-}) {
-  return (
-    <label className={styles.uploadLabel}>
-      {children}
-      {input}
-    </label>
-  );
-}
-
-export function PinFormUploadInput(props: React.ComponentProps<"input">) {
-  return <input className={styles.uploadInput} {...props} />;
-}
-
-export function PinFormTagBox({ children }: { children: React.ReactNode }) {
-  return <div className={styles.tagBox}>{children}</div>;
-}
-
-export function PinFormTagOption({
-  children,
-  ...props
-}: React.ComponentProps<"label">) {
-  return (
-    <label className={styles.tagOption} {...props}>
-      {children}
-    </label>
-  );
-}
-
-export function PinFormDangerZone({ children }: { children: React.ReactNode }) {
-  return <div className={styles.dangerZone}>{children}</div>;
-}
-
-export function PinFormDangerActions({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <div className={styles.dangerActions}>{children}</div>;
-}
-
-export function PinFormDangerHint({ children }: { children: React.ReactNode }) {
-  return <p className={styles.dangerHint}>{children}</p>;
-}
-
-export function PinFormMoveList({ children }: { children: React.ReactNode }) {
-  return <ul className={styles.moveList}>{children}</ul>;
-}
-
-export function PinFormDialogFooter({
-  children,
-  bordered = false,
-}: {
-  children: React.ReactNode;
-  bordered?: boolean;
-}) {
-  return (
-    <div
-      className={
-        bordered
-          ? `${styles.dialogFooterBorder} ${styles.dialogFooterBorderTop}`
-          : styles.dialogFooterBorder
-      }
-    >
-      {children}
-    </div>
-  );
-}
+/** @deprecated Use `BulletList` from `@curolia/ui/bullet-list`. */
+export const PinFormMoveList = BulletList;
 
 export function PinFormFloatingHost({
   hostRef,
@@ -351,5 +146,3 @@ export function PinFormPluginSectionCard({
     </Card>
   );
 }
-
-export const pinFormStyles = styles;

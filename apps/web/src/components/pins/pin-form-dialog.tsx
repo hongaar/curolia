@@ -39,6 +39,7 @@ import {
   type LocationLabelDetail,
   type PinGeocode,
 } from "@curolia/services/geocoding";
+import { BulletList } from "@curolia/ui/bullet-list";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
 import { Checkbox } from "@curolia/ui/checkbox";
@@ -54,9 +55,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@curolia/ui/dialog";
+import {
+  FileUploadInput,
+  FileUploadLabel,
+  FileUploadRow,
+} from "@curolia/ui/file-upload";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { MarkdownEditor } from "@curolia/ui/markdown-editor";
+import { OptionList, OptionListItem } from "@curolia/ui/option-list";
+import {
+  PhotoGrid,
+  PhotoGridPlaceholder,
+  PhotoGridRemoveButton,
+  PhotoGridThumb,
+} from "@curolia/ui/photo-grid";
 import {
   Field,
   FieldControl,
@@ -64,21 +77,9 @@ import {
   FieldError,
   FieldLabel,
   FormSelectTriggerFull,
-  PinFormDangerActions,
-  PinFormDangerHint,
   PinFormFloatingHost,
   PinFormGrid,
-  PinFormMoveList,
-  PinFormPhotoPlaceholder,
-  PinFormPhotoRemoveButton,
-  PinFormPhotoSortableGrid,
-  PinFormPhotoThumb,
   PinFormPluginSectionCard,
-  PinFormTagBox,
-  PinFormTagOption,
-  PinFormUploadInput,
-  PinFormUploadLabel,
-  PinFormUploadRow,
 } from "@curolia/ui/pin-form";
 import {
   PinPhotoLightbox,
@@ -90,6 +91,8 @@ import {
   SelectItem,
   SelectValue,
 } from "@curolia/ui/select";
+import { Stack } from "@curolia/ui/stack";
+import { Text } from "@curolia/ui/text";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import {
   useMutation,
@@ -948,7 +951,7 @@ export function PinFormDialog({
               </FieldDescription>
             ) : null}
             {photos.length > 0 ? (
-              <PinFormPhotoSortableGrid
+              <PhotoGrid
                 items={photos}
                 getItemId={(p) => p.id}
                 disabled={reorderPhotosMut.isPending}
@@ -961,10 +964,10 @@ export function PinFormDialog({
                     removePhotoMut.isPending &&
                     removePhotoMut.variables === p.id;
                   return url ? (
-                    <PinFormPhotoThumb
+                    <PhotoGridThumb
                       dragHandle={dragHandle}
                       removeButton={
-                        <PinFormPhotoRemoveButton
+                        <PhotoGridRemoveButton
                           onClick={() => removePhotoMut.mutate(p.id)}
                           disabled={removing}
                         />
@@ -974,19 +977,19 @@ export function PinFormDialog({
                         url={url}
                         onOpen={() => setPhotoLightbox({ photoId: p.id })}
                       />
-                    </PinFormPhotoThumb>
+                    </PhotoGridThumb>
                   ) : (
-                    <PinFormPhotoThumb dragHandle={dragHandle}>
-                      <PinFormPhotoPlaceholder>…</PinFormPhotoPlaceholder>
-                    </PinFormPhotoThumb>
+                    <PhotoGridThumb dragHandle={dragHandle}>
+                      <PhotoGridPlaceholder>…</PhotoGridPlaceholder>
+                    </PhotoGridThumb>
                   );
                 }}
               />
             ) : null}
-            <PinFormUploadRow>
-              <PinFormUploadLabel
+            <FileUploadRow>
+              <FileUploadLabel
                 input={
-                  <PinFormUploadInput
+                  <FileUploadInput
                     type="file"
                     accept="image/*"
                     multiple
@@ -996,7 +999,7 @@ export function PinFormDialog({
               >
                 <Upload aria-hidden />
                 <span>Upload photos</span>
-              </PinFormUploadLabel>
+              </FileUploadLabel>
               {enabledPlugins.map((p) => {
                 const Slot = p.PinPhotoImportSlot;
                 if (!Slot) return null;
@@ -1012,7 +1015,7 @@ export function PinFormDialog({
                   />
                 );
               })}
-            </PinFormUploadRow>
+            </FileUploadRow>
           </Field>
           <Field>
             <FieldLabel>Links</FieldLabel>
@@ -1022,9 +1025,9 @@ export function PinFormDialog({
       ) : null}
       <Field>
         <FieldLabel>Tags</FieldLabel>
-        <PinFormTagBox>
+        <OptionList>
           {(tagsQuery.data ?? []).map((tag) => (
-            <PinFormTagOption key={tag.id}>
+            <OptionListItem key={tag.id}>
               <Checkbox
                 checked={selectedTags.has(tag.id)}
                 onCheckedChange={(c) => {
@@ -1038,12 +1041,12 @@ export function PinFormDialog({
               />
               <span>{tag.icon_emoji}</span>
               <span>{tag.name}</span>
-            </PinFormTagOption>
+            </OptionListItem>
           ))}
           {tagsQuery.data?.length === 0 ? (
             <FieldDescription variant="body">No tags yet.</FieldDescription>
           ) : null}
-        </PinFormTagBox>
+        </OptionList>
         <Button
           type="button"
           variant="outline"
@@ -1087,30 +1090,32 @@ export function PinFormDialog({
           title="Danger zone"
           description="Move this pin to another map or delete it permanently."
         >
-          <PinFormDangerActions>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={otherMaps.length === 0}
-              onClick={() => {
-                setMoveTargetMapId("");
-                setMoveOpen(true);
-              }}
-            >
-              Move to another map…
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 aria-hidden />
-              Delete pin
-            </Button>
-          </PinFormDangerActions>
-          {otherMaps.length === 0 ? (
-            <PinFormDangerHint>No other maps to move to.</PinFormDangerHint>
-          ) : null}
+          <Stack gap="sm">
+            <Stack direction="row" wrap gap="sm">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={otherMaps.length === 0}
+                onClick={() => {
+                  setMoveTargetMapId("");
+                  setMoveOpen(true);
+                }}
+              >
+                Move to another map…
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 aria-hidden />
+                Delete pin
+              </Button>
+            </Stack>
+            {otherMaps.length === 0 ? (
+              <Text variant="mutedXs">No other maps to move to.</Text>
+            ) : null}
+          </Stack>
         </CautionPanel>
       ) : null}
       {error ? <FieldError>{error}</FieldError> : null}
@@ -1157,7 +1162,7 @@ export function PinFormDialog({
         </DialogHeader>
         <DialogBody>
           <DialogFormStack>
-            <PinFormMoveList>
+            <BulletList>
               <li>
                 All tags will be removed from this pin. Tags belong to a map and
                 do not carry over.
@@ -1168,7 +1173,7 @@ export function PinFormDialog({
                   may be able to see this pin.
                 </li>
               ) : null}
-            </PinFormMoveList>
+            </BulletList>
             <DialogField>
               <Label htmlFor="move-pin-map">Destination map</Label>
               <Select
