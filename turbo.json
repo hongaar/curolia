@@ -56,8 +56,14 @@
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false
     },
-    "@curolia/plugin-poi#test": {},
-    "@curolia/plugin-wikidata#test": {},
+    "@curolia/plugin-poi#test": {
+      "dependsOn": ["@curolia/supabase#functions:sync"],
+      "cache": false
+    },
+    "@curolia/plugin-wikidata#test": {
+      "dependsOn": ["@curolia/supabase#functions:sync"],
+      "cache": false
+    },
     "@curolia/plugin-google-maps-saved-lists#typecheck": {
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false

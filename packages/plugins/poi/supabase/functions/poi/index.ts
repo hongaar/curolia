@@ -1712,12 +1712,16 @@ Deno.serve(async (req: Request) => {
         Object.keys(clientTags).length > 0
       ) {
         const tags = normalizeTags(clientTags);
+        const clientDistanceM =
+          typeof body.distanceM === "number" && Number.isFinite(body.distanceM)
+            ? Math.round(Math.max(0, body.distanceM))
+            : 0;
         candidate = {
           osmType: osmType as "node" | "way" | "relation",
           osmId,
           name: tags.name?.trim() || null,
           placeType: primaryPoiLabel(tags),
-          distanceM: 0,
+          distanceM: clientDistanceM,
           tags,
         };
       } else {
@@ -1779,12 +1783,52 @@ Deno.serve(async (req: Request) => {
     const disabled = await assertUserPluginEnabled();
     if (disabled) return disabled;
 
-    await admin
-      .from("plugin_entity_data")
-      .delete()
-      .eq("entity_type", "pin")
-      .eq("entity_id", loaded.pin.id)
-      .eq("plugin_type_id", PLUGIN_TYPE_ID);
+    const lat = loaded.pin.lat;
+    const lng = loaded.pin.lng;
+    const hasCoords =
+      lat != null &&
+      lng != null &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng);
+
+    let clearedPayload: PoiPinPayload | undefined;
+    if (hasCoords) {
+      // Keep a noPoi marker so map auto-lookup does not immediately re-attach
+      // the closest place after the user removes a link.
+      clearedPayload = {
+        schemaVersion: 1,
+        lat,
+        lng,
+        fetchedAt: new Date().toISOString(),
+        noPoi: true,
+      };
+      const { error: upsertError } = await admin
+        .from("plugin_entity_data")
+        .upsert(
+          {
+            map_id: loaded.pin.map_id,
+            entity_type: "pin",
+            entity_id: loaded.pin.id,
+            plugin_type_id: PLUGIN_TYPE_ID,
+            data: clearedPayload,
+          },
+          { onConflict: "entity_type,entity_id,plugin_type_id" },
+        );
+      if (upsertError) {
+        console.error("poi clear_pin_poi upsert failed", upsertError);
+        return new Response(JSON.stringify({ error: "clear_failed" }), {
+          status: 500,
+          headers: { ...cors(), "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      await admin
+        .from("plugin_entity_data")
+        .delete()
+        .eq("entity_type", "pin")
+        .eq("entity_id", loaded.pin.id)
+        .eq("plugin_type_id", PLUGIN_TYPE_ID);
+    }
 
     await admin
       .from("pin_metadata")
@@ -1794,10 +1838,16 @@ Deno.serve(async (req: Request) => {
 
     await cancelPendingSyncJobsForPin(admin, loaded.pin.id);
 
-    return new Response(JSON.stringify({ cleared: true }), {
-      status: 200,
-      headers: { ...cors(), "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        cleared: true,
+        ...(clearedPayload ? { payload: clearedPayload } : {}),
+      }),
+      {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      },
+    );
   }
 
   if (body.action !== "sync_pin_poi" || !body.pinId) {

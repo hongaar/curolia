@@ -26,7 +26,9 @@ export type PoiSetPinPoiResponse =
   | { payload: PoiPinPayload }
   | { error: string };
 
-export type PoiClearPinPoiResponse = { cleared: true } | { error: string };
+export type PoiClearPinPoiResponse =
+  | { cleared: true; payload?: PoiPinPayload }
+  | { error: string };
 
 type PoiEdgeBody = Record<string, unknown>;
 
@@ -121,6 +123,7 @@ export async function poiSetPinPoi(
     osmType: "node" | "way" | "relation";
     osmId: number;
     tags?: Record<string, string>;
+    distanceM?: number;
   },
 ): Promise<PoiSetPinPoiResponse> {
   return invokePoiEdge<PoiSetPinPoiResponse>(supabase, {
@@ -129,6 +132,9 @@ export async function poiSetPinPoi(
     osmType: args.osmType,
     osmId: args.osmId,
     ...(args.tags ? { tags: args.tags } : {}),
+    ...(typeof args.distanceM === "number" && Number.isFinite(args.distanceM)
+      ? { distanceM: args.distanceM }
+      : {}),
   });
 }
 

@@ -152,6 +152,7 @@ export function PoiPinSuggestionSlot({
         osmType: candidate.osmType,
         osmId: candidate.osmId,
         tags: candidate.tags,
+        distanceM: candidate.distanceM,
       });
       if ("error" in res) throw new Error(res.error);
       return res.payload;

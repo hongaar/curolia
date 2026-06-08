@@ -21,7 +21,9 @@ import {
 } from "@tanstack/react-query";
 import { ExternalLink, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { POI_PLUGIN_ID } from "./config";
 import { POI_SEARCH_RADIUS_M } from "./constants";
+import { poiPluginMeta } from "./plugin-meta";
 import {
   poiClearPinPoi,
   poiListNearbyCandidates,
@@ -31,20 +33,19 @@ import { formatPoiErrorMessage } from "./poi-errors";
 import { resetPoiPinMetadataCaches } from "./poi-metadata-sync";
 import {
   formatPoiDistanceM,
+  parsePoiPinPayload,
   poiCandidateLine,
+  poiDeclinedPayload,
   poiElementUrl,
   poiPayloadFromCandidate,
-  parsePoiPinPayload,
   resolvePoiLinkedView,
   type PoiNearbyCandidate,
 } from "./poi-pin-data";
 import { pinMetadataFromOsmTags } from "./poi-pin-metadata";
-import { poiPluginMeta } from "./plugin-meta";
-import { POI_PLUGIN_ID } from "./config";
 import {
+  pinMetadataQueryKey,
   poiEntityDataQueryKey,
   poiNearbyCandidatesQueryKey,
-  pinMetadataQueryKey,
 } from "./query-keys";
 
 type PoiPinFormEditorProps = {
@@ -107,6 +108,7 @@ export function PoiPinFormEditor({
         osmType: candidate.osmType,
         osmId: candidate.osmId,
         tags: candidate.tags,
+        distanceM: candidate.distanceM,
       });
       if ("error" in res) throw new Error(res.error);
       return res.payload;
@@ -156,12 +158,24 @@ export function PoiPinFormEditor({
     mutationFn: async () => {
       const res = await poiClearPinPoi(supabase, pinId);
       if ("error" in res) throw new Error(res.error);
+      return res;
     },
-    onSuccess: async () => {
+    onMutate: () => {
+      qc.setQueryData(dataRowQueryKey, {
+        data: poiDeclinedPayload(lat, lng),
+      });
+      resetPoiPinMetadataCaches(qc, pinId);
+    },
+    onSuccess: async (res) => {
+      if (res.payload) {
+        qc.setQueryData(dataRowQueryKey, { data: res.payload });
+      }
       resetPoiPinMetadataCaches(qc, pinId);
       await qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
       await qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) });
-      await qc.invalidateQueries({ queryKey: [...candidatesQueryKey] });
+    },
+    onError: () => {
+      void qc.invalidateQueries({ queryKey: dataRowQueryKey });
     },
   });
 
@@ -179,7 +193,7 @@ export function PoiPinFormEditor({
   const showPickerSpinner =
     showPicker &&
     ((rowQuery.isPending && !rowQuery.data) ||
-      (candidatesQuery.isFetching && !candidatesQuery.isError));
+      (candidatesQuery.isPending && !candidatesQuery.isError));
 
   return (
     <>

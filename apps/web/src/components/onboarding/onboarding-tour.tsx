@@ -80,7 +80,6 @@ export function OnboardingTour() {
 
   const [stepIndex, setStepIndex] = useState(0);
   const [dismissed, setDismissed] = useState(false);
-  const [pausedForPlacement, setPausedForPlacement] = useState(false);
 
   const onboardingQuery = useQuery({
     queryKey: ["onboarding-completed", user?.id],
@@ -93,11 +92,11 @@ export function OnboardingTour() {
     !loading &&
     onboardingQuery.isSuccess &&
     !onboardingQuery.data;
-  const open = eligible && !dismissed && !pausedForPlacement;
+  const placementInProgress = awaitingPinPlacement || pinPlacedDuringOnboarding;
+  const open = eligible && !dismissed && !placementInProgress;
 
   const complete = () => {
     if (!user) return;
-    setPausedForPlacement(false);
     cancelPinPlacement();
     setDismissed(true);
     queryClient.setQueryData(["onboarding-completed", user.id], true);
@@ -111,18 +110,10 @@ export function OnboardingTour() {
     if (!pinPlacedDuringOnboarding) return;
     const timer = window.setTimeout(() => {
       setStepIndex(FEATURES_STEP_INDEX);
-      setPausedForPlacement(false);
       acknowledgePinPlaced();
     }, 1000);
     return () => window.clearTimeout(timer);
   }, [pinPlacedDuringOnboarding, acknowledgePinPlaced]);
-
-  useEffect(() => {
-    if (!pausedForPlacement) return;
-    if (!awaitingPinPlacement && !pinPlacedDuringOnboarding) {
-      setPausedForPlacement(false);
-    }
-  }, [pausedForPlacement, awaitingPinPlacement, pinPlacedDuringOnboarding]);
 
   const stepId = STEP_ORDER[stepIndex];
   const isLast = stepIndex === STEP_ORDER.length - 1;
@@ -139,7 +130,6 @@ export function OnboardingTour() {
   const dropFirstPin = () => {
     if (!placementMap?.slug) return;
     beginPinPlacement();
-    setPausedForPlacement(true);
     navigate(mapAddPinHref(placementMap.slug));
   };
 
@@ -154,7 +144,7 @@ export function OnboardingTour() {
     <OnboardingDialog
       open={open}
       onOpenChange={(next) => {
-        if (!next && !pausedForPlacement) complete();
+        if (!next && !placementInProgress) complete();
       }}
       tone={STEP_TONE[stepId]}
       aria-label="Welcome to Curolia"
