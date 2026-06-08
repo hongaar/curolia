@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePolarstepsShareUrl, tripOptionId } from "./share-url";
+import { parsePolarstepsShareUrl } from "./share-url.ts";
 
 describe("parsePolarstepsShareUrl", () => {
   it("parses public trip URL", () => {
@@ -24,11 +24,5 @@ describe("parsePolarstepsShareUrl", () => {
   it("rejects invalid URLs", () => {
     expect(parsePolarstepsShareUrl("not-a-url")).toBeNull();
     expect(parsePolarstepsShareUrl("https://example.com/1-trip")).toBeNull();
-  });
-});
-
-describe("tripOptionId", () => {
-  it("uses trip id as option id", () => {
-    expect(tripOptionId("12345")).toBe("12345");
   });
 });

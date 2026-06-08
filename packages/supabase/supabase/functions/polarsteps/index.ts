@@ -7,8 +7,8 @@ import {
   type ImportSource,
   type ImportSummary,
 } from "./lib/import-steps.ts";
-import { fetchPolarstepsTrip } from "./lib/polarsteps-api.ts";
 import { parseTrip, tripPreviewFromParsed } from "./lib/parse-trip.ts";
+import { fetchPolarstepsTrip } from "./lib/polarsteps-api.ts";
 import { parsePolarstepsShareUrl } from "./lib/share-url.ts";
 import {
   listCachedTrips,

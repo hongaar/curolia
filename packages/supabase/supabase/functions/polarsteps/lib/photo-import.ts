@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import type { ParsedPolarstepsPhoto } from "./parse-trip.ts";
 import { PLUGIN_TYPE_ID } from "./import-steps.ts";
+import type { ParsedPolarstepsPhoto } from "./parse-trip.ts";
 
 function extFromMime(mime: string): string {
   if (mime.includes("png")) return "png";
