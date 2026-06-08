@@ -229,8 +229,8 @@ export function OpenMeteoIcon({ size = 5 }: IconProps) {
   );
 }
 
-/** OpenStreetMap place-context tile. */
-export function OsmPoiIcon({ size = 5 }: IconProps) {
+/** Points of interest place-context tile. */
+export function PoiIcon({ size = 5 }: IconProps) {
   return (
     <MarketingPluginIcon size={size}>
       <svg

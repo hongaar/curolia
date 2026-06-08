@@ -160,7 +160,7 @@ function dogLabel(value: string | undefined): string | null {
 }
 
 /** One-line OSM POI fragment for pin subtitles. */
-export function formatOsmPoiSubtitle(
+export function formatPoiSubtitle(
   tags: Record<string, string>,
   showSettings: PinMetadataShowSettings,
 ): string | null {

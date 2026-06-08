@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
   const dispatchSecret =
     Deno.env.get(PLUGIN_SYNC_DISPATCH_SECRET_ENV) ??
-    Deno.env.get("OSM_POI_DISPATCH_SECRET");
+    Deno.env.get("POI_DISPATCH_SECRET");
   if (!dispatchSecret) {
     return jsonResponse(500, {
       error: `${PLUGIN_SYNC_DISPATCH_SECRET_ENV} is not configured`,

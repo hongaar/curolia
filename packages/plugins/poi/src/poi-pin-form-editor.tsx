@@ -21,49 +21,49 @@ import {
 } from "@tanstack/react-query";
 import { ExternalLink, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { OSM_POI_SEARCH_RADIUS_M } from "./constants";
+import { POI_SEARCH_RADIUS_M } from "./constants";
 import {
-  osmPoiClearPinPoi,
-  osmPoiListNearbyCandidates,
-  osmPoiSetPinPoi,
-} from "./osm-poi-edge";
-import { formatOsmPoiErrorMessage } from "./osm-poi-errors";
-import { resetOsmPinMetadataCaches } from "./osm-poi-metadata-sync";
+  poiClearPinPoi,
+  poiListNearbyCandidates,
+  poiSetPinPoi,
+} from "./poi-edge";
+import { formatPoiErrorMessage } from "./poi-errors";
+import { resetPoiPinMetadataCaches } from "./poi-metadata-sync";
 import {
-  formatOsmPoiDistanceM,
-  osmPoiCandidateLine,
-  osmPoiElementUrl,
-  parseOsmPoiPinPayload,
-  resolveOsmPoiLinkedView,
-  type OsmPoiNearbyCandidate,
-} from "./osm-poi-pin-data";
-import { osmPoiPluginMeta } from "./plugin-meta";
+  formatPoiDistanceM,
+  poiCandidateLine,
+  poiElementUrl,
+  parsePoiPinPayload,
+  resolvePoiLinkedView,
+  type PoiNearbyCandidate,
+} from "./poi-pin-data";
+import { poiPluginMeta } from "./plugin-meta";
 import {
-  osmPoiEntityDataQueryKey,
-  osmPoiNearbyCandidatesQueryKey,
+  poiEntityDataQueryKey,
+  poiNearbyCandidatesQueryKey,
   pinMetadataQueryKey,
 } from "./query-keys";
 
-type OsmPoiPinFormEditorProps = {
+type PoiPinFormEditorProps = {
   supabase: SupabaseClient;
   pinId: string;
   lat: number;
   lng: number;
 };
 
-export function OsmPoiPinFormEditor({
+export function PoiPinFormEditor({
   supabase,
   pinId,
   lat,
   lng,
-}: OsmPoiPinFormEditorProps) {
+}: PoiPinFormEditorProps) {
   const qc = useQueryClient();
-  const pid = osmPoiPluginMeta.typeId;
-  const dataRowQueryKey = osmPoiEntityDataQueryKey(pinId);
-  const candidatesQueryKey = osmPoiNearbyCandidatesQueryKey(pinId, lat, lng);
+  const pid = poiPluginMeta.typeId;
+  const dataRowQueryKey = poiEntityDataQueryKey(pinId);
+  const candidatesQueryKey = poiNearbyCandidatesQueryKey(pinId, lat, lng);
 
   const [pendingCandidate, setPendingCandidate] =
-    useState<OsmPoiNearbyCandidate | null>(null);
+    useState<PoiNearbyCandidate | null>(null);
 
   const rowQuery = useQuery({
     queryKey: dataRowQueryKey,
@@ -81,14 +81,14 @@ export function OsmPoiPinFormEditor({
     placeholderData: keepPreviousData,
   });
 
-  const payload = parseOsmPoiPinPayload(rowQuery.data?.data);
-  const linkedView = resolveOsmPoiLinkedView(payload, pendingCandidate);
+  const payload = parsePoiPinPayload(rowQuery.data?.data);
+  const linkedView = resolvePoiLinkedView(payload, pendingCandidate);
   const showPicker = linkedView == null;
 
   const candidatesQuery = useQuery({
     queryKey: candidatesQueryKey,
     queryFn: async () => {
-      const res = await osmPoiListNearbyCandidates(supabase, pinId);
+      const res = await poiListNearbyCandidates(supabase, pinId);
       if ("error" in res) throw new Error(res.error);
       return res.candidates;
     },
@@ -98,8 +98,8 @@ export function OsmPoiPinFormEditor({
   });
 
   const setMutation = useMutation({
-    mutationFn: async (candidate: OsmPoiNearbyCandidate) => {
-      const res = await osmPoiSetPinPoi(supabase, {
+    mutationFn: async (candidate: PoiNearbyCandidate) => {
+      const res = await poiSetPinPoi(supabase, {
         pinId,
         osmType: candidate.osmType,
         osmId: candidate.osmId,
@@ -109,7 +109,7 @@ export function OsmPoiPinFormEditor({
     },
     onMutate: (candidate) => {
       setPendingCandidate(candidate);
-      resetOsmPinMetadataCaches(qc, pinId);
+      resetPoiPinMetadataCaches(qc, pinId);
     },
     onSuccess: (serverPayload) => {
       setPendingCandidate(null);
@@ -123,21 +123,21 @@ export function OsmPoiPinFormEditor({
 
   const clearMutation = useMutation({
     mutationFn: async () => {
-      const res = await osmPoiClearPinPoi(supabase, pinId);
+      const res = await poiClearPinPoi(supabase, pinId);
       if ("error" in res) throw new Error(res.error);
     },
     onSuccess: async () => {
-      resetOsmPinMetadataCaches(qc, pinId);
+      resetPoiPinMetadataCaches(qc, pinId);
       await qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
       await qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) });
       await qc.invalidateQueries({ queryKey: [...candidatesQueryKey] });
     },
   });
 
-  const candidatesErr = formatOsmPoiErrorMessage(
+  const candidatesErr = formatPoiErrorMessage(
     candidatesQuery.error instanceof Error ? candidatesQuery.error.message : "",
   );
-  const actionErr = formatOsmPoiErrorMessage(
+  const actionErr = formatPoiErrorMessage(
     setMutation.error instanceof Error
       ? setMutation.error.message
       : clearMutation.error instanceof Error
@@ -165,14 +165,14 @@ export function OsmPoiPinFormEditor({
             <PluginPinItemRow>
               <PluginPinItemMain>
                 <PluginPinInlineLink
-                  href={osmPoiElementUrl(linkedView.osmType, linkedView.osmId)}
+                  href={poiElementUrl(linkedView.osmType, linkedView.osmId)}
                   icon={<ExternalLink aria-hidden />}
                 >
                   <span>
                     {linkedView.label}
                     <PluginPinLinkMeta>
                       {" "}
-                      · {formatOsmPoiDistanceM(linkedView.distanceM)}
+                      · {formatPoiDistanceM(linkedView.distanceM)}
                     </PluginPinLinkMeta>
                   </span>
                 </PluginPinInlineLink>
@@ -181,7 +181,7 @@ export function OsmPoiPinFormEditor({
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Remove linked OpenStreetMap place"
+                aria-label="Remove linked place"
                 disabled={clearMutation.isPending || setMutation.isPending}
                 onClick={() => clearMutation.mutate()}
               >
@@ -190,14 +190,14 @@ export function OsmPoiPinFormEditor({
             </PluginPinItemRow>
           </PluginPinList>
           <PluginPinMutedXs>
-            One OSM place per pin. Remove to pick another from nearby features
+            One place per pin. Remove to pick another from nearby features
             (sorted by distance).
           </PluginPinMutedXs>
         </>
       ) : (
         <>
           <PluginPinMuted>
-            Pick a nearby OpenStreetMap place (sorted by distance).
+            Pick a nearby place (sorted by distance).
           </PluginPinMuted>
           {showPickerSpinner ? <PluginPinSpinner /> : null}
           {candidatesErr && candidatesErr !== "" ? (
@@ -208,7 +208,7 @@ export function OsmPoiPinFormEditor({
               {candidatesQuery.data.map((candidate) => (
                 <PluginPinSearchHitCompact
                   key={`${candidate.osmType}/${candidate.osmId}`}
-                  title={osmPoiCandidateLine(candidate)}
+                  title={poiCandidateLine(candidate)}
                   meta={null}
                   onClick={() => setMutation.mutate(candidate)}
                 />
@@ -220,8 +220,7 @@ export function OsmPoiPinFormEditor({
           candidatesQuery.isSuccess &&
           candidatesQuery.data.length === 0 ? (
             <PluginPinMuted>
-              No OpenStreetMap places found within {OSM_POI_SEARCH_RADIUS_M} m
-              of this pin.
+              No places found within {POI_SEARCH_RADIUS_M} m of this pin.
             </PluginPinMuted>
           ) : null}
         </>

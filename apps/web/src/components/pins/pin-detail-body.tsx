@@ -19,7 +19,7 @@ import {
   OpenMeteoPinWeatherSubtitle,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
-import { OSM_POI_PLUGIN_ID } from "@curolia/plugin-osm-poi";
+import { POI_PLUGIN_ID } from "@curolia/plugin-poi";
 import { pinLocationLabel } from "@curolia/services/geocoding";
 import { contrastingForeground } from "@curolia/ui";
 import { Button } from "@curolia/ui/button";
@@ -112,9 +112,7 @@ export function PinDetailBody({
   const openMeteoGloballyEnabled = enabledPlugins.some(
     (p) => p.id === OPEN_METEO_PLUGIN_ID,
   );
-  const osmPoiGloballyEnabled = enabledPlugins.some(
-    (p) => p.id === OSM_POI_PLUGIN_ID,
-  );
+  const poiGloballyEnabled = enabledPlugins.some((p) => p.id === POI_PLUGIN_ID);
   const weatherSubtitle = useOpenMeteoPinSubtitle({
     supabase,
     pinId: pin.id,
@@ -203,7 +201,7 @@ export function PinDetailBody({
           mapId={pin.map_id}
           lat={pin.lat}
           lng={pin.lng}
-          osmPoiEnabled={osmPoiGloballyEnabled}
+          poiEnabled={poiGloballyEnabled}
         />
         <PinLinksList pinId={pin.id} />
         {enabledPlugins.map((p) => {

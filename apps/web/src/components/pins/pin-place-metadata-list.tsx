@@ -8,7 +8,7 @@ import {
   resolveMapPinMetadataShow,
   type PinMetadataDisplayItem,
 } from "@curolia/plugin-contract";
-import { useOsmPoiPinMetadataLoading } from "@curolia/plugin-osm-poi";
+import { usePoiPinMetadataLoading } from "@curolia/plugin-poi";
 import {
   PinPlaceMetadataAttribution,
   PinPlaceMetadataLink,
@@ -28,7 +28,7 @@ type PinPlaceMetadataListProps = {
   mapId: string;
   lat: number;
   lng: number;
-  osmPoiEnabled?: boolean;
+  poiEnabled?: boolean;
 };
 
 export function PinPlaceMetadataList({
@@ -36,7 +36,7 @@ export function PinPlaceMetadataList({
   mapId,
   lat,
   lng,
-  osmPoiEnabled = false,
+  poiEnabled = false,
 }: PinPlaceMetadataListProps) {
   const metadataQuery = usePinMetadata(pinId);
   const { plugins } = useEnabledPlugins();
@@ -64,21 +64,21 @@ export function PinPlaceMetadataList({
     showSettings,
   ).filter(isRenderablePlaceMetadataItem);
 
-  const osmMetadataLoading = useOsmPoiPinMetadataLoading({
+  const poiMetadataLoading = usePoiPinMetadataLoading({
     supabase,
     pinId,
     mapId,
     lat,
     lng,
-    queryEnabled: osmPoiEnabled,
+    queryEnabled: poiEnabled,
   });
 
-  const showOsmLoading =
-    osmPoiEnabled &&
+  const showPoiLoading =
+    poiEnabled &&
     hasPinMetadataDetailDisplayEnabled(showSettings) &&
-    osmMetadataLoading;
+    poiMetadataLoading;
 
-  if (showOsmLoading) {
+  if (showPoiLoading) {
     return (
       <PinPlaceMetadataLoading>
         Loading additional information…

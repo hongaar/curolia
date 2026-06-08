@@ -1,4 +1,4 @@
-import { pinMetadataFromOsmTags } from "@curolia/plugin-osm-poi";
+import { pinMetadataFromOsmTags } from "@curolia/plugin-poi";
 import { describe, expect, it } from "vitest";
 
 describe("pinMetadataFromOsmTags", () => {
