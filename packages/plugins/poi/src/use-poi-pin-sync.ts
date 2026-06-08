@@ -9,21 +9,29 @@ import {
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   keepPreviousData,
+  useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { POI_PLUGIN_ID } from "./config";
+import {
+  isMapPoiAutoLookupEnabled,
+  poiMapPluginQueryKey,
+  resolvePoiMetadataLoading,
+  shouldTriggerPoiAutoLookup,
+} from "./poi-auto-lookup";
+import { poiRunAutoLookup } from "./poi-edge";
 import { poiMetadataIsFreshForPayload } from "./poi-metadata-sync";
 import {
-  poiPayloadMatches,
   parsePoiPinPayload,
+  poiPayloadMatches,
   type PoiPinPayload,
 } from "./poi-pin-data";
 import {
+  pinMetadataQueryKey,
   poiEntityDataQueryKey,
   poiSyncJobQueryKey,
-  pinMetadataQueryKey,
 } from "./query-keys";
 import { POI_SYNC_EVENT } from "./sync-registry";
 
@@ -39,6 +47,7 @@ export type UsePoiPinSyncArgs = {
 
 export type PoiPinSyncState = {
   pluginEnabled: boolean;
+  autoLookupEnabled: boolean;
   canSync: boolean;
   isMetadataLoading: boolean;
   showSettings: PinMetadataShowSettings;
@@ -71,7 +80,26 @@ export function usePoiPinSync({
     placeholderData: keepPreviousData,
   });
 
+  const mapPluginQuery = useQuery({
+    queryKey: poiMapPluginQueryKey(mapId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("map_plugins")
+        .select("enabled, config")
+        .eq("map_id", mapId)
+        .eq("plugin_type_id", POI_PLUGIN_ID)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: Boolean(mapId) && queryEnabled,
+    placeholderData: keepPreviousData,
+  });
+
   const pluginEnabled = queryEnabled;
+  const autoLookupEnabled = isMapPoiAutoLookupEnabled(
+    mapPluginQuery.data ?? undefined,
+  );
   const showSettings = resolveMapPinMetadataShow(
     showMetadataQuery.data?.show_pin_metadata,
   );
@@ -124,16 +152,10 @@ export function usePoiPinSync({
         updated_at: string;
       } | null;
     },
-    enabled: canSync,
+    enabled: canSync && autoLookupEnabled,
     refetchInterval: (query) =>
       isPluginSyncJobActive(query.state.data?.status) ? 3000 : false,
   });
-
-  useEffect(() => {
-    if (syncJobQuery.data?.status !== "completed") return;
-    void qc.invalidateQueries({ queryKey: entityDataKey });
-    void qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) });
-  }, [syncJobQuery.data?.status, qc, entityDataKey, pinId]);
 
   const cachedPayload = useMemo(() => {
     const p = parsePoiPinPayload(cachedRowQuery.data?.data);
@@ -141,8 +163,44 @@ export function usePoiPinSync({
     return p;
   }, [cachedRowQuery.data, lat, lng]);
 
-  const hasPendingSyncJob = isPluginSyncJobActive(syncJobQuery.data?.status);
-  const syncJobFailed = syncJobQuery.data?.status === "failed";
+  const autoLookupMutation = useMutation({
+    mutationFn: async () => {
+      const result = await poiRunAutoLookup(supabase, pinId);
+      if ("error" in result) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: entityDataKey }),
+        qc.invalidateQueries({ queryKey: syncJobKey }),
+        qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) }),
+      ]);
+    },
+  });
+
+  const triggerAutoLookup = shouldTriggerPoiAutoLookup({
+    autoLookupEnabled,
+    canSync,
+    cachedPayload,
+    syncJobStatus: syncJobQuery.data?.status,
+    autoLookupInFlight: autoLookupMutation.isPending,
+    autoLookupFailed: autoLookupMutation.isError,
+  });
+
+  useEffect(() => {
+    if (!triggerAutoLookup) return;
+    void autoLookupMutation.mutateAsync();
+  }, [triggerAutoLookup, pinId, lat, lng]);
+
+  useEffect(() => {
+    if (syncJobQuery.data?.status !== "completed") return;
+    void qc.invalidateQueries({ queryKey: entityDataKey });
+    void qc.invalidateQueries({ queryKey: pinMetadataQueryKey(pinId) });
+  }, [syncJobQuery.data?.status, qc, entityDataKey, pinId]);
+
+  const hasPoiPayload = Boolean(
+    cachedPayload && !cachedPayload.noPoi && cachedPayload.tags,
+  );
 
   const metadataQuery = useQuery({
     queryKey: [...pinMetadataQueryKey(pinId), POI_PLUGIN_ID],
@@ -159,31 +217,34 @@ export function usePoiPinSync({
         .map((row) => parsePinMetadataRow(row))
         .filter((row): row is NonNullable<typeof row> => row != null);
     },
-    enabled: canSync && cachedPayload != null,
+    enabled: canSync && hasPoiPayload,
     placeholderData: keepPreviousData,
   });
 
   const payload = cachedPayload;
   const metadataRows = metadataQuery.data ?? [];
-  const hasPoiPayload = Boolean(
-    cachedPayload && !cachedPayload.noPoi && cachedPayload.tags,
-  );
   const metadataIsFresh =
     !hasPoiPayload ||
     !cachedPayload ||
     poiMetadataIsFreshForPayload(cachedPayload, metadataRows);
 
-  const isMetadataLoading =
-    canSync &&
-    !syncJobFailed &&
-    ((cachedRowQuery.isPending && !cachedRowQuery.data) ||
-      hasPendingSyncJob ||
-      (hasPoiPayload &&
-        !metadataQuery.isError &&
-        (metadataQuery.isFetching || !metadataIsFresh)));
+  const isMetadataLoading = resolvePoiMetadataLoading({
+    pluginEnabled,
+    autoLookupEnabled,
+    canSync,
+    syncJobStatus: syncJobQuery.data?.status,
+    entityDataPending: cachedRowQuery.isPending,
+    cachedPayload,
+    autoLookupInFlight: autoLookupMutation.isPending,
+    autoLookupFailed: autoLookupMutation.isError,
+    metadataFetching: metadataQuery.isFetching,
+    metadataIsFresh,
+    metadataQueryError: metadataQuery.isError,
+  });
 
   return {
     pluginEnabled,
+    autoLookupEnabled,
     canSync,
     isMetadataLoading,
     showSettings,

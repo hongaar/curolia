@@ -1,6 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PoiNearbyCandidate, PoiPinPayload } from "./poi-pin-data";
 
+export type PoiAutoLookupResponse =
+  | { synced: true; payload: PoiPinPayload }
+  | { synced: false; reason: "nothing_nearby"; payload: PoiPinPayload }
+  | {
+      skippedReason:
+        | "plugin_disabled"
+        | "auto_lookup_disabled"
+        | "no_coordinates";
+    }
+  | { error: string };
+
 export type PoiSyncResponse =
   | { synced: true; payload: PoiPinPayload }
   | { synced: false; reason: "nothing_nearby"; payload: PoiPinPayload }
@@ -78,6 +89,17 @@ export async function poiSyncPin(
 ): Promise<PoiSyncResponse> {
   return invokePoiEdge<PoiSyncResponse>(supabase, {
     action: "sync_pin_poi",
+    pinId,
+  });
+}
+
+/** Run map auto-lookup immediately for one pin (on-demand, not cron). */
+export async function poiRunAutoLookup(
+  supabase: SupabaseClient,
+  pinId: string,
+): Promise<PoiAutoLookupResponse> {
+  return invokePoiEdge<PoiAutoLookupResponse>(supabase, {
+    action: "run_pin_auto_lookup",
     pinId,
   });
 }

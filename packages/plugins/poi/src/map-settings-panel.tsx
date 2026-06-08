@@ -1,9 +1,9 @@
 import type { MapSettingsPanelProps } from "@curolia/plugin-contract";
 import {
   mapPluginConfigRecord,
+  PLUGIN_SYNC_EVENT_PIN_COORDINATES_CHANGED,
   pluginSyncEventsFromConfig,
   withPluginSyncEvents,
-  PLUGIN_SYNC_EVENT_PIN_COORDINATES_CHANGED,
 } from "@curolia/plugin-contract";
 import { Label } from "@curolia/ui/label";
 import {
@@ -71,9 +71,9 @@ export function PoiMapSettingsPanel({
             <Label htmlFor="poi-auto-lookup">Auto-lookup nearby places</Label>
           </PluginSettingsTitle>
           <PluginSettingsHint>
-            Automatically look up and attach nearby place information when a
-            pin's coordinates change. The closest matching place within range is
-            linked.
+            When a new pin is placed on this map, automatically look up and
+            attach nearby place information. The closest matching place within
+            range is linked.
           </PluginSettingsHint>
         </div>
         <Switch

@@ -6,11 +6,21 @@ export {
   POI_SEARCH_RADIUS_M,
 } from "./constants";
 export { poiPluginManifest as pluginManifest } from "./manifest";
+export { PoiMapSettingsPanel } from "./map-settings-panel";
+export { PoiPinFormSection } from "./pin-form-section";
+export {
+  isMapPoiAutoLookupEnabled,
+  poiMapPluginQueryKey,
+  resolvePoiMetadataLoading,
+  shouldTriggerPoiAutoLookup,
+} from "./poi-auto-lookup";
 export {
   poiClearPinPoi,
   poiListNearbyCandidates,
+  poiRunAutoLookup,
   poiSetPinPoi,
   poiSyncPin,
+  type PoiAutoLookupResponse,
   type PoiClearPinPoiResponse,
   type PoiListCandidatesResponse,
   type PoiSetPinPoiResponse,
@@ -29,6 +39,7 @@ export {
 } from "./poi-metadata-sync";
 export {
   formatPoiDistanceM,
+  parsePoiPinPayload,
   poiCandidateLine,
   poiCandidateMeta,
   poiCandidateTitle,
@@ -36,7 +47,6 @@ export {
   poiLabelFromTags,
   poiPayloadFromCandidate,
   poiPayloadMatches,
-  parsePoiPinPayload,
   resolvePoiLinkedView,
   type PoiLinkedPoiView,
   type PoiNearbyCandidate,
@@ -46,13 +56,11 @@ export {
   osmTagFamiliesForMetadata,
   pinMetadataFromOsmTags,
 } from "./poi-pin-metadata";
-export { PoiMapSettingsPanel } from "./map-settings-panel";
-export { PoiPinFormSection } from "./pin-form-section";
 export {
+  pinMetadataQueryKey,
   poiEntityDataQueryKey,
   poiNearbyCandidatesQueryKey,
   poiSyncQueryKey,
-  pinMetadataQueryKey,
 } from "./query-keys";
 export { syncPoiPin } from "./sync-poi-pin";
 export { usePoiPinMetadataLoading } from "./use-poi-pin-sync";

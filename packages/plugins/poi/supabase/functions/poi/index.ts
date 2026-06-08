@@ -1118,6 +1118,25 @@ function jobCoordinates(
   return { lat, lng };
 }
 
+async function applyPinAutoLookup(
+  admin: ReturnType<typeof createClient>,
+  mapId: string,
+  pinId: string,
+  lat: number,
+  lng: number,
+): Promise<PoiPinPayload> {
+  const payload = await queryNearestPoi(lat, lng);
+  await upsertPayload(admin, mapId, pinId, payload);
+  await replacePinMetadataForSource(
+    admin,
+    mapId,
+    pinId,
+    payload.noPoi ? null : payload.tags,
+  );
+  await completePendingSyncJobsForPin(admin, pinId);
+  return payload;
+}
+
 async function processSyncJobs(
   admin: ReturnType<typeof createClient>,
   limit: number,
@@ -1162,26 +1181,12 @@ async function processSyncJobs(
     }
 
     try {
-      const payload = await queryNearestPoi(coords.lat, coords.lng);
-      if (!payload) {
-        await admin
-          .from("plugin_sync_jobs")
-          .update({
-            status: "failed",
-            last_error: "overpass_empty",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", job.id);
-        failed++;
-        continue;
-      }
-
-      await upsertPayload(admin, job.map_id, job.entity_id, payload);
-      await replacePinMetadataForSource(
+      await applyPinAutoLookup(
         admin,
         job.map_id,
         job.entity_id,
-        payload.noPoi ? null : payload.tags,
+        coords.lat,
+        coords.lng,
       );
       await admin
         .from("plugin_sync_jobs")
@@ -1335,6 +1340,146 @@ Deno.serve(async (req: Request) => {
       });
     }
     return null;
+  }
+
+  async function assertMapAutoLookupEnabled(
+    mapId: string,
+  ): Promise<Response | null> {
+    const { data: mapPlugin, error: mapPluginErr } = await admin
+      .from("map_plugins")
+      .select("enabled, config")
+      .eq("map_id", mapId)
+      .eq("plugin_type_id", PLUGIN_TYPE_ID)
+      .maybeSingle();
+
+    if (mapPluginErr) {
+      return new Response(JSON.stringify({ error: mapPluginErr.message }), {
+        status: 500,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    const syncEvents = Array.isArray(
+      (mapPlugin?.config as Record<string, unknown> | null)?.syncEvents,
+    )
+      ? ((mapPlugin?.config as Record<string, unknown>).syncEvents as unknown[])
+      : [];
+
+    const autoLookupEnabled =
+      Boolean(mapPlugin?.enabled) &&
+      syncEvents.includes(SYNC_EVENT_PIN_COORDINATES_CHANGED);
+
+    if (!autoLookupEnabled) {
+      return new Response(
+        JSON.stringify({ skippedReason: "auto_lookup_disabled" }),
+        {
+          status: 200,
+          headers: { ...cors(), "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    return null;
+  }
+
+  if (body.action === "run_pin_auto_lookup") {
+    const pinId = body.pinId?.trim();
+    if (!pinId) {
+      return new Response(JSON.stringify({ error: "invalid_body" }), {
+        status: 400,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    const loaded = await loadPinForUser(pinId);
+    if (!loaded.ok) {
+      return new Response(JSON.stringify(loaded.body), {
+        status: loaded.status,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    const disabled = await assertUserPluginEnabled(true);
+    if (disabled) return disabled;
+
+    const autoLookupDisabled = await assertMapAutoLookupEnabled(
+      loaded.pin.map_id,
+    );
+    if (autoLookupDisabled) return autoLookupDisabled;
+
+    const lat = loaded.pin.lat;
+    const lng = loaded.pin.lng;
+    if (
+      lat == null ||
+      lng == null ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng)
+    ) {
+      return new Response(JSON.stringify({ skippedReason: "no_coordinates" }), {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: existingRow } = await admin
+      .from("plugin_entity_data")
+      .select("data")
+      .eq("entity_type", "pin")
+      .eq("entity_id", loaded.pin.id)
+      .eq("plugin_type_id", PLUGIN_TYPE_ID)
+      .maybeSingle();
+
+    const cached = parsePayload(existingRow?.data);
+    if (cached && payloadMatches(cached, lat, lng)) {
+      await completePendingSyncJobsForPin(admin, loaded.pin.id);
+      if (cached.noPoi) {
+        return new Response(
+          JSON.stringify({
+            synced: false,
+            reason: "nothing_nearby",
+            payload: cached,
+          }),
+          {
+            status: 200,
+            headers: { ...cors(), "Content-Type": "application/json" },
+          },
+        );
+      }
+      return new Response(JSON.stringify({ synced: true, payload: cached }), {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const payload = await applyPinAutoLookup(
+        admin,
+        loaded.pin.map_id,
+        loaded.pin.id,
+        lat,
+        lng,
+      );
+      if (payload.noPoi) {
+        return new Response(
+          JSON.stringify({
+            synced: false,
+            reason: "nothing_nearby",
+            payload,
+          }),
+          {
+            status: 200,
+            headers: { ...cors(), "Content-Type": "application/json" },
+          },
+        );
+      }
+      return new Response(JSON.stringify({ synced: true, payload }), {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.error("poi run_pin_auto_lookup failed", e);
+      return jsonResponse(overpassErrorBody(e), overpassErrorHttpStatus(e));
+    }
   }
 
   if (body.action === "list_nearby_candidates") {
