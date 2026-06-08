@@ -24,6 +24,7 @@ export * from "./components/main-toolbar";
 export * from "./components/map";
 export * from "./components/map-picker";
 export * from "./components/notifications-popover";
+export * from "./components/onboarding";
 export * from "./components/page";
 export * from "./components/page-back-button";
 export * from "./components/panel-dialog";
