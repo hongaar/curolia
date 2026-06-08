@@ -195,6 +195,12 @@ export function PinMapQuickAddDialog({
     void flushTitleIfNeeded().then(() => onOpen(pin));
   };
 
+  const editPin = () => {
+    void flushTitleIfNeeded().then(() =>
+      onEdit({ ...pin, title: title.trim() || null }),
+    );
+  };
+
   const footer = (
     <PinFormFooterSplit
       start={
@@ -213,9 +219,7 @@ export function PinMapQuickAddDialog({
             type="button"
             variant="secondary"
             disabled={busy}
-            onClick={() => {
-              void flushTitleIfNeeded().then(() => onEdit(pin));
-            }}
+            onClick={editPin}
           >
             Edit
           </Button>

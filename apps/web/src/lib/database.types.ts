@@ -637,6 +637,7 @@ export type Database = {
           id: string;
           notification_email_enabled: boolean;
           notification_push_enabled: boolean;
+          onboarding_completed: boolean;
           updated_at: string;
         };
         Insert: {
@@ -647,6 +648,7 @@ export type Database = {
           id: string;
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
+          onboarding_completed?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -657,6 +659,7 @@ export type Database = {
           id?: string;
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
+          onboarding_completed?: boolean;
           updated_at?: string;
         };
         Relationships: [
