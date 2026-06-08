@@ -29,6 +29,14 @@ type WikidataPinPayload = {
   placeType: string | null;
 };
 
+type WikidataDeclinedPayload = {
+  schemaVersion: 1;
+  lat: number;
+  lng: number;
+  fetchedAt: string;
+  declined: true;
+};
+
 type PinRow = {
   id: string;
   map_id: string;
@@ -63,6 +71,27 @@ function parsePayload(raw: unknown): WikidataPinPayload | null {
   if (typeof o.lat !== "number" || typeof o.lng !== "number") return null;
   if (typeof o.wikipediaTitle !== "string") return null;
   return raw as WikidataPinPayload;
+}
+
+function parseDeclinedPayload(raw: unknown): WikidataDeclinedPayload | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  if (o.schemaVersion !== 1) return null;
+  if (o.declined !== true) return null;
+  if (typeof o.lat !== "number" || typeof o.lng !== "number") return null;
+  if (typeof o.fetchedAt !== "string") return null;
+  return raw as WikidataDeclinedPayload;
+}
+
+function declinedPayloadMatches(
+  payload: Pick<WikidataDeclinedPayload, "lat" | "lng">,
+  lat: number,
+  lng: number,
+): boolean {
+  return (
+    Math.abs(payload.lat - lat) < COORD_EPSILON &&
+    Math.abs(payload.lng - lng) < COORD_EPSILON
+  );
 }
 
 function wikidataItemId(uri: string): string | null {
@@ -750,6 +779,20 @@ Deno.serve(async (req: Request) => {
       status: 200,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
+  }
+
+  const declined = parseDeclinedPayload(cachedRow?.data);
+  if (declined && declinedPayloadMatches(declined, lat, lng)) {
+    return new Response(
+      JSON.stringify({
+        synced: false,
+        reason: "suggestion_declined",
+      }),
+      {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      },
+    );
   }
 
   try {

@@ -15,19 +15,16 @@ import {
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { WIKIDATA_SEARCH_RADIUS_KM } from "./constants";
 import { wikidataPluginMeta } from "./plugin-meta";
 import {
   pluginEntityDataRowQueryKey,
   wikidataNearbyCandidatesQueryKey,
-  wikidataPinSyncQueryKey,
 } from "./query-keys";
 import {
   wikidataClearPinEnrichment,
   wikidataListNearbyCandidates,
   wikidataSetPinEnrichment,
-  wikidataSyncPinEnrichment,
 } from "./wikidata-edge";
 import {
   formatWikidataDistanceM,
@@ -52,10 +49,7 @@ export function WikidataPinFormEditor({
   const qc = useQueryClient();
   const pid = wikidataPluginMeta.typeId;
   const dataRowQueryKey = pluginEntityDataRowQueryKey(pid, "pin", pinId);
-  const syncQueryKey = wikidataPinSyncQueryKey(pinId, lat, lng);
   const candidatesQueryKey = wikidataNearbyCandidatesQueryKey(pinId, lat, lng);
-
-  const [skipAutoSync, setSkipAutoSync] = useState(false);
 
   const rowQuery = useQuery({
     queryKey: dataRowQueryKey,
@@ -75,27 +69,6 @@ export function WikidataPinFormEditor({
   const payload = parseWikidataPinPayload(rowQuery.data?.data);
   const showPicker = !payload;
 
-  const syncQuery = useQuery({
-    queryKey: syncQueryKey,
-    queryFn: () => wikidataSyncPinEnrichment(supabase, pinId),
-    enabled: !skipAutoSync && rowQuery.isSuccess && !payload,
-    staleTime: Number.POSITIVE_INFINITY,
-    retry: false,
-  });
-
-  const autoSyncSettled =
-    skipAutoSync || syncQuery.isSuccess || syncQuery.isError;
-
-  useEffect(() => {
-    setSkipAutoSync(false);
-  }, [lat, lng]);
-
-  useEffect(() => {
-    if (!syncQuery.isSuccess || !syncQuery.data) return;
-    if ("error" in syncQuery.data) return;
-    void qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
-  }, [syncQuery.isSuccess, syncQuery.data, qc, dataRowQueryKey]);
-
   const candidatesQuery = useQuery({
     queryKey: candidatesQueryKey,
     queryFn: async () => {
@@ -103,7 +76,7 @@ export function WikidataPinFormEditor({
       if ("error" in res) throw new Error(res.error);
       return res.candidates;
     },
-    enabled: showPicker && rowQuery.isSuccess && autoSyncSettled,
+    enabled: showPicker && rowQuery.isSuccess,
     staleTime: 60_000,
     retry: false,
   });
@@ -119,7 +92,6 @@ export function WikidataPinFormEditor({
       return res.payload;
     },
     onSuccess: async () => {
-      setSkipAutoSync(false);
       await qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
     },
   });
@@ -130,18 +102,11 @@ export function WikidataPinFormEditor({
       if ("error" in res) throw new Error(res.error);
     },
     onSuccess: async () => {
-      setSkipAutoSync(true);
       await qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
       await qc.invalidateQueries({ queryKey: [...candidatesQueryKey] });
     },
   });
 
-  const syncErr =
-    syncQuery.error instanceof Error
-      ? syncQuery.error.message
-      : syncQuery.data && "error" in syncQuery.data
-        ? syncQuery.data.error
-        : null;
   const candidatesErr =
     candidatesQuery.error instanceof Error
       ? candidatesQuery.error.message
@@ -156,13 +121,11 @@ export function WikidataPinFormEditor({
   const showPickerSpinner =
     showPicker &&
     ((rowQuery.isPending && !rowQuery.data) ||
-      syncQuery.isPending ||
-      (autoSyncSettled && candidatesQuery.isPending) ||
+      candidatesQuery.isPending ||
       setMutation.isPending);
 
   return (
     <>
-      {syncErr ? <PluginPinError>{syncErr}</PluginPinError> : null}
       {actionErr ? <PluginPinError>{actionErr}</PluginPinError> : null}
 
       {payload ? (

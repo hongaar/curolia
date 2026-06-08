@@ -35,6 +35,18 @@ export function TagsFilterMenuContent({
 }: TagsFilterMenuContentProps) {
   return (
     <>
+      {filterTagIds.size > 0 ? (
+        <>
+          <DropdownMenuItem
+            onClick={() => {
+              setFilterTagIds(new Set());
+            }}
+          >
+            Clear filters
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+        </>
+      ) : null}
       <DropdownMenuGroup>
         <DropdownMenuLabel>Tags</DropdownMenuLabel>
         {tags.length === 0 ? (
@@ -84,18 +96,6 @@ export function TagsFilterMenuContent({
           })
         )}
       </DropdownMenuGroup>
-      {filterTagIds.size > 0 ? (
-        <>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => {
-              setFilterTagIds(new Set());
-            }}
-          >
-            Clear filters
-          </DropdownMenuItem>
-        </>
-      ) : null}
       {onNewTag ? (
         <>
           <DropdownMenuSeparator />

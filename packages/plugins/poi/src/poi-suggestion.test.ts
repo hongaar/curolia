@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PoiNearbyCandidate, PoiPinPayload } from "./poi-pin-data";
 import {
   poiPinHasAttachedPoi,
+  poiPinSuggestionSuppressed,
   selectPoiSuggestionCandidate,
   type PoiSuggestionInput,
 } from "./poi-suggestion";
@@ -42,8 +43,28 @@ const baseInput: PoiSuggestionInput = {
   pluginReady: true,
   autoLookupEnabled: false,
   attachedPayload: null,
+  pinLat: 52.1,
+  pinLng: 5.1,
   candidates: [],
 };
+
+describe("poiPinSuggestionSuppressed", () => {
+  it("is true when a place is linked", () => {
+    expect(poiPinSuggestionSuppressed(attachedPayload, 52.1, 5.1)).toBe(true);
+  });
+
+  it("is true when the user declined at the same coords", () => {
+    expect(poiPinSuggestionSuppressed(noPoiPayload, 52.1, 5.1)).toBe(true);
+  });
+
+  it("is false when the pin moved after a decline", () => {
+    expect(poiPinSuggestionSuppressed(noPoiPayload, 52.2, 5.2)).toBe(false);
+  });
+
+  it("is false when there is no stored payload", () => {
+    expect(poiPinSuggestionSuppressed(null, 52.1, 5.1)).toBe(false);
+  });
+});
 
 describe("poiPinHasAttachedPoi", () => {
   it("is true when a place is linked", () => {
@@ -93,6 +114,16 @@ describe("selectPoiSuggestionCandidate", () => {
       selectPoiSuggestionCandidate({
         ...baseInput,
         attachedPayload,
+        candidates: [candidate()],
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null when the user previously declined at these coords", () => {
+    expect(
+      selectPoiSuggestionCandidate({
+        ...baseInput,
+        attachedPayload: noPoiPayload,
         candidates: [candidate()],
       }),
     ).toBeNull();

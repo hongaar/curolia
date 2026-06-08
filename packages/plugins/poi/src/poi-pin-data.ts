@@ -170,6 +170,27 @@ export function poiElementUrl(
   return `https://www.openstreetmap.org/${osmType}/${osmId}`;
 }
 
+export function poiDeclinedPayload(lat: number, lng: number): PoiPinPayload {
+  return {
+    schemaVersion: 1,
+    lat,
+    lng,
+    fetchedAt: new Date().toISOString(),
+    noPoi: true,
+  };
+}
+
+export function poiPayloadCoordsMatch(
+  payload: Pick<PoiPinPayload, "lat" | "lng">,
+  lat: number,
+  lng: number,
+): boolean {
+  return (
+    Math.abs(payload.lat - lat) < POI_COORD_EPSILON &&
+    Math.abs(payload.lng - lng) < POI_COORD_EPSILON
+  );
+}
+
 export function poiPayloadMatches(
   payload: PoiPinPayload,
   lat: number,

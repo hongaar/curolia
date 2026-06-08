@@ -325,6 +325,12 @@ Production checklist:
 
 ## TODO
 
+### Geoapify Places: healthcare category interaction
+
+The POI plugin’s Geoapify nearby search (`packages/plugins/poi/supabase/functions/poi/index.ts`) currently omits the `healthcare` category. Geoapify’s Places API returns **zero features** when `healthcare` is requested in the same call as `accommodation`, `commercial`, `national_park`, `beach`, `tourism`, `sport`, `airport`, or `maritime` — even when hospitals are within the search radius (verified at Zeist). A healthcare-only request at the same coordinates returns results. An unexpected-behaviour report was sent to Geoapify.
+
+**When addressed:** re-enable `healthcare` (split request or upstream fix), restore the omitted incompatible groups in the main category list, and confirm hospitals appear in pin nearby suggestions.
+
 ### Dead code / unused exports cleanup
 
 A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root) flagged likely leftovers from refactors. Nothing is wired into CI yet — add a root `**knip.json`\*\* (workspace entry points + ignore patterns) before treating output as authoritative.

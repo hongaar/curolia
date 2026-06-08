@@ -48,25 +48,54 @@ const GEOAPIFY_PLACES_URL = "https://api.geoapify.com/v2/places";
 const GEOAPIFY_FETCH_TIMEOUT_MS = 15_000;
 
 /**
- * Focused subset of Geoapify categories for a place-memory / travel app.
+ * Top-level Geoapify groups that must not share a Places request with
+ * `healthcare`. Pairwise API tests show the combined request returns zero
+ * features when hospitals are in range (full list → 0 vs healthcare-only → N
+ * at the same coordinates). See repo README TODO: Geoapify healthcare.
+ */
+const GEOAPIFY_HEALTHCARE_INCOMPATIBLE_GROUPS = [
+  "accommodation",
+  "commercial",
+  "national_park",
+  "beach",
+  "tourism",
+  "sport",
+  "airport",
+  "maritime",
+] as const;
+
+/**
+ * Single-request Geoapify category list.
+ * Omits {@link GEOAPIFY_HEALTHCARE_INCOMPATIBLE_GROUPS} while `healthcare` is
+ * disabled (see below). Re-add those groups once healthcare is fixed or fetched
+ * in a separate request.
  * Full list: https://apidocs.geoapify.com/docs/places/#categories
  */
 const GEOAPIFY_CATEGORIES = [
-  "accommodation",
+  // Disabled: Geoapify returns zero features when `healthcare` is combined with
+  // accommodation, commercial, national_park, beach, tourism, sport, airport,
+  // or maritime in one request (verified with hospitals in range). Unexpected-
+  // behaviour report sent to Geoapify; re-enable when fixed or batched safely.
+  // "healthcare",
+  "education",
+  "childcare",
   "catering",
-  "commercial.food_and_drink",
-  "commercial.marketplace",
-  "commercial.supermarket",
   "leisure",
   "natural",
-  "national_park",
-  "beach",
   "camping",
-  "tourism",
   "entertainment",
   "heritage",
   "religion",
-  "sport",
+  "man_made",
+  "memorial",
+  "ski",
+  "public_transport",
+  "rental",
+  "service",
+  "activity",
+  "production",
+  "amenity",
+  "pet",
 ] as const;
 
 type GeoapifyFeature = {
@@ -123,6 +152,96 @@ function tagsFromGeoapifyRaw(
   return tags;
 }
 
+const GEOAPIFY_ENTERTAINMENT_TOURISM = new Set([
+  "museum",
+  "zoo",
+  "aquarium",
+  "theme_park",
+]);
+
+function applyGeoapifyCategory(
+  cat: string,
+  tags: Record<string, string>,
+): void {
+  const parts = cat.split(".");
+  const top = parts[0];
+  const leaf = parts[parts.length - 1]!;
+  switch (top) {
+    case "catering":
+    case "childcare":
+    case "education":
+    case "activity":
+    case "service":
+    case "production":
+    case "amenity":
+    case "pet":
+      tags.amenity = leaf;
+      break;
+    case "accommodation":
+    case "camping":
+      tags.tourism = leaf;
+      break;
+    case "tourism":
+      tags.tourism = leaf;
+      break;
+    case "leisure":
+      tags.leisure = leaf;
+      break;
+    case "commercial":
+      tags.shop = leaf;
+      break;
+    case "healthcare":
+      tags.healthcare = leaf;
+      break;
+    case "entertainment":
+      if (GEOAPIFY_ENTERTAINMENT_TOURISM.has(leaf)) tags.tourism = leaf;
+      else tags.leisure = leaf;
+      break;
+    case "heritage":
+    case "memorial":
+      tags.historic = leaf;
+      break;
+    case "religion":
+      tags.amenity = "place_of_worship";
+      break;
+    case "sport":
+      tags.leisure = leaf;
+      break;
+    case "public_transport":
+      tags.amenity = leaf;
+      break;
+    case "airport":
+      tags.aeroway = leaf === "airport" ? "aerodrome" : leaf;
+      break;
+    case "rental":
+      tags.amenity = leaf === "rental" ? "rental" : `${leaf}_rental`;
+      break;
+    case "maritime":
+      tags.leisure = leaf;
+      break;
+    case "man_made":
+      tags.man_made = leaf;
+      break;
+    case "ski":
+      tags.aerialway = leaf;
+      break;
+    case "natural":
+      tags.natural = leaf;
+      break;
+    case "beach":
+      tags.natural = "beach";
+      break;
+    case "national_park":
+      tags.leisure = "nature_reserve";
+      break;
+    case "office":
+      tags.office = leaf;
+      break;
+    default:
+      break;
+  }
+}
+
 function tagsFromGeoapifyFeature(
   feat: GeoapifyFeature,
 ): Record<string, string> {
@@ -140,14 +259,11 @@ function tagsFromGeoapifyFeature(
     tags.phone = feat.properties.contact.phone;
   if (feat.properties.contact?.email)
     tags.email = feat.properties.contact.email;
-  const cats = feat.properties.categories ?? [];
+  const cats = [...(feat.properties.categories ?? [])].sort(
+    (a, b) => b.split(".").length - a.split(".").length,
+  );
   for (const cat of cats) {
-    if (cat.startsWith("catering.")) tags.amenity = cat.split(".").pop()!;
-    else if (cat.startsWith("accommodation."))
-      tags.tourism = cat.split(".").pop()!;
-    else if (cat.startsWith("tourism.")) tags.tourism = cat.split(".").pop()!;
-    else if (cat.startsWith("leisure.")) tags.leisure = cat.split(".").pop()!;
-    else if (cat.startsWith("commercial.")) tags.shop = cat.split(".").pop()!;
+    applyGeoapifyCategory(cat, tags);
   }
   return tags;
 }
@@ -202,13 +318,14 @@ async function fetchGeoapifyPlaces(
     throw new Error(`geoapify_http_${res.status}`);
   }
   const body = (await res.json()) as GeoapifyResponse;
+  const features = body.features ?? [];
   const candidates: PoiNearbyCandidate[] = [];
-  for (const feat of body.features ?? []) {
+  for (const feat of features) {
     const c = candidateFromGeoapifyFeature(lat, lng, feat);
     if (c) candidates.push(c);
   }
   candidates.sort((a, b) => a.distanceM - b.distanceM);
-  return candidates;
+  return finalizeNearbyCandidates(candidates, limit);
 }
 
 function getGeoapifyApiKey(): string | null {
@@ -305,7 +422,10 @@ function hasPoiTags(tags: Record<string, string> | undefined): boolean {
     tags.historic ||
     tags.office ||
     tags.healthcare ||
-    tags.craft,
+    tags.craft ||
+    tags.natural ||
+    tags.aeroway ||
+    tags.aerialway,
   );
 }
 
@@ -824,6 +944,9 @@ const PRIMARY_TYPE_KEYS = [
   "office",
   "healthcare",
   "craft",
+  "natural",
+  "aeroway",
+  "aerialway",
 ];
 function formatOpeningHoursDisplay(raw: string): string {
   return raw

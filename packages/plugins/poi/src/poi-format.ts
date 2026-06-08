@@ -139,6 +139,10 @@ export function primaryPoiLabel(tags: Record<string, string>): string | null {
   if (tags.man_made) return formatTagValue(tags.man_made);
   if (tags.historic) return formatTagValue(tags.historic);
   if (tags.office) return formatTagValue(tags.office);
+  if (tags.healthcare) return formatTagValue(tags.healthcare);
+  if (tags.natural) return formatTagValue(tags.natural);
+  if (tags.aeroway) return formatTagValue(tags.aeroway);
+  if (tags.aerialway) return formatTagValue(tags.aerialway);
   return null;
 }
 

@@ -6,9 +6,9 @@ import {
 } from "@curolia/ui/suggestion-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapPin } from "lucide-react";
-import { useState } from "react";
 import { POI_PLUGIN_ID } from "./config";
 import { POI_SUGGESTION_STALE_TIME_MS } from "./constants";
+import { poiPluginMeta } from "./plugin-meta";
 import {
   isMapPoiAutoLookupEnabled,
   poiMapPluginQueryKey,
@@ -20,10 +20,13 @@ import {
   parsePoiPinPayload,
   poiCandidateMeta,
   poiCandidateTitle,
+  poiDeclinedPayload,
   type PoiNearbyCandidate,
 } from "./poi-pin-data";
-import { selectPoiSuggestionCandidate } from "./poi-suggestion";
-import { poiPluginMeta } from "./plugin-meta";
+import {
+  poiPinSuggestionSuppressed,
+  selectPoiSuggestionCandidate,
+} from "./poi-suggestion";
 import {
   pinMetadataQueryKey,
   poiEntityDataQueryKey,
@@ -46,7 +49,6 @@ export function PoiPinSuggestionSlot({
 }: PinSuggestionSlotProps) {
   const qc = useQueryClient();
   const { pluginReady } = usePoiPluginReady(supabase, { userId, mapId });
-  const [dismissed, setDismissed] = useState(false);
 
   const lat = pinLat ?? null;
   const lng = pinLng ?? null;
@@ -93,6 +95,9 @@ export function PoiPinSuggestionSlot({
 
   const attachedPayload = parsePoiPinPayload(rowQuery.data?.data);
   const alreadyResolved = rowQuery.data !== undefined;
+  const suggestionSuppressed =
+    hasCoords &&
+    poiPinSuggestionSuppressed(attachedPayload, lat ?? 0, lng ?? 0);
 
   // Only look up candidates once we know auto-lookup is off and nothing is
   // attached yet — avoids needless Overpass/Geoapify calls.
@@ -101,7 +106,7 @@ export function PoiPinSuggestionSlot({
     hasCoords &&
     !autoLookupEnabled &&
     alreadyResolved &&
-    !attachedPayload;
+    !suggestionSuppressed;
 
   const candidatesQuery = useQuery({
     queryKey: poiNearbyCandidatesQueryKey(pinId, lat ?? 0, lng ?? 0),
@@ -114,6 +119,30 @@ export function PoiPinSuggestionSlot({
     staleTime: POI_SUGGESTION_STALE_TIME_MS,
     gcTime: POI_SUGGESTION_STALE_TIME_MS,
     retry: false,
+  });
+
+  const dismissMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("plugin_entity_data").upsert(
+        {
+          map_id: mapId,
+          entity_type: "pin",
+          entity_id: pinId,
+          plugin_type_id: poiPluginMeta.typeId,
+          data: poiDeclinedPayload(lat ?? 0, lng ?? 0) as unknown as Record<
+            string,
+            unknown
+          >,
+        },
+        { onConflict: "entity_type,entity_id,plugin_type_id" },
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.setQueryData(poiEntityDataQueryKey(pinId), {
+        data: poiDeclinedPayload(lat ?? 0, lng ?? 0),
+      });
+    },
   });
 
   const attachMutation = useMutation({
@@ -138,10 +167,12 @@ export function PoiPinSuggestionSlot({
     pluginReady,
     autoLookupEnabled,
     attachedPayload,
+    pinLat: lat ?? 0,
+    pinLng: lng ?? 0,
     candidates: candidatesQuery.data ?? [],
   });
 
-  if (!suggestion || dismissed) return null;
+  if (!suggestion) return null;
 
   const errorMessage =
     attachMutation.error instanceof Error
@@ -155,8 +186,8 @@ export function PoiPinSuggestionSlot({
         eyebrow={`Suggested · ${poiPluginMeta.displayName}`}
         title={poiCandidateTitle(suggestion)}
         meta={errorMessage ?? poiCandidateMeta(suggestion)}
-        busy={attachMutation.isPending}
-        onDismiss={() => setDismissed(true)}
+        busy={attachMutation.isPending || dismissMutation.isPending}
+        onDismiss={() => dismissMutation.mutate()}
         actions={
           <Button
             type="button"

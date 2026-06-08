@@ -5,7 +5,6 @@ import {
   SuggestionCardList,
 } from "@curolia/ui/suggestion-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { WIKIDATA_SUGGESTION_STALE_TIME_MS } from "./constants";
 import { WikidataIcon } from "./icon";
 import { wikidataPluginMeta } from "./plugin-meta";
@@ -19,11 +18,16 @@ import {
   wikidataSetPinEnrichment,
 } from "./wikidata-edge";
 import {
+  parseWikidataDeclinedPayload,
   parseWikidataPinPayload,
   wikidataCandidateMeta,
+  wikidataDeclinedPayload,
   type WikidataNearbyCandidate,
 } from "./wikidata-pin-data";
-import { selectWikidataSuggestionCandidate } from "./wikidata-suggestion";
+import {
+  selectWikidataSuggestionCandidate,
+  wikidataPinSuggestionSuppressed,
+} from "./wikidata-suggestion";
 
 /**
  * Suggests attaching a very-close notable Wikipedia article to a pin when none
@@ -40,7 +44,6 @@ export function WikidataPinSuggestionSlot({
   const qc = useQueryClient();
   const pid = wikidataPluginMeta.typeId;
   const { pluginReady } = useWikidataPluginReady(supabase, { userId, mapId });
-  const [dismissed, setDismissed] = useState(false);
 
   const lat = pinLat ?? null;
   const lng = pinLng ?? null;
@@ -69,9 +72,21 @@ export function WikidataPinSuggestionSlot({
   });
 
   const attachedPayload = parseWikidataPinPayload(rowQuery.data?.data);
+  const declinedPayload = parseWikidataDeclinedPayload(rowQuery.data?.data);
+  const suggestionSuppressed =
+    hasCoords &&
+    wikidataPinSuggestionSuppressed(
+      attachedPayload,
+      declinedPayload,
+      lat ?? 0,
+      lng ?? 0,
+    );
 
   const candidatesEnabled =
-    pluginReady && hasCoords && rowQuery.data !== undefined && !attachedPayload;
+    pluginReady &&
+    hasCoords &&
+    rowQuery.data !== undefined &&
+    !suggestionSuppressed;
 
   const candidatesQuery = useQuery({
     queryKey: wikidataNearbyCandidatesQueryKey(pinId, lat ?? 0, lng ?? 0),
@@ -84,6 +99,30 @@ export function WikidataPinSuggestionSlot({
     staleTime: WIKIDATA_SUGGESTION_STALE_TIME_MS,
     gcTime: WIKIDATA_SUGGESTION_STALE_TIME_MS,
     retry: false,
+  });
+
+  const dismissMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("plugin_entity_data").upsert(
+        {
+          map_id: mapId,
+          entity_type: "pin",
+          entity_id: pinId,
+          plugin_type_id: pid,
+          data: wikidataDeclinedPayload(
+            lat ?? 0,
+            lng ?? 0,
+          ) as unknown as Record<string, unknown>,
+        },
+        { onConflict: "entity_type,entity_id,plugin_type_id" },
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.setQueryData(dataRowQueryKey, {
+        data: wikidataDeclinedPayload(lat ?? 0, lng ?? 0),
+      });
+    },
   });
 
   const attachMutation = useMutation({
@@ -105,10 +144,13 @@ export function WikidataPinSuggestionSlot({
   const suggestion = selectWikidataSuggestionCandidate({
     pluginReady,
     attachedPayload,
+    declinedPayload,
+    pinLat: lat ?? 0,
+    pinLng: lng ?? 0,
     candidates: candidatesQuery.data ?? [],
   });
 
-  if (!suggestion || dismissed) return null;
+  if (!suggestion) return null;
 
   const errorMessage =
     attachMutation.error instanceof Error
@@ -123,8 +165,8 @@ export function WikidataPinSuggestionSlot({
         title={suggestion.label}
         meta={errorMessage ?? wikidataCandidateMeta(suggestion)}
         thumbnailUrl={suggestion.thumbnailUrl}
-        busy={attachMutation.isPending}
-        onDismiss={() => setDismissed(true)}
+        busy={attachMutation.isPending || dismissMutation.isPending}
+        onDismiss={() => dismissMutation.mutate()}
         actions={
           <Button
             type="button"
