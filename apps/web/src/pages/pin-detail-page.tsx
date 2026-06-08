@@ -1,6 +1,7 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
+import { useMinMd } from "@/hooks/use-min-md";
 import { mapHrefWithSearch, mapViewHref } from "@/lib/app-paths";
 import {
   normalizeMapStyleOptions,
@@ -32,6 +33,7 @@ export function PinDetailPage() {
     pinSlug: string;
   }>();
   const navigate = useNavigate();
+  const isWideEnough = useMinMd();
   const { maps, activeMapId } = useMap();
 
   const mapForRoute = useMemo(
@@ -107,12 +109,13 @@ export function PinDetailPage() {
       ? mapHrefWithSearch(
           mapSlugForMap,
           (() => {
-            const withPin = applySelectedPinToSearchParams(
-              new URLSearchParams(),
-              pin.slug,
-            );
+            // Narrow screens redirect ?pin= back to pin detail — omit it when
+            // leaving pin detail for the map; camera still focuses the pin.
+            const baseParams = isWideEnough
+              ? applySelectedPinToSearchParams(new URLSearchParams(), pin.slug)
+              : new URLSearchParams();
             const params = applyMapCameraToSearchParams(
-              withPin,
+              baseParams,
               normalizeCameraForUrl({
                 lat: pin.lat,
                 lng: pin.lng,
