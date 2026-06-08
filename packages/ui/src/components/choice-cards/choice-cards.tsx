@@ -73,6 +73,8 @@ export function ChoiceCard<T extends string>({
   previewSrc,
   previewAlt,
   preview,
+  previewIcon,
+  previewTone,
   footer,
 }: {
   value: T;
@@ -81,6 +83,10 @@ export function ChoiceCard<T extends string>({
   previewSrc?: string;
   previewAlt?: string;
   preview?: ReactNode;
+  /** Centered icon in the preview area (use with `previewTone`). */
+  previewIcon?: ReactNode;
+  /** Tint for the preview area when using `previewIcon`. */
+  previewTone?: "yellow" | "green" | "muted";
   /** Extra controls below the label; clicks do not select this card. */
   footer?: ReactNode;
 }) {
@@ -106,9 +112,19 @@ export function ChoiceCard<T extends string>({
           disabled={disabled}
           onChange={() => onValueChange(value)}
         />
-        <div className={styles.preview} aria-hidden>
+        <div
+          className={cn(
+            styles.preview,
+            previewTone === "yellow" && styles.previewToneYellow,
+            previewTone === "green" && styles.previewToneGreen,
+            previewTone === "muted" && styles.previewToneMuted,
+          )}
+          aria-hidden
+        >
           {preview ? (
             preview
+          ) : previewIcon ? (
+            <div className={styles.previewIconWrap}>{previewIcon}</div>
           ) : previewSrc ? (
             <img
               className={styles.previewImage}

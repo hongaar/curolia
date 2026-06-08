@@ -29,6 +29,9 @@ apps/mobile/ios/App/App/Assets.xcassets/**/*.png
 # Generated npm licence list (apps/web/scripts/generate-npm-licenses.mjs)
 apps/web/src/generated/
 
+# Generated web plugin registry (apps/web/scripts/generate-plugin-registry.mjs)
+apps/web/src/plugins/generated-manifests.ts
+
 # Generated web branding (from @curolia/brand, source: packages/brand/icon.png)
 apps/web/public/favicon.png
 apps/web/public/icon.png
@@ -37,3 +40,18 @@ apps/web/public/site.webmanifest
 # Supabase CLI (local) — canonical project lives in packages/supabase/supabase/
 packages/supabase/supabase/.branches
 packages/supabase/supabase/.temp
+
+# Synced plugin Edge Functions (source: packages/plugins/*/supabase/functions/*)
+packages/supabase/supabase/functions/google-maps-saved-lists/
+packages/supabase/supabase/functions/google-photos/
+packages/supabase/supabase/functions/ical-feed/
+packages/supabase/supabase/functions/lastfm/
+packages/supabase/supabase/functions/osm-poi/
+packages/supabase/supabase/functions/osm-poi-dispatch/
+packages/supabase/supabase/functions/plugin-oauth/
+packages/supabase/supabase/functions/spotify/
+packages/supabase/supabase/functions/wikidata/
+
+# Generated Edge Function registries (built by functions:sync extractors)
+packages/supabase/supabase/functions/plugin-sync-dispatch/dispatch-registry.gen.ts
+packages/plugins/**/scopes-registry.gen.ts

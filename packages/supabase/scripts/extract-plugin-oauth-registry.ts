@@ -163,6 +163,27 @@ function emitRegistry(byPlugin: ByPluginMap): void {
   lines.push(`}`);
   lines.push(``);
   lines.push(
+    `/** Data Portability scopes must not be mixed with OIDC/userinfo scopes (Google rejects the request). */`,
+  );
+  lines.push(`function isDataPortabilityScope(scope: string): boolean {`);
+  lines.push(
+    `  return scope.startsWith("https://www.googleapis.com/auth/dataportability.");`,
+  );
+  lines.push(`}`);
+  lines.push(``);
+  lines.push(`function usesDataPortabilityScopes(`);
+  lines.push(`  pluginTypeId: string,`);
+  lines.push(`  providerId: string,`);
+  lines.push(`): boolean {`);
+  lines.push(
+    `  const scopes = pluginOAuthScopesFor(pluginTypeId, providerId);`,
+  );
+  lines.push(
+    `  return scopes?.some((s) => isDataPortabilityScope(s)) ?? false;`,
+  );
+  lines.push(`}`);
+  lines.push(``);
+  lines.push(
     `/** Space-separated scope string for the provider's authorize endpoint. */`,
   );
   lines.push(`export function authorizeScopesSpaceSeparated(`);
@@ -178,6 +199,9 @@ function emitRegistry(byPlugin: ByPluginMap): void {
     `      "plugin-oauth: no OAuth scopes registered for plugin " + pluginTypeId + " provider " + providerId,`,
   );
   lines.push(`    );`);
+  lines.push(`  }`);
+  lines.push(`  if (usesDataPortabilityScopes(pluginTypeId, providerId)) {`);
+  lines.push(`    return [...pluginScopes].join(" ");`);
   lines.push(`  }`);
   lines.push(
     `  const companion = OAUTH_COMPANION_SCOPES_BY_PROVIDER[providerId] ?? [];`,

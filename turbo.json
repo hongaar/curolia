@@ -52,6 +52,10 @@
     "@curolia/supabase#functions:sync": {
       "cache": false
     },
+    "@curolia/supabase#test": {
+      "dependsOn": ["@curolia/supabase#functions:sync"],
+      "cache": false
+    },
     "@curolia/mobile#sync": {
       "dependsOn": ["@curolia/brand#generate:native", "@curolia/web#build"],
       "cache": false

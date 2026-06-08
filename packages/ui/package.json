@@ -65,6 +65,11 @@
     "./status-center": "./src/components/status-center/index.ts",
     "./switch": "./src/components/switch/index.ts",
     "./tabs": "./src/components/tabs/index.ts",
+    "./task-progress": {
+      "types": "./src/components/task-progress/index.ts",
+      "import": "./src/components/task-progress/index.ts",
+      "default": "./src/components/task-progress/index.ts"
+    },
     "./text": "./src/components/text/index.ts",
     "./textarea": "./src/components/textarea/index.ts",
     "./pin-detail": "./src/components/pin-detail/index.ts",
@@ -76,6 +81,11 @@
     "./pin-photo-lightbox": "./src/components/pin-photo-lightbox/index.ts",
     "./pin-photo-gallery": "./src/components/pin-photo-gallery/index.ts",
     "./user-avatar": "./src/components/user-avatar/index.ts",
+    "./wizard-steps": {
+      "types": "./src/components/wizard-steps/index.ts",
+      "import": "./src/components/wizard-steps/index.ts",
+      "default": "./src/components/wizard-steps/index.ts"
+    },
     "./lib/utils": "./src/lib/utils.ts"
   },
   "scripts": {

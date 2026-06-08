@@ -1,0 +1,111 @@
+import type { PluginAccountPanelProps } from "@curolia/plugin-contract";
+import {
+  PluginAccountBody,
+  PluginAccountButton,
+  PluginAccountHeading,
+  PluginAccountMuted,
+  PluginAccountName,
+  PluginAccountPanel,
+  PluginAccountRow,
+} from "@curolia/ui/plugin-account";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+export function GoogleMapsSavedListsAccountSettingsPanel(
+  props: PluginAccountPanelProps,
+) {
+  const { pluginEnabled, accessToken, userPlugin, onRefresh, oauth } = props;
+
+  const statusQuery = useQuery({
+    queryKey: ["plugin_oauth_link_status", props.pluginTypeId, accessToken],
+    queryFn: () => oauth!.fetchLinkStatus(),
+    enabled: Boolean(oauth && accessToken && pluginEnabled),
+  });
+
+  const unlinkMut = useMutation({
+    mutationFn: () => oauth!.unlink(),
+    onSuccess: async () => {
+      toast.success("Google Maps unlinked.");
+      await onRefresh();
+      await statusQuery.refetch();
+    },
+    onError: (e: unknown) => {
+      toast.error(e instanceof Error ? e.message : "Could not unlink.");
+    },
+  });
+
+  async function onLink() {
+    if (!oauth) return;
+    try {
+      await oauth.startOAuth(`${window.location.origin}/plugins`);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "OAuth failed");
+    }
+  }
+
+  if (!oauth) {
+    return (
+      <PluginAccountPanel compact>
+        <PluginAccountMuted>
+          OAuth is not configured for this environment.
+        </PluginAccountMuted>
+      </PluginAccountPanel>
+    );
+  }
+
+  const linked = statusQuery.data?.linked === true;
+
+  const oauthCfg =
+    typeof userPlugin?.config === "object" &&
+    userPlugin.config !== null &&
+    "oauth" in userPlugin.config &&
+    typeof (userPlugin.config as { oauth?: unknown }).oauth === "object" &&
+    (userPlugin.config as { oauth: object }).oauth !== null
+      ? ((userPlugin.config as { oauth: Record<string, unknown> }).oauth ?? {})
+      : null;
+
+  const email =
+    statusQuery.data?.email ??
+    (oauthCfg && typeof oauthCfg.email === "string" ? oauthCfg.email : null);
+
+  const sub =
+    statusQuery.data?.sub ??
+    (oauthCfg && typeof oauthCfg.sub === "string" ? oauthCfg.sub : null);
+
+  const accountLabel = email ?? sub;
+
+  return (
+    <PluginAccountPanel>
+      <PluginAccountHeading>Account</PluginAccountHeading>
+      {statusQuery.isLoading ? (
+        <PluginAccountMuted>Checking link status…</PluginAccountMuted>
+      ) : linked ? (
+        <PluginAccountRow>
+          <PluginAccountBody>
+            Linked as{" "}
+            <PluginAccountName>
+              {accountLabel ?? "Google account"}
+            </PluginAccountName>
+          </PluginAccountBody>
+          <PluginAccountButton
+            type="button"
+            disabled={unlinkMut.isPending}
+            onClick={() => unlinkMut.mutate()}
+          >
+            Unlink Google Maps
+          </PluginAccountButton>
+        </PluginAccountRow>
+      ) : (
+        <PluginAccountRow gap="sm">
+          <PluginAccountMuted>
+            Connect Google to import starred places and saved lists via the
+            official Data Portability export.
+          </PluginAccountMuted>
+          <PluginAccountButton type="button" onClick={() => void onLink()}>
+            Link Google Maps
+          </PluginAccountButton>
+        </PluginAccountRow>
+      )}
+    </PluginAccountPanel>
+  );
+}

@@ -7,6 +7,7 @@
 export const OAUTH_COMPANION_SCOPES_BY_PROVIDER: Readonly<
   Record<string, readonly string[]>
 > = {
+  /** Not merged when a plugin requests `dataportability.*` scopes (Google forbids mixing). */
   google: ["openid", "email", "profile"],
   /** Spotify: no extra companion scopes; resource scopes come from each plugin manifest. */
   spotify: [],

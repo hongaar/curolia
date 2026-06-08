@@ -1,0 +1,164 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--muted) 22%, transparent);
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.rootUnstarted {
+  background: color-mix(in oklch, var(--muted) 14%, transparent);
+}
+
+.rootCompleted {
+  border-color: color-mix(in oklch, var(--primary) 28%, var(--border));
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
+}
+
+.rootFailed {
+  border-color: color-mix(in oklch, var(--destructive) 35%, var(--border));
+  background: color-mix(in oklch, var(--destructive) 8%, transparent);
+}
+
+.statusIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.statusIconUnstarted {
+  color: color-mix(in oklch, var(--muted-foreground) 80%, transparent);
+}
+
+.statusIconRunning {
+  color: var(--primary);
+}
+
+.statusIconCompleted {
+  color: var(--primary);
+}
+
+.statusIconFailed {
+  color: var(--destructive);
+}
+
+.headerBody {
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.phase {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.phaseCompleted {
+  color: var(--foreground);
+}
+
+.phaseFailed {
+  color: var(--destructive);
+}
+
+.detail {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: color-mix(in oklch, var(--muted-foreground) 90%, transparent);
+}
+
+.track {
+  overflow: hidden;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--border) 70%, transparent);
+}
+
+.bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transition: width 400ms ease;
+}
+
+.barUnstarted {
+  background: color-mix(in oklch, var(--border) 80%, transparent);
+}
+
+.barCompleted {
+  background: var(--primary);
+}
+
+.barFailed {
+  background: var(--destructive);
+}
+
+.barIndeterminate {
+  width: 40% !important;
+  animation: taskProgressSlide 1.4s ease-in-out infinite;
+}
+
+@keyframes taskProgressSlide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.stepDone {
+  color: var(--foreground);
+}
+
+.stepCurrent {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.stepMarker {
+  width: 0.375rem;
+  height: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--border) 80%, transparent);
+}
+
+.stepDone .stepMarker,
+.stepCurrent .stepMarker {
+  background: var(--primary);
+}

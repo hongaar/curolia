@@ -44,3 +44,6 @@ verify_jwt = false
 [functions.plugin-sync-dispatch]
 verify_jwt = false
 
+[functions.google-maps-saved-lists]
+verify_jwt = false
+

@@ -38,10 +38,16 @@ export function PluginSettingsRow({ children }: { children: React.ReactNode }) {
 
 export function PluginSettingsTitle({
   children,
+  id,
 }: {
   children: React.ReactNode;
+  id?: string;
 }) {
-  return <div className={styles.settingsTitle}>{children}</div>;
+  return (
+    <div id={id} className={styles.settingsTitle}>
+      {children}
+    </div>
+  );
 }
 
 export function PluginSettingsHint({
