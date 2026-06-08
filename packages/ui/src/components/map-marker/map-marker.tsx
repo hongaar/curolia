@@ -1,6 +1,10 @@
 import type * as React from "react";
 
-import { cn, contrastingForeground } from "../../lib/utils";
+import {
+  cn,
+  contrastingForeground,
+  dimmedMapMarkerFill,
+} from "../../lib/utils";
 import styles from "./map-marker.module.css";
 
 export type MapMarkerProps = {
@@ -8,6 +12,8 @@ export type MapMarkerProps = {
   fill: string | null;
   selected?: boolean;
   hovered?: boolean;
+  /** De-emphasize when another marker is selected. */
+  dimmed?: boolean;
   interactive?: boolean;
   draft?: boolean;
   ariaLabel?: string;
@@ -22,12 +28,14 @@ export function mapMarkerFaceClassName(opts: {
   fill: string | null;
   selected: boolean;
   hovered: boolean;
+  dimmed: boolean;
   interactive: boolean;
   draft: boolean;
 }) {
   return cn(
     styles.face,
     opts.interactive && styles.interactive,
+    opts.dimmed && styles.dimmed,
     !opts.fill && styles.defaultFill,
     opts.draft
       ? styles.draft
@@ -39,19 +47,34 @@ export function mapMarkerFaceClassName(opts: {
   );
 }
 
+function mapMarkerFillStyle(
+  fill: string | null,
+  dimmed: boolean,
+): React.CSSProperties | undefined {
+  if (!fill) return undefined;
+  const backgroundColor = dimmed ? dimmedMapMarkerFill(fill) : fill;
+  return {
+    backgroundColor,
+    color: contrastingForeground(backgroundColor),
+  };
+}
+
 /** Imperative face update — used by MapLibre mounts to avoid React re-renders on hover/selection. */
 export function applyMapMarkerFace(el: HTMLElement, props: MapMarkerProps) {
   el.textContent = props.emoji;
+  const dimmed = Boolean(props.dimmed);
   el.className = mapMarkerFaceClassName({
     fill: props.fill,
     selected: Boolean(props.selected),
     hovered: Boolean(props.hovered),
+    dimmed,
     interactive: Boolean(props.interactive),
     draft: Boolean(props.draft),
   });
   if (props.fill) {
-    el.style.backgroundColor = props.fill;
-    el.style.color = contrastingForeground(props.fill);
+    const style = mapMarkerFillStyle(props.fill, dimmed);
+    el.style.backgroundColor = style?.backgroundColor ?? "";
+    el.style.color = style?.color ?? "";
   } else {
     el.style.backgroundColor = "";
     el.style.color = "";
@@ -63,6 +86,7 @@ export function MapMarker({
   fill,
   selected = false,
   hovered = false,
+  dimmed = false,
   interactive = false,
   draft = false,
   ariaLabel,
@@ -75,15 +99,11 @@ export function MapMarker({
     fill,
     selected,
     hovered,
+    dimmed,
     interactive,
     draft,
   });
-  const inlineStyle: React.CSSProperties | undefined = fill
-    ? {
-        backgroundColor: fill,
-        color: contrastingForeground(fill),
-      }
-    : undefined;
+  const inlineStyle = mapMarkerFillStyle(fill, dimmed);
 
   if (interactive) {
     return (
@@ -218,6 +238,7 @@ export function createMapMarkerMount(
         next.fill !== props.fill ||
         next.selected !== props.selected ||
         next.hovered !== props.hovered ||
+        next.dimmed !== props.dimmed ||
         next.interactive !== props.interactive ||
         next.draft !== props.draft;
       const handlersChanged =

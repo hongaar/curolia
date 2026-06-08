@@ -10,6 +10,7 @@
   box-shadow: var(--shadow-md);
   transition:
     box-shadow 150ms,
+    background-color 150ms,
     filter 150ms;
 }
 
@@ -55,4 +56,12 @@
 .defaultRing:hover {
   outline-color: color-mix(in oklch, var(--map-marker-ring) 55%, transparent);
   box-shadow: var(--shadow-lg);
+}
+
+.dimmed.defaultFill {
+  background: color-mix(in oklch, var(--primary) 38%, white);
+}
+
+.dimmed.defaultRing {
+  outline-color: color-mix(in oklch, var(--map-marker-ring) 24%, white);
 }

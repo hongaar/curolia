@@ -172,6 +172,8 @@ export function MapPage() {
   );
   /** Authoritative ?pin= token for URL sync — avoids resurrecting pin from stale search prev. */
   const sidebarPinTokenRef = useRef<string | null>(null);
+  /** Latest camera parsed from URL — used to avoid idle sync clobbering search deep links. */
+  const cameraFromUrlRef = useRef<MapCamera | null>(null);
   const [placementActive, setPlacementActive] = useState(false);
   const [quickAddPin, setQuickAddPin] = useState<Pin | null>(null);
   const [quickAddAnchorScreen, setQuickAddAnchorScreen] = useState<{
@@ -246,7 +248,13 @@ export function MapPage() {
         // Base MapPage stays mounted under stack routes; skip URL sync while a
         // stack screen is active so we do not navigate back to /map?pin=.
         if (isStackRoute(window.location.pathname)) return;
+        const routeSlug = mapSlug?.trim().toLowerCase();
+        const activeSlug = activeMap?.slug?.trim().toLowerCase();
+        if (routeSlug && activeSlug && routeSlug !== activeSlug) return;
         const normalized = normalizeCameraForUrl(c);
+        const pinTok = sidebarPinTokenRef.current;
+        const urlCam = cameraFromUrlRef.current;
+        if (pinTok && urlCam && !camerasCloseEnough(normalized, urlCam)) return;
         writeStoredMapCamera(activeMapId, normalized);
         setSearchParams(
           (prev) => {
@@ -256,10 +264,9 @@ export function MapPage() {
               prevNoBbox,
               sidebarPinTokenRef.current,
             );
-            if (
-              parsed &&
-              cameraToSyncKey(parsed) === cameraToSyncKey(normalized)
-            ) {
+            const sameCamera =
+              parsed && cameraToSyncKey(parsed) === cameraToSyncKey(normalized);
+            if (sameCamera) {
               return withPin;
             }
             return applyMapCameraToSearchParams(withPin, normalized);
@@ -268,7 +275,7 @@ export function MapPage() {
         );
       }, 280);
     },
-    [activeMapId, setSearchParams],
+    [activeMapId, activeMap, mapSlug, setSearchParams],
   );
 
   const pinsQuery = useQuery({
@@ -385,10 +392,16 @@ export function MapPage() {
 
   useEffect(() => {
     if (!awaitingMapFit) return;
+    if (parseSelectedPinTokenFromSearchParams(searchParams)) return;
     if (!pinsReadyForMapFit) return;
     if (visiblePinsForFit.length === 0) return;
     mapRef.current?.fitVisiblePins();
-  }, [awaitingMapFit, pinsReadyForMapFit, visiblePinsForFit.length]);
+  }, [
+    awaitingMapFit,
+    searchParams,
+    pinsReadyForMapFit,
+    visiblePinsForFit.length,
+  ]);
 
   const sidebarPinToken = useMemo(
     () => parseSelectedPinTokenFromSearchParams(searchParams),
@@ -402,6 +415,10 @@ export function MapPage() {
   useLayoutEffect(() => {
     sidebarPinTokenRef.current = sidebarPinToken;
   }, [sidebarPinToken]);
+
+  useLayoutEffect(() => {
+    cameraFromUrlRef.current = cameraFromUrl;
+  }, [cameraFromUrl]);
 
   const onSelectPin = useCallback(
     (id: string) => {
@@ -576,15 +593,30 @@ export function MapPage() {
 
   useEffect(() => {
     if (!sidebarPinToken) return;
+    const routeSlugNorm = mapSlug?.trim().toLowerCase();
+    const activeSlugNorm = activeMap?.slug?.trim().toLowerCase();
+    if (routeSlugNorm && activeSlugNorm && routeSlugNorm !== activeSlugNorm) {
+      return;
+    }
     // While the active map's pins are still loading, do not strip ?pin= — the token may
     // belong to the new map (e.g. global search) and is not in the previous list yet.
-    if (pinsQuery.isPending) return;
+    const resolved = resolvePinIdFromMapToken(sidebarPinToken, pins);
+    if (pinsQuery.isPending || pinsQuery.isFetching) return;
     if (pins.length === 0) return;
-    if (resolvePinIdFromMapToken(sidebarPinToken, pins)) return;
+    if (resolved) return;
     setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
       replace: true,
     });
-  }, [sidebarPinToken, pins, pinsQuery.isPending, setSearchParams]);
+  }, [
+    sidebarPinToken,
+    pins,
+    pinsQuery.isPending,
+    pinsQuery.isFetching,
+    activeMapId,
+    activeMap,
+    mapSlug,
+    setSearchParams,
+  ]);
 
   useEffect(() => {
     if (!quickAddPin) return;
@@ -668,19 +700,39 @@ export function MapPage() {
     pinsRef.current = pins;
   }, [pins]);
 
+  useLayoutEffect(() => {
+    prevSidebarPinIdRef.current = null;
+    prevCameraBeforeSheetRef.current = null;
+    postPanCameraBeforeSheetRef.current = null;
+  }, [activeMapId]);
+
   useEffect(() => {
     const prevId = prevSidebarPinIdRef.current;
     const currId = sidebarPinId ?? null;
+
+    if (!isWideEnough) {
+      prevSidebarPinIdRef.current = currId;
+      return;
+    }
+
+    // ?pin= is set but the target map's pins are still loading (e.g. cross-map search).
+    if (
+      !currId &&
+      sidebarPinToken &&
+      (pinsQuery.isPending || pinsQuery.isFetching)
+    ) {
+      return;
+    }
+
+    // URL still targets a pin — not a user-initiated panel close.
+    if (!currId && prevId && sidebarPinToken) {
+      return;
+    }
+
     prevSidebarPinIdRef.current = currId;
 
-    if (!isWideEnough) return;
-
-    if (currId && !prevId) {
-      // Panel opening — capture camera, then pan so pin sits in visible left area
-      prevCameraBeforeSheetRef.current =
-        mapRef.current?.getCurrentCamera() ?? null;
-      postPanCameraBeforeSheetRef.current = null;
-      const pin = pinsRef.current.find((p) => p.id === currId);
+    const panOpenPin = (pinId: string) => {
+      const pin = pinsRef.current.find((p) => p.id === pinId);
       if (pin && typeof pin.lat === "number" && typeof pin.lng === "number") {
         const panelWidthPx = panelRef.current?.offsetWidth ?? 384;
         mapRef.current?.panForPanel(pin.lng, pin.lat, panelWidthPx, () => {
@@ -690,6 +742,17 @@ export function MapPage() {
       } else {
         postPanCameraBeforeSheetRef.current = prevCameraBeforeSheetRef.current;
       }
+    };
+
+    if (currId && !prevId) {
+      // Panel opening — capture camera, then pan so pin sits in visible left area
+      prevCameraBeforeSheetRef.current =
+        mapRef.current?.getCurrentCamera() ?? null;
+      postPanCameraBeforeSheetRef.current = null;
+      panOpenPin(currId);
+    } else if (currId && prevId && currId !== prevId) {
+      // Switching pins (e.g. search result on another map) — pan to the new pin.
+      panOpenPin(currId);
     } else if (!currId && prevId) {
       const prevCamera = prevCameraBeforeSheetRef.current;
       const postPanCamera = postPanCameraBeforeSheetRef.current;
@@ -708,7 +771,13 @@ export function MapPage() {
       prevCameraBeforeSheetRef.current = null;
       postPanCameraBeforeSheetRef.current = null;
     }
-  }, [sidebarPinId, isWideEnough]);
+  }, [
+    sidebarPinId,
+    sidebarPinToken,
+    pinsQuery.isPending,
+    pinsQuery.isFetching,
+    isWideEnough,
+  ]);
 
   async function saveTag() {
     if (!activeMapId || !newTagName.trim()) return;

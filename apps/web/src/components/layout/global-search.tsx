@@ -62,7 +62,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { flushSync } from "react-dom";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
 
 const DEBOUNCE_MS = 320;
@@ -112,7 +111,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const homeMatch = useMatch({ path: "/", end: true });
   const mapMapMatch = useMatch("/map/:mapSlug");
   const isMapRoute = Boolean(homeMatch || mapMapMatch);
-  const { maps, activeMapId, setActiveMapId } = useMap();
+  const { maps, activeMapId } = useMap();
 
   const [open, setOpen] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -194,9 +193,6 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   }
 
   function onPickPin(t: PinSearchRow) {
-    flushSync(() => {
-      setActiveMapId(t.map_id);
-    });
     if (isMapRoute) {
       const map = mapById.get(t.map_id);
       const slug = map?.slug?.trim();

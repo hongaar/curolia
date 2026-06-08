@@ -37,6 +37,11 @@ export const Hovered: Story = {
   args: { hovered: true },
 };
 
+export const Dimmed: Story = {
+  parameters: storyDocs("De-emphasized when another pin is selected."),
+  args: { dimmed: true },
+};
+
 export const Draft: Story = {
   parameters: storyDocs("Placement preview while creating a pin."),
   args: { draft: true, interactive: false, fill: null },
@@ -55,6 +60,7 @@ export const States: Story = {
         <MapMarker emoji="🏔️" fill="#22c55e" interactive />
         <MapMarker emoji="🏔️" fill="#22c55e" selected interactive />
         <MapMarker emoji="🏔️" fill="#22c55e" hovered interactive />
+        <MapMarker emoji="🏔️" fill="#22c55e" dimmed interactive />
         <MapMarker emoji="📍" fill={null} draft interactive={false} />
       </div>
     </StoryFrame>

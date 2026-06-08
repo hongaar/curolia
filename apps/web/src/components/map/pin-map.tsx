@@ -245,7 +245,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const markerMountByPinIdRef = useRef<Map<string, MapMarkerMount>>(new Map());
   const markerVisualByPinIdRef = useRef(
-    new Map<string, { selected: boolean; hovered: boolean; zIndex: string }>(),
+    new Map<
+      string,
+      { selected: boolean; hovered: boolean; dimmed: boolean; zIndex: string }
+    >(),
   );
   const previewMarkerRef = useRef<maplibregl.Marker | null>(null);
   const placementDraftMarkerRef = useRef<maplibregl.Marker | null>(null);
@@ -301,17 +304,20 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   ]);
 
   const applyMarkerHoverStack = useCallback((hoveredId: string | null) => {
+    const hasSelection = selectedPinIdRef.current !== null;
     for (const t of filteredRef.current) {
       const mount = markerMountByPinIdRef.current.get(t.id);
       if (!mount) continue;
       const selected = t.id === selectedPinIdRef.current;
       const hovered = hoveredId !== null && t.id === hoveredId;
+      const dimmed = hasSelection && !selected;
       const zIndex = selected || hovered ? "3" : "1";
 
       const prev = markerVisualByPinIdRef.current.get(t.id);
       if (
         prev?.selected === selected &&
         prev?.hovered === hovered &&
+        prev?.dimmed === dimmed &&
         prev?.zIndex === zIndex
       ) {
         continue;
@@ -319,6 +325,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       markerVisualByPinIdRef.current.set(t.id, {
         selected,
         hovered,
+        dimmed,
         zIndex,
       });
       mount.setZIndex(zIndex);
@@ -331,6 +338,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         fill,
         selected,
         hovered,
+        dimmed,
         interactive: true,
       });
     }
@@ -947,11 +955,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       const tag0 = t.pin_tags?.[0]?.tags;
       const fill = tag0?.color ?? null;
       const emoji = tag0?.icon_emoji ?? "📍";
+      const initialSelected = t.id === selectedPinIdRef.current;
+      const hasSelection = selectedPinIdRef.current !== null;
       const mount = createMapMarkerMount({
         emoji,
         fill,
-        selected: t.id === selectedPinIdRef.current,
+        selected: initialSelected,
         hovered: false,
+        dimmed: hasSelection && !initialSelected,
         interactive: true,
         ariaLabel: t.title?.trim() || "Open pin",
         onPointerDown: () => {
@@ -994,10 +1005,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       });
       mount.element.dataset.pinId = t.id;
       markerMountByPinIdRef.current.set(t.id, mount);
-      const initialSelected = t.id === selectedPinIdRef.current;
       markerVisualByPinIdRef.current.set(t.id, {
         selected: initialSelected,
         hovered: false,
+        dimmed: hasSelection && !initialSelected,
         zIndex: initialSelected ? "3" : "1",
       });
       const marker = new maplibregl.Marker({ element: mount.element })
