@@ -31,6 +31,7 @@
     "@curolia/plugin-lastfm": "file:../../packages/plugins/lastfm",
     "@curolia/plugin-open-meteo": "file:../../packages/plugins/open-meteo",
     "@curolia/plugin-poi": "file:../../packages/plugins/poi",
+    "@curolia/plugin-polarsteps": "file:../../packages/plugins/polarsteps",
     "@curolia/plugin-spotify": "file:../../packages/plugins/spotify",
     "@curolia/plugin-wikidata": "file:../../packages/plugins/wikidata",
     "@curolia/site": "file:../../packages/site",

@@ -5,6 +5,8 @@ import styles from "./plugin-marketing-icons.module.css";
 
 const wikipediaLogo = new URL("../assets/wikipedia-logo.svg", import.meta.url)
   .href;
+const polarstepsLogo = new URL("../assets/polarsteps-icon.svg", import.meta.url)
+  .href;
 
 type IconProps = {
   className?: string;
@@ -258,6 +260,15 @@ export function PoiIcon({ size = 5 }: IconProps) {
         />
         <circle cx="12" cy="9" r="2.5" fill="#fff" />
       </svg>
+    </MarketingPluginIcon>
+  );
+}
+
+/** Polarsteps compass mark. */
+export function PolarstepsIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <img src={polarstepsLogo} alt="" className={styles.logoImg} />
     </MarketingPluginIcon>
   );
 }

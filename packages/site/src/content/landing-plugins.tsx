@@ -8,6 +8,7 @@ import {
   LastfmIcon,
   OpenMeteoIcon,
   PoiIcon,
+  PolarstepsIcon,
   SpotifyIcon,
   StravaIcon,
   WikipediaIcon,
@@ -86,6 +87,13 @@ export const landingPlugins: LandingPlugin[] = [
     description: "Import saved places and lists",
     status: "available",
     icon: () => <GoogleMapsIcon size={6} />,
+  },
+  {
+    id: "polarsteps",
+    name: "Polarsteps",
+    description: "Import trips from a share link as pins and photos",
+    status: "available",
+    icon: () => <PolarstepsIcon size={6} />,
   },
   {
     id: "api",
