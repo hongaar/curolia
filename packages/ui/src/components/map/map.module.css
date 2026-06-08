@@ -94,9 +94,19 @@
   left: 50%;
   bottom: calc(1.5rem + var(--safe-bottom));
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
   max-width: min(calc(100vw - 2rem), 22rem);
   transform: translateX(-50%);
+}
+
+.controlsBottomCenter .placementHint {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  padding-inline: 0;
 }
 
 /* --- Map side panel (pin detail) --- */

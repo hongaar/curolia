@@ -17,6 +17,7 @@ export type Profile = {
   default_map_id: string | null;
   notification_email_enabled: boolean;
   notification_push_enabled: boolean;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 };

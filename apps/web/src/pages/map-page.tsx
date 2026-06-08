@@ -55,6 +55,7 @@ import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
 import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
+import { useOnboardingPlacement } from "@/providers/onboarding-placement-provider";
 import type { Pin, Tag } from "@/types/database";
 import {
   defaultLocationLabelDetail,
@@ -148,6 +149,8 @@ export function MapPage() {
   } = useMap();
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
+  const { awaitingPinPlacement, completePinPlacement, cancelPinPlacement } =
+    useOnboardingPlacement();
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
     [activeMap?.style_hillshades, activeMap?.style_satellite_labels],
@@ -543,6 +546,15 @@ export function MapPage() {
         toast.success("Pin created");
         await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
 
+        if (awaitingPinPlacement) {
+          setPlacementActive(false);
+          setSearchParams((prev) => applyAddPinToSearchParams(prev, false), {
+            replace: true,
+          });
+          completePinPlacement();
+          return;
+        }
+
         const p = mapRef.current?.lngLatToScreen(lng, lat);
         setQuickAddAnchorScreen(p ?? null);
         setQuickAddPin(row as Pin);
@@ -552,7 +564,14 @@ export function MapPage() {
         );
       }
     },
-    [activeMapId, canEdit, qc, setSearchParams],
+    [
+      activeMapId,
+      awaitingPinPlacement,
+      canEdit,
+      completePinPlacement,
+      qc,
+      setSearchParams,
+    ],
   );
 
   useEffect(() => {
@@ -605,6 +624,7 @@ export function MapPage() {
     if (!placementActive) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (awaitingPinPlacement) cancelPinPlacement();
         setPlacementActive(false);
         setSearchParams((prev) => applyAddPinToSearchParams(prev, false), {
           replace: true,
@@ -613,7 +633,12 @@ export function MapPage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [placementActive, setSearchParams]);
+  }, [
+    awaitingPinPlacement,
+    cancelPinPlacement,
+    placementActive,
+    setSearchParams,
+  ]);
 
   useEffect(() => {
     if (!sidebarPinToken) return;
@@ -727,6 +752,7 @@ export function MapPage() {
   function toggleAddPinPlacement() {
     if (!canEdit) return;
     const next = !placementActive;
+    if (!next && awaitingPinPlacement) cancelPinPlacement();
     setPlacementActive(next);
     setSearchParams(
       (p) => {
@@ -793,6 +819,9 @@ export function MapPage() {
         </MapHost>
         <MapControlsLayer>
           <MapControlsBottomCenter>
+            {canEdit && placementActive ? (
+              <MapPlacementHint>Click to add a pin</MapPlacementHint>
+            ) : null}
             <MapViewSwitcher />
           </MapControlsBottomCenter>
           <MapControlsBottomStack>
@@ -828,10 +857,6 @@ export function MapPage() {
           </MapSidePanel>
         ) : null}
       </MapLayer>
-
-      {canEdit && placementActive ? (
-        <MapPlacementHint>Click to add a pin</MapPlacementHint>
-      ) : null}
 
       <MapPointerContextMenu
         target={pointerContextMenu}

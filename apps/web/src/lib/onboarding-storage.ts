@@ -1,25 +1,53 @@
-/**
- * First-run onboarding completion is tracked per user id in localStorage so the
- * guided tour is shown once after the first sign in on a device and not again.
- */
-const ONBOARDING_KEY_PREFIX = "onboarding:completed:";
+import { supabase } from "@/lib/supabase";
 
-function storageKey(userId: string): string {
-  return `${ONBOARDING_KEY_PREFIX}${userId}`;
+/**
+ * First-run onboarding completion is stored on the user's profile so it
+ * persists across devices and browsers. Legacy per-device localStorage flags
+ * are migrated once on read.
+ */
+const LEGACY_KEY_PREFIX = "onboarding:completed:";
+
+function legacyStorageKey(userId: string): string {
+  return `${LEGACY_KEY_PREFIX}${userId}`;
 }
 
-export function hasCompletedOnboarding(userId: string): boolean {
+function hasLegacyLocalCompletion(userId: string): boolean {
   try {
-    return localStorage.getItem(storageKey(userId)) === "1";
+    return localStorage.getItem(legacyStorageKey(userId)) === "1";
   } catch {
     return false;
   }
 }
 
-export function markOnboardingCompleted(userId: string): void {
+function clearLegacyLocalCompletion(userId: string): void {
   try {
-    localStorage.setItem(storageKey(userId), "1");
+    localStorage.removeItem(legacyStorageKey(userId));
   } catch {
     /* ignore */
   }
+}
+
+export async function getOnboardingCompleted(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (data?.onboarding_completed) return true;
+
+  if (hasLegacyLocalCompletion(userId)) {
+    await setOnboardingCompleted(userId);
+    return true;
+  }
+  return false;
+}
+
+export async function setOnboardingCompleted(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ onboarding_completed: true })
+    .eq("id", userId);
+  if (error) throw error;
+  clearLegacyLocalCompletion(userId);
 }

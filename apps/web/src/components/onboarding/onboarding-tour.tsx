@@ -1,11 +1,12 @@
 import { mapAddPinHref } from "@/lib/app-paths";
 import {
-  hasCompletedOnboarding,
-  markOnboardingCompleted,
+  getOnboardingCompleted,
+  setOnboardingCompleted,
 } from "@/lib/onboarding-storage";
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
+import { useOnboardingPlacement } from "@/providers/onboarding-placement-provider";
 import { Button } from "@curolia/ui/button";
 import {
   OnboardingBody,
@@ -21,6 +22,7 @@ import {
   OnboardingTitle,
   type OnboardingTone,
 } from "@curolia/ui/onboarding";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Compass,
   Layers,
@@ -32,7 +34,7 @@ import {
   Sparkles,
   Tags,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 type StepId = "welcome" | "maps" | "first-pin" | "features" | "plugins";
@@ -61,22 +63,66 @@ const STEP_ICON: Record<StepId, ReactNode> = {
   plugins: <Puzzle aria-hidden />,
 };
 
+const FEATURES_STEP_INDEX = STEP_ORDER.indexOf("features");
+
 export function OnboardingTour() {
   const { user } = useAuth();
   const { activeMap, maps, loading } = useMap();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const {
+    awaitingPinPlacement,
+    pinPlacedDuringOnboarding,
+    beginPinPlacement,
+    acknowledgePinPlaced,
+    cancelPinPlacement,
+  } = useOnboardingPlacement();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [dismissed, setDismissed] = useState(false);
+  const [pausedForPlacement, setPausedForPlacement] = useState(false);
+
+  const onboardingQuery = useQuery({
+    queryKey: ["onboarding-completed", user?.id],
+    queryFn: () => getOnboardingCompleted(user!.id),
+    enabled: Boolean(user),
+  });
 
   const eligible =
-    Boolean(user) && !loading && !!user && !hasCompletedOnboarding(user.id);
-  const open = eligible && !dismissed;
+    Boolean(user) &&
+    !loading &&
+    onboardingQuery.isSuccess &&
+    !onboardingQuery.data;
+  const open = eligible && !dismissed && !pausedForPlacement;
 
   const complete = () => {
-    if (user) markOnboardingCompleted(user.id);
+    if (!user) return;
+    setPausedForPlacement(false);
+    cancelPinPlacement();
     setDismissed(true);
+    queryClient.setQueryData(["onboarding-completed", user.id], true);
+    void setOnboardingCompleted(user.id).catch((error: unknown) => {
+      console.error("Failed to persist onboarding completion", error);
+      queryClient.setQueryData(["onboarding-completed", user.id], false);
+    });
   };
+
+  useEffect(() => {
+    if (!pinPlacedDuringOnboarding) return;
+    const timer = window.setTimeout(() => {
+      setStepIndex(FEATURES_STEP_INDEX);
+      setPausedForPlacement(false);
+      acknowledgePinPlaced();
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [pinPlacedDuringOnboarding, acknowledgePinPlaced]);
+
+  useEffect(() => {
+    if (!pausedForPlacement) return;
+    if (!awaitingPinPlacement && !pinPlacedDuringOnboarding) {
+      setPausedForPlacement(false);
+    }
+  }, [pausedForPlacement, awaitingPinPlacement, pinPlacedDuringOnboarding]);
 
   const stepId = STEP_ORDER[stepIndex];
   const isLast = stepIndex === STEP_ORDER.length - 1;
@@ -92,7 +138,8 @@ export function OnboardingTour() {
 
   const dropFirstPin = () => {
     if (!placementMap?.slug) return;
-    complete();
+    beginPinPlacement();
+    setPausedForPlacement(true);
     navigate(mapAddPinHref(placementMap.slug));
   };
 
@@ -107,7 +154,7 @@ export function OnboardingTour() {
     <OnboardingDialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) complete();
+        if (!next && !pausedForPlacement) complete();
       }}
       tone={STEP_TONE[stepId]}
       aria-label="Welcome to Curolia"
