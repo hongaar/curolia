@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { AsyncLruCache } from "./lib/_services/lru-cache.ts";
 
 /** Keep in sync with `packages/plugins/wikidata/src/constants.ts`. */
 const SEARCH_RADIUS_KM = 0.5;
@@ -143,10 +144,47 @@ type SparqlCandidate = {
   thumbnailUrl: string | null;
 };
 
+type WikiSummary = {
+  title: string;
+  extract: string;
+  thumbnailUrl: string | null;
+  wikipediaUrl: string;
+};
+
+const SPARQL_CANDIDATES_CACHE_SIZE = 128;
+const WIKIPEDIA_SUMMARY_CACHE_SIZE = 256;
+
+const sparqlCandidatesCache = new AsyncLruCache<string, SparqlCandidate[]>({
+  maxSize: SPARQL_CANDIDATES_CACHE_SIZE,
+});
+const wikipediaSummaryCache = new AsyncLruCache<string, WikiSummary | null>({
+  maxSize: WIKIPEDIA_SUMMARY_CACHE_SIZE,
+});
+
+function wikidataCoordCacheKey(lat: number, lng: number): string {
+  return `${lat.toFixed(4)},${lng.toFixed(4)}`;
+}
+
+function wikipediaTitleCacheKey(title: string): string {
+  return title.trim().replace(/\s+/g, "_").toLowerCase();
+}
+
 async function queryNearbyCandidates(
   lat: number,
   lng: number,
   maxResults: number,
+): Promise<SparqlCandidate[]> {
+  const deduped = await sparqlCandidatesCache.getOrFetch(
+    `sparql:v1:${wikidataCoordCacheKey(lat, lng)}`,
+    () => fetchSparqlCandidatesUncached(lat, lng),
+  );
+  const sliced = finalizeCandidates(deduped, maxResults);
+  return enrichCandidatesWithThumbnails(sliced);
+}
+
+async function fetchSparqlCandidatesUncached(
+  lat: number,
+  lng: number,
 ): Promise<SparqlCandidate[]> {
   const query = buildNearbySparql(lat, lng, SPARQL_ROW_LIMIT);
   const url = `${WIKIDATA_SPARQL}?format=json&query=${encodeURIComponent(query)}`;
@@ -186,18 +224,19 @@ async function queryNearbyCandidates(
     });
   }
 
-  const deduped = finalizeCandidates(out, maxResults);
-  return enrichCandidatesWithThumbnails(deduped);
+  return dedupeCandidates(out);
 }
 
-type WikiSummary = {
-  title: string;
-  extract: string;
-  thumbnailUrl: string | null;
-  wikipediaUrl: string;
-};
-
 async function fetchWikipediaSummary(
+  title: string,
+): Promise<WikiSummary | null> {
+  return wikipediaSummaryCache.getOrFetch(
+    `wiki:summary:en:${wikipediaTitleCacheKey(title)}`,
+    () => fetchWikipediaSummaryUncached(title),
+  );
+}
+
+async function fetchWikipediaSummaryUncached(
   title: string,
 ): Promise<WikiSummary | null> {
   const encoded = encodeURIComponent(title.replace(/ /g, "_"));
@@ -229,20 +268,8 @@ async function fetchWikipediaSummary(
 }
 
 async function fetchWikipediaThumbnail(title: string): Promise<string | null> {
-  const encoded = encodeURIComponent(title.replace(/ /g, "_"));
-  const res = await fetch(`${WIKIPEDIA_SUMMARY}${encoded}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": USER_AGENT,
-    },
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`wikipedia_summary_${res.status}`);
-  }
-  const json = (await res.json()) as Record<string, unknown>;
-  const thumb = json.thumbnail as { source?: string } | undefined;
-  return typeof thumb?.source === "string" ? thumb.source : null;
+  const summary = await fetchWikipediaSummary(title);
+  return summary?.thumbnailUrl ?? null;
 }
 
 async function enrichCandidatesWithThumbnails(
@@ -685,6 +712,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const t = loaded.pin;
+  const lat = t.lat;
   const lng = t.lng;
   if (
     typeof lat !== "number" ||

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { AsyncLruCache } from "./lib/_services/lru-cache.ts";
 
 /** Keep in sync with `packages/plugins/osm-poi/src/constants.ts`. */
 const SEARCH_RADIUS_M = 40;
@@ -200,7 +201,47 @@ function overpassErrorHttpStatus(e: unknown): number {
 
 type OverpassFetchMode = "list" | "sync";
 
+const OVERPASS_AROUND_CACHE_SIZE = 128;
+const OVERPASS_ELEMENT_CACHE_SIZE = 256;
+
+const overpassAroundCache = new AsyncLruCache<string, OverpassElement[]>({
+  maxSize: OVERPASS_AROUND_CACHE_SIZE,
+});
+const overpassElementCache = new AsyncLruCache<string, OverpassElement | null>({
+  maxSize: OVERPASS_ELEMENT_CACHE_SIZE,
+});
+
+function overpassCoordCacheKey(lat: number, lng: number): string {
+  return `${lat.toFixed(4)},${lng.toFixed(4)}`;
+}
+
+function overpassAroundCacheKey(
+  mode: OverpassFetchMode,
+  lat: number,
+  lng: number,
+): string {
+  return `around:v1:${mode}:${overpassCoordCacheKey(lat, lng)}:r${SEARCH_RADIUS_M}`;
+}
+
+function overpassElementCacheKey(
+  osmType: "node" | "way" | "relation",
+  osmId: number,
+): string {
+  return `element:v1:${osmType}:${osmId}`;
+}
+
 async function fetchOverpassElements(
+  lat: number,
+  lng: number,
+  mode: OverpassFetchMode = "sync",
+): Promise<OverpassElement[]> {
+  return overpassAroundCache.getOrFetch(
+    overpassAroundCacheKey(mode, lat, lng),
+    () => fetchOverpassElementsUncached(lat, lng, mode),
+  );
+}
+
+async function fetchOverpassElementsUncached(
   lat: number,
   lng: number,
   mode: OverpassFetchMode = "sync",
@@ -313,6 +354,16 @@ async function fetchOverpassElements(
 }
 
 async function fetchOsmElementById(
+  osmType: "node" | "way" | "relation",
+  osmId: number,
+): Promise<OverpassElement | null> {
+  return overpassElementCache.getOrFetch(
+    overpassElementCacheKey(osmType, osmId),
+    () => fetchOsmElementByIdUncached(osmType, osmId),
+  );
+}
+
+async function fetchOsmElementByIdUncached(
   osmType: "node" | "way" | "relation",
   osmId: number,
 ): Promise<OverpassElement | null> {

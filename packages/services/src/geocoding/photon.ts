@@ -1,4 +1,5 @@
 import { isValidMapBbox, type MapBbox } from "../coords.ts";
+import { AsyncLruCache } from "../lru-cache.ts";
 import type { PinGeocode } from "./pin-geocode.ts";
 import type { GeocodeProperties } from "./types.ts";
 
@@ -176,6 +177,27 @@ export function photonDefaultTitleForZoom(
 
 type PhotonFeature = NonNullable<PhotonResponse["features"]>[number];
 
+const PHOTON_REVERSE_CACHE_SIZE = 256;
+const PHOTON_SEARCH_CACHE_SIZE = 64;
+
+/** ~0.1 m — stable cache keys for the same map click / pin coords. */
+function photonReverseCacheKey(lat: number, lng: number): string {
+  return `${lat.toFixed(6)},${lng.toFixed(6)}`;
+}
+
+function photonSearchCacheKey(query: string): string {
+  return query.trim().toLowerCase();
+}
+
+const photonReverseFeatureCache = new AsyncLruCache<
+  string,
+  PhotonFeature | null
+>({ maxSize: PHOTON_REVERSE_CACHE_SIZE });
+
+const photonSearchPlacesCache = new AsyncLruCache<string, PhotonPlace[]>({
+  maxSize: PHOTON_SEARCH_CACHE_SIZE,
+});
+
 /**
  * Photon/OSM bbox arrays pair longitudes at indices 0 & 2 and latitudes at 1 & 3.
  * Order may be GeoJSON [west,south,east,north] or [west,north,east,south]; min/max fixes both.
@@ -224,6 +246,12 @@ export async function searchPhotonPlaces(
   const q = query.trim();
   if (q.length < 2) return [];
 
+  return photonSearchPlacesCache.getOrFetch(photonSearchCacheKey(q), () =>
+    fetchPhotonSearchPlaces(q),
+  );
+}
+
+async function fetchPhotonSearchPlaces(q: string): Promise<PhotonPlace[]> {
   const url = new URL("https://photon.komoot.io/api/");
   url.searchParams.set("q", q);
   url.searchParams.set("limit", "8");
@@ -263,6 +291,16 @@ async function fetchPhotonReverseFeature(
 ): Promise<PhotonFeature | null> {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
+  return photonReverseFeatureCache.getOrFetch(
+    photonReverseCacheKey(lat, lng),
+    () => fetchPhotonReverseFeatureUncached(lat, lng),
+  );
+}
+
+async function fetchPhotonReverseFeatureUncached(
+  lat: number,
+  lng: number,
+): Promise<PhotonFeature | null> {
   const url = new URL("https://photon.komoot.io/reverse");
   url.searchParams.set("lat", String(lat));
   url.searchParams.set("lon", String(lng));

@@ -27,6 +27,10 @@
     "./emoji/llm": {
       "types": "./src/emoji/llm/index.ts",
       "default": "./src/emoji/llm/index.ts"
+    },
+    "./cache": {
+      "types": "./src/lru-cache.ts",
+      "default": "./src/lru-cache.ts"
     }
   },
   "scripts": {
