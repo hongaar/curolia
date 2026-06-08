@@ -557,7 +557,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (!map || !map.isStyleLoaded()) return;
 
     const gen = ++markerSyncGenerationRef.current;
-    let bounds: maplibregl.LngLatBounds | null = null;
+    let bounds: maplibregl.LngLatBounds | null;
     try {
       bounds = paddedMapBounds(map);
     } catch {
