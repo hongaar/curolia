@@ -72,7 +72,7 @@
   grid-template-columns: 1fr 1fr;
   border-radius: var(--radius-xl);
   background: color-mix(in oklch, var(--muted) 80%, transparent);
-  padding: 0.25rem;
+  padding: var(--space-1);
 }
 
 .tabTrigger {
@@ -104,20 +104,20 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .fieldLabelRow {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .formLink {
   flex-shrink: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
   color: var(--muted-foreground);
   transition: color 160ms ease;
@@ -129,26 +129,26 @@
 }
 
 .error {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--destructive);
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .actionsSecondaryLink {
   align-self: center;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .footerNote {
   margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
-  line-height: 1.625;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
 
@@ -164,11 +164,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
   margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   text-decoration: none;
   color: var(--muted-foreground);
   transition: color 160ms ease;

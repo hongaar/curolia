@@ -8,6 +8,9 @@ const repoRoot = path.resolve(dirname, "../../..");
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],
+  previewHead: (head) => `${head}
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />`,
   addons: ["@storybook/addon-docs"],
   framework: {
     name: "@storybook/react-vite",

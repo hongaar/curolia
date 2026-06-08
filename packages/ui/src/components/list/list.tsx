@@ -5,18 +5,8 @@ import { cn } from "../../lib/utils";
 import { Checkbox } from "../checkbox";
 import styles from "./list.module.css";
 
-export function BorderedList({
-  children,
-  flush = false,
-}: {
-  children: React.ReactNode;
-  flush?: boolean;
-}) {
-  return (
-    <ul className={flush ? styles.borderedListFlush : styles.borderedList}>
-      {children}
-    </ul>
-  );
+export function BorderedList({ children }: { children: React.ReactNode }) {
+  return <ul className={styles.borderedList}>{children}</ul>;
 }
 
 export function ListEmptyItem({ children }: { children: React.ReactNode }) {
@@ -114,7 +104,6 @@ export function SelectList<T extends string>({
   onValueChange,
   disabled = false,
   "aria-labelledby": ariaLabelledBy,
-  flush = false,
   children,
 }: {
   name: string;
@@ -122,7 +111,6 @@ export function SelectList<T extends string>({
   onValueChange: (value: T) => void;
   disabled?: boolean;
   "aria-labelledby"?: string;
-  flush?: boolean;
   children: ReactNode;
 }) {
   const fallbackLabelId = useId();
@@ -145,10 +133,7 @@ export function SelectList<T extends string>({
       <ul
         role="radiogroup"
         aria-labelledby={labelledBy}
-        className={cn(
-          flush ? styles.borderedListFlush : styles.borderedList,
-          styles.selectList,
-        )}
+        className={cn(styles.borderedList, styles.selectList)}
       >
         {children}
       </ul>
@@ -179,14 +164,12 @@ export function CheckList<T extends string>({
   onToggle,
   disabled = false,
   "aria-labelledby": ariaLabelledBy,
-  flush = false,
   children,
 }: {
   selected: ReadonlySet<T>;
   onToggle: (value: T, checked: boolean) => void;
   disabled?: boolean;
   "aria-labelledby"?: string;
-  flush?: boolean;
   children: ReactNode;
 }) {
   const fallbackLabelId = useId();
@@ -208,10 +191,7 @@ export function CheckList<T extends string>({
       <ul
         role="group"
         aria-labelledby={labelledBy}
-        className={cn(
-          flush ? styles.borderedListFlush : styles.borderedList,
-          styles.selectList,
-        )}
+        className={cn(styles.borderedList, styles.selectList)}
       >
         {children}
       </ul>

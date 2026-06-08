@@ -36,7 +36,6 @@ export function OnboardingDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
         className={cn(styles.content, toneClass[tone])}
         aria-label={ariaLabel}
       >

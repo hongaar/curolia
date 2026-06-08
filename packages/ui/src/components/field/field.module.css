@@ -1,0 +1,35 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-form-field);
+}
+
+.label {
+  font-size: var(--text-label);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  color: var(--foreground);
+}
+
+.description {
+  font-size: var(--text-caption);
+  line-height: var(--line-height-normal);
+  color: var(--muted-foreground);
+}
+
+.descriptionBody {
+  font-size: var(--text-body);
+  line-height: var(--line-height-normal);
+  color: var(--muted-foreground);
+}
+
+.error {
+  font-size: var(--text-caption);
+  line-height: var(--line-height-normal);
+  color: var(--destructive);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+}

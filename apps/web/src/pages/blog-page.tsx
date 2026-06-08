@@ -49,7 +49,15 @@ import {
   BlogTitle,
 } from "@curolia/ui/blog";
 import { Button } from "@curolia/ui/button";
-import { Dialog } from "@curolia/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogFormStack,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,14 +72,6 @@ import {
   MapControlsLayer,
 } from "@curolia/ui/map";
 import { PageMuted } from "@curolia/ui/page";
-import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogFooter,
-  PanelDialogFormStack,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
 import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -499,14 +499,12 @@ export function BlogPage() {
           if (!open) setTagEditTarget(null);
         }}
       >
-        <PanelDialogContent>
-          <PanelDialogHeader>
-            <PanelDialogTitle>
-              {tagEditTarget ? "Edit tag" : "New tag"}
-            </PanelDialogTitle>
-          </PanelDialogHeader>
-          <PanelDialogBody>
-            <PanelDialogFormStack>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tagEditTarget ? "Edit tag" : "New tag"}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <DialogFormStack>
               <TagEntityLabelInput
                 id="blog-tag-name"
                 label="Tag"
@@ -518,9 +516,9 @@ export function BlogPage() {
                 emoji={newTagEmoji}
                 onEmojiChange={setNewTagEmoji}
               />
-            </PanelDialogFormStack>
-          </PanelDialogBody>
-          <PanelDialogFooter>
+            </DialogFormStack>
+          </DialogBody>
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
@@ -533,8 +531,8 @@ export function BlogPage() {
             <Button onClick={() => void saveTag()}>
               {tagEditTarget ? "Save tag" : "Create tag"}
             </Button>
-          </PanelDialogFooter>
-        </PanelDialogContent>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </BlogPageRoot>
   );

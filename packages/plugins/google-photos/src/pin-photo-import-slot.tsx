@@ -1,12 +1,12 @@
 import type { PinPhotoImportSlotProps } from "@curolia/plugin-contract";
 import {
-  PanelDialogFooterRow,
-  PanelDialogImportButton,
-  PanelDialogInlinePrep,
-  PanelDialogMonoBox,
-  PanelDialogRoundedButton,
-  PanelDialogSpinner,
-} from "@curolia/ui/panel-dialog";
+  DialogFooterRow,
+  DialogImportButton,
+  DialogInlinePrep,
+  DialogMonoBox,
+  DialogRoundedButton,
+  DialogSpinner,
+} from "@curolia/ui/dialog";
 import {
   keepPreviousData,
   useMutation,
@@ -21,9 +21,9 @@ import {
   googlePhotosPickerList,
   googlePhotosWaitForPickerSelection,
 } from "./google-photos-edge";
-import { syncPinPhotosToCache } from "./pin-photo-cache";
 import { googlePhotosLibrarySearchPasteLine } from "./google-photos-search-paste";
 import { GooglePhotosIcon } from "./icon";
+import { syncPinPhotosToCache } from "./pin-photo-cache";
 import { googlePhotosPluginMeta } from "./plugin-meta";
 
 function toastGooglePhotosImportResult(result: {
@@ -192,11 +192,6 @@ export function GooglePhotosPinPhotoImportSlot({
 
   if (!pluginEnabled) return null;
 
-  function openPickerOnly() {
-    setPickPrepOpen(false);
-    pickAndImportMut.mutate();
-  }
-
   async function copySearchPasteAndStartPicker() {
     try {
       await navigator.clipboard.writeText(searchPasteLine);
@@ -215,40 +210,33 @@ export function GooglePhotosPinPhotoImportSlot({
   return (
     <>
       {pickPrepOpen ? (
-        <PanelDialogInlinePrep
-          title="Search in Google Photos"
-          description="Copy this line, open Google Photos, paste it into search, then pick the photos you want."
+        <DialogInlinePrep
+          title="Open Google Photos"
+          description="When you click the button below, the pin dates will be copied to your clipboard and Google Photos will open. Paste the text into search, then pick the photos you want."
           onClose={() => setPickPrepOpen(false)}
         >
-          <PanelDialogMonoBox>{searchPasteLine}</PanelDialogMonoBox>
-          <PanelDialogFooterRow>
-            <PanelDialogRoundedButton
-              type="button"
-              variant="outline"
-              onClick={() => openPickerOnly()}
-            >
-              Open only
-            </PanelDialogRoundedButton>
-            <PanelDialogRoundedButton
+          <DialogMonoBox>{searchPasteLine}</DialogMonoBox>
+          <DialogFooterRow>
+            <DialogRoundedButton
               type="button"
               onClick={() => void copySearchPasteAndStartPicker()}
             >
               Copy & open Google Photos
-            </PanelDialogRoundedButton>
-          </PanelDialogFooterRow>
-        </PanelDialogInlinePrep>
+            </DialogRoundedButton>
+          </DialogFooterRow>
+        </DialogInlinePrep>
       ) : null}
-      <PanelDialogImportButton
+      <DialogImportButton
         type="button"
         disabled={busy}
         onClick={() => setPickPrepOpen(true)}
         aria-label={label}
         aria-expanded={pickPrepOpen}
       >
-        {busy ? <PanelDialogSpinner /> : null}
+        {busy ? <DialogSpinner /> : null}
         <GooglePhotosIcon size={4} />
         <span>{importPhase === "import" ? "Importing photos…" : label}</span>
-      </PanelDialogImportButton>
+      </DialogImportButton>
     </>
   );
 }

@@ -1,26 +1,26 @@
 .formField {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--gap-form-field);
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
-  padding-block: 0.5rem;
+  gap: var(--gap-form-grid);
+  padding-block: var(--space-2);
 }
 
 .formGrid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .formActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .formActionsEnd {
@@ -30,21 +30,24 @@
 .formSection {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--gap-form-section);
 }
 
 .errorText {
-  font-size: 0.875rem;
+  font-size: var(--text-caption);
+  line-height: var(--line-height-normal);
   color: var(--destructive);
 }
 
 .mutedText {
-  font-size: 0.875rem;
+  font-size: var(--text-body);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
 .mutedTextXs {
-  font-size: 0.75rem;
+  font-size: var(--text-caption);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
@@ -61,25 +64,26 @@
 }
 
 .selectTriggerCompact {
-  height: 2rem;
+  height: var(--control-h-sm);
   width: 9.5rem;
-  border-radius: var(--radius-lg);
-  font-size: 0.75rem;
+  border-radius: var(--field-radius);
+  font-size: var(--text-caption);
 }
 
 .selectTriggerRounded {
-  border-radius: var(--radius-xl);
+  border-radius: var(--control-radius);
 }
 
 .selectTriggerInvite {
-  height: 2.25rem;
+  height: var(--control-h-md);
   width: 100%;
-  border-radius: var(--radius-lg);
+  border-radius: var(--field-radius);
 }
 
 .selectTriggerFull {
+  height: var(--control-h-md);
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  border-radius: var(--radius-xl);
+  border-radius: var(--field-radius);
 }

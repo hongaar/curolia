@@ -1,14 +1,49 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
   overflow: hidden;
   border-radius: var(--radius-xl);
   background: var(--card);
-  padding: 1rem 0;
-  font-size: 0.875rem;
+  padding: var(--card-pad) 0;
+  font-size: var(--font-size-sm);
   color: var(--card-foreground);
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+.card[data-variant="colored"] {
+  border: 1px solid var(--card-colored-border);
+  background: var(--card-colored-bg);
+  box-shadow: none;
+}
+
+.card[data-surface="page"] {
+  padding: 0;
+  gap: var(--space-4);
+}
+
+.card[data-surface="page"] .header,
+.card[data-surface="page"] .content {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 39.99rem) {
+  .card[data-surface="page"] {
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 40rem) {
+  .card[data-surface="page"] {
+    border: 1px solid var(--panel-border);
+    background: var(--panel-bg);
+    box-shadow: var(--panel-shadow);
+    backdrop-filter: blur(24px);
+    padding: var(--space-6);
+  }
 }
 
 .card:has(> img:first-child) {
@@ -20,8 +55,8 @@
 }
 
 .card[data-size="sm"] {
-  gap: 0.75rem;
-  padding: 0.75rem 0;
+  gap: var(--card-pad-sm);
+  padding: var(--card-pad-sm) 0;
 }
 
 .card[data-size="sm"]:has([data-slot="card-footer"]) {
@@ -42,14 +77,14 @@
   display: grid;
   auto-rows: min-content;
   align-items: start;
-  gap: 0.25rem;
+  gap: var(--space-1);
   border-top-left-radius: var(--radius-xl);
   border-top-right-radius: var(--radius-xl);
-  padding: 0 1rem;
+  padding: 0 var(--card-pad);
 }
 
 .card[data-size="sm"] .header {
-  padding: 0 0.75rem;
+  padding: 0 var(--card-pad-sm);
 }
 
 .header:has([data-slot="card-action"]) {
@@ -65,22 +100,22 @@
 }
 
 .card[data-size="sm"] .header:global(.border-b) {
-  padding-bottom: 0.75rem;
+  padding-bottom: var(--card-pad-sm);
 }
 
 .title {
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   line-height: 1.375;
-  font-weight: 400;
+  font-weight: var(--font-weight-normal);
 }
 
 .card[data-size="sm"] .title {
-  font-size: 0.875rem;
+  font-size: var(--font-size-base);
 }
 
 .description {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -92,11 +127,11 @@
 }
 
 .content {
-  padding: 0 1rem;
+  padding: 0 var(--card-pad);
 }
 
 .card[data-size="sm"] .content {
-  padding: 0 0.75rem;
+  padding: 0 var(--card-pad-sm);
 }
 
 .footer {
@@ -106,9 +141,9 @@
   border-bottom-left-radius: var(--radius-xl);
   border-bottom-right-radius: var(--radius-xl);
   background: color-mix(in oklch, var(--muted) 50%, transparent);
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .card[data-size="sm"] .footer {
-  padding: 0.75rem;
+  padding: var(--card-pad-sm);
 }

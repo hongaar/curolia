@@ -1,13 +1,13 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
-import { Card, CardContent, CardHeader, CardTitle } from "../card";
+import { CardContent, CardHeader, CardTitle } from "../card";
 import { MarkdownContent } from "../markdown-content";
+import { PagePanel } from "../page";
 import styles from "./pin-detail.module.css";
 
-export function PinDetailCard({ children }: { children: React.ReactNode }) {
-  return <Card className={styles.detailCard}>{children}</Card>;
-}
+/** @deprecated Use `PagePanel` — same component, shared page shell. */
+export const PinDetailCard = PagePanel;
 
 export function PinDetailHeader({ children }: { children: React.ReactNode }) {
   return <CardHeader className={styles.detailHeader}>{children}</CardHeader>;

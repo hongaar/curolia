@@ -3,7 +3,7 @@
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: 1px solid transparent;
   transition: all 150ms;
   outline: none;
@@ -21,7 +21,7 @@
 }
 
 .root:focus-visible {
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  box-shadow: var(--focus-ring);
 }
 
 .root:global([data-checked]) {
@@ -44,19 +44,19 @@
 .thumb {
   pointer-events: none;
   display: block;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--background);
   transition: transform 150ms;
 }
 
 .root[data-size="default"] .thumb {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 .root[data-size="sm"] .thumb {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
 }
 
 .root[data-size="default"]:global([data-checked]) .thumb {

@@ -10,7 +10,7 @@
 }
 
 .paddingDefault {
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .paddingNone {
@@ -18,7 +18,7 @@
 }
 
 .paddingLg {
-  padding: 1.5rem;
+  padding: var(--space-6);
 }
 
 @media (min-width: 40rem) {
@@ -33,4 +33,14 @@
 
 .z10 {
   z-index: 10;
+}
+
+@media (max-width: 39.99rem) {
+  .root[data-surface="page"] {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
 }

@@ -27,7 +27,6 @@ export * from "./components/notifications-popover";
 export * from "./components/onboarding";
 export * from "./components/page";
 export * from "./components/page-back-button";
-export * from "./components/panel-dialog";
 export * from "./components/picker";
 export * from "./components/pin-detail";
 export * from "./components/pin-form";

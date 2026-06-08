@@ -4,7 +4,12 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
-import { FormField, SrOnlyInput } from "@curolia/ui/form-layout";
+import {
+  Field,
+  FieldControl,
+  FieldLabel,
+  SrOnlyInput,
+} from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
@@ -199,16 +204,18 @@ function ProfileEditor({
           </PageAvatarActions>
         </PageAvatarRow>
       </PageAvatarSection>
-      <FormField>
-        <Label htmlFor="pf-name">Display name</Label>
-        <Input
-          id="pf-name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Your name"
-          disabled={profileLoading}
-        />
-      </FormField>
+      <Field>
+        <FieldLabel htmlFor="pf-name">Display name</FieldLabel>
+        <FieldControl>
+          <Input
+            id="pf-name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Your name"
+            disabled={profileLoading}
+          />
+        </FieldControl>
+      </Field>
       <PageFitButton>
         <Button disabled={saving || profileLoading} onClick={() => void save()}>
           Save changes

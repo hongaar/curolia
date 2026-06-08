@@ -2,7 +2,7 @@
   pointer-events: auto;
   box-sizing: content-box;
   display: flex;
-  width: 2.25rem;
+  width: var(--control-h-md);
   flex-direction: column;
   overflow: visible;
   border-radius: var(--radius-md);
@@ -25,8 +25,8 @@
 
 .button {
   display: inline-flex;
-  height: 2.25rem;
-  max-width: 2.25rem;
+  height: var(--control-h-md);
+  max-width: var(--control-h-md);
   cursor: pointer;
   align-items: center;
   justify-content: flex-start;
@@ -61,8 +61,8 @@
 
 .iconCell {
   display: flex;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
   flex-shrink: 0;
   flex-direction: column;
   align-items: center;
@@ -72,8 +72,8 @@
 
 .iconCell svg {
   display: block;
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 @media (max-width: 39.99rem) {
@@ -84,22 +84,22 @@
 
 .labelCell {
   display: flex;
-  min-height: 2.25rem;
+  min-height: var(--control-h-md);
   min-width: 0;
   flex: 1;
   align-items: center;
   align-self: center;
   padding: 0 0.5rem 0 0;
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }
 
 .iconButton {
   position: relative;
   display: inline-flex;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -123,7 +123,7 @@
   pointer-events: auto;
   box-sizing: content-box;
   display: flex;
-  width: 2.25rem;
+  width: var(--control-h-md);
   flex-direction: column;
   overflow: visible;
   border-radius: var(--radius-md);
@@ -154,15 +154,15 @@
   top: 0.25rem;
   right: 0.25rem;
   display: flex;
-  min-width: 1rem;
-  height: 1rem;
+  min-width: var(--icon-size-md);
+  height: var(--icon-size-md);
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--orange);
   padding: 0 0.25rem;
-  font-size: 0.625rem;
-  font-weight: 700;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   line-height: 1;
   color: var(--orange-foreground);
   box-shadow: 0 0 0 2px var(--panel-bg);

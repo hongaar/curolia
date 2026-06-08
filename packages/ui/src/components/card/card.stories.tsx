@@ -78,3 +78,25 @@ export const ContentOnly: Story = {
     </StoryFrame>
   ),
 };
+
+export const Colored: Story = {
+  parameters: storyDocs(
+    '`variant="colored"` accent surface for suggestions and highlights.',
+  ),
+  render: () => (
+    <StoryFrame width="sm">
+      <Card variant="colored" size="sm">
+        <CardHeader>
+          <CardTitle>Suggested place</CardTitle>
+          <CardDescription>Restaurant · 18 m away</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p style={{ margin: 0 }}>Café de Klos</p>
+        </CardContent>
+        <CardFooter>
+          <Button size="sm">Attach place</Button>
+        </CardFooter>
+      </Card>
+    </StoryFrame>
+  ),
+};

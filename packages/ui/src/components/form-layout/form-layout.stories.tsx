@@ -2,17 +2,19 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
 import { Button } from "../button";
+import {
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "../field";
 import { Input } from "../input";
-import { Label } from "../label";
 import { Select, SelectContent, SelectItem, SelectValue } from "../select";
 import {
   FormActions,
-  FormErrorText,
-  FormField,
   FormGrid,
   FormGrid2,
-  FormMutedText,
-  FormMutedTextXs,
   FormSection,
   FormSelectTriggerCompact,
   FormSelectTriggerFull,
@@ -30,7 +32,7 @@ const meta = {
   title: "Form Layout",
   ...componentStoryMeta(
     `Form spacing primitives: fields, grids, actions, muted help text.`,
-    `Wrap each control in \`FormField\`. Use \`FormGrid2\` for two columns and \`FormActions\` for button rows.`,
+    `Wrap each control in \`Field\`. Use \`FormGrid2\` for two columns and \`FormActions\` for button rows.`,
   ),
   component: FormSection,
 } satisfies Meta;
@@ -44,14 +46,18 @@ export const Default: Story = {
     <StoryFrame width="md">
       <FormSection>
         <FormGrid2>
-          <FormField>
-            <Label htmlFor="story-form-name">Name</Label>
-            <Input id="story-form-name" placeholder="Summer 2025" />
-          </FormField>
-          <FormField>
-            <Label htmlFor="story-form-slug">Slug</Label>
-            <Input id="story-form-slug" placeholder="summer-2025" />
-          </FormField>
+          <Field>
+            <FieldLabel htmlFor="story-form-name">Name</FieldLabel>
+            <FieldControl>
+              <Input id="story-form-name" placeholder="Summer 2025" />
+            </FieldControl>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="story-form-slug">Slug</FieldLabel>
+            <FieldControl>
+              <Input id="story-form-slug" placeholder="summer-2025" />
+            </FieldControl>
+          </Field>
         </FormGrid2>
         <FormActions>
           <Button variant="outline">Cancel</Button>
@@ -67,10 +73,12 @@ export const ActionsEnd: Story = {
   render: () => (
     <StoryFrame width="md">
       <FormSection>
-        <FormField>
-          <Label htmlFor="story-form-actions-end">Name</Label>
-          <Input id="story-form-actions-end" placeholder="Summer 2025" />
-        </FormField>
+        <Field>
+          <FieldLabel htmlFor="story-form-actions-end">Name</FieldLabel>
+          <FieldControl>
+            <Input id="story-form-actions-end" placeholder="Summer 2025" />
+          </FieldControl>
+        </Field>
         <FormActions align="end">
           <Button variant="outline">Cancel</Button>
           <Button>Save</Button>
@@ -86,10 +94,12 @@ export const SingleColumnGrid: Story = {
     <StoryFrame width="md">
       <FormSection>
         <FormGrid>
-          <FormField>
-            <Label htmlFor="story-form-grid">Description</Label>
-            <Input id="story-form-grid" placeholder="Optional notes" />
-          </FormField>
+          <Field>
+            <FieldLabel htmlFor="story-form-grid">Description</FieldLabel>
+            <FieldControl>
+              <Input id="story-form-grid" placeholder="Optional notes" />
+            </FieldControl>
+          </Field>
         </FormGrid>
       </FormSection>
     </StoryFrame>
@@ -98,22 +108,26 @@ export const SingleColumnGrid: Story = {
 
 export const HelpAndError: Story = {
   parameters: storyDocs(
-    "`FormMutedText` help copy and `FormErrorText` errors.",
+    "`FieldDescription` help copy and `FieldError` validation messages.",
   ),
   render: () => (
     <StoryFrame width="md">
       <FormSection>
-        <FormField>
-          <Label htmlFor="story-form-error">Email</Label>
-          <Input
-            id="story-form-error"
-            type="email"
-            placeholder="you@example.com"
-            aria-invalid
-          />
-          <FormMutedText>We only use this for sharing invites.</FormMutedText>
-          <FormErrorText>Enter a valid email address.</FormErrorText>
-        </FormField>
+        <Field>
+          <FieldLabel htmlFor="story-form-error">Email</FieldLabel>
+          <FieldControl>
+            <Input
+              id="story-form-error"
+              type="email"
+              placeholder="you@example.com"
+              aria-invalid
+            />
+          </FieldControl>
+          <FieldDescription variant="body">
+            We only use this for sharing invites.
+          </FieldDescription>
+          <FieldError>Enter a valid email address.</FieldError>
+        </Field>
       </FormSection>
     </StoryFrame>
   ),
@@ -121,13 +135,15 @@ export const HelpAndError: Story = {
 
 export const MutedTextSizes: Story = {
   parameters: storyDocs(
-    "`FormMutedText` vs `FormMutedTextXs` for secondary copy.",
+    "`FieldDescription` caption vs body variants for secondary copy.",
   ),
   render: () => (
     <StoryFrame width="md">
       <FormSection>
-        <FormMutedText>Standard muted help text.</FormMutedText>
-        <FormMutedTextXs>Extra-small muted caption.</FormMutedTextXs>
+        <FieldDescription variant="body">
+          Body-sized muted help text.
+        </FieldDescription>
+        <FieldDescription>Caption-sized muted text.</FieldDescription>
       </FormSection>
     </StoryFrame>
   ),
@@ -139,54 +155,62 @@ export const SelectTriggerVariants: Story = {
     <StoryFrame width="md">
       <FormSection>
         <FormGrid2>
-          <FormField>
-            <Label>Compact</Label>
-            <Select defaultValue="viewer" items={ROLE_ITEMS}>
-              <FormSelectTriggerCompact>
-                <SelectValue />
-              </FormSelectTriggerCompact>
-              <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
-          <FormField>
-            <Label>Rounded</Label>
-            <Select defaultValue="viewer" items={ROLE_ITEMS}>
-              <FormSelectTriggerRounded>
-                <SelectValue />
-              </FormSelectTriggerRounded>
-              <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
-          <FormField>
-            <Label>Invite</Label>
-            <Select defaultValue="viewer" items={ROLE_ITEMS}>
-              <FormSelectTriggerInvite>
-                <SelectValue />
-              </FormSelectTriggerInvite>
-              <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
-          <FormField>
-            <Label>Full width</Label>
-            <Select defaultValue="viewer" items={ROLE_ITEMS}>
-              <FormSelectTriggerFull>
-                <SelectValue />
-              </FormSelectTriggerFull>
-              <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
+          <Field>
+            <FieldLabel>Compact</FieldLabel>
+            <FieldControl>
+              <Select defaultValue="viewer" items={ROLE_ITEMS}>
+                <FormSelectTriggerCompact>
+                  <SelectValue />
+                </FormSelectTriggerCompact>
+                <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldControl>
+          </Field>
+          <Field>
+            <FieldLabel>Rounded</FieldLabel>
+            <FieldControl>
+              <Select defaultValue="viewer" items={ROLE_ITEMS}>
+                <FormSelectTriggerRounded>
+                  <SelectValue />
+                </FormSelectTriggerRounded>
+                <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldControl>
+          </Field>
+          <Field>
+            <FieldLabel>Invite</FieldLabel>
+            <FieldControl>
+              <Select defaultValue="viewer" items={ROLE_ITEMS}>
+                <FormSelectTriggerInvite>
+                  <SelectValue />
+                </FormSelectTriggerInvite>
+                <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldControl>
+          </Field>
+          <Field>
+            <FieldLabel>Full width</FieldLabel>
+            <FieldControl>
+              <Select defaultValue="viewer" items={ROLE_ITEMS}>
+                <FormSelectTriggerFull>
+                  <SelectValue />
+                </FormSelectTriggerFull>
+                <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldControl>
+          </Field>
         </FormGrid2>
       </FormSection>
     </StoryFrame>
@@ -200,14 +224,14 @@ export const SrOnlyFileInput: Story = {
   render: () => (
     <StoryFrame width="md">
       <FormSection>
-        <FormField>
-          <Label htmlFor="story-form-file">
+        <Field>
+          <FieldLabel htmlFor="story-form-file">
             <Button size="sm" variant="outline" type="button">
               Choose file
             </Button>
-          </Label>
+          </FieldLabel>
           <SrOnlyInput id="story-form-file" type="file" />
-        </FormField>
+        </Field>
       </FormSection>
     </StoryFrame>
   ),

@@ -1,3 +1,4 @@
+import { mapFloatingViewportPadding } from "@/lib/map-anchor-floating-ui";
 import {
   DEFAULT_MAP_STYLE_OPTIONS,
   mapStyleCacheKey,
@@ -699,8 +700,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           offset(26),
           flip({
             fallbackPlacements: ["left", "top", "bottom"],
+            padding: mapFloatingViewportPadding(),
           }),
-          shift({ padding: 12 }),
+          shift({ padding: mapFloatingViewportPadding(), crossAxis: true }),
         ],
       }).then((data) => {
         const el = hoverFloatingRef.current;

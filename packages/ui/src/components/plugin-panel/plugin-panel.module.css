@@ -1,5 +1,5 @@
 .mutedBox {
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
   background: color-mix(in oklch, var(--muted) 25%, transparent);
@@ -7,44 +7,44 @@
 }
 
 .section {
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .statusMuted {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
 .statusSm {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
 
 .settingsBox {
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
   background: color-mix(in oklch, var(--foreground) 2%, transparent);
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .settingsRow {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (min-width: 40rem) {
@@ -56,14 +56,14 @@
 }
 
 .settingsTitle {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }
 
 .settingsHint {
-  margin-top: 0.125rem;
-  font-size: 0.75rem;
-  line-height: 1.625;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
 
@@ -77,14 +77,14 @@
   border-radius: var(--radius-lg);
   background: color-mix(in oklch, var(--muted) 60%, transparent);
   padding: 0.375rem 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--foreground);
 }
 
 .feedRow {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (min-width: 40rem) {
@@ -95,12 +95,12 @@
 }
 
 .feedLabel {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
 
 .copyIcon {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
   margin-right: 0.375rem;
 }

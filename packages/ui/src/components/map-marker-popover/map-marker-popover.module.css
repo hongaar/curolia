@@ -2,25 +2,25 @@
   display: flex;
   min-height: 0;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
   overflow-y: auto;
-  padding-top: 0.5rem;
+  padding-top: var(--space-2);
 }
 
 .header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .title {
   min-width: 0;
   flex: 1;
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 400;
-  line-height: 1.25;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-tight) 5;
   letter-spacing: -0.025em;
   color: var(--foreground);
 }
@@ -28,7 +28,7 @@
 .description {
   max-height: 10rem;
   overflow-y: auto;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   white-space: pre-wrap;
   color: var(--foreground);
 }
@@ -40,7 +40,7 @@
 
 .photoStripInner {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   overflow-x: auto;
   padding-bottom: 0.25rem;
   scrollbar-width: none;
@@ -55,7 +55,7 @@
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .statusStack {
@@ -66,7 +66,7 @@
 
 .status {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -79,14 +79,14 @@
 .tagRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .headerActions {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .photoSkeleton {
@@ -111,7 +111,7 @@
   max-height: 90dvh;
   flex-direction: column;
   overflow: hidden;
-  padding: 1rem 1rem 1.5rem;
+  padding: var(--space-4) 1rem 1.5rem;
 }
 
 .mobileSheetOverlay {

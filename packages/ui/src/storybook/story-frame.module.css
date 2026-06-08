@@ -19,19 +19,19 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .columnLg {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .tall {
@@ -41,31 +41,31 @@
 .spacedRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .labelGap {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .verticalRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
   min-height: 4rem;
 }
 
 .labelGapSm {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .mutedSm {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -75,8 +75,8 @@
 }
 
 .iconSm {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   flex-shrink: 0;
 }
 

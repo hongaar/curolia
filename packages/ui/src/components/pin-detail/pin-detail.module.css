@@ -1,15 +1,8 @@
-.detailCard {
-  border: 1px solid var(--panel-border);
-  background: var(--panel-bg);
-  box-shadow: var(--panel-shadow);
-  backdrop-filter: blur(24px);
-}
-
 .detailHeader {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .detailHeaderMain {
@@ -17,18 +10,18 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .detailTitle {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-normal);
   letter-spacing: -0.025em;
 }
 
 .detailSubtitleStack {
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
@@ -36,7 +29,7 @@
 
 .detailSubtitle {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -47,10 +40,10 @@
 }
 
 .tagRow {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .detailActions {
@@ -58,7 +51,7 @@
   flex-shrink: 0;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (min-width: 40rem) {
@@ -71,13 +64,13 @@
 .detailContent {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .photoRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .photoPlaceholder {
@@ -88,19 +81,19 @@
   justify-content: center;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
 
 .badgePlain {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  border-radius: 9999px;
+  gap: var(--space-1);
+  border-radius: var(--radius-full);
   border: 0;
   padding: 0.125rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 .insetMapLink {

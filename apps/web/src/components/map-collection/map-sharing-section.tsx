@@ -11,15 +11,26 @@ import { useMap } from "@/providers/map-provider";
 import type { MapInvitation, MapMemberRole, Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
-import { Dialog, DialogDescription } from "@curolia/ui/dialog";
 import {
-  FormErrorText,
-  FormField,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogField,
+  DialogFooter,
+  DialogFormStack,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
+import {
+  Field,
+  FieldControl,
+  FieldError,
+  FieldLabel,
   FormSelectTriggerCompact,
   FormSelectTriggerInvite,
 } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
 import {
   BorderedList,
   ListEmptyItem,
@@ -40,15 +51,6 @@ import {
   PageSharingRoot,
   PageSharingSection,
 } from "@curolia/ui/page";
-import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogField,
-  PanelDialogFooter,
-  PanelDialogFormStack,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
 import {
   Select,
   SelectContent,
@@ -306,7 +308,7 @@ export function MapSharingSection({
 
       <PageSharingSection>
         <PageSectionSubheading>Members</PageSectionSubheading>
-        <BorderedList flush>
+        <BorderedList>
           {membersQuery.isLoading ? (
             <ListEmptyItem>Loading…</ListEmptyItem>
           ) : (
@@ -371,36 +373,40 @@ export function MapSharingSection({
             <PageSectionSubheading>Invite by email</PageSectionSubheading>
             <PageInviteRow>
               <PageInviteEmailField>
-                <FormField>
-                  <Label htmlFor="inv-email">Email</Label>
-                  <Input
-                    id="inv-email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="friend@example.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
-                </FormField>
+                <Field>
+                  <FieldLabel htmlFor="inv-email">Email</FieldLabel>
+                  <FieldControl>
+                    <Input
+                      id="inv-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="friend@example.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </FieldControl>
+                </Field>
               </PageInviteEmailField>
               <PageInviteRoleField>
-                <FormField>
-                  <Label htmlFor="inv-role">Access</Label>
-                  <Select
-                    value={inviteRole}
-                    onValueChange={(v) => setInviteRole(v as InviteMapRole)}
-                  >
-                    <FormSelectTriggerInvite id="inv-role">
-                      <SelectValue>
-                        {inviteRoleSelectLabel(inviteRole)}
-                      </SelectValue>
-                    </FormSelectTriggerInvite>
-                    <SelectContent>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                      <SelectItem value="editor">Contributor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
+                <Field>
+                  <FieldLabel htmlFor="inv-role">Access</FieldLabel>
+                  <FieldControl>
+                    <Select
+                      value={inviteRole}
+                      onValueChange={(v) => setInviteRole(v as InviteMapRole)}
+                    >
+                      <FormSelectTriggerInvite id="inv-role">
+                        <SelectValue>
+                          {inviteRoleSelectLabel(inviteRole)}
+                        </SelectValue>
+                      </FormSelectTriggerInvite>
+                      <SelectContent>
+                        <SelectItem value="viewer">Viewer</SelectItem>
+                        <SelectItem value="editor">Contributor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FieldControl>
+                </Field>
               </PageInviteRoleField>
               <Button
                 type="button"
@@ -418,29 +424,33 @@ export function MapSharingSection({
 
           <PageSharingSection>
             <PageSectionSubheading>Public access</PageSectionSubheading>
-            <FormField>
-              <Label htmlFor="map-public-toggle">
+            <Field>
+              <FieldLabel htmlFor="map-public-toggle">
                 Anyone with the link can view this map (read-only)
-              </Label>
+              </FieldLabel>
               <Switch
                 id="map-public-toggle"
                 checked={isPublic}
                 disabled={publicBusy}
                 onCheckedChange={(checked) => void togglePublic(checked)}
               />
-            </FormField>
+            </Field>
             {isPublic && publicMapUrl ? (
               <PageInviteRow>
                 <PageInviteEmailField>
-                  <FormField>
-                    <Label htmlFor="public-map-url">Public link</Label>
-                    <Input
-                      id="public-map-url"
-                      readOnly
-                      value={publicMapUrl}
-                      onFocus={(e) => e.target.select()}
-                    />
-                  </FormField>
+                  <Field>
+                    <FieldLabel htmlFor="public-map-url">
+                      Public link
+                    </FieldLabel>
+                    <FieldControl>
+                      <Input
+                        id="public-map-url"
+                        readOnly
+                        value={publicMapUrl}
+                        onFocus={(e) => e.target.select()}
+                      />
+                    </FieldControl>
+                  </Field>
                 </PageInviteEmailField>
                 <Button
                   type="button"
@@ -460,7 +470,7 @@ export function MapSharingSection({
           {pendingInvites.length > 0 ? (
             <PageSharingSection>
               <PageSectionSubheading>Pending invitations</PageSectionSubheading>
-              <BorderedList flush>
+              <BorderedList>
                 {pendingInvites.map((inv) => (
                   <MemberListRow key={inv.id}>
                     <MemberPrimary>{inv.invitee_email}</MemberPrimary>
@@ -525,33 +535,37 @@ export function MapSharingSection({
           </CautionPanel>
 
           <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-            <PanelDialogContent>
-              <PanelDialogHeader>
-                <PanelDialogTitle>Transfer ownership</PanelDialogTitle>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Transfer ownership</DialogTitle>
                 <DialogDescription>
                   This cannot be undone from here. Plugins for this map will be
                   cleared.
                 </DialogDescription>
-              </PanelDialogHeader>
-              <PanelDialogBody>
-                <PanelDialogFormStack>
-                  <PanelDialogField>
-                    <Label htmlFor="transfer-email">New owner email</Label>
-                    <Input
-                      id="transfer-email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="friend@example.com"
-                      value={transferEmail}
-                      onChange={(e) => setTransferEmail(e.target.value)}
-                    />
-                  </PanelDialogField>
-                  {transferErr ? (
-                    <FormErrorText>{transferErr}</FormErrorText>
-                  ) : null}
-                </PanelDialogFormStack>
-              </PanelDialogBody>
-              <PanelDialogFooter>
+              </DialogHeader>
+              <DialogBody>
+                <DialogFormStack>
+                  <DialogField>
+                    <Field>
+                      <FieldLabel htmlFor="transfer-email">
+                        New owner email
+                      </FieldLabel>
+                      <FieldControl>
+                        <Input
+                          id="transfer-email"
+                          type="email"
+                          autoComplete="email"
+                          placeholder="friend@example.com"
+                          value={transferEmail}
+                          onChange={(e) => setTransferEmail(e.target.value)}
+                        />
+                      </FieldControl>
+                    </Field>
+                  </DialogField>
+                  {transferErr ? <FieldError>{transferErr}</FieldError> : null}
+                </DialogFormStack>
+              </DialogBody>
+              <DialogFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -566,25 +580,23 @@ export function MapSharingSection({
                 >
                   Confirm transfer
                 </Button>
-              </PanelDialogFooter>
-            </PanelDialogContent>
+              </DialogFooter>
+            </DialogContent>
           </Dialog>
 
           <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <PanelDialogContent showCloseButton={!deleteBusy}>
-              <PanelDialogHeader>
-                <PanelDialogTitle>Delete map?</PanelDialogTitle>
+            <DialogContent>
+              <DialogHeader showCloseButton={!deleteBusy}>
+                <DialogTitle>Delete map?</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
                 <DialogDescription>
                   This removes &quot;{mapName}&quot; and every pin on it. This
                   cannot be undone.
                 </DialogDescription>
-              </PanelDialogHeader>
-              {deleteErr ? (
-                <PanelDialogBody>
-                  <FormErrorText>{deleteErr}</FormErrorText>
-                </PanelDialogBody>
-              ) : null}
-              <PanelDialogFooter>
+                {deleteErr ? <FieldError>{deleteErr}</FieldError> : null}
+              </DialogBody>
+              <DialogFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -601,8 +613,8 @@ export function MapSharingSection({
                 >
                   {deleteBusy ? "Deleting…" : "Delete map"}
                 </Button>
-              </PanelDialogFooter>
-            </PanelDialogContent>
+              </DialogFooter>
+            </DialogContent>
           </Dialog>
         </>
       ) : (

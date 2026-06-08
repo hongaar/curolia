@@ -6,16 +6,16 @@
 }
 
 .size4 {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 .size5 {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
 }
 
 .size6 {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }

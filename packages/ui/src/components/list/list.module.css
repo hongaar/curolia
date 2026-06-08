@@ -1,5 +1,5 @@
 .borderedList {
-  margin-top: 1.5rem;
+  margin: 0;
   padding: 0;
   list-style: none;
   overflow: hidden;
@@ -7,36 +7,27 @@
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
 }
 
-.borderedListFlush {
-  padding: 0;
-  list-style: none;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
-}
-
-.borderedList > li + li,
-.borderedListFlush > li + li {
+.borderedList > li + li {
   border-top: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
 }
 
 .listEmpty {
-  padding: 1rem 0.75rem;
-  font-size: 0.875rem;
+  padding: var(--space-4) 0.75rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
 .listButton {
   display: flex;
   width: 100%;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  gap: var(--space-3);
+  padding: var(--space-3);
   border: 0;
   border-radius: 0;
   appearance: none;
   background: transparent;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   cursor: pointer;
   transition: background 150ms;
 }
@@ -61,7 +52,7 @@
   width: 0.375rem;
   height: 0.375rem;
   flex-shrink: 0;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--primary);
 }
 
@@ -77,20 +68,20 @@
 }
 
 .listButtonTitle {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .listButtonSubtitle {
   display: block;
-  margin-top: 0.125rem;
-  font-size: 0.75rem;
-  line-height: 1.625;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
 
 .listButtonMeta {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
   font-size: 10px;
   opacity: 0.8;
   color: var(--muted-foreground);
@@ -100,9 +91,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .memberAvatar {
@@ -112,7 +103,7 @@
 .memberPrimary {
   min-width: 0;
   flex: 1;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .memberSecondary {
@@ -120,14 +111,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.75rem;
-  font-weight: 400;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
   color: var(--muted-foreground);
 }
 
 .memberRole {
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
 
@@ -136,7 +127,7 @@
   flex-shrink: 0;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .selectList {
@@ -153,8 +144,8 @@
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  gap: var(--space-3);
+  padding: var(--space-3);
   cursor: pointer;
   transition: background 150ms;
 }
@@ -219,8 +210,8 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   border-radius: var(--radius-md);
   background: color-mix(in oklch, var(--muted) 50%, transparent);
   color: var(--muted-foreground);
@@ -238,21 +229,21 @@
 
 .selectListTitle {
   display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .selectListDescription {
   display: block;
-  margin-top: 0.125rem;
-  font-size: 0.75rem;
-  line-height: 1.5;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
 .selectListMeta {
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }

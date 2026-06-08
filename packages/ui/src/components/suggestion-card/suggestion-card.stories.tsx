@@ -10,9 +10,10 @@ const meta = {
   ...componentStoryMeta(
     `Accent-styled card for surfacing a plugin background suggestion in pin
      details (e.g. "attach this nearby place / article").`,
-    `Render \`SuggestionCard\` with an \`icon\`, \`eyebrow\`, \`title\`, optional
-     \`description\`/\`meta\`/\`thumbnailUrl\`, action buttons via \`actions\`, and
-     an optional \`onDismiss\` handler. Stack several with \`SuggestionCardList\`.`,
+    `Built on \`Card variant="colored"\`. Render with an \`icon\`, \`eyebrow\`,
+     \`title\`, optional \`description\`/\`meta\`/\`thumbnailUrl\`, action buttons
+     via \`actions\`, and an optional \`onDismiss\` handler. Stack several with
+     \`SuggestionCardList\`.`,
   ),
   component: SuggestionCard,
   args: {

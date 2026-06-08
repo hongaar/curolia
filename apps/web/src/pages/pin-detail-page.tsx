@@ -21,8 +21,8 @@ import {
   AppPageLayout,
   PageCenteredError,
   PageCenteredLoading,
+  PagePanel,
 } from "@curolia/ui/page";
-import { PinDetailCard } from "@curolia/ui/pin-detail";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -133,7 +133,7 @@ export function PinDetailPage() {
   return (
     <AppPageLayout width="2xl">
       <PageBackButton />
-      <PinDetailCard>
+      <PagePanel>
         <PinDetailBody
           pin={pin}
           photos={photos}
@@ -153,7 +153,7 @@ export function PinDetailPage() {
             ) : null
           }
         />
-      </PinDetailCard>
+      </PagePanel>
     </AppPageLayout>
   );
 }

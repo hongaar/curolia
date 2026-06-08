@@ -20,7 +20,10 @@ const meta = {
     "Horizontal step indicator for multi-step flows.",
     "Pass a typed `steps` array and zero-based `currentStep`. Completed steps show a checkmark; the current step is highlighted.",
   ),
-} satisfies Meta;
+  args: {
+    currentStep: 0,
+  },
+} satisfies Meta<DemoArgs>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

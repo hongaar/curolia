@@ -1,0 +1,27 @@
+.shell {
+  height: 28rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--background);
+}
+
+.centeredRow {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.avatarPlaceholder {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--muted) 80%, transparent);
+}
+
+.headerIcon {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+  color: var(--muted-foreground);
+}

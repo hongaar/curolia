@@ -42,31 +42,33 @@ import {
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";
 import { Checkbox } from "@curolia/ui/checkbox";
-import { Dialog, DialogDescription } from "@curolia/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogCardTitle,
+  DialogContent,
+  DialogDescription,
+  DialogField,
+  DialogFooter,
+  DialogFormStack,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
 import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import { MarkdownEditor } from "@curolia/ui/markdown-editor";
 import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogField,
-  PanelDialogFooter,
-  PanelDialogFormStack,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
-import {
-  FormErrorText,
-  FormField,
-  FormMutedText,
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
   FormSelectTriggerFull,
   PinFormDangerActions,
   PinFormDangerHint,
   PinFormFloatingHost,
   PinFormGrid,
   PinFormMoveList,
-  PinFormPanelCard,
-  PinFormPanelDialog,
   PinFormPhotoPlaceholder,
   PinFormPhotoRemoveButton,
   PinFormPhotoSortableGrid,
@@ -826,24 +828,28 @@ export function PinFormDialog({
 
   const formFields = (
     <PinFormGrid onPasteCapture={open ? onFormPasteCapture : undefined}>
-      <FormField>
-        <Label htmlFor={`t-title-${idSuffix}`}>Title</Label>
-        <Input
-          id={`t-title-${idSuffix}`}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </FormField>
-      <FormField>
-        <Label htmlFor={`t-desc-${idSuffix}`}>Description</Label>
-        <MarkdownEditor
-          id={`t-desc-${idSuffix}`}
-          value={description}
-          onChange={setDescription}
-          rows={4}
-          placeholder="Notes about this place…"
-        />
-      </FormField>
+      <Field>
+        <FieldLabel htmlFor={`t-title-${idSuffix}`}>Title</FieldLabel>
+        <FieldControl>
+          <Input
+            id={`t-title-${idSuffix}`}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </FieldControl>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor={`t-desc-${idSuffix}`}>Description</FieldLabel>
+        <FieldControl>
+          <MarkdownEditor
+            id={`t-desc-${idSuffix}`}
+            value={description}
+            onChange={setDescription}
+            rows={4}
+            placeholder="Notes about this place…"
+          />
+        </FieldControl>
+      </Field>
       {!pin && draftCoordsValid
         ? enabledPlugins.map((p) => {
             const Slot = p.PinDraftEnrichmentSlot;
@@ -869,65 +875,77 @@ export function PinFormDialog({
             );
           })
         : null}
-      <FormField>
-        <Label htmlFor={`t-location-detail-${idSuffix}`}>Location label</Label>
-        <Select
-          modal={false}
-          value={locationLabelDetail}
-          onValueChange={(v) => {
-            if (v && isLocationLabelDetail(v)) setLocationLabelDetail(v);
-          }}
-          items={locationDetailSelectItems}
-          disabled={
-            locationLookupPending ||
-            !geocode ||
-            availableLabelPatterns.length === 0
-          }
-        >
-          <FormSelectTriggerFull id={`t-location-detail-${idSuffix}`}>
-            <SelectValue placeholder="Choose location label" />
-          </FormSelectTriggerFull>
-          <SelectContent>
-            {availableLabelPatterns.map((detail) => (
-              <SelectItem key={detail} value={detail}>
-                {locationLabelForDetail(geocode, detail) ?? "—"}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Field>
+        <FieldLabel htmlFor={`t-location-detail-${idSuffix}`}>
+          Location label
+        </FieldLabel>
+        <FieldControl>
+          <Select
+            modal={false}
+            value={locationLabelDetail}
+            onValueChange={(v) => {
+              if (v && isLocationLabelDetail(v)) setLocationLabelDetail(v);
+            }}
+            items={locationDetailSelectItems}
+            disabled={
+              locationLookupPending ||
+              !geocode ||
+              availableLabelPatterns.length === 0
+            }
+          >
+            <FormSelectTriggerFull id={`t-location-detail-${idSuffix}`}>
+              <SelectValue placeholder="Choose location label" />
+            </FormSelectTriggerFull>
+            <SelectContent>
+              {availableLabelPatterns.map((detail) => (
+                <SelectItem key={detail} value={detail}>
+                  {locationLabelForDetail(geocode, detail) ?? "—"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FieldControl>
         {locationLookupPending ? (
-          <FormMutedText>Looking up address…</FormMutedText>
+          <FieldDescription variant="body">
+            Looking up address…
+          </FieldDescription>
         ) : !geocode ? (
-          <FormMutedText>
+          <FieldDescription variant="body">
             Move the pin or wait for geocoding to finish.
-          </FormMutedText>
+          </FieldDescription>
         ) : null}
-      </FormField>
-      <FormField>
-        <Label htmlFor={`t-date-${idSuffix}`}>Date</Label>
-        <Input
-          id={`t-date-${idSuffix}`}
-          type="date"
-          value={dateYmd}
-          onChange={(e) => setDateYmd(e.target.value)}
-        />
-      </FormField>
-      <FormField>
-        <Label htmlFor={`t-end-${idSuffix}`}>End date</Label>
-        <Input
-          id={`t-end-${idSuffix}`}
-          type="date"
-          value={endDateYmd}
-          min={dateYmd || undefined}
-          onChange={(e) => setEndDateYmd(e.target.value)}
-        />
-      </FormField>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor={`t-date-${idSuffix}`}>Date</FieldLabel>
+        <FieldControl>
+          <Input
+            id={`t-date-${idSuffix}`}
+            type="date"
+            value={dateYmd}
+            onChange={(e) => setDateYmd(e.target.value)}
+          />
+        </FieldControl>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor={`t-end-${idSuffix}`}>End date</FieldLabel>
+        <FieldControl>
+          <Input
+            id={`t-end-${idSuffix}`}
+            type="date"
+            value={endDateYmd}
+            min={dateYmd || undefined}
+            onChange={(e) => setEndDateYmd(e.target.value)}
+          />
+        </FieldControl>
+      </Field>
       {pin ? (
         <>
-          <FormField>
-            <Label>Photos</Label>
+          <Field>
+            <FieldLabel>Photos</FieldLabel>
             {photos.length > 1 ? (
-              <FormMutedText>Drag photos to reorder.</FormMutedText>
+              <FieldDescription variant="body">
+                Drag photos to reorder.
+              </FieldDescription>
             ) : null}
             {photos.length > 0 ? (
               <PinFormPhotoSortableGrid
@@ -995,15 +1013,15 @@ export function PinFormDialog({
                 );
               })}
             </PinFormUploadRow>
-          </FormField>
-          <FormField>
-            <Label>Links</Label>
+          </Field>
+          <Field>
+            <FieldLabel>Links</FieldLabel>
             <PinLinksEditor pinId={pin.id} mapId={mapId} />
-          </FormField>
+          </Field>
         </>
       ) : null}
-      <FormField>
-        <Label>Tags</Label>
+      <Field>
+        <FieldLabel>Tags</FieldLabel>
         <PinFormTagBox>
           {(tagsQuery.data ?? []).map((tag) => (
             <PinFormTagOption key={tag.id}>
@@ -1023,7 +1041,7 @@ export function PinFormDialog({
             </PinFormTagOption>
           ))}
           {tagsQuery.data?.length === 0 ? (
-            <FormMutedText>No tags yet.</FormMutedText>
+            <FieldDescription variant="body">No tags yet.</FieldDescription>
           ) : null}
         </PinFormTagBox>
         <Button
@@ -1035,7 +1053,7 @@ export function PinFormDialog({
           <Plus aria-hidden />
           New tag…
         </Button>
-      </FormField>
+      </Field>
       {pin
         ? enabledPlugins.map((p) => {
             const Section = p.PinFormSection;
@@ -1095,7 +1113,7 @@ export function PinFormDialog({
           ) : null}
         </CautionPanel>
       ) : null}
-      {error ? <FormErrorText>{error}</FormErrorText> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
     </PinFormGrid>
   );
 
@@ -1129,16 +1147,16 @@ export function PinFormDialog({
         if (!moving) setMoveOpen(next);
       }}
     >
-      <PanelDialogContent>
-        <PanelDialogHeader>
-          <PanelDialogTitle>Move pin to another map</PanelDialogTitle>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Move pin to another map</DialogTitle>
           <DialogDescription>
             Tags will be removed. If you choose a shared map, other members may
             see this pin. Pick a destination map below.
           </DialogDescription>
-        </PanelDialogHeader>
-        <PanelDialogBody>
-          <PanelDialogFormStack>
+        </DialogHeader>
+        <DialogBody>
+          <DialogFormStack>
             <PinFormMoveList>
               <li>
                 All tags will be removed from this pin. Tags belong to a map and
@@ -1151,7 +1169,7 @@ export function PinFormDialog({
                 </li>
               ) : null}
             </PinFormMoveList>
-            <PanelDialogField>
+            <DialogField>
               <Label htmlFor="move-pin-map">Destination map</Label>
               <Select
                 modal={false}
@@ -1170,10 +1188,10 @@ export function PinFormDialog({
                   ))}
                 </SelectContent>
               </Select>
-            </PanelDialogField>
-          </PanelDialogFormStack>
-        </PanelDialogBody>
-        <PanelDialogFooter>
+            </DialogField>
+          </DialogFormStack>
+        </DialogBody>
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -1189,8 +1207,8 @@ export function PinFormDialog({
           >
             {moving ? "Moving…" : "Move pin"}
           </Button>
-        </PanelDialogFooter>
-      </PanelDialogContent>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   ) : null;
 
@@ -1202,12 +1220,12 @@ export function PinFormDialog({
         setTagDialogOpen(next);
       }}
     >
-      <PanelDialogContent showCloseButton={!tagSaving}>
-        <PanelDialogHeader>
-          <PanelDialogTitle>New tag</PanelDialogTitle>
-        </PanelDialogHeader>
-        <PanelDialogBody>
-          <PanelDialogFormStack>
+      <DialogContent>
+        <DialogHeader showCloseButton={!tagSaving}>
+          <DialogTitle>New tag</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <DialogFormStack>
             <TagEntityLabelInput
               id={`pin-form-tag-name-${idSuffix}`}
               label="Tag"
@@ -1219,9 +1237,9 @@ export function PinFormDialog({
               emoji={newTagEmoji}
               onEmojiChange={setNewTagEmoji}
             />
-          </PanelDialogFormStack>
-        </PanelDialogBody>
-        <PanelDialogFooter>
+          </DialogFormStack>
+        </DialogBody>
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -1237,8 +1255,8 @@ export function PinFormDialog({
           >
             {tagSaving ? "Creating…" : "Create tag"}
           </Button>
-        </PanelDialogFooter>
-      </PanelDialogContent>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 
@@ -1250,14 +1268,16 @@ export function PinFormDialog({
         setDeleteOpen(next);
       }}
     >
-      <PanelDialogContent showCloseButton={!deleting}>
-        <PanelDialogHeader>
-          <PanelDialogTitle>Delete pin?</PanelDialogTitle>
+      <DialogContent>
+        <DialogHeader showCloseButton={!deleting}>
+          <DialogTitle>Delete pin?</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
           <DialogDescription>
             This removes the pin from your map. This cannot be undone.
           </DialogDescription>
-        </PanelDialogHeader>
-        <PanelDialogFooter>
+        </DialogBody>
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -1274,8 +1294,8 @@ export function PinFormDialog({
           >
             {deleting ? "Deleting…" : "Delete pin"}
           </Button>
-        </PanelDialogFooter>
-      </PanelDialogContent>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   ) : null;
 
@@ -1283,9 +1303,13 @@ export function PinFormDialog({
     return (
       <>
         <PinFormFloatingHost hostRef={floatingRef}>
-          <PinFormPanelCard title={dialogTitle} footer={footerActions}>
-            {formFields}
-          </PinFormPanelCard>
+          <DialogContent modal={false} size={pin ? "wide" : "default"}>
+            <DialogHeader showCloseButton onClose={() => onOpenChange(false)}>
+              <DialogCardTitle>{dialogTitle}</DialogCardTitle>
+            </DialogHeader>
+            <DialogBody>{formFields}</DialogBody>
+            <DialogFooter>{footerActions}</DialogFooter>
+          </DialogContent>
         </PinFormFloatingHost>
         {photoLightboxOverlay}
         {tagFormDialog}
@@ -1296,13 +1320,13 @@ export function PinFormDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <PinFormPanelDialog
-          title={dialogTitle}
-          footer={footerActions}
-          size={pin ? "wide" : "default"}
-        >
-          {formFields}
-        </PinFormPanelDialog>
+        <DialogContent size={pin ? "wide" : "default"}>
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>{formFields}</DialogBody>
+          <DialogFooter>{footerActions}</DialogFooter>
+        </DialogContent>
       </Dialog>
       {photoLightboxOverlay}
       {tagFormDialog}

@@ -1,7 +1,15 @@
 import { PinContextMenuTagsSubmenu } from "@/components/map/pin-context-menu-tags-submenu";
 import type { Tag } from "@/types/database";
 import { Button } from "@curolia/ui/button";
-import { Dialog, DialogDescription } from "@curolia/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +19,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@curolia/ui/dropdown-menu";
-import {
-  PanelDialogContent,
-  PanelDialogFooter,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -200,14 +202,16 @@ export function MapPointerContextMenu({
           if (!open) setDeletePinId(null);
         }}
       >
-        <PanelDialogContent showCloseButton={!deleting}>
-          <PanelDialogHeader>
-            <PanelDialogTitle>Delete pin?</PanelDialogTitle>
+        <DialogContent>
+          <DialogHeader showCloseButton={!deleting}>
+            <DialogTitle>Delete pin?</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
             <DialogDescription>
               This removes the pin from your map. This cannot be undone.
             </DialogDescription>
-          </PanelDialogHeader>
-          <PanelDialogFooter>
+          </DialogBody>
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -224,8 +228,8 @@ export function MapPointerContextMenu({
             >
               {deleting ? "Deleting…" : "Delete pin"}
             </Button>
-          </PanelDialogFooter>
-        </PanelDialogContent>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

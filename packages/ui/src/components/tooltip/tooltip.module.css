@@ -9,7 +9,7 @@
   border-radius: var(--radius-lg);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
   background: color-mix(in oklch, var(--muted) 95%, transparent);
-  padding: 0.25rem 0.625rem;
+  padding: var(--space-1) 0.625rem;
   color: var(--foreground);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(4px);
@@ -17,7 +17,7 @@
 
 .title {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   line-height: 1.375;
 }

@@ -7,7 +7,7 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: var(--space-6);
 }
 
 /* Map routes use a fixed toolbar; inset centered states below it. */
@@ -34,6 +34,6 @@
 }
 
 .muted {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }

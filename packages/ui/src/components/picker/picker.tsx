@@ -14,7 +14,7 @@ import {
   EmojiPicker as EmojiPickerRoot,
   EmojiPickerSearch,
 } from "../emoji-picker";
-import { Label } from "../label";
+import { Field, FieldControl, FieldLabel } from "../field";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import styles from "./picker.module.css";
 
@@ -36,20 +36,16 @@ export function PresetColorPicker({
   const normalized = value.toLowerCase();
 
   return (
-    <div className={styles.root}>
-      {label ? (
-        <Label htmlFor={id} className={styles.blockLabel}>
-          {label}
-        </Label>
-      ) : null}
-      <div className={styles.triggerWrap}>
+    <Field className={styles.root}>
+      {label ? <FieldLabel htmlFor={id}>{label}</FieldLabel> : null}
+      <FieldControl className={styles.triggerWrap}>
         <Popover>
           <PopoverTrigger
             id={id}
             type="button"
             className={buttonClassName({
               variant: "outline",
-              size: "lg",
+              size: "default",
               className: styles.trigger,
             })}
           >
@@ -74,8 +70,8 @@ export function PresetColorPicker({
             </ColorPicker>
           </PopoverContent>
         </Popover>
-      </div>
-    </div>
+      </FieldControl>
+    </Field>
   );
 }
 
@@ -127,11 +123,9 @@ export function EmojiFieldPicker({
   }, [value]);
 
   return (
-    <div className={styles.root}>
-      <Label htmlFor={id} className={styles.blockLabel}>
-        {label}
-      </Label>
-      <div className={styles.triggerWrap}>
+    <Field className={styles.root}>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldControl className={styles.triggerWrap}>
         <Popover
           open={disabled ? false : open}
           onOpenChange={(o) => !disabled && setOpen(o)}
@@ -142,7 +136,7 @@ export function EmojiFieldPicker({
             disabled={disabled}
             className={buttonClassName({
               variant: "outline",
-              size: "lg",
+              size: "default",
               className: styles.trigger,
             })}
           >
@@ -174,8 +168,8 @@ export function EmojiFieldPicker({
             </EmojiPickerRoot>
           </PopoverContent>
         </Popover>
-      </div>
-    </div>
+      </FieldControl>
+    </Field>
   );
 }
 

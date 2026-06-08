@@ -35,7 +35,7 @@
   margin: 0 auto;
   width: 100%;
   max-width: 42rem;
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .contentStack {
@@ -43,7 +43,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .contentStackNarrow {
@@ -69,69 +69,59 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
   padding-bottom: 1rem;
 }
 
 .headerRow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .title {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 400;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-normal);
   color: var(--foreground);
 }
 
 .displayTitle {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-normal);
   letter-spacing: -0.025em;
   color: var(--foreground);
 }
 
 .lead {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  line-height: 1.625;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
-}
-
-.panelPadding {
-  padding: 1.25rem;
-}
-
-@media (min-width: 40rem) {
-  .panelPadding {
-    padding: 1.5rem;
-  }
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .sectionTitle {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }
 
 .muted {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .fab {
@@ -142,13 +132,13 @@
 }
 
 .iconSm {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 .iconMd {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
 }
 
 .opacity80 {
@@ -164,31 +154,31 @@
 }
 
 .sectionHeading {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: -0.025em;
   color: var(--foreground);
 }
 
 .sectionSubheading {
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--foreground);
 }
 
 .sectionHint {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  line-height: 1.625;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
 
 .inlineActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .inlineActionsSpaced {
@@ -196,14 +186,14 @@
 }
 
 .inlineActionsTight {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
 }
 
 .switchRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .switchRowText {
@@ -214,52 +204,52 @@
 }
 
 .switchRowLabel {
-  font-size: 0.875rem;
-  font-weight: 400;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
 }
 
 .switchRowHint {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
 
 .switchStack {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .profileGrid {
   margin-top: 1.5rem;
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .avatarSection {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .avatarRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .avatarActions {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .avatarHint {
   max-width: 24rem;
-  font-size: 0.75rem;
-  line-height: 1.625;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
 
@@ -283,13 +273,13 @@
 }
 
 .emailHighlight {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }
 
 .emailLine {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -298,7 +288,7 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: var(--space-6);
 }
 
 .centeredError {
@@ -306,7 +296,7 @@
   height: 100%;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1rem;
+  gap: var(--space-4);
   padding: calc(var(--page-chrome-top) + 0.75rem) calc(1rem + var(--safe-right))
     calc(2rem + var(--safe-bottom)) calc(1rem + var(--safe-left));
 }
@@ -321,8 +311,8 @@
 
 .panelTitleLg {
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 400;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-normal);
   letter-spacing: -0.025em;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -331,7 +321,7 @@
 .panelTitleRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .panelTitleIcon {
@@ -340,34 +330,34 @@
 }
 
 .panelTitleIcon svg {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 .panelHeaderBlock {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .formBlockSpaced {
   margin-top: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .errorText {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--destructive);
 }
 
 .errorTextSpaced {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
   color: var(--destructive);
 }
 
 .messageText {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .capitalize {
@@ -381,7 +371,7 @@
 .inviteRow {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 @media (min-width: 40rem) {
@@ -409,11 +399,11 @@
 .sharingRoot {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-6);
 }
 
 .sharingSection {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }

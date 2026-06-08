@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 
-import { Dialog } from "../dialog";
-import { PageBackButton } from "../page-back-button";
 import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogSection,
-  PanelDialogTitle,
-} from "../panel-dialog";
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogHeader,
+  DialogSection,
+  DialogTitle,
+} from "../dialog";
+import { PageBackButton } from "../page-back-button";
 import styles from "./about-dialog.module.css";
 
 export type AboutDialogShellProps = {
@@ -33,19 +34,21 @@ export function AboutDialogShell({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <PanelDialogContent>
-        <PanelDialogSection>
-          {showPanel && onBack ? (
+      <DialogContent>
+        {showPanel && onBack ? (
+          <DialogSection>
             <div className={styles.backRow}>
               <PageBackButton onClick={onBack} label={backLabel} />
             </div>
-          ) : null}
-          <PanelDialogTitle>{title}</PanelDialogTitle>
-        </PanelDialogSection>
-        <PanelDialogBody className={styles.body}>
+          </DialogSection>
+        ) : null}
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <DialogBody className={styles.body}>
           {showPanel ? panel : main}
-        </PanelDialogBody>
-      </PanelDialogContent>
+        </DialogBody>
+      </DialogContent>
     </Dialog>
   );
 }

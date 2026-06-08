@@ -1,7 +1,7 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .blockLabel {
@@ -11,9 +11,9 @@
 .field {
   display: flex;
   align-items: center;
-  height: 2.25rem;
+  height: var(--control-h-md);
   min-width: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--field-radius);
   border: 1px solid var(--input);
   background: transparent;
   transition:
@@ -23,7 +23,7 @@
 
 .field:focus-within {
   border-color: var(--ring);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  box-shadow: var(--focus-ring);
 }
 
 .fieldDisabled {
@@ -51,8 +51,8 @@
 
 .adornmentButton {
   display: inline-flex;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -78,8 +78,8 @@
 }
 
 .colorSwatch {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px
     color-mix(in oklch, var(--foreground) 12%, transparent);
@@ -91,7 +91,7 @@
   height: 1.125rem;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   line-height: 1;
 }
 
@@ -102,7 +102,7 @@
   border: 0;
   background: transparent;
   padding: 0 0.75rem;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   color: var(--foreground);
   outline: none;
 }
@@ -123,7 +123,7 @@
 
 .popoverColor {
   width: min(calc(100vw - 2rem), 18rem);
-  padding: 0.75rem;
+  padding: var(--space-3);
 }
 
 .popoverEmoji {

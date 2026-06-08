@@ -4,17 +4,25 @@ import { supabase } from "@/lib/supabase";
 import type { Pin } from "@/types/database";
 import { pinLocationLabel } from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
-import { Dialog } from "@curolia/ui/dialog";
-import { Input } from "@curolia/ui/input";
-import { Label } from "@curolia/ui/label";
 import {
-  FormErrorText,
-  FormField,
-  FormMutedTextXs,
+  Dialog,
+  DialogBody,
+  DialogCardTitle,
+  DialogContent,
+  DialogFooter,
+  DialogFooterEnd,
+  DialogFooterStart,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
+import { Input } from "@curolia/ui/input";
+import {
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
   PinFormFloatingHost,
-  PinFormFooterSplit,
-  PinFormPanelCard,
-  PinFormPanelDialog,
   PinFormPanelFieldGroup,
 } from "@curolia/ui/pin-form";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
@@ -202,8 +210,8 @@ export function PinMapQuickAddDialog({
   };
 
   const footer = (
-    <PinFormFooterSplit
-      start={
+    <>
+      <DialogFooterStart>
         <Button
           type="button"
           variant="outline"
@@ -212,23 +220,21 @@ export function PinMapQuickAddDialog({
         >
           Delete
         </Button>
-      }
-      end={
-        <>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={busy}
-            onClick={editPin}
-          >
-            Edit
-          </Button>
-          <Button type="button" disabled={busy} onClick={openPin}>
-            Open
-          </Button>
-        </>
-      }
-    />
+      </DialogFooterStart>
+      <DialogFooterEnd>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={busy}
+          onClick={editPin}
+        >
+          Edit
+        </Button>
+        <Button type="button" disabled={busy} onClick={openPin}>
+          Open
+        </Button>
+      </DialogFooterEnd>
+    </>
   );
 
   const derivedLocationLabel = pin ? pinLocationLabel(pin) : null;
@@ -236,35 +242,36 @@ export function PinMapQuickAddDialog({
   const fields = (
     <>
       <PinFormPanelFieldGroup>
-        <FormField>
-          <Label htmlFor="pin-quick-title">Title</Label>
-          <Input
-            id="pin-quick-title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => void onTitleBlur()}
-            autoComplete="off"
-          />
-        </FormField>
-        {derivedLocationLabel ? (
-          <FormMutedTextXs>{derivedLocationLabel}</FormMutedTextXs>
-        ) : null}
+        <Field>
+          <FieldLabel htmlFor="pin-quick-title">Title</FieldLabel>
+          <FieldControl>
+            <Input
+              id="pin-quick-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => void onTitleBlur()}
+              autoComplete="off"
+            />
+          </FieldControl>
+          {derivedLocationLabel ? (
+            <FieldDescription>{derivedLocationLabel}</FieldDescription>
+          ) : null}
+        </Field>
       </PinFormPanelFieldGroup>
-      {error ? <FormErrorText>{error}</FormErrorText> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
     </>
   );
 
   if (useFloatingPanel && anchorScreen) {
     return (
       <PinFormFloatingHost hostRef={floatingRef}>
-        <PinFormPanelCard
-          title="New pin"
-          footerBetween
-          footer={footer}
-          onClose={closePopover}
-        >
-          {fields}
-        </PinFormPanelCard>
+        <DialogContent modal={false}>
+          <DialogHeader showCloseButton onClose={closePopover}>
+            <DialogCardTitle>New pin</DialogCardTitle>
+          </DialogHeader>
+          <DialogBody>{fields}</DialogBody>
+          <DialogFooter between>{footer}</DialogFooter>
+        </DialogContent>
       </PinFormFloatingHost>
     );
   }
@@ -276,9 +283,13 @@ export function PinMapQuickAddDialog({
         if (!o) void flushTitleIfNeeded().then(() => onOpenChange(false));
       }}
     >
-      <PinFormPanelDialog title="New pin" footerBetween footer={footer}>
-        {fields}
-      </PinFormPanelDialog>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New pin</DialogTitle>
+        </DialogHeader>
+        <DialogBody>{fields}</DialogBody>
+        <DialogFooter between>{footer}</DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

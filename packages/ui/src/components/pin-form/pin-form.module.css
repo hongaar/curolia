@@ -1,48 +1,13 @@
-.panelCard {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0;
-  min-height: 0;
-  padding-block: 0;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-xl);
-  background: var(--panel-bg);
-  box-shadow: none;
-  backdrop-filter: blur(24px);
-}
-
-.panelCardHeaderRow {
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.panelCardHeaderRow > :first-child {
-  min-width: 0;
-  flex: 1;
-}
-
-.panelCardClose {
-  flex-shrink: 0;
-}
-
-.panelCardCloseIcon {
-  width: 1rem;
-  height: 1rem;
-}
-
 .panelCardFieldGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
+  gap: var(--space-5);
 }
 
 .pluginSectionCard {
@@ -55,16 +20,16 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   padding-bottom: 0.5rem;
 }
 
 .pluginSectionTitleRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  line-height: 1.25;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-tight) 5;
 }
 
 .pluginSectionIcon {
@@ -88,7 +53,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: inherit;
-  font-weight: 400;
+  font-weight: var(--font-weight-normal);
   line-height: inherit;
   letter-spacing: -0.025em;
 }
@@ -96,18 +61,18 @@
 .pluginSectionBody {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .coordsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .placeText {
   min-height: 1.35rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   line-height: 1.375;
   color: var(--muted-foreground);
 }
@@ -119,7 +84,7 @@
 .photoGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .photoSortableItem {
@@ -146,8 +111,8 @@
   left: 0.25rem;
   z-index: 2;
   display: flex;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   align-items: center;
   justify-content: center;
   border: 1px solid rgb(0 0 0 / 0.1);
@@ -190,8 +155,8 @@
 }
 
 .photoDragHandleIcon {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
 }
 
 .photoThumb {
@@ -216,8 +181,8 @@
   right: 0.25rem;
   z-index: 2;
   display: flex;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   align-items: center;
   justify-content: center;
   border: 1px solid rgb(0 0 0 / 0.1);
@@ -250,8 +215,8 @@
 }
 
 .photoRemoveIcon {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
 }
 
 .photoPlaceholder {
@@ -261,7 +226,7 @@
   align-items: center;
   justify-content: center;
   background: var(--muted);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
 
@@ -269,8 +234,8 @@
   display: inline-flex;
   cursor: pointer;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
 }
 
 .uploadInput {
@@ -289,7 +254,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .tagBox {
@@ -297,23 +262,23 @@
   overflow-y: auto;
   border-radius: var(--radius-lg);
   border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
-  padding: 0.5rem;
+  padding: var(--space-2);
 }
 
 .tagOption {
   display: flex;
   cursor: pointer;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
 }
 
 .tagOption + .tagOption {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
 }
 
 .dangerZone {
-  margin-top: 1rem;
+  margin-top: var(--space-4);
   border-top: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
   padding-top: 1rem;
 }
@@ -321,7 +286,7 @@
 .dangerActions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (min-width: 40rem) {
@@ -332,7 +297,7 @@
 }
 
 .dangerHint {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   font-size: 11px;
   line-height: 1.375;
   color: var(--muted-foreground);
@@ -341,7 +306,7 @@
 .moveList {
   list-style: disc;
   padding-left: 1rem;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -350,7 +315,7 @@
 }
 
 .dialogFooterBorder {
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (min-width: 40rem) {
@@ -373,17 +338,9 @@
 .floatingInner {
   pointer-events: auto;
   position: relative;
-  min-width: 18rem;
-  max-width: 24rem;
-  border-radius: var(--radius-xl);
-}
-
-.floatingShell {
-  max-height: min(92dvh, 44rem);
-  min-height: 0;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  box-shadow: inset 0 0 0 1px var(--panel-border);
+  display: flex;
+  min-width: 0;
+  max-width: min(28rem, calc(100vw - 2rem));
 }
 
 .destructiveOutline {
@@ -402,24 +359,4 @@
 
 .destructiveOutlineSoft:hover {
   background: color-mix(in oklch, var(--destructive) 10%, transparent);
-}
-
-.footerSplit {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 0.5rem;
-}
-
-@media (min-width: 40rem) {
-  .footerSplit {
-    flex-direction: row;
-    gap: 0.5rem;
-  }
-}
-
-.footerSplitEnd {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }

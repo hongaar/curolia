@@ -1,49 +1,59 @@
 .display {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-size: var(--text-display);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.025em;
   color: var(--foreground);
 }
 
 .heading {
   font-family: var(--font-heading);
-  font-weight: 400;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.025em;
   color: var(--foreground);
 }
 
 .title {
-  font-size: 1.5rem;
-  line-height: 1.2;
+  font-size: var(--text-title);
+  line-height: var(--line-height-tight);
   letter-spacing: -0.025em;
 }
 
 .titleLg {
-  font-size: 1.875rem;
-  line-height: 1.2;
+  font-size: var(--text-title-lg);
+  line-height: var(--line-height-tight);
   letter-spacing: -0.025em;
 }
 
 .body {
-  font-size: 0.875rem;
+  font-size: var(--text-body);
+  line-height: var(--line-height-normal);
   color: var(--foreground);
 }
 
 .muted {
-  font-size: 0.875rem;
+  font-size: var(--text-body);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
 .mutedXs {
-  font-size: 0.75rem;
+  font-size: var(--text-caption);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
 .label {
-  font-size: 0.75rem;
+  font-size: var(--text-label);
+  line-height: var(--line-height-snug);
   color: var(--muted-foreground);
 }
 
 .medium {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .destructive {

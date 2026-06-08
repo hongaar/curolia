@@ -1,12 +1,12 @@
 .face {
   display: flex;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: 2px solid rgb(255 255 255 / 0.8);
-  font-size: 1.125rem;
+  font-size: var(--font-size-lg);
   transition:
     box-shadow 150ms,
     background-color 150ms,

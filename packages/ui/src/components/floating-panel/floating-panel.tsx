@@ -8,16 +8,20 @@ export type FloatingPanelProps = React.ComponentProps<"div"> & {
   padding?: "default" | "lg" | "none";
   /** Adds elevation stacking context for toolbars and login card. */
   elevated?: boolean;
+  /** Page scroll content: flat chrome on narrow viewports. */
+  surface?: "floating" | "page";
 };
 
 export function FloatingPanel({
   padding = "default",
   elevated = false,
+  surface = "floating",
   className,
   ...props
 }: FloatingPanelProps) {
   return (
     <div
+      data-surface={surface === "page" ? "page" : undefined}
       className={cn(
         styles.root,
         padding === "default" && styles.paddingDefault,

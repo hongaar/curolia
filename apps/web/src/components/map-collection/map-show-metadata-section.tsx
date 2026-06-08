@@ -6,9 +6,13 @@ import {
   type PinMetadataShowFieldKey,
   type PinMetadataShowSettings,
 } from "@curolia/plugin-contract";
-import { FormField, FormSelectTriggerFull } from "@curolia/ui/form-layout";
-import { Label } from "@curolia/ui/label";
-import { PageMuted } from "@curolia/ui/page";
+import {
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldLabel,
+  FormSelectTriggerFull,
+} from "@curolia/ui/form-layout";
 import {
   Select,
   SelectContent,
@@ -42,34 +46,38 @@ export function MapShowMetadataField({
   );
 
   return (
-    <FormField>
-      <Label id={selectId}>Show metadata</Label>
-      <PageMuted>Choose which place information to show on pins.</PageMuted>
-      <Select
-        multiple
-        disabled={disabled}
-        value={value}
-        onValueChange={(next) => onChange(next ?? [])}
-        items={SHOW_METADATA_ITEMS}
-      >
-        <FormSelectTriggerFull aria-labelledby={selectId}>
-          <SelectValue placeholder="No metadata shown">
-            {(selected) => pinMetadataShowSelectSummary(selected)}
-          </SelectValue>
-        </FormSelectTriggerFull>
-        <SelectContent alignItemWithTrigger>
-          {PIN_METADATA_SHOW_GROUPS.map((group) => (
-            <SelectGroup key={group.label}>
-              <SelectLabel>{group.label}</SelectLabel>
-              {group.keys.map((key) => (
-                <SelectItem key={key} value={key}>
-                  {pinMetadataFieldLabel(key)}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          ))}
-        </SelectContent>
-      </Select>
-    </FormField>
+    <Field>
+      <FieldLabel id={selectId}>Show metadata</FieldLabel>
+      <FieldDescription variant="body">
+        Choose which place information to show on pins.
+      </FieldDescription>
+      <FieldControl>
+        <Select
+          multiple
+          disabled={disabled}
+          value={value}
+          onValueChange={(next) => onChange(next ?? [])}
+          items={SHOW_METADATA_ITEMS}
+        >
+          <FormSelectTriggerFull aria-labelledby={selectId}>
+            <SelectValue placeholder="No metadata shown">
+              {(selected) => pinMetadataShowSelectSummary(selected)}
+            </SelectValue>
+          </FormSelectTriggerFull>
+          <SelectContent alignItemWithTrigger>
+            {PIN_METADATA_SHOW_GROUPS.map((group) => (
+              <SelectGroup key={group.label}>
+                <SelectLabel>{group.label}</SelectLabel>
+                {group.keys.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {pinMetadataFieldLabel(key)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+      </FieldControl>
+    </Field>
   );
 }

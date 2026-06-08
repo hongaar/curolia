@@ -5,7 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import styles from "./plugin-pin.module.css";
 
 export function PluginPinCard({ children }: { children: React.ReactNode }) {
-  return <Card className={styles.card}>{children}</Card>;
+  return (
+    <Card size="sm" className={styles.card}>
+      {children}
+    </Card>
+  );
 }
 
 export function PluginPinHeader({

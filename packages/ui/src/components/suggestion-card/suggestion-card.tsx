@@ -2,6 +2,7 @@ import { Loader2, X } from "lucide-react";
 import type * as React from "react";
 
 import { Button } from "../button";
+import { Card, CardContent, CardHeader } from "../card";
 import styles from "./suggestion-card.module.css";
 
 /** Vertical stack wrapper for one or more suggestion cards. */
@@ -52,17 +53,24 @@ export function SuggestionCard({
   busy = false,
 }: SuggestionCardProps) {
   return (
-    <div className={styles.card} data-busy={busy ? "" : undefined}>
+    <Card
+      variant="colored"
+      size="sm"
+      className={styles.root}
+      data-busy={busy ? "" : undefined}
+    >
       {eyebrow || icon ? (
-        <div className={styles.eyebrow}>
-          {icon ? (
-            <span className={styles.eyebrowIcon} aria-hidden>
-              {icon}
-            </span>
-          ) : null}
-          {eyebrow ? <span>{eyebrow}</span> : null}
-          {busy ? <Loader2 className={styles.spinner} aria-hidden /> : null}
-        </div>
+        <CardHeader className={styles.eyebrowHeader}>
+          <div className={styles.eyebrow}>
+            {icon ? (
+              <span className={styles.eyebrowIcon} aria-hidden>
+                {icon}
+              </span>
+            ) : null}
+            {eyebrow ? <span>{eyebrow}</span> : null}
+            {busy ? <Loader2 className={styles.spinner} aria-hidden /> : null}
+          </div>
+        </CardHeader>
       ) : null}
       {onDismiss ? (
         <Button
@@ -77,19 +85,21 @@ export function SuggestionCard({
           <X aria-hidden />
         </Button>
       ) : null}
-      <div className={styles.body}>
-        {thumbnailUrl ? (
-          <img src={thumbnailUrl} alt="" className={styles.thumb} />
-        ) : null}
-        <div className={styles.main}>
-          <p className={styles.title}>{title}</p>
-          {meta ? <p className={styles.meta}>{meta}</p> : null}
-          {description ? (
-            <p className={styles.description}>{description}</p>
+      <CardContent className={styles.content}>
+        <div className={styles.body}>
+          {thumbnailUrl ? (
+            <img src={thumbnailUrl} alt="" className={styles.thumb} />
           ) : null}
+          <div className={styles.main}>
+            <p className={styles.title}>{title}</p>
+            {meta ? <p className={styles.meta}>{meta}</p> : null}
+            {description ? (
+              <p className={styles.description}>{description}</p>
+            ) : null}
+          </div>
         </div>
-      </div>
-      {actions ? <div className={styles.actions}>{actions}</div> : null}
-    </div>
+        {actions ? <div className={styles.actions}>{actions}</div> : null}
+      </CardContent>
+    </Card>
   );
 }

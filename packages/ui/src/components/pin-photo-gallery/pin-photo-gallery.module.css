@@ -5,19 +5,19 @@
 .rows {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .row {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .columns {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .column {
@@ -25,11 +25,11 @@
   min-width: 0;
   flex: 1 1 0;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .masonry {
-  column-gap: 0.75rem;
+  column-gap: var(--space-3);
   column-count: 2;
 }
 
@@ -118,8 +118,8 @@
 }
 
 .hoverIcon {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
   color: white;
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
 }
@@ -166,8 +166,8 @@
 
 .sourceBadgeIcon {
   display: flex;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
   align-items: center;
   justify-content: center;
   line-height: 0;
@@ -180,7 +180,7 @@
   justify-content: center;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--muted-foreground);
   background: color-mix(in oklch, var(--muted) 40%, transparent);
 }

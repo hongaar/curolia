@@ -1,6 +1,6 @@
 .footer {
-  margin-top: 1rem;
-  font-size: 0.75rem;
-  line-height: 1.625;
+  margin-top: var(--space-4);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }

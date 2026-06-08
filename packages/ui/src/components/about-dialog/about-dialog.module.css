@@ -1,18 +1,18 @@
 .body {
   display: grid;
-  gap: 1.25rem;
+  gap: var(--space-5);
   width: 100%;
   min-width: 0;
 }
 
 .meta {
   display: grid;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .versionLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--space-3);
   width: 100%;
   padding: 0.625rem 0.875rem;
   border: none;
@@ -73,20 +73,20 @@
 }
 
 .linkChevron {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   flex-shrink: 0;
   color: var(--muted-foreground);
 }
 
 .section {
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -94,8 +94,8 @@
 
 .mapAttribution {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
@@ -124,13 +124,13 @@
 .npmItem {
   display: grid;
   gap: 0.125rem;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-sm);
   line-height: 1.45;
 }
 
 .npmName {
   font-family: ui-monospace, monospace;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--foreground);
   word-break: break-word;
 }
@@ -140,8 +140,8 @@
 }
 
 .npmRepo {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--primary);
   text-decoration: none;
   width: fit-content;
@@ -153,12 +153,12 @@
 
 .npmEmpty {
   margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
 .npmCode {
   font-family: ui-monospace, monospace;
-  font-size: 0.8125rem;
+  font-size: var(--font-size-sm);
 }

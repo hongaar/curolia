@@ -64,7 +64,15 @@ import {
   reverseGeocodeForStorage,
 } from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
-import { Dialog } from "@curolia/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogFormStack,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
 import {
   MapControlsBottomCenter,
   MapControlsBottomStack,
@@ -76,14 +84,6 @@ import {
   MapSidePanel,
   MapVignette,
 } from "@curolia/ui/map";
-import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogFooter,
-  PanelDialogFormStack,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   lazy,
@@ -980,14 +980,12 @@ export function MapPage() {
           if (!open) setTagEditTarget(null);
         }}
       >
-        <PanelDialogContent>
-          <PanelDialogHeader>
-            <PanelDialogTitle>
-              {tagEditTarget ? "Edit tag" : "New tag"}
-            </PanelDialogTitle>
-          </PanelDialogHeader>
-          <PanelDialogBody>
-            <PanelDialogFormStack>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tagEditTarget ? "Edit tag" : "New tag"}</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <DialogFormStack>
               <TagEntityLabelInput
                 id="tag-name"
                 label="Tag"
@@ -999,9 +997,9 @@ export function MapPage() {
                 emoji={newTagEmoji}
                 onEmojiChange={setNewTagEmoji}
               />
-            </PanelDialogFormStack>
-          </PanelDialogBody>
-          <PanelDialogFooter>
+            </DialogFormStack>
+          </DialogBody>
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
@@ -1014,8 +1012,8 @@ export function MapPage() {
             <Button onClick={() => void saveTag()}>
               {tagEditTarget ? "Save tag" : "Create tag"}
             </Button>
-          </PanelDialogFooter>
-        </PanelDialogContent>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </MapPageRoot>
   );

@@ -3,9 +3,14 @@ import type * as React from "react";
 import { SelectTrigger } from "../select";
 import styles from "./form-layout.module.css";
 
-export function FormField({ children }: { children: React.ReactNode }) {
-  return <div className={styles.formField}>{children}</div>;
-}
+export {
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  useFieldDescribedBy,
+} from "../field";
 
 export function FormGrid({ children }: { children: React.ReactNode }) {
   return <div className={styles.formGrid}>{children}</div>;
@@ -37,18 +42,6 @@ export function FormActions({
 
 export function FormSection({ children }: { children: React.ReactNode }) {
   return <div className={styles.formSection}>{children}</div>;
-}
-
-export function FormErrorText({ children }: { children: React.ReactNode }) {
-  return <p className={styles.errorText}>{children}</p>;
-}
-
-export function FormMutedText({ children }: { children: React.ReactNode }) {
-  return <p className={styles.mutedText}>{children}</p>;
-}
-
-export function FormMutedTextXs({ children }: { children: React.ReactNode }) {
-  return <p className={styles.mutedTextXs}>{children}</p>;
 }
 
 export function SrOnlyInput(props: React.ComponentProps<"input">) {

@@ -1,9 +1,9 @@
 .panel {
-  margin-top: 0.75rem;
+  margin-top: var(--space-3);
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
   background: color-mix(in oklch, var(--muted) 25%, transparent);
-  padding: 0.75rem;
+  padding: var(--space-3);
 }
 
 .panelCompact {
@@ -12,8 +12,8 @@
 
 .heading {
   margin: 0 0 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -22,7 +22,7 @@
 .row {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 @media (min-width: 40rem) {
@@ -34,28 +34,28 @@
 }
 
 .rowGapSm {
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .body {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--foreground);
 }
 
 .muted {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
 .accountName {
   word-break: break-all;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .inputRow {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (min-width: 40rem) {

@@ -1,6 +1,30 @@
 /* Parchment + atlas field-map design tokens */
 :root {
-  --nav-shell-pad: 0.75rem;
+  /* ── Spacing scale ───────────────────────────────────────────── */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.5rem;
+  --space-10: 3rem;
+  --space-11: 3.5rem;
+  --space-12: 4rem;
+
+  /* Semantic spacing aliases */
+  --gap-form-field: var(--space-2);
+  --gap-form-section: var(--space-6);
+  --gap-form-grid: var(--space-5);
+  --card-pad: var(--space-6);
+  --card-pad-sm: var(--space-4);
+  --dialog-pad: var(--card-pad);
+  --panel-pad: var(--space-4);
+
+  /* ── Radius ──────────────────────────────────────────────────── */
   --radius: 0.875rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -9,20 +33,63 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-full: 9999px;
+
+  /* ── Typography ────────────────────────────────────────────── */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --text-display: var(--font-size-4xl);
+  --text-title-lg: var(--font-size-3xl);
+  --text-title: var(--font-size-2xl);
+  --text-body: var(--font-size-sm);
+  --text-label: var(--font-size-sm);
+  --text-caption: var(--font-size-xs);
+
+  /* ── Control sizing (toolbar, search, map-picker, inputs) ──── */
+  --control-h-sm: 2rem;
+  --control-h-md: 2.5rem;
+  --control-h-lg: 2.75rem;
+  --control-pad-x-sm: var(--space-3);
+  --control-pad-x-md: var(--space-4);
+  --control-pad-x-lg: var(--space-5);
+  --control-gap: var(--space-2);
+  --control-radius: var(--radius-full);
+  --field-radius: var(--radius-lg);
+  --icon-size-sm: 0.875rem;
+  --icon-size-md: 1rem;
+  --icon-size-lg: 1.125rem;
+
+  /* ── Layout chrome ─────────────────────────────────────────── */
+  --nav-shell-pad: var(--space-3);
   /*
    * Toolbar chrome (tweak these only):
    * --toolbar-h       row below the notch (content band; used for FAB offsets, etc.)
    * --toolbar-pad-x   horizontal inset from screen edges
    * --toolbar-offset  total header height = safe-top + toolbar-h (toolbar + map inset + page top)
    */
-  --toolbar-h: 4.5rem;
-  --toolbar-pad-x: 1.5rem;
+  --toolbar-h: 4.75rem;
+  --toolbar-pad-x: var(--space-6);
   --toolbar-offset: calc(var(--safe-top) + var(--toolbar-h));
-  /* MDXEditor link/edit overlays (portaled); above dialogs (~111), below lightbox (200). */
   --mdx-editor-overlay-z: 120;
   --mdx-editor-overlay-content-z: 121;
   --app-chrome-top: var(--toolbar-offset);
-  /* Scrollable app pages; overridden on html.stack-chrome (mobile stack, no toolbar). */
   --page-chrome-top: var(--toolbar-offset);
 
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
@@ -33,63 +100,82 @@
   );
   --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 
-  --font-size-base: 0.9375rem;
-  --font-size-sm: 0.8125rem;
-  --font-size-xs: 0.75rem;
-
+  /* ── Shadows (warm parchment tint) ───────────────────────────── */
+  --shadow-tint: oklch(0.35 0.06 52);
   --shadow-sm: 0 1px 2px 0
-    color-mix(in oklch, var(--foreground) 6%, transparent);
+    color-mix(in oklch, var(--shadow-tint) 8%, transparent);
   --shadow-md:
-    0 4px 6px -1px color-mix(in oklch, var(--foreground) 8%, transparent),
-    0 2px 4px -2px color-mix(in oklch, var(--foreground) 6%, transparent);
+    0 4px 6px -1px color-mix(in oklch, var(--shadow-tint) 10%, transparent),
+    0 2px 4px -2px color-mix(in oklch, var(--shadow-tint) 8%, transparent);
   --shadow-lg:
-    0 10px 15px -3px color-mix(in oklch, var(--foreground) 10%, transparent),
-    0 4px 6px -4px color-mix(in oklch, var(--foreground) 8%, transparent);
+    0 10px 15px -3px color-mix(in oklch, var(--shadow-tint) 12%, transparent),
+    0 4px 6px -4px color-mix(in oklch, var(--shadow-tint) 10%, transparent);
   --shadow-xl:
-    0 20px 25px -5px color-mix(in oklch, var(--foreground) 10%, transparent),
-    0 8px 10px -6px color-mix(in oklch, var(--foreground) 8%, transparent);
+    0 20px 25px -5px color-mix(in oklch, var(--shadow-tint) 12%, transparent),
+    0 8px 10px -6px color-mix(in oklch, var(--shadow-tint) 10%, transparent);
   --shadow-2xl: 0 25px 50px -12px
-    color-mix(in oklch, var(--foreground) 18%, transparent);
+    color-mix(in oklch, var(--shadow-tint) 20%, transparent);
 
-  --background: oklch(0.955 0.022 88);
-  --foreground: oklch(0.18 0.055 260);
-  --card: oklch(0.995 0.014 95);
-  --card-foreground: oklch(0.18 0.055 260);
-  --popover: oklch(0.995 0.012 95);
-  --popover-foreground: oklch(0.18 0.055 260);
+  /* ── Colors (warmer parchment + logo accents) ───────────────── */
+  --background: oklch(0.96 0.028 82);
+  --foreground: oklch(0.2 0.055 260);
+  --card: oklch(0.995 0.018 88);
+  --card-foreground: oklch(0.2 0.055 260);
+  --popover: oklch(0.995 0.016 88);
+  --popover-foreground: oklch(0.2 0.055 260);
   --primary: oklch(0.38 0.14 158);
   --primary-foreground: oklch(0.98 0.01 95);
-  --secondary: oklch(0.91 0.03 95);
-  --secondary-foreground: oklch(0.26 0.045 260);
-  --muted: oklch(0.9 0.025 95);
-  --muted-foreground: oklch(0.42 0.035 260);
-  --accent: oklch(0.9 0.05 95);
-  --accent-foreground: oklch(0.18 0.055 260);
-  --orange: oklch(0.52 0.18 52);
-  --orange-foreground: oklch(0.98 0.015 90);
-  --orange-muted: oklch(0.88 0.06 52);
+  --secondary: oklch(0.92 0.035 82);
+  --secondary-foreground: oklch(0.28 0.045 260);
+  --muted: oklch(0.91 0.03 82);
+  --muted-foreground: oklch(0.44 0.035 260);
+  --accent: oklch(0.91 0.055 82);
+  --accent-foreground: oklch(0.2 0.055 260);
+  --accent-strong: oklch(0.52 0.18 52);
+  --accent-strong-foreground: oklch(0.98 0.015 90);
+  --orange: var(--accent-strong);
+  --orange-foreground: var(--accent-strong-foreground);
+  --orange-muted: oklch(0.88 0.07 52);
   --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.35 0.045 260 / 0.16);
-  --input: oklch(0.35 0.045 260 / 0.14);
+  --border: oklch(0.38 0.05 52 / 0.18);
+  --input: oklch(0.38 0.045 260 / 0.14);
   --ring: oklch(0.4 0.12 158);
+  --focus-ring-color: color-mix(in oklch, var(--ring) 35%, transparent);
+  --focus-ring: 0 0 0 3px var(--focus-ring-color);
   --chart-1: oklch(0.55 0.14 158);
   --chart-2: oklch(0.5 0.1 250);
   --chart-3: oklch(0.55 0.14 45);
   --chart-4: oklch(0.45 0.035 260);
   --chart-5: oklch(0.75 0.08 85);
-  --sidebar: oklch(0.97 0.018 88);
-  --sidebar-foreground: oklch(0.18 0.055 260);
+  --sidebar: oklch(0.975 0.022 82);
+  --sidebar-foreground: oklch(0.2 0.055 260);
   --sidebar-primary: oklch(0.38 0.14 158);
   --sidebar-primary-foreground: oklch(0.98 0.01 95);
-  --sidebar-accent: oklch(0.91 0.03 95);
-  --sidebar-accent-foreground: oklch(0.18 0.055 260);
-  --sidebar-border: oklch(0.35 0.045 260 / 0.14);
+  --sidebar-accent: oklch(0.92 0.035 82);
+  --sidebar-accent-foreground: oklch(0.2 0.055 260);
+  --sidebar-border: oklch(0.38 0.05 52 / 0.16);
   --sidebar-ring: oklch(0.4 0.12 158);
-  --panel-bg: oklch(0.995 0.014 95 / 0.7);
-  --panel-border: oklch(0.3 0.045 260 / 0.16);
-  --panel-fg: oklch(0.18 0.055 260);
-  --panel-shadow: 0 22px 44px -14px oklch(0.2 0.045 260 / 0.24);
-  --map-marker-ring: oklch(0.99 0.01 95);
+  --panel-surface: oklch(0.995 0.018 88);
+  --panel-bg: oklch(0.995 0.018 88 / 0.78);
+  /* Opaque equivalent of --panel-bg over --background (map side panels, etc.). */
+  --panel-bg-solid: color-mix(
+    in oklch,
+    var(--panel-surface) 78%,
+    var(--background)
+  );
+  --panel-border: oklch(0.32 0.05 52 / 0.18);
+  --panel-fg: oklch(0.2 0.055 260);
+  --panel-shadow: 0 22px 44px -14px oklch(0.25 0.05 52 / 0.22);
+  --map-marker-ring: oklch(0.99 0.012 88);
+
+  /* Soft sky wash for suggestion / highlight cards (not primary green). */
+  --card-colored-bg: color-mix(in oklch, var(--card) 90%, oklch(0.88 0.04 220));
+  --card-colored-border: color-mix(
+    in oklch,
+    var(--border) 55%,
+    oklch(0.72 0.07 220)
+  );
+  --card-colored-accent: oklch(0.48 0.11 235);
 
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display:
@@ -99,25 +185,25 @@
 
 @media (min-width: 40rem) {
   :root {
-    --nav-shell-pad: 1rem;
-    --toolbar-pad-x: 2rem;
+    --nav-shell-pad: var(--space-4);
+    --toolbar-pad-x: var(--space-8);
   }
 }
 
 @media (max-width: 39.99rem) {
   :root {
-    --toolbar-h: 3rem;
+    --toolbar-h: 3.25rem;
     --toolbar-offset: calc(var(--safe-top) + var(--toolbar-h));
   }
 }
 
-/* Set from apps/web when the main toolbar is hidden (stack push on mobile/native). */
 html.stack-chrome {
-  /* Match scrollUnderNav sides: 0.75rem + safe-* (see page.module.css). */
   --page-chrome-top: var(--safe-top);
 }
 
 .dark {
+  --shadow-tint: oklch(0.05 0.03 260);
+
   --background: oklch(0.19 0.04 260);
   --foreground: oklch(0.94 0.025 95);
   --card: oklch(0.24 0.045 260);
@@ -132,8 +218,10 @@ html.stack-chrome {
   --muted-foreground: oklch(0.72 0.025 95);
   --accent: oklch(0.3 0.045 260);
   --accent-foreground: oklch(0.94 0.025 95);
-  --orange: oklch(0.68 0.16 52);
-  --orange-foreground: oklch(0.16 0.03 52);
+  --accent-strong: oklch(0.68 0.16 52);
+  --accent-strong-foreground: oklch(0.16 0.03 52);
+  --orange: var(--accent-strong);
+  --orange-foreground: var(--accent-strong-foreground);
   --orange-muted: oklch(0.32 0.08 52);
   --destructive: oklch(0.62 0.22 25);
   --border: oklch(0.94 0.025 95 / 0.14);
@@ -152,9 +240,22 @@ html.stack-chrome {
   --sidebar-accent-foreground: oklch(0.94 0.025 95);
   --sidebar-border: oklch(0.94 0.025 95 / 0.12);
   --sidebar-ring: oklch(0.64 0.14 158);
-  --panel-bg: oklch(0.22 0.045 260 / 0.7);
+  --panel-surface: oklch(0.22 0.045 260);
+  --panel-bg: oklch(0.22 0.045 260 / 0.78);
+  --panel-bg-solid: color-mix(
+    in oklch,
+    var(--panel-surface) 78%,
+    var(--background)
+  );
   --panel-border: oklch(0.94 0.025 95 / 0.14);
   --panel-fg: oklch(0.94 0.025 95);
   --panel-shadow: 0 24px 48px -12px oklch(0.05 0.025 260 / 0.58);
   --map-marker-ring: oklch(0.22 0.045 260);
+  --card-colored-bg: color-mix(in oklch, var(--card) 86%, oklch(0.42 0.06 235));
+  --card-colored-border: color-mix(
+    in oklch,
+    var(--border) 50%,
+    oklch(0.58 0.09 235)
+  );
+  --card-colored-accent: oklch(0.72 0.1 235);
 }

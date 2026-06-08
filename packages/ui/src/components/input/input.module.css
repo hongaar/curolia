@@ -1,13 +1,13 @@
 .root {
   display: flex;
-  height: 2.25rem;
+  height: var(--control-h-md);
   width: 100%;
   min-width: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--field-radius);
   border: 1px solid var(--input);
   background: transparent;
-  padding: 0.375rem 0.75rem;
-  font-size: 1rem;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-base);
   color: var(--foreground);
   transition:
     border-color 150ms,
@@ -21,7 +21,7 @@
 
 .root:focus-visible {
   border-color: var(--ring);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  box-shadow: var(--focus-ring);
 }
 
 .root:disabled {
@@ -57,10 +57,10 @@
 
 .root[type="file"]::file-selector-button {
   display: inline-flex;
-  height: 1.5rem;
+  height: var(--control-h-sm);
   border: 0;
   background: transparent;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }

@@ -28,13 +28,13 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  gap: var(--space-3);
+  padding: var(--space-3);
 }
 
 @media (min-width: 40rem) {
   .header {
-    padding: 0.75rem 1rem;
+    padding: var(--space-3) 1rem;
   }
 }
 
@@ -48,13 +48,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: white;
 }
 
 .headerCount {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   font-variant-numeric: tabular-nums;
   color: rgb(255 255 255 / 0.7);
 }
@@ -64,7 +64,7 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .lightButton {
@@ -88,13 +88,13 @@
 
 @media (min-width: 40rem) {
   .stage {
-    padding-inline: 1.5rem;
+    padding-inline: var(--space-6);
   }
 }
 
 .stageMessage {
   pointer-events: auto;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 
@@ -143,8 +143,8 @@
 }
 
 .navIcon {
-  width: 2rem;
-  height: 2rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .stageImage {
@@ -211,11 +211,11 @@
 }
 
 .iconMd {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
 }
 
 .iconLg {
-  width: 2rem;
-  height: 2rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }

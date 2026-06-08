@@ -2,23 +2,15 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
-import { Button } from "../button";
-import { FormField } from "../form-layout";
-import { Input } from "../input";
-import { Label } from "../label";
-import {
-  PinFormPanelCard,
-  PinFormPhotoSortableGrid,
-  PinFormPhotoThumb,
-} from "./pin-form";
+import { PinFormPhotoSortableGrid, PinFormPhotoThumb } from "./pin-form";
 
 const meta = {
   title: "Pin Form",
   ...componentStoryMeta(
-    `Pin create/edit dialog layout and field groups.`,
-    `Use \`PinFormPanelDialog\` for modals and \`PinFormPanelCard\` for map-anchored panels.`,
+    `Pin editor field groups and photo reorder UI.`,
+    `Use \`DialogContent\` / \`DialogBody\` for modals and \`modal={false}\` for map panels (see Dialog stories).`,
   ),
-  component: PinFormPanelCard,
+  component: PinFormPhotoSortableGrid,
 } satisfies Meta;
 
 export default meta;
@@ -62,26 +54,4 @@ export const PhotoReorder: Story = {
       </StoryFrame>
     );
   },
-};
-
-export const Default: Story = {
-  parameters: storyDocs("Pin create/edit panel card with footer actions."),
-  render: () => (
-    <StoryFrame width="md">
-      <PinFormPanelCard
-        title="Add pin"
-        footer={
-          <>
-            <Button variant="outline">Cancel</Button>
-            <Button>Save</Button>
-          </>
-        }
-      >
-        <FormField>
-          <Label htmlFor="story-pin-title">Title</Label>
-          <Input id="story-pin-title" placeholder="Visited place" />
-        </FormField>
-      </PinFormPanelCard>
-    </StoryFrame>
-  ),
 };

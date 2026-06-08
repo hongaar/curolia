@@ -16,6 +16,7 @@ import {
   type CSSProperties,
 } from "react";
 
+import { useFieldDescribedBy } from "../field/field";
 import { MarkdownEditorToolbar } from "./markdown-editor-toolbar";
 import styles from "./markdown-editor.module.css";
 
@@ -61,6 +62,7 @@ export function MarkdownEditorBody({
   }, [value]);
 
   const minHeightRem = Math.max(4, rows * 1.5);
+  const fieldDescribedBy = useFieldDescribedBy();
 
   return (
     <div
@@ -68,6 +70,7 @@ export function MarkdownEditorBody({
       role="group"
       aria-label={ariaLabel}
       aria-labelledby={ariaLabelledBy}
+      aria-describedby={fieldDescribedBy}
       style={
         {
           "--markdown-editor-min-height": `${minHeightRem}rem`,

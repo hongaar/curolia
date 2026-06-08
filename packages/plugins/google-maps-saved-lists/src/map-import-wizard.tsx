@@ -1,13 +1,13 @@
 import { Button } from "@curolia/ui/button";
-import { Dialog } from "@curolia/ui/dialog";
-import { CheckList, CheckListOption } from "@curolia/ui/list";
 import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogFooter,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
+import { CheckList, CheckListOption } from "@curolia/ui/list";
 import {
   PluginSettingsHint,
   PluginSettingsTitle,
@@ -202,10 +202,10 @@ export function GoogleMapsMapImportWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <PanelDialogContent size="wide">
-        <PanelDialogHeader>
+      <DialogContent size="wide">
+        <DialogHeader>
           <Stack gap="md" align="stretch">
-            <PanelDialogTitle>Import from Google Maps</PanelDialogTitle>
+            <DialogTitle>Import from Google Maps</DialogTitle>
             <WizardStepsCaption
               currentStep={step}
               totalSteps={WIZARD_STEPS.length}
@@ -220,9 +220,9 @@ export function GoogleMapsMapImportWizard({
               aria-label="Import wizard progress"
             />
           </Stack>
-        </PanelDialogHeader>
+        </DialogHeader>
 
-        <PanelDialogBody>
+        <DialogBody>
           {currentStep.id === "intro" ? (
             <>
               <PluginStatusText size="sm">
@@ -338,7 +338,6 @@ export function GoogleMapsMapImportWizard({
                   onToggle={toggleListId}
                   disabled={readOnly || busy}
                   aria-labelledby={listsTitleId}
-                  flush
                 >
                   {importListOptions.map((option) => {
                     const alreadyImported = importedListIdSet.has(option.id);
@@ -393,9 +392,9 @@ export function GoogleMapsMapImportWizard({
               ) : null}
             </>
           ) : null}
-        </PanelDialogBody>
+        </DialogBody>
 
-        <PanelDialogFooter
+        <DialogFooter
           between={
             step > 0 ||
             importStepComplete ||
@@ -481,8 +480,8 @@ export function GoogleMapsMapImportWizard({
               )}
             </>
           )}
-        </PanelDialogFooter>
-      </PanelDialogContent>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

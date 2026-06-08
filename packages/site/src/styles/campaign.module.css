@@ -41,7 +41,7 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
   max-width: 72rem;
   width: 100%;
   margin: 0 auto;
@@ -54,8 +54,8 @@
   width: fit-content;
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: oklch(0.98 0.02 var(--campaign-accent) / 0.16);
@@ -85,7 +85,7 @@
   padding: 0 1.25rem 4rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
 .campaignSectionTitle {
@@ -100,37 +100,37 @@
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .campaignBullet {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: var(--space-3);
   padding: 0.875rem 1rem;
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
   background: color-mix(in oklch, var(--card) 90%, transparent);
-  line-height: 1.55;
+  line-height: var(--line-height-normal) 5;
   color: var(--muted-foreground);
 }
 
 .campaignBullet svg {
   flex-shrink: 0;
-  margin-top: 0.125rem;
+  margin-top: var(--space-1);
   color: oklch(0.52 0.1 var(--campaign-accent));
 }
 
 .campaignHighlights {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .campaignHighlight {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.25rem;
+  gap: var(--space-2);
+  padding: var(--space-5);
   border-radius: var(--radius-2xl);
   border: 1px solid color-mix(in oklch, var(--border) 75%, transparent);
   background: color-mix(in oklch, var(--card) 92%, transparent);
@@ -142,8 +142,8 @@
 
 .campaignHighlight h3 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
 }
 
 .campaignHighlight p {
@@ -156,8 +156,8 @@
 .campaignCta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
 }
 
 @media (min-width: 40rem) {

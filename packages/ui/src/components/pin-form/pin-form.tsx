@@ -2,107 +2,20 @@ import { GripVertical, X } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
 
-import { Button } from "../button";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
-import {
-  FormErrorText,
-  FormField,
-  FormGrid,
-  FormGrid2,
-  FormMutedText,
-  FormMutedTextXs,
-  FormSelectTriggerFull,
-  SrOnlyInput,
-} from "../form-layout";
-import {
-  PanelCardTitle,
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogFooter,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "../panel-dialog";
 import styles from "./pin-form.module.css";
 
 export {
-  FormErrorText,
-  FormField,
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
   FormGrid,
   FormGrid2,
-  FormMutedText,
-  FormMutedTextXs,
   FormSelectTriggerFull,
   SrOnlyInput,
-};
-
-/** Map-anchored floating panel. Same header / body / footer layout as {@link PinFormPanelDialog}. */
-export function PinFormPanelCard({
-  title,
-  children,
-  footer,
-  footerBetween = false,
-  onClose,
-}: {
-  title: React.ReactNode;
-  children: React.ReactNode;
-  footer: React.ReactNode;
-  footerBetween?: boolean;
-  /** Header close control for map-anchored panels (dismiss without a primary action). */
-  onClose?: () => void;
-}) {
-  return (
-    <div className={styles.panelCard}>
-      <PanelDialogHeader
-        className={onClose ? styles.panelCardHeaderRow : undefined}
-      >
-        <PanelCardTitle>{title}</PanelCardTitle>
-        {onClose ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className={styles.panelCardClose}
-            aria-label="Close"
-            onClick={onClose}
-          >
-            <X className={styles.panelCardCloseIcon} aria-hidden />
-          </Button>
-        ) : null}
-      </PanelDialogHeader>
-      <PanelDialogBody>{children}</PanelDialogBody>
-      <PanelDialogFooter between={footerBetween}>{footer}</PanelDialogFooter>
-    </div>
-  );
-}
-
-/** Pin create/edit in a modal — same shell as other {@link PanelDialogContent} dialogs. */
-export function PinFormPanelDialog({
-  title,
-  children,
-  footer,
-  footerBetween = false,
-  size = "default",
-  ...contentProps
-}: {
-  title: React.ReactNode;
-  children: React.ReactNode;
-  footer: React.ReactNode;
-  footerBetween?: boolean;
-  size?: React.ComponentProps<typeof PanelDialogContent>["size"];
-} & Omit<
-  React.ComponentProps<typeof PanelDialogContent>,
-  "children" | "size"
->) {
-  return (
-    <PanelDialogContent size={size} {...contentProps}>
-      <PanelDialogHeader>
-        <PanelDialogTitle>{title}</PanelDialogTitle>
-      </PanelDialogHeader>
-      <PanelDialogBody>{children}</PanelDialogBody>
-      <PanelDialogFooter between={footerBetween}>{footer}</PanelDialogFooter>
-    </PanelDialogContent>
-  );
-}
+} from "../form-layout";
 
 export function PinFormPanelFieldGroup({
   children,
@@ -409,25 +322,8 @@ export function PinFormFloatingHost({
 }) {
   return (
     <div ref={hostRef} className={styles.floatingHost}>
-      <div className={styles.floatingInner}>
-        <div className={styles.floatingShell}>{children}</div>
-      </div>
+      <div className={styles.floatingInner}>{children}</div>
     </div>
-  );
-}
-
-export function PinFormFooterSplit({
-  start,
-  end,
-}: {
-  start: React.ReactNode;
-  end: React.ReactNode;
-}) {
-  return (
-    <>
-      {start}
-      <div className={styles.footerSplitEnd}>{end}</div>
-    </>
   );
 }
 
@@ -444,7 +340,7 @@ export function PinFormPluginSectionCard({
   if (children == null || children === false) return null;
 
   return (
-    <Card className={styles.pluginSectionCard}>
+    <Card size="sm" className={styles.pluginSectionCard}>
       <CardHeader className={styles.pluginSectionHeader}>
         <div className={styles.pluginSectionTitleRow}>
           <span className={styles.pluginSectionIcon}>{icon}</span>

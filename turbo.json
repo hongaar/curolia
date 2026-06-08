@@ -46,6 +46,15 @@
     "@curolia/site#typecheck": {
       "outputs": []
     },
+    "@curolia/ui#typecheck": {
+      "outputs": []
+    },
+    "@curolia/ui#test": {
+      "outputs": []
+    },
+    "@curolia/site#test": {
+      "outputs": []
+    },
     "@curolia/brand#generate:native": {
       "cache": false
     },

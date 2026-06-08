@@ -2,16 +2,16 @@ import { mapViewHref } from "@/lib/app-paths";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
-import { Dialog } from "@curolia/ui/dialog";
-import { EntityLabelInput } from "@curolia/ui/entity-label-input";
 import {
-  PanelDialogBody,
-  PanelDialogContent,
-  PanelDialogFooter,
-  PanelDialogFormStack,
-  PanelDialogHeader,
-  PanelDialogTitle,
-} from "@curolia/ui/panel-dialog";
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogFormStack,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
+import { EntityLabelInput } from "@curolia/ui/entity-label-input";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -49,12 +49,12 @@ export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
         }
       }}
     >
-      <PanelDialogContent>
-        <PanelDialogHeader>
-          <PanelDialogTitle>New map</PanelDialogTitle>
-        </PanelDialogHeader>
-        <PanelDialogBody>
-          <PanelDialogFormStack>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New map</DialogTitle>
+        </DialogHeader>
+        <DialogBody>
+          <DialogFormStack>
             <EntityLabelInput
               id="jn"
               label="Map"
@@ -65,17 +65,17 @@ export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
               onEmojiChange={setIcon}
               emojiFallback={defaultMapIcon()}
             />
-          </PanelDialogFormStack>
-        </PanelDialogBody>
-        <PanelDialogFooter>
+          </DialogFormStack>
+        </DialogBody>
+        <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button disabled={creating} onClick={() => void handleCreate()}>
             Create
           </Button>
-        </PanelDialogFooter>
-      </PanelDialogContent>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

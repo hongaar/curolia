@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--space-3);
   padding-right: calc(var(--toolbar-pad-x) + var(--safe-right));
   padding-left: calc(var(--toolbar-pad-x) + var(--safe-left));
 }
@@ -26,7 +26,7 @@
 
 .left {
   flex: 1;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .search {
@@ -45,7 +45,7 @@
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
   border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
@@ -61,16 +61,16 @@
 }
 
 .brandIcon {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
   flex-shrink: 0;
   border-radius: var(--radius-md);
 }
 
 .brandName {
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 400;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-normal);
   letter-spacing: -0.025em;
   color: var(--foreground);
 }
@@ -90,11 +90,11 @@
   }
 
   .brandName {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
 
   .left {
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .search {

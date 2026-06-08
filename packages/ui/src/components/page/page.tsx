@@ -1,7 +1,7 @@
 import type * as React from "react";
 
 import { cn } from "../../lib/utils";
-import { FloatingPanel } from "../floating-panel";
+import { Card } from "../card";
 import styles from "./page.module.css";
 
 export function Page({
@@ -116,9 +116,7 @@ export function PageLead({ children }: { children: React.ReactNode }) {
 }
 
 export function PagePanel({ children }: { children: React.ReactNode }) {
-  return (
-    <FloatingPanel className={styles.panelPadding}>{children}</FloatingPanel>
-  );
+  return <Card surface="page">{children}</Card>;
 }
 
 export function PageSection({

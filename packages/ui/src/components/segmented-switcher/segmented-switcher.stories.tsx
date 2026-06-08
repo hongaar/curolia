@@ -5,13 +5,17 @@ import { MemoryRouter } from "react-router-dom";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { SegmentedSwitcher, SegmentedSwitcherLink } from "./segmented-switcher";
 
+type SwitcherArgs = {
+  "aria-label": string;
+  size?: "default" | "lg";
+};
+
 const meta = {
   title: "Segmented Switcher",
   ...componentStoryMeta(
     "Pill-shaped segmented navigation for two or more routes.",
     "Compose with `SegmentedSwitcherLink` children. Active segment follows the current route.",
   ),
-  component: SegmentedSwitcher,
   args: {
     "aria-label": "Map view",
     size: "default",
@@ -22,10 +26,10 @@ const meta = {
       options: ["default", "lg"],
     },
   },
-} satisfies Meta;
+} satisfies Meta<SwitcherArgs>;
 
 export default meta;
-type Story = StoryObj;
+type Story = StoryObj<typeof meta>;
 
 function SwitcherLinks({ withIcons = true }: { withIcons?: boolean }) {
   return (
@@ -101,6 +105,7 @@ export const Large: Story = {
     '`size="lg"` for floating map controls — taller track, larger icons and labels.',
   ),
   args: {
+    "aria-label": "Map view",
     size: "lg",
   },
   decorators: [
@@ -110,8 +115,8 @@ export const Large: Story = {
       </MemoryRouter>
     ),
   ],
-  render: (args) => (
-    <SegmentedSwitcher {...args}>
+  render: () => (
+    <SegmentedSwitcher aria-label="Map view" size="lg">
       <SwitcherLinks />
     </SegmentedSwitcher>
   ),

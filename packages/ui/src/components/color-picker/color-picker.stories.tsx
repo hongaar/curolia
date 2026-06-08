@@ -75,17 +75,16 @@ const meta = {
     "Composable preset color selector with grid, random pick, and footer.",
     "Compose `ColorPicker` with `ColorPickerTitle`, `ColorPickerGrid`, optional `ColorPickerRandom`, and `ColorPickerFooter`. Handle selection in `onColorSelect`. Pass any preset grid via `colors`.",
   ),
-  component: ColorPicker,
-} satisfies Meta;
+  args: {
+    selectedColor: "#2563eb",
+  },
+} satisfies Meta<ColorPickerDemoArgs>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   parameters: storyDocs("Preset swatch grid with random pick and footer."),
-  args: {
-    selectedColor: "#2563eb",
-  } as Story["args"],
   render: function Render() {
     const [{ selectedColor }, updateArgs] = useStoryArgs<ColorPickerDemoArgs>();
     return (
@@ -109,7 +108,7 @@ export const GridOnly: Story = {
   parameters: storyDocs("Minimal grid without random action or footer."),
   args: {
     selectedColor: randomFromColorGrid(PRESET_COLORS),
-  } as Story["args"],
+  },
   render: function Render() {
     const [{ selectedColor }, updateArgs] = useStoryArgs<ColorPickerDemoArgs>();
     return (

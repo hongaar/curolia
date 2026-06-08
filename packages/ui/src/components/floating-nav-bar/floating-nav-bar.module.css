@@ -1,11 +1,11 @@
 .accountTrigger {
   pointer-events: auto;
   position: relative;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--control-h-lg);
+  height: var(--control-h-lg);
   flex-shrink: 0;
   overflow: visible;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
   padding: 0;
@@ -28,14 +28,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   opacity: 0.8;
 }
 
 .menuIcon svg {
-  width: 1rem;
-  height: 1rem;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
 }
 
 .menuEmail {
@@ -44,20 +44,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .menuItemLabel {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: var(--space-2);
 }
 
 .menuItemUnreadDot {
   width: 0.375rem;
   height: 0.375rem;
   flex-shrink: 0;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--destructive);
 }

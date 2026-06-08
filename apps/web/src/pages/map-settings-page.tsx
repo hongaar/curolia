@@ -30,7 +30,7 @@ import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
 import { EntityLabelInput } from "@curolia/ui/entity-label-input";
-import { FormField } from "@curolia/ui/form-layout";
+import { Field, FieldLabel } from "@curolia/ui/form-layout";
 import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
@@ -197,7 +197,7 @@ export function MapSettingsPage() {
           {!isOwner && !roleQuery.isLoading ? (
             <PageMuted>Only owners can change map settings.</PageMuted>
           ) : null}
-          <FormField>
+          <Field>
             <EntityLabelInput
               id="jn-name"
               label="Map"
@@ -209,9 +209,9 @@ export function MapSettingsPage() {
               onEmojiChange={setIconEmoji}
               emojiFallback={defaultMapIcon()}
             />
-          </FormField>
-          <FormField>
-            <Label id="map-style-label">Map style</Label>
+          </Field>
+          <Field>
+            <FieldLabel id="map-style-label">Map style</FieldLabel>
             <ChoiceCards<MapStylePreset>
               name="map-style"
               value={mapStyle}
@@ -266,7 +266,7 @@ export function MapSettingsPage() {
                 }
               />
             </ChoiceCards>
-          </FormField>
+          </Field>
           <MapShowMetadataField
             mapId={map.id}
             settings={showPinMetadata}

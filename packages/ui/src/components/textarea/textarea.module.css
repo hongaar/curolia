@@ -3,11 +3,11 @@
   field-sizing: content;
   min-height: 4rem;
   width: 100%;
-  border-radius: var(--radius-lg);
+  border-radius: var(--field-radius);
   border: 1px solid var(--input);
   background: transparent;
-  padding: 0.5rem 0.625rem;
-  font-size: 1rem;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-base);
   color: var(--foreground);
   transition:
     border-color 150ms,
@@ -21,7 +21,7 @@
 
 .root:focus-visible {
   border-color: var(--ring);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent);
+  box-shadow: var(--focus-ring);
 }
 
 .root:disabled {
@@ -45,6 +45,6 @@
 
 @media (min-width: 48rem) {
   .root {
-    font-size: 0.875rem;
+    font-size: var(--font-size-sm);
   }
 }

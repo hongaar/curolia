@@ -1,5 +1,3 @@
-@import "@fontsource-variable/geist";
-
 *,
 *::before,
 *::after {
@@ -49,6 +47,8 @@ html.native-app body {
 body {
   margin: 0;
   font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
@@ -60,7 +60,31 @@ h2,
 h3,
 h4,
 h5,
-h6,
+h6 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.025em;
+  overflow-wrap: break-word;
+}
+
+h1 {
+  font-size: var(--text-title-lg);
+}
+
+h2 {
+  font-size: var(--text-title);
+}
+
+h3 {
+  font-size: var(--font-size-xl);
+}
+
+h4 {
+  font-size: var(--font-size-lg);
+}
+
 p {
   margin: 0;
   overflow-wrap: break-word;
@@ -100,5 +124,5 @@ textarea {
 }
 
 :focus-visible {
-  outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  outline-color: var(--focus-ring-color);
 }

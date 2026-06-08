@@ -13,6 +13,7 @@ import {
   PageLead,
   PagePanel,
 } from "@curolia/ui/page";
+import { Stack } from "@curolia/ui/stack";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -60,29 +61,32 @@ export function NotificationsPage() {
     <AppPageLayout>
       <PageBackButton />
       <PagePanel>
-        <PageDisplayTitle>Notifications</PageDisplayTitle>
-        <PageLead>
-          Opens are marked as read. Email and push use your settings.
-        </PageLead>
-
-        <BorderedList>
-          {listQuery.isLoading ? (
-            <ListEmptyItem>Loading…</ListEmptyItem>
-          ) : items.length === 0 ? (
-            <ListEmptyItem>Nothing here yet.</ListEmptyItem>
-          ) : (
-            items.map((n) => (
-              <NotificationListButton
-                key={n.id}
-                unread={!n.read_at}
-                onClick={() => void openOne(n)}
-                title={n.title}
-                body={n.body ?? undefined}
-                meta={new Date(n.created_at).toLocaleString()}
-              />
-            ))
-          )}
-        </BorderedList>
+        <Stack gap="xl">
+          <Stack gap="xs">
+            <PageDisplayTitle>Notifications</PageDisplayTitle>
+            <PageLead>
+              Opens are marked as read. Email and push use your settings.
+            </PageLead>
+          </Stack>
+          <BorderedList>
+            {listQuery.isLoading ? (
+              <ListEmptyItem>Loading…</ListEmptyItem>
+            ) : items.length === 0 ? (
+              <ListEmptyItem>Nothing here yet.</ListEmptyItem>
+            ) : (
+              items.map((n) => (
+                <NotificationListButton
+                  key={n.id}
+                  unread={!n.read_at}
+                  onClick={() => void openOne(n)}
+                  title={n.title}
+                  body={n.body ?? undefined}
+                  meta={new Date(n.created_at).toLocaleString()}
+                />
+              ))
+            )}
+          </BorderedList>
+        </Stack>
       </PagePanel>
     </AppPageLayout>
   );

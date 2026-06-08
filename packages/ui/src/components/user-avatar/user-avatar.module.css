@@ -17,13 +17,13 @@
 }
 
 .placeholderSm {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .placeholderMd {
-  width: 2rem;
-  height: 2rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .placeholderLg {
@@ -37,7 +37,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
 }
 
 .imageWrap {
@@ -46,13 +46,13 @@
 }
 
 .imageWrapSm {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .imageWrapMd {
-  width: 2rem;
-  height: 2rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .imageWrapLg {
@@ -66,23 +66,23 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
 }
 
 .image {
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   object-fit: cover;
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 15%, transparent);
 }
 
 .imageSm {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .imageMd {
-  width: 2rem;
-  height: 2rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .imageLg {
@@ -97,13 +97,13 @@
 }
 
 .iconSm {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
 }
 
 .iconMd {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .iconLg {
@@ -112,8 +112,8 @@
 }
 
 .iconFull {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .unreadDot {
@@ -122,7 +122,7 @@
   right: 0;
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--destructive);
   box-shadow: 0 0 0 2px var(--panel-bg);
 }
