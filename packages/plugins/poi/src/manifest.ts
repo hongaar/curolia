@@ -1,5 +1,6 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { PoiIcon } from "./icon";
+import { PoiMapSettingsPanel } from "./map-settings-panel";
 import { PoiPinFormSection } from "./pin-form-section";
 import { poiPluginMeta } from "./plugin-meta";
 
@@ -11,6 +12,7 @@ export const poiPluginManifest: PluginPackageManifest = {
   icon: PoiIcon,
   implemented: poiPluginMeta.implemented,
   PinFormSection: PoiPinFormSection,
+  MapSettingsPanel: PoiMapSettingsPanel,
   contributions: {
     edgeFunctions: [
       {
@@ -20,5 +22,9 @@ export const poiPluginManifest: PluginPackageManifest = {
           "Query nearby places and enrich pins with metadata (Geoapify / OSM).",
       },
     ],
+    mapSettings: {
+      panel: "inline",
+      title: "Points of interest",
+    },
   },
 };

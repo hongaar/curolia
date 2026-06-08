@@ -46,6 +46,7 @@ export {
   osmTagFamiliesForMetadata,
   pinMetadataFromOsmTags,
 } from "./poi-pin-metadata";
+export { PoiMapSettingsPanel } from "./map-settings-panel";
 export { PoiPinFormSection } from "./pin-form-section";
 export {
   poiEntityDataQueryKey,

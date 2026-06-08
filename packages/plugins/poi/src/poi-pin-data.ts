@@ -1,13 +1,14 @@
 import { POI_CACHE_MAX_AGE_MS, POI_COORD_EPSILON } from "./constants";
 import { primaryPoiLabel } from "./poi-format";
 
-/** Nearby OSM place row for the pin editor picker. */
+/** Nearby place row for the pin editor picker. */
 export type PoiNearbyCandidate = {
   osmType: "node" | "way" | "relation";
   osmId: number;
   name: string | null;
   placeType: string | null;
   distanceM: number;
+  tags?: Record<string, string>;
 };
 
 /** Shape stored in `plugin_entity_data.data` for `plugin_type_id = poi`. */
@@ -102,8 +103,10 @@ export function poiPayloadFromCandidate(
   lng: number,
   candidate: PoiNearbyCandidate,
 ): PoiPinPayload {
-  const tags: Record<string, string> = {};
-  if (candidate.name) tags.name = candidate.name;
+  const tags: Record<string, string> = candidate.tags
+    ? { ...candidate.tags }
+    : {};
+  if (candidate.name && !tags.name) tags.name = candidate.name;
   return {
     schemaVersion: 1,
     lat,
