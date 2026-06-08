@@ -31,6 +31,28 @@ export type PinContextProps = PinPhotoImportSlotProps & {
   onApplyPinSuggestion?: (fields: PinEditorFieldSuggestion) => void;
 };
 
+/**
+ * Props for a plugin background-suggestion surface rendered on the pin detail
+ * page. Plugins fetch enrichment info in the background (cached via the shell's
+ * query client) and may render {@link import("@curolia/ui/suggestion-card")}
+ * cards proposing an action (e.g. attaching a nearby place or article).
+ *
+ * The shell only mounts this slot when the current user can edit the map, so a
+ * plugin can assume edit access. `canEdit` is still passed for completeness.
+ */
+export type PinSuggestionSlotProps = {
+  supabase: SupabaseClient;
+  /** Current signed-in user id; omit when logged out. */
+  userId?: string | null;
+  pinId: string;
+  mapId: string;
+  /** Pin coordinates (used for distance + cache keys). */
+  pinLat?: number | null;
+  pinLng?: number | null;
+  /** Always true when mounted (shell gates on edit access). */
+  canEdit: boolean;
+};
+
 /** Props for plugin enrichment while drafting a new pin (before `pinId` exists). */
 export type PinDraftEnrichmentSlotProps = {
   supabase: SupabaseClient;
@@ -90,6 +112,13 @@ export type PluginDefinition = {
    * Optional read-only block on the pin detail page.
    */
   PinDetailSection?: ComponentType<PinContextProps>;
+  /**
+   * Optional background-suggestion surface on the pin detail page. Rendered only
+   * for users with edit access; the plugin fetches info in the background
+   * (cached) and proposes an action via suggestion cards (e.g. attach a nearby
+   * place / article). Returns null when there is nothing to suggest.
+   */
+  PinSuggestionSlot?: ComponentType<PinSuggestionSlotProps>;
   /**
    * Optional enrichment while creating a new pin (no `pinId` yet). Rendered when
    * draft coordinates are valid.

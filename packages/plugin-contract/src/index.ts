@@ -21,6 +21,7 @@ export type {
   PinDraftEnrichmentSlotProps,
   PinEditorFieldSuggestion,
   PinPhotoImportSlotProps,
+  PinSuggestionSlotProps,
   PluginDefinition,
   PluginPackageManifest,
   PluginRegistry,

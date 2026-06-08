@@ -2,6 +2,7 @@ import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger"
 import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
+import { useMapMemberRole } from "@/hooks/use-map-access";
 import { pinDetailHref } from "@/lib/app-paths";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
 import {
@@ -80,6 +81,7 @@ export function PinDetailBody({
 }: PinDetailBodyProps) {
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
+  const { canEdit } = useMapMemberRole(pin.map_id);
   const [photoLightbox, setPhotoLightbox] = useState<{
     photoId: string;
   } | null>(null);
@@ -204,6 +206,24 @@ export function PinDetailBody({
           poiEnabled={poiGloballyEnabled}
         />
         <PinLinksList pinId={pin.id} />
+        {canEdit
+          ? enabledPlugins.map((p) => {
+              const Slot = p.PinSuggestionSlot;
+              if (!Slot) return null;
+              return (
+                <Slot
+                  key={`suggestion-${p.id}`}
+                  supabase={supabase}
+                  userId={user?.id}
+                  pinId={pin.id}
+                  mapId={pin.map_id}
+                  pinLat={pin.lat}
+                  pinLng={pin.lng}
+                  canEdit
+                />
+              );
+            })
+          : null}
         {enabledPlugins.map((p) => {
           const Section = p.PinDetailSection;
           if (!Section) return null;
