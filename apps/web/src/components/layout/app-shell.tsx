@@ -1,5 +1,6 @@
 import { MainToolbar } from "@/components/layout/main-toolbar";
 import { NotificationsRealtimeSync } from "@/components/layout/notifications-realtime-sync";
+import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
@@ -49,6 +50,7 @@ function AppShellInner() {
       >
         <Outlet />
       </ErrorBoundary>
+      {user ? <OnboardingTour key={user.id} /> : null}
     </AppShellLayout>
   );
 }

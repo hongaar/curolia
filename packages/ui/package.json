@@ -48,6 +48,7 @@
     "./markdown-editor": "./src/components/markdown-editor/index.ts",
     "./tooltip": "./src/components/tooltip/index.ts",
     "./notifications-popover": "./src/components/notifications-popover/index.ts",
+    "./onboarding": "./src/components/onboarding/index.ts",
     "./page": "./src/components/page/index.ts",
     "./page-back-button": "./src/components/page-back-button/index.ts",
     "./panel-dialog": "./src/components/panel-dialog/index.ts",
