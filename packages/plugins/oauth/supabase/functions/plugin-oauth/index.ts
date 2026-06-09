@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import {
   authorizeScopesSpaceSeparated,
   oauthProviderIdsForPlugin,
+  usesDataPortabilityScopes,
 } from "./scopes-registry.gen.ts";
 
 const GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -122,6 +123,27 @@ function byteaInsertValue(buf: Uint8Array): string {
   return "\\x" + hex;
 }
 
+/** Data Portability must use its own OAuth client when other Google plugins share the project. */
+function googleOAuthCredentials(pluginTypeId: string): {
+  clientId: string;
+  clientSecret: string;
+} {
+  const dataportability = usesDataPortabilityScopes(pluginTypeId, "google");
+  const clientId =
+    (dataportability
+      ? (Deno.env.get("GOOGLE_DATAPORTABILITY_CLIENT_ID") ??
+        Deno.env.get("GOOGLE_CLIENT_ID"))
+      : Deno.env.get("GOOGLE_CLIENT_ID")
+    )?.trim() ?? "";
+  const clientSecret =
+    (dataportability
+      ? (Deno.env.get("GOOGLE_DATAPORTABILITY_CLIENT_SECRET") ??
+        Deno.env.get("GOOGLE_CLIENT_SECRET"))
+      : Deno.env.get("GOOGLE_CLIENT_SECRET")
+    )?.trim() ?? "";
+  return { clientId, clientSecret };
+}
+
 function callbackUrl(): string {
   const explicit = Deno.env.get("PLUGIN_OAUTH_CALLBACK_URL");
   if (explicit) return explicit;
@@ -235,10 +257,15 @@ async function handleStart(body: StartBody, jwt: string): Promise<Response> {
   );
 
   if (oauthProviderId === "google") {
-    const googleClientId = Deno.env.get("GOOGLE_CLIENT_ID") ?? "";
+    const { clientId: googleClientId } = googleOAuthCredentials(
+      body.plugin_type_id,
+    );
     if (!googleClientId) {
+      const envHint = usesDataPortabilityScopes(body.plugin_type_id, "google")
+        ? "GOOGLE_DATAPORTABILITY_CLIENT_ID or GOOGLE_CLIENT_ID"
+        : "GOOGLE_CLIENT_ID";
       return new Response(
-        JSON.stringify({ error: "GOOGLE_CLIENT_ID not configured" }),
+        JSON.stringify({ error: `${envHint} not configured` }),
         {
           status: 500,
           headers: { ...cors(), "Content-Type": "application/json" },
@@ -256,6 +283,9 @@ async function handleStart(body: StartBody, jwt: string): Promise<Response> {
       access_type: "offline",
       prompt: "consent",
     });
+    if (usesDataPortabilityScopes(body.plugin_type_id, "google")) {
+      params.set("include_granted_scopes", "false");
+    }
     const authorizeUrl = `${GOOGLE_AUTH}?${params.toString()}`;
     return new Response(JSON.stringify({ url: authorizeUrl }), {
       status: 200,
@@ -478,8 +508,6 @@ async function handleLinkStatus(
 async function handleCallback(req: Request, url: URL): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const googleClientId = Deno.env.get("GOOGLE_CLIENT_ID") ?? "";
-  const googleClientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET") ?? "";
   const spotifyClientId = Deno.env.get("SPOTIFY_CLIENT_ID") ?? "";
   const spotifyClientSecret = Deno.env.get("SPOTIFY_CLIENT_SECRET") ?? "";
   const defaultOrigin =
@@ -558,6 +586,8 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
   let tokenRes: Response;
 
   if (oauthProviderId === "google") {
+    const { clientId: googleClientId, clientSecret: googleClientSecret } =
+      googleOAuthCredentials(p.plugin_type_id);
     const tokenBody = new URLSearchParams({
       client_id: googleClientId,
       client_secret: googleClientSecret,

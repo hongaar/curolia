@@ -1112,8 +1112,14 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const googleClientId = Deno.env.get("GOOGLE_CLIENT_ID") ?? "";
-  const googleClientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET") ?? "";
+  const googleClientId =
+    Deno.env.get("GOOGLE_DATAPORTABILITY_CLIENT_ID") ??
+    Deno.env.get("GOOGLE_CLIENT_ID") ??
+    "";
+  const googleClientSecret =
+    Deno.env.get("GOOGLE_DATAPORTABILITY_CLIENT_SECRET") ??
+    Deno.env.get("GOOGLE_CLIENT_SECRET") ??
+    "";
 
   let body: Body;
   try {

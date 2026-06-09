@@ -171,7 +171,7 @@ function emitRegistry(byPlugin: ByPluginMap): void {
   );
   lines.push(`}`);
   lines.push(``);
-  lines.push(`function usesDataPortabilityScopes(`);
+  lines.push(`export function usesDataPortabilityScopes(`);
   lines.push(`  pluginTypeId: string,`);
   lines.push(`  providerId: string,`);
   lines.push(`): boolean {`);

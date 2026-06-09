@@ -5,17 +5,21 @@ Imports **starred places** and **custom saved lists** from Google Maps into Curo
 ## Prerequisites
 
 - Local or hosted Supabase with Edge Functions deployed.
-- **`PLUGIN_OAUTH_ENCRYPTION_KEY`** and **`GOOGLE_CLIENT_ID`** / **`GOOGLE_CLIENT_SECRET`** (same as Google Photos).
+- **`PLUGIN_OAUTH_ENCRYPTION_KEY`**
+- **`GOOGLE_DATAPORTABILITY_CLIENT_ID`** / **`GOOGLE_DATAPORTABILITY_CLIENT_SECRET`** (recommended: a **dedicated** OAuth Web client — see below). Falls back to **`GOOGLE_CLIENT_ID`** / **`GOOGLE_CLIENT_SECRET`** if unset.
 - **`GOOGLE_PLACES_API_KEY`** (or **`GOOGLE_MAPS_API_KEY`**) for place lookup during download.
 - **`GEOAPIFY_API_KEY`** (recommended fallback geocoding when Places text search misses).
 
 ## Google Cloud Console
 
+Google **forbids mixing** Data Portability scopes with other scope types (Photos, `openid`, etc.) on the same OAuth client. If you also run **Google Photos**, create a **second** “Web application” OAuth client used only for Maps:
+
 1. Enable the **Data Portability API** on your OAuth project.
-2. Add OAuth consent screen scopes:
+2. On that client’s consent screen, add **only** these scopes (no Photos / OIDC scopes):
    - `https://www.googleapis.com/auth/dataportability.maps.starred_places`
    - `https://www.googleapis.com/auth/dataportability.saved.collections`
-3. **Authorized redirect URI** (shared `plugin-oauth` callback):
+3. Set **`GOOGLE_DATAPORTABILITY_CLIENT_ID`** / **`GOOGLE_DATAPORTABILITY_CLIENT_SECRET`** to that client (Supabase Edge secrets + local `.env`).
+4. **Authorized redirect URI** (shared `plugin-oauth` callback; register on **both** clients if you use two):
    - Local: `http://127.0.0.1:54321/functions/v1/plugin-oauth?action=callback`
    - Production: `https://<project-ref>.supabase.co/functions/v1/plugin-oauth?action=callback`
 
@@ -66,7 +70,8 @@ Downloaded data is cached per user and can be imported into any map. Coordinates
 
 ## Troubleshooting
 
-- **Error 400 `invalid_request` on Google sign-in**: Ensure Data Portability scopes are on the consent screen and your account is a **test user** while the app is in Testing. Curolia requests only `dataportability.*` scopes (not mixed with `openid`/`email`/`profile`) — redeploy `plugin-oauth` after pulling latest.
+- **Error 400 `invalid_request` — “Incremental auth is not allowed for the requested scopes”**: Your Google account already granted **other** scopes to the same OAuth client (e.g. after linking **Google Photos**). Fix: use a **dedicated** `GOOGLE_DATAPORTABILITY_CLIENT_ID` (above), or revoke Curolia at [Google Account → Third-party access](https://myaccount.google.com/permissions) and link **Google Maps before** Photos. Curolia sends only `dataportability.*` scopes and sets `include_granted_scopes=false`.
+- **Error 400 `invalid_request` (other)**: Ensure Data Portability scopes are on the consent screen and your account is a **test user** while the app is in Testing.
 - **Link first**: Map settings show a reminder until OAuth is linked under Plugins.
 - **Empty list dropdown**: Click **Refresh lists from Google** (triggers a Data Portability export).
 - **24h rate limit**: Status shows when the next Google export is allowed.
