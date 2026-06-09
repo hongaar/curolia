@@ -1,5 +1,6 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { useMapMemberRole } from "@/hooks/use-map-access";
+import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { pinEditHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
@@ -26,7 +27,8 @@ export function PinEditPage() {
     pinSlug: string;
   }>();
   const navigate = useNavigate();
-  const { maps, activeMapId, loading: mapsLoading } = useMap();
+  const { maps, loading: mapsLoading } = useMap();
+  useMapSlugRouteSync(profileSlug, mapSlug);
 
   const mapForRoute = useMemo(() => {
     if (!profileSlug?.trim() || !mapSlug?.trim()) return null;
@@ -91,7 +93,7 @@ export function PinEditPage() {
     return <CuroliaLoadingSplash fill statusLabel="Loading" />;
   }
 
-  const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
+  const wrongMap = pin && mapForRoute && pin.map_id !== mapForRoute.id;
 
   if (!pin || wrongMap || !canEdit) {
     return (

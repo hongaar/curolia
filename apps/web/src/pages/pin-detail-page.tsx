@@ -1,6 +1,7 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
+import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMinMd } from "@/hooks/use-min-md";
 import { mapHrefWithSearch, mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { canNavigateBack } from "@/lib/can-navigate-back";
@@ -76,6 +77,7 @@ export function PinDetailPage() {
   const navigate = useNavigate();
   const isWideEnough = useMinMd();
   const { maps, activeMapId, loading: mapsLoading } = useMap();
+  useMapSlugRouteSync(profileSlug, mapSlug);
 
   const mapForRoute = useMemo(() => {
     if (!profileSlug?.trim() || !mapSlug?.trim()) return null;
@@ -132,7 +134,7 @@ export function PinDetailPage() {
     navigate(path, { replace: true });
   }, [redirectSlug, mapRoute, navigate]);
 
-  const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
+  const wrongMap = pin && mapForRoute && pin.map_id !== mapForRoute.id;
   const insetMapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(mapForRoute),
     [mapForRoute],
