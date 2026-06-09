@@ -31,8 +31,7 @@ import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
 import { EntityLabelInput } from "@curolia/ui/entity-label-input";
-import { Field, FieldControl, FieldLabel } from "@curolia/ui/form-layout";
-import { Input } from "@curolia/ui/input";
+import { Field, FieldLabel } from "@curolia/ui/form-layout";
 import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
@@ -61,7 +60,6 @@ export function MapSettingsPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [name, setName] = useState("");
-  const [mapSlugInput, setMapSlugInput] = useState("");
   const [iconEmoji, setIconEmoji] = useState("");
   const [mapStyle, setMapStyle] = useState<MapStylePreset>("auto");
   const [styleOptions, setStyleOptions] = useState<MapStyleOptions>({
@@ -114,7 +112,6 @@ export function MapSettingsPage() {
     if (!map) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset field when switching map
     setName(map.name);
-    setMapSlugInput(map.slug);
     setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
@@ -125,12 +122,13 @@ export function MapSettingsPage() {
     if (!mapId || !map || !name.trim()) return;
     setSaving(true);
     setError(null);
-    const nextSlug = mapSlugInput.trim();
+    const trimmedName = name.trim();
+    const nameChanged = trimmedName !== map.name;
     const { error: err } = await supabase
       .from("maps")
       .update({
-        name: name.trim(),
-        slug: nextSlug !== map.slug.trim() ? nextSlug : map.slug,
+        name: trimmedName,
+        ...(nameChanged ? { slug: "" } : {}),
         icon_emoji: normalizeMapIconForPersist(iconEmoji),
         style: mapStyle,
         style_hillshades: styleOptions.hillshades,
@@ -189,7 +187,6 @@ export function MapSettingsPage() {
   }
 
   const nameDirty = name.trim() !== map.name;
-  const slugDirty = mapSlugInput.trim() !== map.slug.trim();
   const iconToSave = normalizeMapIconForPersist(iconEmoji);
   const iconDirty = iconToSave !== (map.icon_emoji ?? null);
   const savedStyleOptions = normalizeMapStyleOptions(map);
@@ -203,7 +200,7 @@ export function MapSettingsPage() {
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
-    (nameDirty || slugDirty || iconDirty || styleDirty || metadataDirty) &&
+    (nameDirty || iconDirty || styleDirty || metadataDirty) &&
     !saving;
 
   return (
@@ -231,18 +228,6 @@ export function MapSettingsPage() {
               onEmojiChange={setIconEmoji}
               emojiFallback={defaultMapIcon()}
             />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="map-url-slug">URL slug</FieldLabel>
-            <FieldControl>
-              <Input
-                id="map-url-slug"
-                value={mapSlugInput}
-                onChange={(e) => setMapSlugInput(e.target.value)}
-                disabled={!isOwner || roleQuery.isLoading}
-                autoComplete="off"
-              />
-            </FieldControl>
           </Field>
           <Field>
             <FieldLabel id="map-style-label">Map style</FieldLabel>
