@@ -59,3 +59,9 @@
 - **`apps/web`** and **`packages/plugins`** compose UI via **`@curolia/ui` props and named components only**—no inline `className` utility strings (ESLint enforces this in `apps/web`) and no CSS module class imports from `@curolia/ui`.
 - **Share styling through components and props, not exported class names.** When two surfaces need the same look (e.g. sidebar dropdown vs popover picker rows), add a focused component in **`@curolia/ui`** that owns the CSS module and accepts props such as **`icon`**, **`label`**, **`active`**. Do **not** export helpers like **`fooClassName()`**, raw **`styles`** objects, or other class-string factories for cross-file reuse—those leak module internals and drift quickly. Keep class names private to the component directory; expose behavior via named components and typed props instead.
 - After changing plugin-owned UI, no `functions:sync` change is needed; run **`npx turbo run typecheck`** / **`build`** as usual.
+
+## Git commits
+
+- Use **[Conventional Commits](https://www.conventionalcommits.org/)**: `type(scope): short imperative summary` (e.g. `feat(web): add profile-scoped map URLs`, `fix(supabase): …`, `refactor(ui): …`).
+- Common types: **`feat`**, **`fix`**, **`refactor`**, **`chore`**, **`docs`**, **`test`**, **`ci`**, **`build`**. Pick the type that best matches the change; optional **`scope`** is usually the workspace or area (`web`, `ui`, `supabase`, `routing`, …).
+- Keep the subject line concise; add a body only when the “why” is not obvious from the subject.
