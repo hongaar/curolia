@@ -391,6 +391,42 @@ export type Database = {
           },
         ];
       };
+      pin_slug_redirects: {
+        Row: {
+          created_at: string;
+          map_id: string;
+          pin_id: string;
+          slug: string;
+        };
+        Insert: {
+          created_at?: string;
+          map_id: string;
+          pin_id: string;
+          slug: string;
+        };
+        Update: {
+          created_at?: string;
+          map_id?: string;
+          pin_id?: string;
+          slug?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pin_slug_redirects_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pin_slug_redirects_pin_id_fkey";
+            columns: ["pin_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pin_tags: {
         Row: {
           pin_id: string;

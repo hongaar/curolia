@@ -52,6 +52,7 @@ import { fetchLinkMetadata } from "@/lib/pin-links";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
+import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
@@ -592,7 +593,7 @@ export function MapPage() {
   );
 
   useEffect(() => {
-    if (!sidebarPinToken) return;
+    if (!sidebarPinToken || !activeMapId) return;
     const routeSlugNorm = mapSlug?.trim().toLowerCase();
     const activeSlugNorm = activeMap?.slug?.trim().toLowerCase();
     if (routeSlugNorm && activeSlugNorm && routeSlugNorm !== activeSlugNorm) {
@@ -604,9 +605,26 @@ export function MapPage() {
     if (pinsQuery.isPending || pinsQuery.isFetching) return;
     if (pins.length === 0) return;
     if (resolved) return;
-    setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
-      replace: true,
+
+    let cancelled = false;
+    void resolvePinByMapSlug(activeMapId, sidebarPinToken).then((match) => {
+      if (cancelled) return;
+      if (match?.redirected) {
+        setSearchParams(
+          (prev) => applySelectedPinToSearchParams(prev, match.canonicalSlug),
+          { replace: true },
+        );
+        return;
+      }
+      if (match) return;
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+        replace: true,
+      });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     sidebarPinToken,
     pins,

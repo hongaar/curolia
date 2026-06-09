@@ -131,31 +131,38 @@ export function PinMapQuickAddDialog({
   }, [open, pin]);
 
   const persistTitleToDb = useCallback(
-    async (nextRaw: string) => {
-      if (!pin) return;
-      const { error: uErr } = await supabase
+    async (nextRaw: string): Promise<Pin | null> => {
+      if (!pin) return null;
+      const nextTitle = nextRaw.trim() || null;
+      const { data: row, error: uErr } = await supabase
         .from("pins")
         .update({
-          title: nextRaw.trim() || null,
+          title: nextTitle,
+          // Reclaim slug from title without keeping the geocoded slug as a redirect.
+          slug: "",
           updated_at: new Date().toISOString(),
         })
-        .eq("id", pin.id);
+        .eq("id", pin.id)
+        .select("*")
+        .single();
       if (uErr) throw uErr;
       await qc.invalidateQueries({ queryKey: ["pins", mapId] });
       await qc.invalidateQueries({ queryKey: ["pin", pin.id] });
+      return row as Pin;
     },
     [pin, mapId, qc],
   );
 
-  const flushTitleIfNeeded = useCallback(async () => {
-    if (!pin) return;
+  const flushTitleIfNeeded = useCallback(async (): Promise<Pin | null> => {
+    if (!pin) return null;
     const next = title.trim();
     const prev = (pin.title ?? "").trim();
-    if (next === prev) return;
+    if (next === prev) return pin;
     try {
-      await persistTitleToDb(next);
+      return (await persistTitleToDb(next)) ?? pin;
     } catch {
       setTitle(pin.title ?? "");
+      return pin;
     }
   }, [pin, title, persistTitleToDb]);
 
@@ -204,9 +211,9 @@ export function PinMapQuickAddDialog({
   };
 
   const editPin = () => {
-    void flushTitleIfNeeded().then(() =>
-      onEdit({ ...pin, title: title.trim() || null }),
-    );
+    void flushTitleIfNeeded().then((nextPin) => {
+      if (nextPin) onEdit(nextPin);
+    });
   };
 
   const footer = (

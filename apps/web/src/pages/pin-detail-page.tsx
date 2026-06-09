@@ -2,7 +2,7 @@ import { PageBackButton } from "@/components/layout/page-back-button";
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
 import { useMinMd } from "@/hooks/use-min-md";
-import { mapHrefWithSearch, mapViewHref } from "@/lib/app-paths";
+import { mapHrefWithSearch, mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -13,6 +13,7 @@ import {
   normalizeCameraForUrl,
   PIN_FOCUS_ZOOM,
 } from "@/lib/map-view-params";
+import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useMap } from "@/providers/map-provider";
@@ -24,7 +25,7 @@ import {
   PagePanel,
 } from "@curolia/ui/page";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 export function PinDetailPage() {
@@ -48,7 +49,8 @@ export function PinDetailPage() {
     queryKey: ["pin", mapForRoute?.id, pinSlug],
     queryFn: async () => {
       if (!mapForRoute || !pinSlug?.trim()) return null;
-      const slugNorm = pinSlug.trim().toLowerCase();
+      const resolved = await resolvePinByMapSlug(mapForRoute.id, pinSlug);
+      if (!resolved) return null;
       const { data, error } = await supabase
         .from("pins")
         .select(
@@ -57,17 +59,28 @@ export function PinDetailPage() {
           creator:profiles!pins_created_by_user_id_fkey ( display_name ),
           modifier:profiles!pins_modified_by_user_id_fkey ( display_name )`,
         )
-        .eq("map_id", mapForRoute.id)
-        .eq("slug", slugNorm)
+        .eq("id", resolved.pinId)
         .maybeSingle();
       if (error) throw error;
-      return data as PinRow | null;
+      const row = data as PinRow | null;
+      if (!row) return null;
+      return {
+        row,
+        redirectSlug: resolved.redirected ? resolved.canonicalSlug : null,
+      };
     },
     enabled: Boolean(mapForRoute && pinSlug?.trim()),
   });
 
-  const pin = pinQuery.data;
+  const pin = pinQuery.data?.row ?? null;
+  const redirectSlug = pinQuery.data?.redirectSlug ?? null;
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
+
+  useEffect(() => {
+    if (!redirectSlug || !mapForRoute?.slug?.trim()) return;
+    const path = pinDetailHref(mapForRoute.slug.trim(), redirectSlug);
+    navigate(path, { replace: true });
+  }, [redirectSlug, mapForRoute?.slug, navigate]);
 
   const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
   const insetMapStyleOptions = useMemo(

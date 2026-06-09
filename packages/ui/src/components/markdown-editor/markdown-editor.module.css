@@ -15,7 +15,7 @@
   gap: var(--space-1);
   border-radius: var(--field-radius);
   border: 1px solid var(--border);
-  background: var(--muted);
+  background: color-mix(in oklch, var(--muted) 38%, var(--popover));
   padding: var(--space-1);
   color: var(--foreground);
 }
