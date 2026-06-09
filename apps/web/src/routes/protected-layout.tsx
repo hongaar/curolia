@@ -1,5 +1,8 @@
 import { isPublicMapViewPathname } from "@/lib/public-map-routes";
-import { useAuth } from "@/providers/auth-provider";
+import {
+  consumeSkipLoginNextRedirect,
+  useAuth,
+} from "@/providers/auth-provider";
 import { MapProvider } from "@/providers/map-provider";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
@@ -14,6 +17,9 @@ export function ProtectedLayout() {
   }
 
   if (!user && !publicMapView) {
+    if (consumeSkipLoginNextRedirect()) {
+      return <Navigate to="/login" replace />;
+    }
     const next = encodeURIComponent(`${location.pathname}${location.search}`);
     return <Navigate to={`/login?next=${next}`} replace />;
   }

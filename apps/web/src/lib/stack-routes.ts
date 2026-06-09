@@ -2,6 +2,8 @@ import type { Location } from "react-router-dom";
 
 /** Map / blog — kept mounted under the stack. */
 const BASE_ROUTE_PATTERNS: readonly RegExp[] = [
+  /^\/[^/]+\/[^/]+\/map\/?$/,
+  /^\/[^/]+\/[^/]+\/blog\/?$/,
   /^\/map\/[^/]+\/?$/,
   /^\/blog\/[^/]+\/?$/,
   /^\/blog\/?$/,
@@ -14,6 +16,8 @@ const STACK_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/plugins\/?$/,
   /^\/notifications\/?$/,
   /^\/invitations\/?$/,
+  /^\/[^/]+\/[^/]+\/settings\/?$/,
+  /^\/[^/]+\/[^/]+\/pin\//,
   /^\/maps\/[^/]+\/settings\/?$/,
   /^\/pins\//,
 ];

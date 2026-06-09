@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Map, Settings, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
+import { StoryFrame } from "../../storybook/story-frame";
 import { Button } from "../button";
 import { Field, FieldControl, FieldDescription, FieldLabel } from "../field";
 import { Input } from "../input";
@@ -18,9 +19,10 @@ import {
   PageCapitalize,
   PageCenteredError,
   PageCenteredLoading,
+  PageClassicHeader,
+  PageClassicHeaderRow,
   PageContent,
   PageContentStack,
-  PageDisplayTitle,
   PageEmailLine,
   PageErrorText,
   PageExternalLink,
@@ -29,12 +31,12 @@ import {
   PageFormBlockSpaced,
   PageGrid2,
   PageHeader,
-  PageHeaderRow,
+  PageHeaderLead,
+  PageHeaderTitle,
   PageInlineActions,
   PageInviteEmailField,
   PageInviteRoleField,
   PageInviteRow,
-  PageLead,
   PageMessageText,
   PageMuted,
   PagePanel,
@@ -62,7 +64,7 @@ const meta = {
   title: "Page",
   ...componentStoryMeta(
     "Scrollable settings and content page shell with layout primitives for titles, sections, panels, and form blocks.",
-    "Prefer `AppPageLayout` for standard in-app settings pages. Compose lower-level pieces (`Page`, `PageScroll`, `PageContentStack`) when you need custom scroll or width behavior.",
+    "Prefer `AppPageLayout` for standard in-app settings pages. Use `PageHeader`, `PageHeaderTitle`, and `PageHeaderLead` inside `PagePanel`. Compose lower-level pieces (`Page`, `PageScroll`, `PageContentStack`) when you need custom scroll or width behavior.",
   ),
   component: Page,
 } satisfies Meta;
@@ -84,10 +86,12 @@ export const AppPageLayoutDefault: Story = {
       <AppPageLayout>
         <PageBackButton label="Back" onClick={() => undefined} />
         <PagePanel>
-          <PageDisplayTitle>Map settings</PageDisplayTitle>
-          <PageLead>
-            Owners can rename the map and tune how pins appear.
-          </PageLead>
+          <PageHeader>
+            <PageHeaderTitle>Map settings</PageHeaderTitle>
+            <PageHeaderLead>
+              Owners can rename the map and tune how pins appear.
+            </PageHeaderLead>
+          </PageHeader>
           <PageFormBlockSpaced>
             <Field>
               <FieldLabel htmlFor="story-page-map-name">Map name</FieldLabel>
@@ -133,25 +137,124 @@ export const ContentWidths: Story = {
   ),
 };
 
-export const HeaderPrimitives: Story = {
+export const PageHeaderDefault: Story = {
+  name: "Page header",
   parameters: storyDocs(
-    "`PageHeader` / `PageTitle` for classic headers; `PageDisplayTitle` + `PageLead` for panel pages.",
+    '`PageHeader` stacks `PageHeaderTitle` and optional `PageHeaderLead` with `gap="xs"`.',
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <PagePanel>
+        <PageHeader>
+          <PageHeaderTitle>Settings</PageHeaderTitle>
+          <PageHeaderLead>Appearance and other preferences.</PageHeaderLead>
+        </PageHeader>
+      </PagePanel>
+    </StoryFrame>
+  ),
+};
+
+export const PageHeaderTitleOnly: Story = {
+  name: "Page header title only",
+  parameters: storyDocs(
+    "`PageHeaderTitle` alone when no supporting lead copy is needed.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <PagePanel>
+        <PageHeader>
+          <PageHeaderTitle>Notifications</PageHeaderTitle>
+        </PageHeader>
+      </PagePanel>
+    </StoryFrame>
+  ),
+};
+
+export const PageHeaderWithFormBlock: Story = {
+  name: "Page header with form block",
+  parameters: storyDocs(
+    "Typical panel page: header, then `PageFormBlockSpaced` with form fields.",
   ),
   render: () => (
     <PageShell>
       <AppPageLayout>
-        <PageHeader>
-          <PageHeaderRow>
+        <PageBackButton label="Back" onClick={() => undefined} />
+        <PagePanel>
+          <PageHeader>
+            <PageHeaderTitle>Profile</PageHeaderTitle>
+            <PageHeaderLead>
+              Update how you appear in the app. Email is managed by your account
+              provider.
+            </PageHeaderLead>
+          </PageHeader>
+          <PageFormBlockSpaced>
+            <Field>
+              <FieldLabel htmlFor="story-page-header-name">
+                Display name
+              </FieldLabel>
+              <FieldControl>
+                <Input
+                  id="story-page-header-name"
+                  defaultValue="Alex Example"
+                />
+              </FieldControl>
+              <FieldDescription>
+                Shown on pins and invitations.
+              </FieldDescription>
+            </Field>
+            <PageInlineActions>
+              <Button>Save changes</Button>
+            </PageInlineActions>
+          </PageFormBlockSpaced>
+        </PagePanel>
+      </AppPageLayout>
+    </PageShell>
+  ),
+};
+
+export const PageClassicHeaderStory: Story = {
+  name: "Classic header",
+  parameters: storyDocs(
+    "`PageClassicHeader` and `PageTitle` for non-panel toolbar headers with optional actions.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <PageClassicHeader>
+        <PageClassicHeaderRow>
+          <PageTitle>Notifications</PageTitle>
+          <Button size="sm" variant="outline">
+            Mark all read
+          </Button>
+        </PageClassicHeaderRow>
+        <PageMuted>Activity from maps you follow.</PageMuted>
+      </PageClassicHeader>
+    </StoryFrame>
+  ),
+};
+
+export const HeaderPrimitives: Story = {
+  parameters: storyDocs(
+    "Both header styles on one page: `PageClassicHeader` outside a panel and `PageHeader` inside `PagePanel`.",
+  ),
+  render: () => (
+    <PageShell>
+      <AppPageLayout>
+        <PageClassicHeader>
+          <PageClassicHeaderRow>
             <PageTitle>Notifications</PageTitle>
             <Button size="sm" variant="outline">
               Mark all read
             </Button>
-          </PageHeaderRow>
+          </PageClassicHeaderRow>
           <PageMuted>Activity from maps you follow.</PageMuted>
-        </PageHeader>
+        </PageClassicHeader>
         <PagePanel>
-          <PageDisplayTitle>Display title</PageDisplayTitle>
-          <PageLead>Lead copy under a large settings heading.</PageLead>
+          <PageHeader>
+            <PageHeaderTitle>Display title</PageHeaderTitle>
+            <PageHeaderLead>
+              Lead copy under a large settings heading.
+            </PageHeaderLead>
+          </PageHeader>
         </PagePanel>
       </AppPageLayout>
     </PageShell>
@@ -394,12 +497,12 @@ export const LowLevelComposition: Story = {
       <Page>
         <PageScroll>
           <PageContent width="wide">
-            <PageHeader>
-              <PageHeaderRow>
+            <PageClassicHeader>
+              <PageClassicHeaderRow>
                 <User aria-hidden className={styles.headerIcon} />
                 <PageTitle>Account</PageTitle>
-              </PageHeaderRow>
-            </PageHeader>
+              </PageClassicHeaderRow>
+            </PageClassicHeader>
             <PageMuted>Lower-level scroll without under-nav padding.</PageMuted>
           </PageContent>
         </PageScroll>

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect -- persist last map/blog location for the stack base layer */
 import { mapViewHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import { applySelectedPinToSearchParams } from "@/lib/map-view-params";
 import { isBaseRoute, isStackRoute } from "@/lib/stack-routes";
 import { useMap } from "@/providers/map-provider";
@@ -7,19 +8,22 @@ import { useLayoutEffect, useMemo, useState } from "react";
 import { useLocation, type Location } from "react-router-dom";
 
 function defaultBasePathname(
-  activeMapSlug: string | undefined,
-  fallbackMapSlug: string | undefined,
+  activeMap: ReturnType<typeof useMap>["activeMap"],
+  fallbackMap: ReturnType<typeof useMap>["maps"][number] | undefined,
 ): string {
-  const slug = activeMapSlug ?? fallbackMapSlug;
-  return slug ? mapViewHref("map", slug) : "/map";
+  const map = activeMap ?? fallbackMap;
+  if (map?.owner_profile_slug && map.slug) {
+    return mapViewHref("map", mapRouteForMap(map));
+  }
+  return "/";
 }
 
 /** Last map/blog location — kept mounted while stack screens are open. */
 export function useFrozenBaseLocation(): Location {
   const location = useLocation();
   const { activeMap, maps } = useMap();
-  const fallbackSlug = maps[0]?.slug;
-  const defaultPathname = defaultBasePathname(activeMap?.slug, fallbackSlug);
+  const fallbackMap = maps[0];
+  const defaultPathname = defaultBasePathname(activeMap, fallbackMap);
 
   const [frozenBase, setFrozenBase] = useState(location);
 

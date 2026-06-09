@@ -11,10 +11,8 @@ import {
   LoginHeader,
   LoginLayout,
   LoginTabPanel,
-  LoginTabsList,
-  LoginTabTrigger,
 } from "@curolia/ui/login-layout";
-import { Tabs } from "@curolia/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@curolia/ui/tabs";
 import { useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 
@@ -58,10 +56,10 @@ export function LoginPage() {
     <LoginLayout>
       <LoginHeader />
       <Tabs defaultValue={defaultTab}>
-        <LoginTabsList>
-          <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
-          <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>
-        </LoginTabsList>
+        <TabsList variant="filled">
+          <TabsTrigger value="signin">Sign in</TabsTrigger>
+          <TabsTrigger value="signup">Sign up</TabsTrigger>
+        </TabsList>
         <LoginTabPanel
           value="signin"
           onSubmit={(event) => {

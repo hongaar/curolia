@@ -64,39 +64,6 @@
   margin: 0.5rem 0 0;
 }
 
-/* Segmented control: track uses muted fill; inactive pills transparent. */
-.tabsList {
-  display: grid;
-  width: 100%;
-  max-width: 100%;
-  grid-template-columns: 1fr 1fr;
-  border-radius: var(--radius-xl);
-  background: color-mix(in oklch, var(--muted) 80%, transparent);
-  padding: var(--space-1);
-}
-
-.tabTrigger {
-  border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--muted-foreground);
-  box-shadow: none;
-}
-
-.tabTrigger:hover {
-  color: var(--foreground);
-}
-
-.tabTrigger:global([data-active]) {
-  background: var(--background);
-  color: var(--foreground);
-  box-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 8%, transparent);
-}
-
-:global(.dark) .tabTrigger:global([data-active]) {
-  border-color: transparent;
-  background: color-mix(in oklch, var(--input) 30%, transparent);
-}
-
 .formSection {
   padding-top: 1.25rem;
 }

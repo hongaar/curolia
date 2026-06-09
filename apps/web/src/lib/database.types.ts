@@ -148,6 +148,35 @@ export type Database = {
           },
         ];
       };
+      map_slug_redirects: {
+        Row: {
+          created_at: string;
+          map_id: string;
+          owner_id: string;
+          slug: string;
+        };
+        Insert: {
+          created_at?: string;
+          map_id: string;
+          owner_id: string;
+          slug: string;
+        };
+        Update: {
+          created_at?: string;
+          map_id?: string;
+          owner_id?: string;
+          slug?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "map_slug_redirects_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       maps: {
         Row: {
           created_at: string;
@@ -664,6 +693,32 @@ export type Database = {
           },
         ];
       };
+      profile_slug_redirects: {
+        Row: {
+          created_at: string;
+          profile_id: string;
+          slug: string;
+        };
+        Insert: {
+          created_at?: string;
+          profile_id: string;
+          slug: string;
+        };
+        Update: {
+          created_at?: string;
+          profile_id?: string;
+          slug?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_slug_redirects_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -674,6 +729,7 @@ export type Database = {
           notification_email_enabled: boolean;
           notification_push_enabled: boolean;
           onboarding_completed: boolean;
+          slug: string;
           updated_at: string;
         };
         Insert: {
@@ -685,6 +741,7 @@ export type Database = {
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
           onboarding_completed?: boolean;
+          slug?: string;
           updated_at?: string;
         };
         Update: {
@@ -696,6 +753,7 @@ export type Database = {
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
           onboarding_completed?: boolean;
+          slug?: string;
           updated_at?: string;
         };
         Relationships: [
@@ -946,10 +1004,15 @@ export type Database = {
         Returns: boolean;
       };
       map_claim_slug: {
-        Args: { p_desired: string; p_map_id: string };
+        Args: { p_desired: string; p_map_id: string; p_owner_id: string };
         Returns: string;
       };
       map_member_can_edit: { Args: { p_map_id: string }; Returns: boolean };
+      map_settings_path: { Args: { p_map_id: string }; Returns: string };
+      map_view_path: {
+        Args: { p_map_id: string; p_view?: string };
+        Returns: string;
+      };
       mark_notification_read: {
         Args: { p_notification_id: string };
         Returns: undefined;
@@ -963,6 +1026,10 @@ export type Database = {
         Returns: string;
       };
       pin_map_id: { Args: { p_pin_id: string }; Returns: string };
+      profile_claim_slug: {
+        Args: { p_desired: string; p_profile_id: string };
+        Returns: string;
+      };
       register_push_token: {
         Args: {
           p_device_id?: string;

@@ -18,7 +18,7 @@ function Tabs({
   );
 }
 
-type TabsListVariant = "default" | "line";
+type TabsListVariant = "default" | "line" | "filled";
 
 function TabsList({
   className,
@@ -31,7 +31,12 @@ function TabsList({
       data-variant={variant}
       className={cn(
         styles.list,
-        variant === "line" ? styles.listVariantLine : styles.listVariantDefault,
+        variant === "line"
+          ? styles.listVariantLine
+          : cn(
+              styles.listVariantDefault,
+              variant === "filled" && styles.listVariantFilled,
+            ),
         className,
       )}
       {...props}
@@ -59,4 +64,4 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   );
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent, type TabsListVariant };
+export { Tabs, TabsContent, TabsList, TabsTrigger, type TabsListVariant };

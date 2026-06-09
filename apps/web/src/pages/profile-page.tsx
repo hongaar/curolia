@@ -1,5 +1,9 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { UserAvatar } from "@/components/user-avatar";
+import {
+  profileSlugSaveErrorMessage,
+  validateProfileSlugInput,
+} from "@/lib/profile-slug";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
@@ -7,10 +11,11 @@ import { Button } from "@curolia/ui/button";
 import {
   Field,
   FieldControl,
+  FieldError,
   FieldLabel,
   SrOnlyInput,
 } from "@curolia/ui/form-layout";
-import { Input } from "@curolia/ui/input";
+import { Input, PrefixedInput } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
@@ -18,12 +23,13 @@ import {
   PageAvatarHint,
   PageAvatarRow,
   PageAvatarSection,
-  PageDisplayTitle,
   PageEmailLine,
   PageExternalLink,
   PageFitButton,
+  PageHeader,
+  PageHeaderLead,
+  PageHeaderTitle,
   PageInlineActions,
-  PageLead,
   PagePanel,
   PageProfileGrid,
 } from "@curolia/ui/page";
@@ -59,23 +65,44 @@ function ProfileEditor({
   const [displayName, setDisplayName] = useState(
     () => profile?.display_name ?? "",
   );
+  const [profileSlug, setProfileSlug] = useState(() => profile?.slug ?? "");
   const [avatarUrl, setAvatarUrl] = useState(() => profile?.avatar_url ?? "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [slugError, setSlugError] = useState<string | null>(null);
 
   async function save() {
     setSaving(true);
+    setSlugError(null);
+
+    const slugValidation = await validateProfileSlugInput(
+      user.id,
+      profileSlug,
+      profile?.slug,
+    );
+    if (slugValidation) {
+      setSlugError(slugValidation);
+      setSaving(false);
+      return;
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
         display_name: displayName.trim() || null,
+        slug: profileSlug.trim() || undefined,
         avatar_url: avatarUrl.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
     setSaving(false);
     if (error) {
-      toast.error(error.message);
+      const message = profileSlugSaveErrorMessage(error);
+      if (message.includes("profile URL")) {
+        setSlugError(message);
+        return;
+      }
+      toast.error(message);
       return;
     }
     toast.success("Profile saved");
@@ -151,8 +178,22 @@ function ProfileEditor({
     await qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
 
+  const profileUrlPrefix = `${window.location.host}/`;
+
   return (
     <PageProfileGrid>
+      <Field>
+        <FieldLabel htmlFor="pf-name">Display name</FieldLabel>
+        <FieldControl>
+          <Input
+            id="pf-name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Your name"
+            disabled={profileLoading}
+          />
+        </FieldControl>
+      </Field>
       <PageAvatarSection>
         <Label>Photo</Label>
         <PageAvatarRow>
@@ -205,16 +246,26 @@ function ProfileEditor({
         </PageAvatarRow>
       </PageAvatarSection>
       <Field>
-        <FieldLabel htmlFor="pf-name">Display name</FieldLabel>
+        <FieldLabel htmlFor="pf-slug">Profile URL</FieldLabel>
         <FieldControl>
-          <Input
-            id="pf-name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Your name"
+          <PrefixedInput
+            id="pf-slug"
+            prefix={profileUrlPrefix}
+            value={profileSlug}
+            onChange={(e) => {
+              setProfileSlug(e.target.value);
+              setSlugError(null);
+            }}
+            placeholder="your-name"
             disabled={profileLoading}
+            autoComplete="off"
+            aria-invalid={slugError ? true : undefined}
+            aria-describedby={slugError ? "pf-slug-error" : undefined}
           />
         </FieldControl>
+        {slugError ? (
+          <FieldError id="pf-slug-error">{slugError}</FieldError>
+        ) : null}
       </Field>
       <PageFitButton>
         <Button disabled={saving || profileLoading} onClick={() => void save()}>
@@ -247,11 +298,13 @@ export function ProfilePage() {
     <AppPageLayout>
       <PageBackButton />
       <PagePanel>
-        <PageDisplayTitle>Profile</PageDisplayTitle>
-        <PageLead>
-          Update how you appear in the app. Email is managed by your account
-          provider.
-        </PageLead>
+        <PageHeader>
+          <PageHeaderTitle>Profile</PageHeaderTitle>
+          <PageHeaderLead>
+            Update how you appear in the app. Email is managed by your account
+            provider.
+          </PageHeaderLead>
+        </PageHeader>
         {user?.email ? (
           <PageEmailLine highlight={user.email}>Signed in as </PageEmailLine>
         ) : null}

@@ -1,5 +1,7 @@
 import { mapViewHref } from "@/lib/app-paths";
 import { defaultMapIcon } from "@/lib/map-display-icon";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
 import {
@@ -22,19 +24,32 @@ type NewMapDialogProps = {
 
 export function NewMapDialog({ open, onOpenChange }: NewMapDialogProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { createMap } = useMap();
   const [name, setName] = useState("");
   const [icon, setIcon] = useState(() => defaultMapIcon());
   const [creating, setCreating] = useState(false);
 
   async function handleCreate() {
-    if (!name.trim()) return;
+    if (!name.trim() || !user) return;
     setCreating(true);
     const { map, error } = await createMap(name.trim(), icon);
     setCreating(false);
     if (!error && map?.slug) {
       onOpenChange(false);
-      navigate(mapViewHref("map", map.slug));
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("slug")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.slug) {
+        navigate(
+          mapViewHref("map", {
+            profileSlug: profile.slug,
+            mapSlug: map.slug,
+          }),
+        );
+      }
     }
   }
 

@@ -2,22 +2,44 @@ import { AppSettingsPage } from "@/pages/app-settings-page";
 import { BlogPage } from "@/pages/blog-page";
 import { BlogHomeRedirectPage } from "@/pages/home-redirect-page";
 import { InvitationsPage } from "@/pages/invitations-page";
-import { MapSettingsPage } from "@/pages/map-settings-page";
+import { LegacyMapRouteRedirectPage } from "@/pages/legacy-map-route-redirect-page";
+import { LegacyMapSettingsRedirectPage } from "@/pages/legacy-map-settings-redirect-page";
+import { LegacyPinRouteRedirectPage } from "@/pages/legacy-pin-route-redirect-page";
 import { MapPage } from "@/pages/map-page";
+import { MapSettingsPage } from "@/pages/map-settings-page";
 import { NotificationsPage } from "@/pages/notifications-page";
-import { PluginsPage } from "@/pages/plugins-page";
-import { ProfilePage } from "@/pages/profile-page";
 import { PinDetailPage } from "@/pages/pin-detail-page";
 import { PinLegacyRedirectPage } from "@/pages/pin-legacy-redirect-page";
+import { PluginsPage } from "@/pages/plugins-page";
+import { ProfilePage } from "@/pages/profile-page";
 import { Navigate, Route } from "react-router-dom";
 
 /** Child routes rendered inside AppShell (shared by App and the mobile stack layout). */
 export const appShellRouteElements = (
   <>
-    <Route path="map/:mapSlug" element={<MapPage />} />
+    <Route path=":profileSlug/:mapSlug/map" element={<MapPage />} />
+    <Route path=":profileSlug/:mapSlug/blog" element={<BlogPage />} />
+    <Route
+      path=":profileSlug/:mapSlug/pin/:pinSlug"
+      element={<PinDetailPage />}
+    />
+    <Route
+      path=":profileSlug/:mapSlug/settings"
+      element={<MapSettingsPage />}
+    />
+    <Route
+      path="map/:mapSlug"
+      element={<LegacyMapRouteRedirectPage view="map" />}
+    />
     <Route path="blog" element={<BlogHomeRedirectPage />} />
-    <Route path="blog/:mapSlug" element={<BlogPage />} />
-    <Route path="pins/:mapSlug/:pinSlug" element={<PinDetailPage />} />
+    <Route
+      path="blog/:mapSlug"
+      element={<LegacyMapRouteRedirectPage view="blog" />}
+    />
+    <Route
+      path="pins/:mapSlug/:pinSlug"
+      element={<LegacyPinRouteRedirectPage />}
+    />
     <Route path="pins/:legacyPinId" element={<PinLegacyRedirectPage />} />
     <Route path="profile" element={<ProfilePage />} />
     <Route path="settings" element={<AppSettingsPage />} />
@@ -32,6 +54,9 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
-    <Route path="maps/:mapSlug/settings" element={<MapSettingsPage />} />
+    <Route
+      path="maps/:mapSlug/settings"
+      element={<LegacyMapSettingsRedirectPage />}
+    />
   </>
 );

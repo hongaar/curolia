@@ -1,3 +1,4 @@
+import type { MapRoute } from "@/lib/map-route";
 import {
   applyAddPinToSearchParams,
   applySelectedPinToSearchParams,
@@ -8,40 +9,54 @@ import type { CuroliaMap } from "@/types/database";
 
 export type MapViewSegment = "map" | "blog";
 
-export function mapViewHref(view: MapViewSegment, mapSlug: string): string {
-  return `/${view}/${mapSlug}`;
+export type MapWithOwnerSlug = CuroliaMap & { owner_profile_slug: string };
+
+export function mapViewHref(view: MapViewSegment, route: MapRoute): string {
+  return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}/${view}`;
 }
 
-/** Map settings stack route: `/maps/:mapSlug/settings`. */
-export function mapSettingsHref(mapSlug: string): string {
-  return `/maps/${mapSlug.trim()}/settings`;
+/** Map settings stack route: `/:profileSlug/:mapSlug/settings`. */
+export function mapSettingsHref(route: MapRoute): string {
+  return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}/settings`;
 }
 
-/** Resolve a map from the settings route param (slug, or legacy UUID). */
+/** Resolve a map from settings route params (slug, or legacy UUID). */
 export function resolveMapFromSettingsParam(
-  maps: CuroliaMap[],
-  param: string | undefined,
-): CuroliaMap | null {
-  if (!param?.trim()) return null;
-  const needle = param.trim().toLowerCase();
-  const bySlug = maps.find((m) => m.slug.trim().toLowerCase() === needle);
-  if (bySlug) return bySlug;
-  return maps.find((m) => m.id === param) ?? null;
+  maps: Array<CuroliaMap & { owner_profile_slug?: string }>,
+  profileSlug: string | undefined,
+  mapSlug: string | undefined,
+): (CuroliaMap & { owner_profile_slug?: string }) | null {
+  if (!mapSlug?.trim()) return null;
+  const mapNeedle = mapSlug.trim().toLowerCase();
+  const profileNeedle = profileSlug?.trim().toLowerCase();
+
+  const bySlugs = maps.find((m) => {
+    if (m.slug.trim().toLowerCase() !== mapNeedle) return false;
+    if (!profileNeedle) return true;
+    return (m.owner_profile_slug ?? "").trim().toLowerCase() === profileNeedle;
+  });
+  if (bySlugs) return bySlugs;
+
+  return maps.find((m) => m.id === mapSlug) ?? null;
 }
 
 /** Map uses fullscreen chrome (floating toolbar, no page chrome). */
 export function isMapFullscreenPathname(pathname: string): boolean {
-  return pathname === "/" || /^\/map\/[^/]+\/?$/.test(pathname);
+  return (
+    pathname === "/" ||
+    /^\/[^/]+\/[^/]+\/map\/?$/.test(pathname) ||
+    /^\/map\/[^/]+\/?$/.test(pathname)
+  );
 }
 
 export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {
-  return pathname.startsWith("/blog/") ? "blog" : "map";
+  return pathname.includes("/blog") ? "blog" : "map";
 }
 
 /** Switch between map and blog for the same map, keeping tag filters. */
 export function mapViewSwitchHref(
   view: MapViewSegment,
-  mapSlug: string,
+  route: MapRoute,
   currentSearch: string = "",
 ): string {
   let p = new URLSearchParams(
@@ -51,17 +66,20 @@ export function mapViewSwitchHref(
   p.delete(MAP_VIEW_PARAM.pin);
   p.delete(MAP_VIEW_PARAM.add);
   const q = p.toString();
-  const base = mapViewHref(view, mapSlug.trim());
+  const base = mapViewHref(view, route);
   return q ? `${base}?${q}` : base;
 }
 
 export function mapSwitchHref(
-  nextMap: CuroliaMap,
+  nextMap: MapWithOwnerSlug,
   currentPathname: string,
   currentSearch: string,
 ): string {
   const segment = mapViewSegmentFromPathname(currentPathname);
-  const slug = nextMap.slug.trim();
+  const route = {
+    profileSlug: nextMap.owner_profile_slug,
+    mapSlug: nextMap.slug,
+  };
   let p = new URLSearchParams(
     currentSearch.startsWith("?") ? currentSearch.slice(1) : currentSearch,
   );
@@ -71,17 +89,17 @@ export function mapSwitchHref(
   p.delete(MAP_VIEW_PARAM.pin);
   p.delete(MAP_VIEW_PARAM.add);
   const q = p.toString();
-  const base = mapViewHref(segment, slug);
+  const base = mapViewHref(segment, route);
   return q ? `${base}?${q}` : base;
 }
 
-/** Stable pin detail URL: `/pins/:mapSlug/:pinSlug`. */
-export function pinDetailHref(mapSlug: string, pinSlug: string): string {
-  return `/pins/${mapSlug.trim()}/${pinSlug.trim()}`;
+/** Stable pin detail URL: `/:profileSlug/:mapSlug/pin/:pinSlug`. */
+export function pinDetailHref(route: MapRoute, pinSlug: string): string {
+  return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}/pin/${pinSlug.trim()}`;
 }
 
 export function mapHrefWithSearch(
-  mapSlug: string,
+  route: MapRoute,
   searchParamsStr: string,
 ): string {
   const p = new URLSearchParams(
@@ -90,13 +108,13 @@ export function mapHrefWithSearch(
       : searchParamsStr,
   );
   const q = p.toString();
-  const base = mapViewHref("map", mapSlug);
+  const base = mapViewHref("map", route);
   return q ? `${base}?${q}` : base;
 }
 
 /** Map with add-pin placement mode enabled (preserves unrelated search params). */
 export function mapAddPinHref(
-  mapSlug: string,
+  route: MapRoute,
   searchParams: URLSearchParams | string = "",
 ): string {
   const p =
@@ -110,6 +128,6 @@ export function mapAddPinHref(
     true,
   );
   const q = next.toString();
-  const base = mapViewHref("map", mapSlug);
+  const base = mapViewHref("map", route);
   return q ? `${base}?${q}` : base;
 }

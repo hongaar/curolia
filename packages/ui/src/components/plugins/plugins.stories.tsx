@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
+import { PageHeader, PageHeaderLead, PageHeaderTitle } from "../page";
 import { PluginIconFrame } from "../plugin-icon-frame";
 import { Switch } from "../switch";
 import {
-  PluginListHeader,
   PluginListIcon,
   PluginListRow,
   PluginListRowDescription,
@@ -30,7 +30,13 @@ export const Default: Story = {
   parameters: storyDocs("Plugin list row with icon, title, and toggle."),
   render: () => (
     <StoryFrame width="md">
-      <PluginListHeader>Plugins</PluginListHeader>
+      <PageHeader>
+        <PageHeaderTitle>Plugins</PageHeaderTitle>
+        <PageHeaderLead>
+          Enable integrations for your account. Map-specific options live in map
+          settings.
+        </PageHeaderLead>
+      </PageHeader>
       <PluginListRow>
         <PluginListRowMain>
           <PluginListRowInfo>

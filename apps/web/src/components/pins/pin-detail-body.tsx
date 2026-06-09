@@ -4,6 +4,7 @@ import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { pinDetailHref } from "@/lib/app-paths";
+import type { MapRoute } from "@/lib/map-route";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
 import {
   photosToGalleryItems,
@@ -68,7 +69,7 @@ interface PinDetailBodyProps {
    * When provided (e.g. in the map side sheet), renders a small permalink icon
    * that links to the standalone pin detail page for this pin.
    */
-  permalinkMapSlug?: string;
+  permalinkMapRoute?: MapRoute;
 }
 
 export function PinDetailBody({
@@ -77,7 +78,7 @@ export function PinDetailBody({
   signedUrlByPhotoId,
   extraActions,
   topContent,
-  permalinkMapSlug,
+  permalinkMapRoute,
 }: PinDetailBodyProps) {
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
@@ -154,12 +155,14 @@ export function PinDetailBody({
               variant="outline"
               size="sm"
             />
-            {permalinkMapSlug ? (
+            {permalinkMapRoute ? (
               <Button
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Open full pin detail page"
-                render={<Link to={pinDetailHref(permalinkMapSlug, pin.slug)} />}
+                render={
+                  <Link to={pinDetailHref(permalinkMapRoute, pin.slug)} />
+                }
               >
                 <Link2Icon />
               </Button>

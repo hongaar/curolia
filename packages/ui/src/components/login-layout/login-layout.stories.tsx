@@ -3,7 +3,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
 import { Input } from "../input";
 import { Label } from "../label";
-import { Tabs } from "../tabs";
+import { Tabs, TabsList, TabsTrigger } from "../tabs";
 import {
   LoginActions,
   LoginField,
@@ -12,15 +12,13 @@ import {
   LoginInlineCode,
   LoginLayout,
   LoginTabPanel,
-  LoginTabsList,
-  LoginTabTrigger,
 } from "./login-layout";
 
 const meta = {
   title: "Login Layout",
   ...componentStoryMeta(
     `Centered login/sign-up card with segmented tabs.`,
-    `Wrap content in \`LoginLayout\`, add \`LoginHeader\`, \`LoginTabsList\` / \`LoginTabTrigger\`, and \`LoginTabPanel\` per tab.`,
+    `Wrap content in \`LoginLayout\`, add \`LoginHeader\`, \`TabsList variant="filled"\` / \`TabsTrigger\`, and \`LoginTabPanel\` per tab.`,
   ),
   component: LoginLayout,
 } satisfies Meta;
@@ -34,10 +32,10 @@ export const Default: Story = {
     <LoginLayout>
       <LoginHeader />
       <Tabs defaultValue="signin">
-        <LoginTabsList>
-          <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
-          <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>
-        </LoginTabsList>
+        <TabsList variant="filled">
+          <TabsTrigger value="signin">Sign in</TabsTrigger>
+          <TabsTrigger value="signup">Sign up</TabsTrigger>
+        </TabsList>
         <LoginTabPanel
           value="signin"
           onSubmit={(event) => event.preventDefault()}

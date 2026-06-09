@@ -82,6 +82,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { pinDetailHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   applyFilterTagsToSearchParams,
   resolveFilterTagIdsFromSearchParams,
@@ -89,8 +90,11 @@ import {
 
 export function BlogPage() {
   const qc = useQueryClient();
-  const { mapSlug } = useParams<{ mapSlug: string }>();
-  useMapSlugRouteSync(mapSlug);
+  const { profileSlug, mapSlug } = useParams<{
+    profileSlug: string;
+    mapSlug: string;
+  }>();
+  useMapSlugRouteSync(profileSlug, mapSlug);
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     activeMapId,
@@ -108,7 +112,7 @@ export function BlogPage() {
     setDirection: setBlogListDirection,
   } = useBlogPinListSort(activeMapId);
 
-  const blogMapSlug = mapSlug?.trim() || activeMap?.slug?.trim() || "";
+  const blogMapRoute = activeMap ? mapRouteForMap(activeMap) : null;
   const [photoLightbox, setPhotoLightbox] = useState<{
     pinId: string;
     photoId: string;
@@ -409,8 +413,8 @@ export function BlogPage() {
                   pinPhotos,
                   galleryItems,
                 );
-                const detailHref = blogMapSlug
-                  ? pinDetailHref(blogMapSlug, t.slug)
+                const detailHref = blogMapRoute
+                  ? pinDetailHref(blogMapRoute, t.slug)
                   : "#";
                 return (
                   <li key={t.id}>

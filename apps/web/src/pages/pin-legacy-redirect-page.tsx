@@ -23,13 +23,21 @@ export function PinLegacyRedirectPage() {
       if (!row) return null;
       const { data: map, error: jErr } = await supabase
         .from("maps")
-        .select("slug")
+        .select("slug, created_by_user_id")
         .eq("id", row.map_id)
         .maybeSingle();
       if (jErr) throw jErr;
-      const js = map?.slug?.trim();
-      if (!js) return null;
-      return pinDetailHref(js, row.slug);
+      if (!map?.slug?.trim()) return null;
+      const mapSlug = map.slug.trim();
+      const { data: profile, error: pErr } = await supabase
+        .from("profiles")
+        .select("slug")
+        .eq("id", map.created_by_user_id)
+        .maybeSingle();
+      if (pErr) throw pErr;
+      const profileSlug = profile?.slug?.trim();
+      if (!profileSlug) return null;
+      return pinDetailHref({ profileSlug, mapSlug }, row.slug);
     },
     enabled: Boolean(legacyPinId && PIN_ID_PARAM_RE.test(legacyPinId)),
   });

@@ -3,6 +3,7 @@ import type { PinMapHandle } from "@/components/map/pin-map";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
+import type { MapRoute } from "@/lib/map-route";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
@@ -58,8 +59,8 @@ type PinPopoverRow = PinWithTags;
 type PinMapMarkerPopoverProps = {
   pinId: string;
   mapId: string | null;
-  /** Map URL segment for `/pins/:mapSlug/:pinSlug`. */
-  mapSlug: string | null;
+  /** Canonical map route for pin detail links. */
+  mapRoute: MapRoute | null;
   mapRef: RefObject<PinMapHandle | null>;
   /** Marker position from map list detail (immediate); avoids fixed-panel flash before pin query resolves. */
   listAnchorLngLat?: { lat: number; lng: number } | null;
@@ -83,7 +84,7 @@ function validLngLat(
 export function PinMapMarkerPopover({
   pinId,
   mapId,
-  mapSlug,
+  mapRoute,
   mapRef,
   listAnchorLngLat = null,
   onClose,
@@ -286,8 +287,7 @@ export function PinMapMarkerPopover({
         })
       : [];
 
-  const detailHref =
-    mapSlug?.trim() && pin ? pinDetailHref(mapSlug.trim(), pin.slug) : "#";
+  const detailHref = mapRoute && pin ? pinDetailHref(mapRoute, pin.slug) : "#";
 
   const body = (
     <MapMarkerPopoverBody>

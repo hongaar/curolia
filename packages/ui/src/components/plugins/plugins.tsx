@@ -60,8 +60,4 @@ export function PluginListIcon({ children }: { children: React.ReactNode }) {
   return <span className={styles.iconMuted}>{children}</span>;
 }
 
-export function PluginListHeader({ children }: { children: React.ReactNode }) {
-  return <div className={styles.headerBlock}>{children}</div>;
-}
-
 export const pluginsUiStyles = styles;

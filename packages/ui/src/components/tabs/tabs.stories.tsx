@@ -1,14 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
-import { LoginTabTrigger, LoginTabsList } from "../login-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 
 const meta = {
   title: "Tabs",
   ...componentStoryMeta(
     `Tabbed regions with keyboard support via Base UI.`,
-    `Match \`value\` on \`TabsTrigger\` and \`TabsContent\`. Use \`TabsList variant="line"\` for underline style. Login uses \`LoginTabsList\` / \`LoginTabTrigger\` for segmented pills.`,
+    `Match \`value\` on \`TabsTrigger\` and \`TabsContent\`. Use \`TabsList variant="line"\` for underline style, or \`variant="filled"\` to stretch tabs evenly across the list width at the default height.`,
   ),
   component: Tabs,
 } satisfies Meta;
@@ -50,18 +49,17 @@ export const LineVariant: Story = {
   ),
 };
 
-/** Login page segmented control (muted track, transparent inactive pills). */
-export const LoginPill: Story = {
+export const FilledVariant: Story = {
   parameters: storyDocs(
-    "Login segmented control: muted track with transparent inactive pills.",
+    'Full-width tab list using `TabsList variant="filled"`.',
   ),
   render: () => (
     <StoryFrame width="md">
       <Tabs defaultValue="signin">
-        <LoginTabsList>
-          <LoginTabTrigger value="signin">Sign in</LoginTabTrigger>
-          <LoginTabTrigger value="signup">Sign up</LoginTabTrigger>
-        </LoginTabsList>
+        <TabsList variant="filled">
+          <TabsTrigger value="signin">Sign in</TabsTrigger>
+          <TabsTrigger value="signup">Sign up</TabsTrigger>
+        </TabsList>
         <TabsContent value="signin">Sign-in form content.</TabsContent>
         <TabsContent value="signup">Sign-up form content.</TabsContent>
       </Tabs>

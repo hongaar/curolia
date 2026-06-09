@@ -12,6 +12,8 @@ export type PluginLinkStatus = "disabled" | "pending" | "error" | "connected";
 
 export type Profile = {
   id: string;
+  /** URL-safe slug, globally unique. */
+  slug: string;
   display_name: string | null;
   avatar_url: string | null;
   default_map_id: string | null;

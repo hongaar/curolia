@@ -1,4 +1,5 @@
 import { mapViewHref, mapViewSegmentFromPathname } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
 import { PageInlineActions } from "@curolia/ui/page";
@@ -12,7 +13,11 @@ export function MapSlugAccessBlocked() {
   const location = useLocation();
   const next = encodeURIComponent(`${location.pathname}${location.search}`);
   const segment = mapViewSegmentFromPathname(location.pathname);
-  const fallbackHref = maps[0]?.slug ? mapViewHref(segment, maps[0].slug) : "/";
+  const fallbackMap = maps[0] ?? null;
+  const fallbackHref =
+    fallbackMap?.owner_profile_slug && fallbackMap.slug
+      ? mapViewHref(segment, mapRouteForMap(fallbackMap))
+      : "/";
 
   return (
     <StatusCenterActionPanel>
@@ -37,7 +42,7 @@ export function MapSlugAccessBlocked() {
               size="sm"
               render={<Link to={fallbackHref} />}
             >
-              {maps[0]?.slug ? "Back to your maps" : "Go home"}
+              {fallbackMap?.slug ? "Back to your maps" : "Go home"}
             </Button>
           )}
         </PageInlineActions>

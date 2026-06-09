@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Input } from "./input";
+import { PrefixedInput } from "./prefixed-input";
 
 const meta = {
   title: "Input",
@@ -34,6 +35,18 @@ export const Invalid: Story = {
   args: {
     placeholder: "Required",
     "aria-invalid": true,
+    defaultValue: "",
+  },
+};
+
+export const WithPrefix: Story = {
+  render: (args) => <PrefixedInput prefix="curolia.com/" {...args} />,
+  parameters: storyDocs(
+    "Optional `PrefixedInput` groups static leading text with the field.",
+  ),
+  args: {
+    id: "profile-slug",
+    placeholder: "your-name",
     defaultValue: "",
   },
 };

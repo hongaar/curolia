@@ -1,8 +1,10 @@
+import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import {
   mapHrefWithSearch,
   mapSwitchHref,
   pinDetailHref,
 } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   applyMapBboxToSearchParams,
   applyMapCameraToSearchParams,
@@ -16,7 +18,6 @@ import {
   type PinSearchRow,
 } from "@/lib/pin-text-search";
 import { useMap } from "@/providers/map-provider";
-import type { CuroliaMap } from "@/types/database";
 import {
   pinLocationLabel,
   searchPlaces,
@@ -66,7 +67,7 @@ import { useLocation, useMatch, useNavigate } from "react-router-dom";
 
 const DEBOUNCE_MS = 320;
 
-function mapTitle(pin: PinSearchRow, mapById: Map<string, CuroliaMap>) {
+function mapTitle(pin: PinSearchRow, mapById: Map<string, MapWithOwnerSlug>) {
   return mapById.get(pin.map_id)?.name ?? "Map";
 }
 
@@ -110,7 +111,8 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const location = useLocation();
   const homeMatch = useMatch({ path: "/", end: true });
   const mapMapMatch = useMatch("/map/:mapSlug");
-  const isMapRoute = Boolean(homeMatch || mapMapMatch);
+  const nestedMapMatch = useMatch("/:profileSlug/:mapSlug/map");
+  const isMapRoute = Boolean(homeMatch || mapMapMatch || nestedMapMatch);
   const { maps, activeMapId } = useMap();
 
   const [open, setOpen] = useState(false);
@@ -186,7 +188,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     return sortPinsByPreferredMap(rows, activeMapId);
   }, [pinsQuery.data, activeMapId]);
 
-  function onPickMap(j: CuroliaMap) {
+  function onPickMap(j: MapWithOwnerSlug) {
     if (!j.slug.trim()) return;
     navigate(mapSwitchHref(j, location.pathname, location.search));
     closeSearch();
@@ -195,11 +197,11 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   function onPickPin(t: PinSearchRow) {
     if (isMapRoute) {
       const map = mapById.get(t.map_id);
-      const slug = map?.slug?.trim();
-      if (!slug) {
+      if (!map?.owner_profile_slug || !map.slug?.trim()) {
         closeSearch();
         return;
       }
+      const route = mapRouteForMap(map);
       const withPin = applySelectedPinToSearchParams(
         new URLSearchParams(),
         t.slug,
@@ -212,22 +214,26 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
           zoom: PIN_FOCUS_ZOOM,
         }),
       );
-      navigate(mapHrefWithSearch(slug, `?${params.toString()}`));
+      navigate(mapHrefWithSearch(route, `?${params.toString()}`));
     } else {
       const map = mapById.get(t.map_id);
-      const js = map?.slug?.trim();
-      navigate(js ? pinDetailHref(js, t.slug) : "/");
+      if (!map?.owner_profile_slug || !map.slug?.trim()) {
+        navigate("/");
+        closeSearch();
+        return;
+      }
+      navigate(pinDetailHref(mapRouteForMap(map), t.slug));
     }
     closeSearch();
   }
 
   function onPickPlace(p: PlaceSearchResult) {
     const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
-    const slug = map?.slug?.trim();
-    if (!slug) {
+    if (!map?.owner_profile_slug || !map.slug?.trim()) {
       closeSearch();
       return;
     }
+    const route = mapRouteForMap(map);
     let params = new URLSearchParams();
     if (p.bbox) {
       params = applyMapBboxToSearchParams(params, p.bbox);
@@ -243,7 +249,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       params,
       normalizeCameraForUrl(center),
     );
-    navigate(mapHrefWithSearch(slug, `?${params.toString()}`));
+    navigate(mapHrefWithSearch(route, `?${params.toString()}`));
     closeSearch();
   }
 

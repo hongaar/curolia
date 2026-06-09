@@ -94,8 +94,7 @@
   color: var(--foreground);
 }
 
-.lead {
-  margin-top: var(--space-1);
+.headerLead {
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);

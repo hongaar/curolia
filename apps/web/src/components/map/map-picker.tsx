@@ -28,8 +28,8 @@ export function MapPicker() {
         <MapPickerMenuContent
           maps={maps}
           activeMapId={activeMap?.id}
-          onOpenMapSettings={(mapSlug) => {
-            navigateToMapSettings(mapSlug);
+          onOpenMapSettings={(route) => {
+            navigateToMapSettings(route);
             setOpen(false);
           }}
           onNewMap={() => openNewMapDialog()}

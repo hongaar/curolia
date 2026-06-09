@@ -1,21 +1,23 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { PageBackButton } from "@/components/layout/page-back-button";
 import { mapSettingsHref, mapViewHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
-import { PageBackButton } from "@/components/layout/page-back-button";
 import { Button } from "@curolia/ui/button";
 import {
   AppPageLayout,
-  PageDisplayTitle,
   PageErrorTextSpaced,
+  PageHeader,
+  PageHeaderLead,
+  PageHeaderTitle,
   PageInlineActions,
-  PageLead,
   PageMuted,
   PagePanel,
 } from "@curolia/ui/page";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export function InvitationsPage() {
   const [params] = useSearchParams();
@@ -75,18 +77,42 @@ export function InvitationsPage() {
       });
       const { data: mapRow, error: mapError } = await supabase
         .from("maps")
-        .select("slug")
+        .select("slug, created_by_user_id")
         .eq("id", mapId)
         .maybeSingle();
       if (mapError) {
         setError(mapError.message);
         return;
       }
-      const slug = mapRow?.slug?.trim();
-      navigate(slug ? mapSettingsHref(slug) : "/", { replace: true });
+      if (!mapRow) {
+        navigate("/", { replace: true });
+        return;
+      }
+      const mapSlug = mapRow.slug?.trim();
+      if (!mapSlug) {
+        navigate("/", { replace: true });
+        return;
+      }
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("slug")
+        .eq("id", mapRow.created_by_user_id)
+        .maybeSingle();
+      if (profileError) {
+        setError(profileError.message);
+        return;
+      }
+      const profileSlug = profile?.slug?.trim();
+      navigate(profileSlug ? mapSettingsHref({ profileSlug, mapSlug }) : "/", {
+        replace: true,
+      });
     } else {
-      const slug = activeMap?.slug?.trim();
-      navigate(slug ? mapViewHref("map", slug) : "/", { replace: true });
+      navigate(
+        activeMap?.owner_profile_slug
+          ? mapViewHref("map", mapRouteForMap(activeMap))
+          : "/",
+        { replace: true },
+      );
     }
   }
 
@@ -125,10 +151,12 @@ export function InvitationsPage() {
     <AppPageLayout>
       <PageBackButton />
       <PagePanel>
-        <PageDisplayTitle>Curolia map invitation</PageDisplayTitle>
-        <PageLead>
-          {ready ? "You can accept to join this map or decline." : "Loading…"}
-        </PageLead>
+        <PageHeader>
+          <PageHeaderTitle>Curolia map invitation</PageHeaderTitle>
+          <PageHeaderLead>
+            {ready ? "You can accept to join this map or decline." : "Loading…"}
+          </PageHeaderLead>
+        </PageHeader>
         {error ? <PageErrorTextSpaced>{error}</PageErrorTextSpaced> : null}
         <PageInlineActions>
           <Button

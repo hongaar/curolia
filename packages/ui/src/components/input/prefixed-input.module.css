@@ -1,0 +1,75 @@
+.group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--field-radius);
+  border: 1px solid var(--input);
+  background: transparent;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.group:focus-within {
+  border-color: var(--ring);
+  box-shadow: var(--focus-ring);
+}
+
+.group:has(.input:disabled) {
+  pointer-events: none;
+  cursor: not-allowed;
+  background: color-mix(in oklch, var(--input) 50%, transparent);
+  opacity: 0.5;
+}
+
+.group:has(.input[aria-invalid="true"]) {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+:global(.dark) .group {
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+}
+
+:global(.dark) .group:has(.input:disabled) {
+  background: color-mix(in oklch, var(--input) 80%, transparent);
+}
+
+:global(.dark) .group:has(.input[aria-invalid="true"]) {
+  border-color: color-mix(in oklch, var(--destructive) 50%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+}
+
+.prefix {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 var(--space-3);
+  border-right: 1px solid var(--input);
+  background: color-mix(in oklch, var(--muted) 38%, var(--popover));
+  color: var(--muted-foreground);
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .prefix {
+    font-size: var(--font-size-sm);
+  }
+}
+
+.group :global([data-slot="input"]) {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.group :global([data-slot="input"]:focus-visible) {
+  border: none;
+  box-shadow: none;
+}

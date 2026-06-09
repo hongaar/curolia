@@ -5,6 +5,7 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { imageDimensionsFromFile } from "@/lib/image-dimensions";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   fileFromClipboardData,
   isPinFormTextEntryPasteTarget,
@@ -596,7 +597,12 @@ export function PinFormDialog({
       setMoveTargetMapId("");
       onOpenChange(false);
       toast.success(`Moved to ${targetMap.name}`);
-      navigate(pinDetailHref(targetMap.slug.trim(), pinRow.slug.trim()));
+      const targetWithOwner = maps.find((m) => m.id === targetMap.id);
+      if (targetWithOwner?.owner_profile_slug) {
+        navigate(
+          pinDetailHref(mapRouteForMap(targetWithOwner), pinRow.slug.trim()),
+        );
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not move pin");
     } finally {
@@ -608,7 +614,7 @@ export function PinFormDialog({
     if (!pin) return;
     setDeleting(true);
     try {
-      const mapSlug = maps.find((j) => j.id === pin.map_id)?.slug?.trim() ?? "";
+      const mapForPin = maps.find((j) => j.id === pin.map_id);
       const { error } = await supabase.from("pins").delete().eq("id", pin.id);
       if (error) throw error;
       await invalidatePinDetailCaches(qc, pin.id, pin.map_id);
@@ -618,7 +624,11 @@ export function PinFormDialog({
       setDeleteOpen(false);
       onOpenChange(false);
       toast.success("Pin deleted");
-      navigate(mapSlug ? mapViewHref("map", mapSlug) : "/");
+      navigate(
+        mapForPin?.owner_profile_slug
+          ? mapViewHref("map", mapRouteForMap(mapForPin))
+          : "/",
+      );
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : "Could not delete this pin.",

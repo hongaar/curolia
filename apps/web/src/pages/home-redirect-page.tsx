@@ -1,5 +1,6 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { mapViewHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import { useMap } from "@/providers/map-provider";
 import { Navigate } from "react-router-dom";
 
@@ -11,11 +12,11 @@ export function HomeRedirectPage() {
   if (loading) {
     return <MapViewInitialLoader />;
   }
-  if (!map?.slug) {
+  if (!map?.slug || !map.owner_profile_slug) {
     return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
-  return <Navigate to={mapViewHref("map", map.slug)} replace />;
+  return <Navigate to={mapViewHref("map", mapRouteForMap(map))} replace />;
 }
 
 /** Legacy `/blog` — redirect using the active map slug. */
@@ -26,9 +27,9 @@ export function BlogHomeRedirectPage() {
   if (loading) {
     return <MapViewInitialLoader />;
   }
-  if (!map?.slug) {
+  if (!map?.slug || !map.owner_profile_slug) {
     return <MapViewInitialLoader label="No map available." busy={false} />;
   }
 
-  return <Navigate to={mapViewHref("blog", map.slug)} replace />;
+  return <Navigate to={mapViewHref("blog", mapRouteForMap(map))} replace />;
 }

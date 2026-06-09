@@ -9,8 +9,9 @@ import {
 } from "@curolia/ui/list";
 import {
   AppPageLayout,
-  PageDisplayTitle,
-  PageLead,
+  PageHeader,
+  PageHeaderLead,
+  PageHeaderTitle,
   PagePanel,
 } from "@curolia/ui/page";
 import { Stack } from "@curolia/ui/stack";
@@ -62,12 +63,12 @@ export function NotificationsPage() {
       <PageBackButton />
       <PagePanel>
         <Stack gap="xl">
-          <Stack gap="xs">
-            <PageDisplayTitle>Notifications</PageDisplayTitle>
-            <PageLead>
+          <PageHeader>
+            <PageHeaderTitle>Notifications</PageHeaderTitle>
+            <PageHeaderLead>
               Opens are marked as read. Email and push use your settings.
-            </PageLead>
-          </Stack>
+            </PageHeaderLead>
+          </PageHeader>
           <BorderedList>
             {listQuery.isLoading ? (
               <ListEmptyItem>Loading…</ListEmptyItem>

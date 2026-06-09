@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { FloatingPanel } from "../floating-panel";
 import { Stack } from "../stack";
-import { TabsContent, TabsList, TabsTrigger } from "../tabs";
+import { TabsContent } from "../tabs";
 import { Text } from "../text";
 import styles from "./login-layout.module.css";
 
@@ -115,24 +115,6 @@ export function LoginActionsSecondaryLink({
     <LoginFormLink to={to} className={styles.actionsSecondaryLink}>
       {children}
     </LoginFormLink>
-  );
-}
-
-export function LoginTabsList({ children }: { children: React.ReactNode }) {
-  return <TabsList className={styles.tabsList}>{children}</TabsList>;
-}
-
-export function LoginTabTrigger({
-  value,
-  children,
-}: {
-  value: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <TabsTrigger value={value} className={styles.tabTrigger}>
-      {children}
-    </TabsTrigger>
   );
 }
 

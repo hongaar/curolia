@@ -1,4 +1,5 @@
 import { mapViewSwitchHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import { isBaseRoute } from "@/lib/stack-routes";
 import { useMap } from "@/providers/map-provider";
 import {
@@ -11,23 +12,28 @@ import { useLocation } from "react-router-dom";
 export function MapViewSwitcher() {
   const { pathname, search } = useLocation();
   const { activeMap } = useMap();
-  const slug = activeMap?.slug?.trim();
 
-  if (!slug || !isBaseRoute(pathname)) {
+  if (
+    !activeMap?.owner_profile_slug ||
+    !activeMap.slug ||
+    !isBaseRoute(pathname)
+  ) {
     return null;
   }
+
+  const route = mapRouteForMap(activeMap);
 
   return (
     <SegmentedSwitcher aria-label="Map view" size="lg">
       <SegmentedSwitcherLink
-        to={mapViewSwitchHref("map", slug, search)}
+        to={mapViewSwitchHref("map", route, search)}
         end
         icon={<MapIcon />}
       >
         Map
       </SegmentedSwitcherLink>
       <SegmentedSwitcherLink
-        to={mapViewSwitchHref("blog", slug, search)}
+        to={mapViewSwitchHref("blog", route, search)}
         end
         icon={<BookOpen />}
       >

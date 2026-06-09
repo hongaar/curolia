@@ -1,10 +1,17 @@
 /* eslint-disable react-refresh/only-export-components -- Provider module also exports useMap */
 /* eslint-disable react-hooks/set-state-in-effect -- hydrate active map from storage/profile when maps load */
+import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import {
   defaultMapIcon,
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
-import { publicMapSlugFromPathname } from "@/lib/public-map-routes";
+import {
+  attachOwnerProfileSlugs,
+  fetchOwnerProfileSlugs,
+  parseMapViewPathname,
+} from "@/lib/map-route";
+import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
+import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,8 +34,8 @@ import {
 export type RouteMapStatus = "none" | "loading" | "ready" | "unavailable";
 
 type MapContextValue = {
-  maps: CuroliaMap[];
-  activeMap: CuroliaMap | null;
+  maps: MapWithOwnerSlug[];
+  activeMap: MapWithOwnerSlug | null;
   activeMapId: string | null;
   setActiveMapId: (id: string) => void;
   loading: boolean;
@@ -43,7 +50,7 @@ type MapContextValue = {
 
 const MapContext = createContext<MapContextValue | null>(null);
 
-async function fetchMapsForUser(userId: string): Promise<CuroliaMap[]> {
+async function fetchMapsForUser(userId: string): Promise<MapWithOwnerSlug[]> {
   const { data, error } = await supabase
     .from("map_members")
     .select("map_id, maps(*)")
@@ -54,20 +61,38 @@ async function fetchMapsForUser(userId: string): Promise<CuroliaMap[]> {
     map_id: string;
     maps: CuroliaMap | null;
   }[];
-  return rows.map((r) => r.maps).filter((j): j is CuroliaMap => Boolean(j));
+  const maps = rows
+    .map((r) => r.maps)
+    .filter((j): j is CuroliaMap => Boolean(j));
+  const slugByOwner = await fetchOwnerProfileSlugs(
+    maps.map((map) => map.created_by_user_id),
+  );
+  return attachOwnerProfileSlugs(maps, slugByOwner);
 }
 
-async function fetchPublicMapBySlug(slug: string): Promise<CuroliaMap | null> {
-  const trimmed = slug.trim();
-  if (!trimmed) return null;
+async function fetchPublicMapByRoute(
+  profileSlug: string,
+  mapSlug: string,
+): Promise<MapWithOwnerSlug | null> {
+  const profile = await resolveProfileBySlug(profileSlug);
+  if (!profile) return null;
+
+  const mapMatch = await resolveMapByOwnerSlug(profile.profileId, mapSlug);
+  if (!mapMatch) return null;
+
   const { data, error } = await supabase
     .from("maps")
     .select("*")
+    .eq("id", mapMatch.mapId)
     .eq("is_public", true)
-    .eq("slug", trimmed)
     .maybeSingle();
   if (error) throw error;
-  return (data as CuroliaMap | null) ?? null;
+  if (!data) return null;
+
+  return {
+    ...(data as CuroliaMap),
+    owner_profile_slug: profile.canonicalSlug,
+  };
 }
 
 async function fetchProfileDefaultMap(userId: string): Promise<string | null> {
@@ -92,8 +117,8 @@ export function MapProvider({
   const queryClient = useQueryClient();
   const [activeMapId, setActiveMapIdState] = useState<string | null>(null);
 
-  const routeSlug = useMemo(
-    () => publicMapSlugFromPathname(location.pathname),
+  const routePath = useMemo(
+    () => parseMapViewPathname(location.pathname),
     [location.pathname],
   );
 
@@ -111,18 +136,29 @@ export function MapProvider({
     [memberMapsQuery.data],
   );
 
+  const routeKey = routePath
+    ? `${routePath.profileSlug}/${routePath.mapSlug}`
+    : null;
+
+  const memberHasRouteMap = useMemo(() => {
+    if (!routePath) return false;
+    const profileNeedle = routePath.profileSlug.trim().toLowerCase();
+    const mapNeedle = routePath.mapSlug.trim().toLowerCase();
+    return memberMaps.some(
+      (m) =>
+        m.owner_profile_slug.trim().toLowerCase() === profileNeedle &&
+        m.slug.trim().toLowerCase() === mapNeedle,
+    );
+  }, [memberMaps, routePath]);
+
   const needsPublicMap =
-    Boolean(routeSlug) &&
-    (publicView ||
-      !memberMaps.some(
-        (m) => m.slug.trim().toLowerCase() === routeSlug!.trim().toLowerCase(),
-      ));
+    Boolean(routePath) && (publicView || !memberHasRouteMap);
 
   const publicMapQuery = useQuery({
-    queryKey: ["public_map", routeSlug],
+    queryKey: ["public_map", routeKey],
     queryFn: async () => {
-      if (!routeSlug) return null;
-      return fetchPublicMapBySlug(routeSlug);
+      if (!routePath) return null;
+      return fetchPublicMapByRoute(routePath.profileSlug, routePath.mapSlug);
     },
     enabled: needsPublicMap,
   });
@@ -135,13 +171,20 @@ export function MapProvider({
   }, [memberMaps, publicMapQuery.data]);
 
   const resolvedRouteMap = useMemo(() => {
-    if (!routeSlug) return null;
-    const needle = routeSlug.trim().toLowerCase();
-    return maps.find((m) => m.slug.trim().toLowerCase() === needle) ?? null;
-  }, [maps, routeSlug]);
+    if (!routePath) return null;
+    const profileNeedle = routePath.profileSlug.trim().toLowerCase();
+    const mapNeedle = routePath.mapSlug.trim().toLowerCase();
+    return (
+      maps.find(
+        (m) =>
+          m.owner_profile_slug.trim().toLowerCase() === profileNeedle &&
+          m.slug.trim().toLowerCase() === mapNeedle,
+      ) ?? null
+    );
+  }, [maps, routePath]);
 
   const routeMapStatus = useMemo((): RouteMapStatus => {
-    if (!routeSlug) return "none";
+    if (!routePath) return "none";
     if (resolvedRouteMap) return "ready";
     if (publicView) {
       if (publicMapQuery.isPending) return "loading";
@@ -151,7 +194,7 @@ export function MapProvider({
     if (needsPublicMap && publicMapQuery.isPending) return "loading";
     return "unavailable";
   }, [
-    routeSlug,
+    routePath,
     resolvedRouteMap,
     publicView,
     publicMapQuery.isPending,
@@ -163,13 +206,13 @@ export function MapProvider({
     if (publicView) {
       if (publicMapQuery.data) {
         setActiveMapIdState(publicMapQuery.data.id);
-      } else if (!publicMapQuery.isPending && routeSlug) {
+      } else if (!publicMapQuery.isPending && routePath) {
         setActiveMapIdState(null);
       }
       return;
     }
 
-    if (routeSlug) {
+    if (routePath) {
       if (resolvedRouteMap) {
         setActiveMapIdState(resolvedRouteMap.id);
         setStoredActiveMapId(resolvedRouteMap.id);
@@ -213,7 +256,7 @@ export function MapProvider({
     publicView,
     publicMapQuery.data,
     publicMapQuery.isPending,
-    routeSlug,
+    routePath,
     resolvedRouteMap,
     routeMapStatus,
   ]);
@@ -261,17 +304,17 @@ export function MapProvider({
 
   const loading = useMemo(() => {
     if (publicView) {
-      return routeSlug ? routeMapStatus === "loading" : false;
+      return routePath ? routeMapStatus === "loading" : false;
     }
     if (authLoading) return true;
     if (memberMapsQuery.isPending) return true;
-    if (routeSlug) {
+    if (routePath) {
       return routeMapStatus === "loading";
     }
     return maps.length > 0 && activeMapId === null;
   }, [
     publicView,
-    routeSlug,
+    routePath,
     routeMapStatus,
     authLoading,
     memberMapsQuery.isPending,

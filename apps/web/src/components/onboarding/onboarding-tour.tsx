@@ -1,4 +1,5 @@
 import { mapAddPinHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   getOnboardingCompleted,
   setOnboardingCompleted,
@@ -128,9 +129,9 @@ export function OnboardingTour() {
   };
 
   const dropFirstPin = () => {
-    if (!placementMap?.slug) return;
+    if (!placementMap?.slug || !placementMap.owner_profile_slug) return;
     beginPinPlacement();
-    navigate(mapAddPinHref(placementMap.slug));
+    navigate(mapAddPinHref(mapRouteForMap(placementMap)));
   };
 
   const explorePlugins = () => {

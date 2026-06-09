@@ -20,6 +20,7 @@ import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -116,8 +117,11 @@ export function MapPage() {
   const qc = useQueryClient();
   const isWideEnough = useMinMd();
   const navigate = useNavigate();
-  const { mapSlug } = useParams<{ mapSlug: string }>();
-  useMapSlugRouteSync(mapSlug);
+  const { profileSlug, mapSlug } = useParams<{
+    profileSlug: string;
+    mapSlug: string;
+  }>();
+  useMapSlugRouteSync(profileSlug, mapSlug);
   const mapRef = useRef<PinMapHandle>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   /** Camera captured just before the side panel opened — restored on close. */
@@ -148,6 +152,10 @@ export function MapPage() {
     routeMapStatus,
     publicView,
   } = useMap();
+  const activeMapRoute = useMemo(
+    () => (activeMap ? mapRouteForMap(activeMap) : null),
+    [activeMap],
+  );
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
   const { awaitingPinPlacement, completePinPlacement, cancelPinPlacement } =
@@ -249,9 +257,16 @@ export function MapPage() {
         // Base MapPage stays mounted under stack routes; skip URL sync while a
         // stack screen is active so we do not navigate back to /map?pin=.
         if (isStackRoute(window.location.pathname)) return;
-        const routeSlug = mapSlug?.trim().toLowerCase();
+        const routeProfile = profileSlug?.trim().toLowerCase();
+        const routeMap = mapSlug?.trim().toLowerCase();
+        const activeProfile = activeMap?.owner_profile_slug
+          ?.trim()
+          .toLowerCase();
         const activeSlug = activeMap?.slug?.trim().toLowerCase();
-        if (routeSlug && activeSlug && routeSlug !== activeSlug) return;
+        if (routeMap && activeSlug && routeMap !== activeSlug) return;
+        if (routeProfile && activeProfile && routeProfile !== activeProfile) {
+          return;
+        }
         const normalized = normalizeCameraForUrl(c);
         const pinTok = sidebarPinTokenRef.current;
         const urlCam = cameraFromUrlRef.current;
@@ -276,7 +291,7 @@ export function MapPage() {
         );
       }, 280);
     },
-    [activeMapId, activeMap, mapSlug, setSearchParams],
+    [activeMapId, activeMap, profileSlug, mapSlug, setSearchParams],
   );
 
   const pinsQuery = useQuery({
@@ -430,9 +445,8 @@ export function MapPage() {
 
       if (!isWideEnough) {
         // On narrow screens navigate directly to pin detail page
-        const resolvedMapSlug = mapSlug?.trim() || activeMap?.slug?.trim();
-        if (resolvedMapSlug && row?.slug) {
-          navigate(pinDetailHref(resolvedMapSlug, row.slug));
+        if (activeMapRoute && row?.slug) {
+          navigate(pinDetailHref(activeMapRoute, row.slug));
           return;
         }
       }
@@ -442,7 +456,7 @@ export function MapPage() {
         replace: true,
       });
     },
-    [setSearchParams, pins, isWideEnough, mapSlug, activeMap, navigate],
+    [setSearchParams, pins, isWideEnough, activeMapRoute, navigate],
   );
 
   const onClosePinMapPopover = useCallback(() => {
@@ -594,9 +608,20 @@ export function MapPage() {
 
   useEffect(() => {
     if (!sidebarPinToken || !activeMapId) return;
-    const routeSlugNorm = mapSlug?.trim().toLowerCase();
+    const routeProfileNorm = profileSlug?.trim().toLowerCase();
+    const routeMapNorm = mapSlug?.trim().toLowerCase();
+    const activeProfileNorm = activeMap?.owner_profile_slug
+      ?.trim()
+      .toLowerCase();
     const activeSlugNorm = activeMap?.slug?.trim().toLowerCase();
-    if (routeSlugNorm && activeSlugNorm && routeSlugNorm !== activeSlugNorm) {
+    if (routeMapNorm && activeSlugNorm && routeMapNorm !== activeSlugNorm) {
+      return;
+    }
+    if (
+      routeProfileNorm &&
+      activeProfileNorm &&
+      routeProfileNorm !== activeProfileNorm
+    ) {
       return;
     }
     // While the active map's pins are still loading, do not strip ?pin= — the token may
@@ -632,6 +657,7 @@ export function MapPage() {
     pinsQuery.isFetching,
     activeMapId,
     activeMap,
+    profileSlug,
     mapSlug,
     setSearchParams,
   ]);
@@ -706,11 +732,10 @@ export function MapPage() {
     if (isWideEnough || !sidebarPinId) return;
     const pin = pins.find((p) => p.id === sidebarPinId);
     if (!pin?.slug) return;
-    const resolvedMapSlug = mapSlug?.trim() || activeMap?.slug?.trim();
-    if (!resolvedMapSlug) return;
+    if (!activeMapRoute) return;
     // Replace map?pin= with pin detail (frozen base strips ?pin= on stack open).
-    navigate(pinDetailHref(resolvedMapSlug, pin.slug), { replace: true });
-  }, [isWideEnough, sidebarPinId, pins, mapSlug, activeMap, navigate]);
+    navigate(pinDetailHref(activeMapRoute, pin.slug), { replace: true });
+  }, [isWideEnough, sidebarPinId, pins, activeMapRoute, navigate]);
 
   // Camera management: pan map when side panel opens; restore when it closes
   const pinsRef = useRef(pins);
@@ -938,7 +963,7 @@ export function MapPage() {
               key={sidebarPinId}
               pinId={sidebarPinId!}
               mapId={activeMapId!}
-              mapSlug={mapSlug?.trim() || activeMap?.slug?.trim() || null}
+              mapRoute={activeMapRoute}
               onClose={onClosePinMapPopover}
             />
           </MapSidePanel>

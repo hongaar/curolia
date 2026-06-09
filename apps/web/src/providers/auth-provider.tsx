@@ -31,6 +31,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const ACTIVE_JOURNAL_KEY = "map:activeMapId";
 
+/** Cleared after ProtectedLayout reads it — skips `next=` on post-sign-out login redirect. */
+let skipLoginNextRedirect = false;
+
+export function consumeSkipLoginNextRedirect(): boolean {
+  if (!skipLoginNextRedirect) return false;
+  skipLoginNextRedirect = false;
+  return true;
+}
+
 export function getStoredActiveMapId(): string | null {
   try {
     return localStorage.getItem(ACTIVE_JOURNAL_KEY);
@@ -107,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    skipLoginNextRedirect = true;
     setStoredActiveMapId(null);
     await supabase.auth.signOut();
   }, []);

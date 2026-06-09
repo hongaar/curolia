@@ -1,5 +1,6 @@
 import { mapViewHref } from "@/lib/app-paths";
 import { isMapChromeRoute } from "@/lib/map-chrome";
+import { mapRouteForMap } from "@/lib/map-route";
 import { normalizeMapStylePreset } from "@/lib/map-style";
 import { useMap } from "@/providers/map-provider";
 import {
@@ -12,7 +13,10 @@ export function MainToolbarBrandLink() {
   const { pathname } = useLocation();
   const { activeMap, maps } = useMap();
   const homeMap = activeMap ?? maps[0] ?? null;
-  const to = homeMap?.slug ? mapViewHref("map", homeMap.slug) : "/";
+  const to =
+    homeMap?.owner_profile_slug && homeMap.slug
+      ? mapViewHref("map", mapRouteForMap(homeMap))
+      : "/";
   const overlayNameTone = isMapChromeRoute(pathname)
     ? (() => {
         const preset = normalizeMapStylePreset(activeMap?.style);

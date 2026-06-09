@@ -1,6 +1,7 @@
-import { mapSwitchHref } from "@/lib/app-paths";
+import { mapSwitchHref, type MapWithOwnerSlug } from "@/lib/app-paths";
 import { defaultMapIcon } from "@/lib/map-display-icon";
-import type { CuroliaMap } from "@/types/database";
+import type { MapRoute } from "@/lib/map-route";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -19,14 +20,14 @@ import {
 import { Check, Pencil, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-function mapEmoji(map: CuroliaMap) {
+function mapEmoji(map: MapWithOwnerSlug) {
   return map.icon_emoji ?? defaultMapIcon();
 }
 
 type MapPickerMenuContentProps = {
-  maps: CuroliaMap[];
+  maps: MapWithOwnerSlug[];
   activeMapId: string | null | undefined;
-  onOpenMapSettings: (mapSlug: string) => void;
+  onOpenMapSettings: (route: MapRoute) => void;
   onNewMap: () => void;
 };
 
@@ -69,7 +70,7 @@ export function MapPickerMenuContent({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onOpenMapSettings(j.slug.trim());
+                  onOpenMapSettings(mapRouteForMap(j));
                 }}
               >
                 <Pencil aria-hidden />

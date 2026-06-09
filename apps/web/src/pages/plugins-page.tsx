@@ -12,12 +12,12 @@ import type { UserPlugin } from "@/types/database";
 import type { PluginDefinition } from "@curolia/plugin-contract";
 import {
   AppPageLayout,
-  PageDisplayTitle,
-  PageLead,
+  PageHeader,
+  PageHeaderLead,
+  PageHeaderTitle,
   PagePanel,
 } from "@curolia/ui/page";
 import {
-  PluginListHeader,
   PluginListIcon,
   PluginListRow,
   PluginListRowDescription,
@@ -27,6 +27,7 @@ import {
   PluginListRowTitle,
   PluginListRowToggle,
 } from "@curolia/ui/plugins";
+import { Stack } from "@curolia/ui/stack";
 import { Switch } from "@curolia/ui/switch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
@@ -231,34 +232,36 @@ export function PluginsPage() {
     <AppPageLayout width="2xl">
       <PageBackButton />
       <PagePanel>
-        <PluginListHeader>
-          <PageDisplayTitle>Plugins</PageDisplayTitle>
-          <PageLead>
-            Choose which integrations are available for your account (for
-            example signing in to Google Photos). Map-specific options—such as
-            publishing an iCalendar feed—are configured in each map&apos;s
-            settings.
-          </PageLead>
-        </PluginListHeader>
-        <div>
-          {pluginList.map((plugin) => {
-            const up = userPluginsQuery.data?.find(
-              (c) => c.plugin_type_id === plugin.id,
-            );
-            return (
-              <PluginRow
-                key={plugin.id}
-                plugin={plugin}
-                up={up}
-                onToggle={(en) => void toggle(plugin.id, en)}
-                toggleDisabled={!user || userPluginsQuery.isLoading}
-                accessToken={session?.access_token ?? null}
-                onRefreshAccountPanels={onRefreshAccountPanels}
-                userId={user?.id}
-              />
-            );
-          })}
-        </div>
+        <Stack gap="md">
+          <PageHeader>
+            <PageHeaderTitle>Plugins</PageHeaderTitle>
+            <PageHeaderLead>
+              Choose which integrations are available for your account (for
+              example signing in to Google Photos). Map-specific options—such as
+              publishing an iCalendar feed—are configured in each map&apos;s
+              settings.
+            </PageHeaderLead>
+          </PageHeader>
+          <div>
+            {pluginList.map((plugin) => {
+              const up = userPluginsQuery.data?.find(
+                (c) => c.plugin_type_id === plugin.id,
+              );
+              return (
+                <PluginRow
+                  key={plugin.id}
+                  plugin={plugin}
+                  up={up}
+                  onToggle={(en) => void toggle(plugin.id, en)}
+                  toggleDisabled={!user || userPluginsQuery.isLoading}
+                  accessToken={session?.access_token ?? null}
+                  onRefreshAccountPanels={onRefreshAccountPanels}
+                  userId={user?.id}
+                />
+              );
+            })}
+          </div>
+        </Stack>
       </PagePanel>
     </AppPageLayout>
   );

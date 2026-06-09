@@ -1,4 +1,5 @@
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
+import type { MapRoute } from "@/lib/map-route";
 import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { Button } from "@curolia/ui/button";
@@ -8,13 +9,13 @@ import { XIcon } from "lucide-react";
 interface PinDetailSideSheetProps {
   pinId: string;
   mapId: string;
-  mapSlug: string | null;
+  mapRoute: MapRoute | null;
   onClose: () => void;
 }
 
 export function PinDetailSideSheet({
   pinId,
-  mapSlug,
+  mapRoute,
   onClose,
 }: PinDetailSideSheetProps) {
   const pinQuery = useQuery({
@@ -48,7 +49,7 @@ export function PinDetailSideSheet({
       pin={pin}
       photos={photos}
       signedUrlByPhotoId={signedUrlByPhotoId}
-      permalinkMapSlug={mapSlug ?? undefined}
+      permalinkMapRoute={mapRoute ?? undefined}
       extraActions={
         <Button
           type="button"

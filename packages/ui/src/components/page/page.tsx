@@ -2,6 +2,7 @@ import type * as React from "react";
 
 import { cn } from "../../lib/utils";
 import { Card } from "../card";
+import { Stack } from "../stack";
 import styles from "./page.module.css";
 
 export function Page({
@@ -89,7 +90,7 @@ export function PageContent({
   );
 }
 
-export function PageHeader({
+export function PageClassicHeader({
   children,
   className,
 }: {
@@ -99,7 +100,11 @@ export function PageHeader({
   return <header className={cn(styles.header, className)}>{children}</header>;
 }
 
-export function PageHeaderRow({ children }: { children: React.ReactNode }) {
+export function PageClassicHeaderRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <div className={styles.headerRow}>{children}</div>;
 }
 
@@ -107,12 +112,16 @@ export function PageTitle({ children }: { children: React.ReactNode }) {
   return <h1 className={styles.title}>{children}</h1>;
 }
 
-export function PageDisplayTitle({ children }: { children: React.ReactNode }) {
+export function PageHeader({ children }: { children: React.ReactNode }) {
+  return <Stack gap="xs">{children}</Stack>;
+}
+
+export function PageHeaderTitle({ children }: { children: React.ReactNode }) {
   return <h1 className={styles.displayTitle}>{children}</h1>;
 }
 
-export function PageLead({ children }: { children: React.ReactNode }) {
-  return <p className={styles.lead}>{children}</p>;
+export function PageHeaderLead({ children }: { children: React.ReactNode }) {
+  return <p className={styles.headerLead}>{children}</p>;
 }
 
 export function PagePanel({ children }: { children: React.ReactNode }) {

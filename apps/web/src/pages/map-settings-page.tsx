@@ -15,6 +15,7 @@ import {
   defaultMapIcon,
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -30,16 +31,18 @@ import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
 import { EntityLabelInput } from "@curolia/ui/entity-label-input";
-import { Field, FieldLabel } from "@curolia/ui/form-layout";
+import { Field, FieldControl, FieldLabel } from "@curolia/ui/form-layout";
+import { Input } from "@curolia/ui/input";
 import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
   PageCenteredLoading,
-  PageDisplayTitle,
   PageErrorText,
   PageFormBlockSpaced,
+  PageHeader,
+  PageHeaderLead,
+  PageHeaderTitle,
   PageInlineActions,
-  PageLead,
   PageMuted,
   PagePanel,
 } from "@curolia/ui/page";
@@ -49,12 +52,16 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export function MapSettingsPage() {
-  const { mapSlug: mapSlugParam } = useParams<{ mapSlug: string }>();
+  const { profileSlug: profileSlugParam, mapSlug: mapSlugParam } = useParams<{
+    profileSlug: string;
+    mapSlug: string;
+  }>();
   const { user } = useAuth();
   const { maps, activeMapId, setActiveMapId } = useMap();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [mapSlugInput, setMapSlugInput] = useState("");
   const [iconEmoji, setIconEmoji] = useState("");
   const [mapStyle, setMapStyle] = useState<MapStylePreset>("auto");
   const [styleOptions, setStyleOptions] = useState<MapStyleOptions>({
@@ -68,17 +75,22 @@ export function MapSettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const map = useMemo(
-    () => resolveMapFromSettingsParam(maps, mapSlugParam),
-    [maps, mapSlugParam],
+    () => resolveMapFromSettingsParam(maps, profileSlugParam, mapSlugParam),
+    [maps, profileSlugParam, mapSlugParam],
   );
   const mapId = map?.id ?? null;
 
   useEffect(() => {
-    if (!map || !mapSlugParam) return;
-    const canonicalSlug = map.slug.trim();
-    if (!canonicalSlug || mapSlugParam === canonicalSlug) return;
-    navigate(mapSettingsHref(canonicalSlug), { replace: true });
-  }, [map, mapSlugParam, navigate]);
+    if (!map || !mapSlugParam || !profileSlugParam) return;
+    const route = mapRouteForMap(map);
+    if (
+      route.profileSlug === profileSlugParam.trim() &&
+      route.mapSlug === mapSlugParam.trim()
+    ) {
+      return;
+    }
+    navigate(mapSettingsHref(route), { replace: true });
+  }, [map, mapSlugParam, profileSlugParam, navigate]);
 
   const roleQuery = useQuery({
     queryKey: ["map_member_role", mapId, user?.id],
@@ -102,6 +114,7 @@ export function MapSettingsPage() {
     if (!map) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset field when switching map
     setName(map.name);
+    setMapSlugInput(map.slug);
     setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
@@ -112,10 +125,12 @@ export function MapSettingsPage() {
     if (!mapId || !map || !name.trim()) return;
     setSaving(true);
     setError(null);
+    const nextSlug = mapSlugInput.trim();
     const { error: err } = await supabase
       .from("maps")
       .update({
         name: name.trim(),
+        slug: nextSlug !== map.slug.trim() ? nextSlug : map.slug,
         icon_emoji: normalizeMapIconForPersist(iconEmoji),
         style: mapStyle,
         style_hillshades: styleOptions.hillshades,
@@ -139,7 +154,7 @@ export function MapSettingsPage() {
     }
   }
 
-  if (!mapSlugParam) {
+  if (!mapSlugParam || !profileSlugParam) {
     return <PageCenteredLoading>Missing map.</PageCenteredLoading>;
   }
 
@@ -157,7 +172,11 @@ export function MapSettingsPage() {
               size="sm"
               render={
                 <Link
-                  to={maps[0]?.slug ? mapViewHref("map", maps[0].slug) : "/"}
+                  to={
+                    maps[0]?.owner_profile_slug && maps[0]?.slug
+                      ? mapViewHref("map", mapRouteForMap(maps[0]))
+                      : "/"
+                  }
                 />
               }
             >
@@ -170,6 +189,7 @@ export function MapSettingsPage() {
   }
 
   const nameDirty = name.trim() !== map.name;
+  const slugDirty = mapSlugInput.trim() !== map.slug.trim();
   const iconToSave = normalizeMapIconForPersist(iconEmoji);
   const iconDirty = iconToSave !== (map.icon_emoji ?? null);
   const savedStyleOptions = normalizeMapStyleOptions(map);
@@ -183,15 +203,17 @@ export function MapSettingsPage() {
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
-    (nameDirty || iconDirty || styleDirty || metadataDirty) &&
+    (nameDirty || slugDirty || iconDirty || styleDirty || metadataDirty) &&
     !saving;
 
   return (
     <AppPageLayout>
       <PageBackButton />
       <PagePanel>
-        <PageDisplayTitle>Map settings</PageDisplayTitle>
-        <PageLead>More options will land here later.</PageLead>
+        <PageHeader>
+          <PageHeaderTitle>Map settings</PageHeaderTitle>
+          <PageHeaderLead>More options will land here later.</PageHeaderLead>
+        </PageHeader>
 
         <PageFormBlockSpaced>
           {!isOwner && !roleQuery.isLoading ? (
@@ -209,6 +231,18 @@ export function MapSettingsPage() {
               onEmojiChange={setIconEmoji}
               emojiFallback={defaultMapIcon()}
             />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="map-url-slug">URL slug</FieldLabel>
+            <FieldControl>
+              <Input
+                id="map-url-slug"
+                value={mapSlugInput}
+                onChange={(e) => setMapSlugInput(e.target.value)}
+                disabled={!isOwner || roleQuery.isLoading}
+                autoComplete="off"
+              />
+            </FieldControl>
           </Field>
           <Field>
             <FieldLabel id="map-style-label">Map style</FieldLabel>
@@ -278,11 +312,11 @@ export function MapSettingsPage() {
             <Button disabled={!canSave} onClick={() => void save()}>
               Save
             </Button>
-            {map.slug.trim() ? (
+            {map.owner_profile_slug && map.slug.trim() ? (
               <Button
                 variant="outline"
                 type="button"
-                render={<Link to={mapViewHref("blog", map.slug.trim())} />}
+                render={<Link to={mapViewHref("blog", mapRouteForMap(map))} />}
               >
                 View blog
               </Button>
@@ -293,8 +327,11 @@ export function MapSettingsPage() {
                 type="button"
                 onClick={() => {
                   setActiveMapId(map.id);
-                  const slug = map.slug.trim();
-                  navigate(slug ? mapViewHref("map", slug) : "/");
+                  navigate(
+                    map.owner_profile_slug
+                      ? mapViewHref("map", mapRouteForMap(map))
+                      : "/",
+                  );
                 }}
               >
                 Switch to this map
@@ -314,6 +351,7 @@ export function MapSettingsPage() {
         <MapSharingSection
           mapId={map.id}
           mapName={map.name}
+          ownerProfileSlug={mapRouteForMap(map).profileSlug}
           mapSlug={map.slug}
           isPublic={map.is_public}
           isOwner={isOwner}

@@ -5,6 +5,7 @@ import {
   mapRoleLabel,
   type InviteMapRole,
 } from "@/lib/map-member-roles";
+import { mapRouteForMap } from "@/lib/map-route";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
@@ -72,12 +73,14 @@ type MemberRow = {
 export function MapSharingSection({
   mapId,
   mapName,
+  ownerProfileSlug,
   mapSlug,
   isPublic,
   isOwner,
 }: {
   mapId: string;
   mapName: string;
+  ownerProfileSlug: string;
   mapSlug: string;
   isPublic: boolean;
   isOwner: boolean;
@@ -141,10 +144,14 @@ export function MapSharingSection({
 
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
   const pendingInvites = invitationsQuery.data ?? [];
+  const trimmedProfileSlug = ownerProfileSlug.trim();
   const trimmedSlug = mapSlug.trim();
   const publicMapUrl =
-    trimmedSlug && typeof window !== "undefined"
-      ? `${window.location.origin}${mapViewHref("map", trimmedSlug)}`
+    trimmedProfileSlug && trimmedSlug && typeof window !== "undefined"
+      ? `${window.location.origin}${mapViewHref("map", {
+          profileSlug: trimmedProfileSlug,
+          mapSlug: trimmedSlug,
+        })}`
       : null;
 
   async function sendInvite() {
@@ -275,8 +282,11 @@ export function MapSharingSection({
     await qc.invalidateQueries({ queryKey: ["maps", user?.id] });
     if (fallback) {
       setActiveMapId(fallback.id);
-      const slug = fallback.slug.trim();
-      navigate(slug ? mapViewHref("map", slug) : "/");
+      navigate(
+        fallback.owner_profile_slug
+          ? mapViewHref("map", mapRouteForMap(fallback))
+          : "/",
+      );
     } else {
       navigate("/");
     }

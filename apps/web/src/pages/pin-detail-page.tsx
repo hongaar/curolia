@@ -3,6 +3,7 @@ import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
 import { useMinMd } from "@/hooks/use-min-md";
 import { mapHrefWithSearch, mapViewHref, pinDetailHref } from "@/lib/app-paths";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -29,7 +30,8 @@ import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 export function PinDetailPage() {
-  const { mapSlug, pinSlug } = useParams<{
+  const { profileSlug, mapSlug, pinSlug } = useParams<{
+    profileSlug: string;
     mapSlug: string;
     pinSlug: string;
   }>();
@@ -37,13 +39,18 @@ export function PinDetailPage() {
   const isWideEnough = useMinMd();
   const { maps, activeMapId } = useMap();
 
-  const mapForRoute = useMemo(
-    () =>
+  const mapForRoute = useMemo(() => {
+    if (!profileSlug?.trim() || !mapSlug?.trim()) return null;
+    const profileNeedle = profileSlug.trim().toLowerCase();
+    const mapNeedle = mapSlug.trim().toLowerCase();
+    return (
       maps.find(
-        (j) => j.slug.toLowerCase() === mapSlug?.trim().toLowerCase(),
-      ) ?? null,
-    [maps, mapSlug],
-  );
+        (j) =>
+          j.owner_profile_slug.trim().toLowerCase() === profileNeedle &&
+          j.slug.trim().toLowerCase() === mapNeedle,
+      ) ?? null
+    );
+  }, [maps, profileSlug, mapSlug]);
 
   const pinQuery = useQuery({
     queryKey: ["pin", mapForRoute?.id, pinSlug],
@@ -76,11 +83,16 @@ export function PinDetailPage() {
   const redirectSlug = pinQuery.data?.redirectSlug ?? null;
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
 
+  const mapRoute = useMemo(
+    () => (mapForRoute ? mapRouteForMap(mapForRoute) : null),
+    [mapForRoute],
+  );
+
   useEffect(() => {
-    if (!redirectSlug || !mapForRoute?.slug?.trim()) return;
-    const path = pinDetailHref(mapForRoute.slug.trim(), redirectSlug);
+    if (!redirectSlug || !mapRoute) return;
+    const path = pinDetailHref(mapRoute, redirectSlug);
     navigate(path, { replace: true });
-  }, [redirectSlug, mapForRoute?.slug, navigate]);
+  }, [redirectSlug, mapRoute, navigate]);
 
   const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
   const insetMapStyleOptions = useMemo(
@@ -100,11 +112,16 @@ export function PinDetailPage() {
             type="button"
             variant="outline"
             onClick={() => {
-              const fromPin =
-                pin && maps.find((x) => x.id === pin.map_id)?.slug?.trim();
-              const slug =
-                fromPin || maps.find((x) => x.id === activeMapId)?.slug?.trim();
-              navigate(slug ? mapViewHref("map", slug) : "/");
+              const fromPin = pin
+                ? maps.find((x) => x.id === pin.map_id)
+                : null;
+              const fallback =
+                fromPin ?? maps.find((x) => x.id === activeMapId) ?? null;
+              navigate(
+                fallback?.owner_profile_slug && fallback.slug
+                  ? mapViewHref("map", mapRouteForMap(fallback))
+                  : "/",
+              );
             }}
           >
             Home
@@ -116,29 +133,25 @@ export function PinDetailPage() {
     );
   }
 
-  const mapSlugForMap = mapForRoute?.slug?.trim() ?? mapSlug?.trim();
-  const mapHref =
-    mapSlugForMap != null && mapSlugForMap !== ""
-      ? mapHrefWithSearch(
-          mapSlugForMap,
-          (() => {
-            // Narrow screens redirect ?pin= back to pin detail — omit it when
-            // leaving pin detail for the map; camera still focuses the pin.
-            const baseParams = isWideEnough
-              ? applySelectedPinToSearchParams(new URLSearchParams(), pin.slug)
-              : new URLSearchParams();
-            const params = applyMapCameraToSearchParams(
-              baseParams,
-              normalizeCameraForUrl({
-                lat: pin.lat,
-                lng: pin.lng,
-                zoom: PIN_FOCUS_ZOOM,
-              }),
-            );
-            return `?${params.toString()}`;
-          })(),
-        )
-      : null;
+  const mapHref = mapRoute
+    ? mapHrefWithSearch(
+        mapRoute,
+        (() => {
+          const baseParams = isWideEnough
+            ? applySelectedPinToSearchParams(new URLSearchParams(), pin.slug)
+            : new URLSearchParams();
+          const params = applyMapCameraToSearchParams(
+            baseParams,
+            normalizeCameraForUrl({
+              lat: pin.lat,
+              lng: pin.lng,
+              zoom: PIN_FOCUS_ZOOM,
+            }),
+          );
+          return `?${params.toString()}`;
+        })(),
+      )
+    : null;
 
   const insetMarkerTag =
     (pin.pin_tags ?? []).map((tt) => tt.tags).filter(Boolean)[0] ?? null;
@@ -151,6 +164,7 @@ export function PinDetailPage() {
           pin={pin}
           photos={photos}
           signedUrlByPhotoId={signedUrlByPhotoId}
+          permalinkMapRoute={mapRoute ?? undefined}
           topContent={
             mapHref ? (
               <PinDetailInsetMapView
