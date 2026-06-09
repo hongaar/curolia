@@ -79,7 +79,7 @@ export function PinDetailPage() {
   }>();
   const navigate = useNavigate();
   const isWideEnough = useMinMd();
-  const { maps, activeMapId } = useMap();
+  const { maps, activeMapId, loading: mapsLoading } = useMap();
 
   const mapForRoute = useMemo(() => {
     if (!profileSlug?.trim() || !mapSlug?.trim()) return null;
@@ -142,7 +142,14 @@ export function PinDetailPage() {
     [mapForRoute],
   );
 
-  if (pinQuery.isLoading) {
+  const waitingForMap =
+    Boolean(profileSlug?.trim() && mapSlug?.trim()) &&
+    !mapForRoute &&
+    mapsLoading;
+  const waitingForPin =
+    Boolean(mapForRoute) && (pinQuery.isPending || pinQuery.isFetching);
+
+  if (waitingForMap || waitingForPin) {
     return <PageCenteredLoading>Loading pin…</PageCenteredLoading>;
   }
 
