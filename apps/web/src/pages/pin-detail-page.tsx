@@ -3,6 +3,8 @@ import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
 import { useMinMd } from "@/hooks/use-min-md";
 import { mapHrefWithSearch, mapViewHref, pinDetailHref } from "@/lib/app-paths";
+import { canNavigateBack } from "@/lib/can-navigate-back";
+import { defaultMapIcon } from "@/lib/map-display-icon";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
@@ -19,15 +21,55 @@ import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
+import { MapNavButton } from "@curolia/ui/map-picker";
 import {
   AppPageLayout,
   PageCenteredError,
   PageCenteredLoading,
   PagePanel,
 } from "@curolia/ui/page";
+import { PageBackButton as UiPageBackButton } from "@curolia/ui/page-back-button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
+function PinDetailPageNav({
+  mapHref,
+  mapName,
+  mapEmoji,
+}: {
+  mapHref: string | null;
+  mapName: string;
+  mapEmoji: string;
+}) {
+  const navigate = useNavigate();
+  const isWideEnough = useMinMd();
+  useLocation();
+
+  if (canNavigateBack()) {
+    return <PageBackButton />;
+  }
+
+  if (!mapHref) return null;
+
+  if (!isWideEnough) {
+    return (
+      <MapNavButton
+        mapEmoji={mapEmoji}
+        mapName={mapName}
+        onClick={() => navigate(mapHref)}
+      />
+    );
+  }
+
+  return (
+    <UiPageBackButton
+      label="Go to map"
+      direction="forward"
+      onClick={() => navigate(mapHref)}
+    />
+  );
+}
 
 export function PinDetailPage() {
   const { profileSlug, mapSlug, pinSlug } = useParams<{
@@ -158,7 +200,11 @@ export function PinDetailPage() {
 
   return (
     <AppPageLayout width="2xl">
-      <PageBackButton />
+      <PinDetailPageNav
+        mapHref={mapHref}
+        mapName={mapForRoute?.name.trim() || "Map"}
+        mapEmoji={mapForRoute?.icon_emoji ?? defaultMapIcon()}
+      />
       <PagePanel>
         <PinDetailBody
           pin={pin}
@@ -166,7 +212,7 @@ export function PinDetailPage() {
           signedUrlByPhotoId={signedUrlByPhotoId}
           permalinkMapRoute={mapRoute ?? undefined}
           topContent={
-            mapHref ? (
+            isWideEnough && mapHref ? (
               <PinDetailInsetMapView
                 lng={pin.lng}
                 lat={pin.lat}

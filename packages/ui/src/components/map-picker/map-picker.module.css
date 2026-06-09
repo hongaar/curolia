@@ -70,6 +70,11 @@
   min-width: 14rem;
 }
 
+.mapNavRoot {
+  align-self: flex-start;
+  max-width: min(18rem, calc(100vw - 2rem));
+}
+
 .publicInfo {
   display: inline-flex;
   height: var(--control-h-md);

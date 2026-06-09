@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from "../dropdown-menu";
-import { MapPickerContent, MapPickerTrigger } from "./map-picker";
+import { MapNavButton, MapPickerContent, MapPickerTrigger } from "./map-picker";
 
 const meta = {
   title: "Map Picker",
@@ -36,6 +36,19 @@ export const Default: Story = {
         <DropdownMenuItem>New map…</DropdownMenuItem>
       </MapPickerContent>
     </DropdownMenu>
+  ),
+};
+
+export const MapNav: Story = {
+  parameters: storyDocs(
+    "Pill back-to-map control for stack pages on narrow viewports.",
+  ),
+  render: () => (
+    <MapNavButton
+      mapEmoji="🗺️"
+      mapName="Summer trip"
+      onClick={() => undefined}
+    />
   ),
 };
 

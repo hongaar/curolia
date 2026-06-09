@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type * as React from "react";
 
 import { cn } from "../../lib/utils";
@@ -45,6 +45,42 @@ export function MapPickerContent({
     >
       {children}
     </DropdownMenuContent>
+  );
+}
+
+/** Pill button that navigates back to a map (emoji + name). */
+export function MapNavButton({
+  mapEmoji,
+  mapName,
+  onClick,
+  "aria-label": ariaLabel,
+}: {
+  mapEmoji?: React.ReactNode;
+  mapName: string;
+  onClick: () => void;
+  "aria-label"?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        styles.trigger,
+        styles.mapNavRoot,
+        !mapEmoji && styles.triggerNoEmoji,
+      )}
+      onClick={onClick}
+      aria-label={ariaLabel ?? `Go to ${mapName}`}
+    >
+      {mapEmoji ? (
+        <span className={styles.mapEmoji} aria-hidden>
+          {mapEmoji}
+        </span>
+      ) : null}
+      <span className={styles.mapName}>{mapName}</span>
+      <span className={styles.chevron} aria-hidden>
+        <ChevronRight />
+      </span>
+    </button>
   );
 }
 

@@ -3,6 +3,7 @@ import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { useMapMemberRole } from "@/hooks/use-map-access";
+import { useMinMd } from "@/hooks/use-min-md";
 import { pinDetailHref } from "@/lib/app-paths";
 import type { MapRoute } from "@/lib/map-route";
 import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
@@ -83,6 +84,7 @@ export function PinDetailBody({
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
   const { canEdit } = useMapMemberRole(pin.map_id);
+  const isWideEnough = useMinMd();
   const [photoLightbox, setPhotoLightbox] = useState<{
     photoId: string;
   } | null>(null);
@@ -155,7 +157,7 @@ export function PinDetailBody({
               variant="outline"
               size="sm"
             />
-            {permalinkMapRoute ? (
+            {permalinkMapRoute && isWideEnough ? (
               <Button
                 variant="ghost"
                 size="icon-sm"
