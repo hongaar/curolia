@@ -14,8 +14,9 @@ import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
-import { pinDetailHref } from "@/lib/app-paths";
+import { pinDetailHref, pinEditHref } from "@/lib/app-paths";
 import {
   readStoredMapCamera,
   writeStoredMapCamera,
@@ -116,6 +117,7 @@ const PANEL_RIGHT_WIDTH_CSS = "clamp(24rem, 35%, 40rem)";
 export function MapPage() {
   const qc = useQueryClient();
   const isWideEnough = useMinMd();
+  const isMobile = useMaxSm();
   const navigate = useNavigate();
   const { profileSlug, mapSlug } = useParams<{
     profileSlug: string;
@@ -981,7 +983,12 @@ export function MapPage() {
         onOpenPin={onSelectPin}
         onEditPin={(pinId) => {
           const row = pins.find((p) => p.id === pinId);
-          if (row) setFullEditPin(row);
+          if (!row) return;
+          if (isMobile && activeMapRoute && row.slug.trim()) {
+            navigate(pinEditHref(activeMapRoute, row.slug));
+            return;
+          }
+          setFullEditPin(row);
         }}
         onRemovePin={onRemovePinFromMap}
       />
@@ -1000,11 +1007,15 @@ export function MapPage() {
         onEdit={(t) => {
           setQuickAddPin(null);
           setQuickAddAnchorScreen(null);
+          if (isMobile && activeMapRoute && t.slug.trim()) {
+            navigate(pinEditHref(activeMapRoute, t.slug));
+            return;
+          }
           setFullEditPin(t);
         }}
         onOpen={(t) => onSelectPin(t.id)}
       />
-      {canEdit && fullEditPin ? (
+      {canEdit && fullEditPin && !isMobile ? (
         <Suspense fallback={null}>
           <PinFormDialog
             open

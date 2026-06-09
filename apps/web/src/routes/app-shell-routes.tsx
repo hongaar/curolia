@@ -9,6 +9,7 @@ import { MapPage } from "@/pages/map-page";
 import { MapSettingsPage } from "@/pages/map-settings-page";
 import { NotificationsPage } from "@/pages/notifications-page";
 import { PinDetailPage } from "@/pages/pin-detail-page";
+import { PinEditPage } from "@/pages/pin-edit-page";
 import { PinLegacyRedirectPage } from "@/pages/pin-legacy-redirect-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
@@ -19,6 +20,10 @@ export const appShellRouteElements = (
   <>
     <Route path=":profileSlug/:mapSlug/map" element={<MapPage />} />
     <Route path=":profileSlug/:mapSlug/blog" element={<BlogPage />} />
+    <Route
+      path=":profileSlug/:mapSlug/pin/:pinSlug/edit"
+      element={<PinEditPage />}
+    />
     <Route
       path=":profileSlug/:mapSlug/pin/:pinSlug"
       element={<PinDetailPage />}

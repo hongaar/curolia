@@ -91,6 +91,7 @@
   --mdx-editor-overlay-content-z: 121;
   --app-chrome-top: var(--toolbar-offset);
   --page-chrome-top: var(--toolbar-offset);
+  --page-pad-x: var(--space-4);
 
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
@@ -186,6 +187,7 @@
 @media (min-width: 40rem) {
   :root {
     --nav-shell-pad: var(--space-4);
+    --page-pad-x: var(--space-6);
     --toolbar-pad-x: var(--space-8);
   }
 }

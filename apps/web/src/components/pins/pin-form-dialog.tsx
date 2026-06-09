@@ -66,6 +66,12 @@ import { Label } from "@curolia/ui/label";
 import { MarkdownEditor } from "@curolia/ui/markdown-editor";
 import { OptionList, OptionListItem } from "@curolia/ui/option-list";
 import {
+  PageFormBlockSpaced,
+  PageHeader,
+  PageHeaderTitle,
+  PageInlineActions,
+} from "@curolia/ui/page";
+import {
   PhotoGrid,
   PhotoGridPlaceholder,
   PhotoGridRemoveButton,
@@ -132,6 +138,8 @@ type PinFormDialogProps = {
   pin: Pin | null;
   defaultLat?: number;
   defaultLng?: number;
+  /** Full-page stack layout (mobile edit route) instead of a modal dialog. */
+  layout?: "dialog" | "page";
   /** For new pins: screen anchor → floating panel (no modal blur). */
   anchorScreen?: { x: number; y: number } | null;
   /** Fires while creating a pin when tag selection changes (for map preview). */
@@ -145,6 +153,7 @@ export function PinFormDialog({
   pin,
   defaultLat = 0,
   defaultLng = 0,
+  layout = "dialog",
   anchorScreen = null,
   onNewPinTagIdsChange,
 }: PinFormDialogProps) {
@@ -1332,6 +1341,24 @@ export function PinFormDialog({
         </PinFormFloatingHost>
         {photoLightboxOverlay}
         {tagFormDialog}
+      </>
+    );
+  }
+
+  if (layout === "page") {
+    return (
+      <>
+        <PageHeader>
+          <PageHeaderTitle>{dialogTitle}</PageHeaderTitle>
+        </PageHeader>
+        <PageFormBlockSpaced>
+          {formFields}
+          <PageInlineActions>{footerActions}</PageInlineActions>
+        </PageFormBlockSpaced>
+        {photoLightboxOverlay}
+        {tagFormDialog}
+        {movePinDialog}
+        {deletePinDialog}
       </>
     );
   }

@@ -98,6 +98,11 @@ export function pinDetailHref(route: MapRoute, pinSlug: string): string {
   return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}/pin/${pinSlug.trim()}`;
 }
 
+/** Pin editor stack route: `/:profileSlug/:mapSlug/pin/:pinSlug/edit`. */
+export function pinEditHref(route: MapRoute, pinSlug: string): string {
+  return `${pinDetailHref(route, pinSlug)}/edit`;
+}
+
 export function mapHrefWithSearch(
   route: MapRoute,
   searchParamsStr: string,
