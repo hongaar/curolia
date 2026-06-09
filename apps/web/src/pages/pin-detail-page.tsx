@@ -21,13 +21,9 @@ import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
+import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 import { MapNavButton } from "@curolia/ui/map-picker";
-import {
-  AppPageLayout,
-  PageCenteredError,
-  PageCenteredLoading,
-  PagePanel,
-} from "@curolia/ui/page";
+import { AppPageLayout, PageCenteredError, PagePanel } from "@curolia/ui/page";
 import { PageBackButton as UiPageBackButton } from "@curolia/ui/page-back-button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
@@ -150,7 +146,7 @@ export function PinDetailPage() {
     Boolean(mapForRoute) && (pinQuery.isPending || pinQuery.isFetching);
 
   if (waitingForMap || waitingForPin) {
-    return <PageCenteredLoading>Loading pin…</PageCenteredLoading>;
+    return <CuroliaLoadingSplash fill statusLabel="Loading" />;
   }
 
   if (!pin || wrongMap) {

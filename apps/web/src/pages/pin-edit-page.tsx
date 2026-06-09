@@ -7,12 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
 import type { Pin } from "@/types/database";
 import { Button } from "@curolia/ui/button";
-import {
-  AppPageLayout,
-  PageCenteredError,
-  PageCenteredLoading,
-  PagePanel,
-} from "@curolia/ui/page";
+import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
+import { AppPageLayout, PageCenteredError, PagePanel } from "@curolia/ui/page";
 import { useQuery } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -92,7 +88,7 @@ export function PinEditPage() {
     Boolean(mapForRoute) && (pinQuery.isPending || pinQuery.isFetching);
 
   if (waitingForMap || waitingForPin || roleLoading) {
-    return <PageCenteredLoading>Loading pin…</PageCenteredLoading>;
+    return <CuroliaLoadingSplash fill statusLabel="Loading" />;
   }
 
   const wrongMap = pin && activeMapId && pin.map_id !== activeMapId;
