@@ -77,6 +77,7 @@ import {
   FieldDescription,
   FieldError,
   FieldLabel,
+  FormGrid2,
   FormSelectTriggerFull,
   PinFormFloatingHost,
   PinFormGrid,
@@ -929,29 +930,31 @@ export function PinFormDialog({
           </FieldDescription>
         ) : null}
       </Field>
-      <Field>
-        <FieldLabel htmlFor={`t-date-${idSuffix}`}>Date</FieldLabel>
-        <FieldControl>
-          <Input
-            id={`t-date-${idSuffix}`}
-            type="date"
-            value={dateYmd}
-            onChange={(e) => setDateYmd(e.target.value)}
-          />
-        </FieldControl>
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`t-end-${idSuffix}`}>End date</FieldLabel>
-        <FieldControl>
-          <Input
-            id={`t-end-${idSuffix}`}
-            type="date"
-            value={endDateYmd}
-            min={dateYmd || undefined}
-            onChange={(e) => setEndDateYmd(e.target.value)}
-          />
-        </FieldControl>
-      </Field>
+      <FormGrid2>
+        <Field>
+          <FieldLabel htmlFor={`t-date-${idSuffix}`}>Start date</FieldLabel>
+          <FieldControl>
+            <Input
+              id={`t-date-${idSuffix}`}
+              type="date"
+              value={dateYmd}
+              onChange={(e) => setDateYmd(e.target.value)}
+            />
+          </FieldControl>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`t-end-${idSuffix}`}>End date</FieldLabel>
+          <FieldControl>
+            <Input
+              id={`t-end-${idSuffix}`}
+              type="date"
+              value={endDateYmd}
+              min={dateYmd || undefined}
+              onChange={(e) => setEndDateYmd(e.target.value)}
+            />
+          </FieldControl>
+        </Field>
+      </FormGrid2>
       {pin ? (
         <>
           <Field>
