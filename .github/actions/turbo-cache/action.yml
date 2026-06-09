@@ -1,0 +1,14 @@
+name: Turbo cache
+description: Restore and save Turborepo local cache (.turbo)
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Turbo
+      uses: actions/cache@v4
+      with:
+        path: .turbo
+        key: ${{ runner.os }}-turbo-${{ hashFiles('package-lock.json', 'turbo.json') }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-turbo-${{ hashFiles('package-lock.json', 'turbo.json') }}-
+          ${{ runner.os }}-turbo-

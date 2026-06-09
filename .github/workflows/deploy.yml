@@ -54,6 +54,8 @@ jobs:
         with:
           ref: ${{ env.DEPLOY_REF }}
 
+      - uses: ./.github/actions/turbo-cache
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -104,6 +106,8 @@ jobs:
         with:
           ref: ${{ env.DEPLOY_REF }}
 
+      - uses: ./.github/actions/turbo-cache
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -148,6 +152,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.DEPLOY_REF }}
+
+      - uses: ./.github/actions/turbo-cache
 
       - uses: actions/setup-node@v4
         with:

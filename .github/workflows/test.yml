@@ -13,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: ./.github/actions/turbo-cache
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -36,6 +38,8 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/turbo-cache
 
       - uses: actions/setup-node@v4
         with:
@@ -74,6 +78,8 @@ jobs:
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/turbo-cache
 
       - uses: actions/setup-node@v4
         with:
