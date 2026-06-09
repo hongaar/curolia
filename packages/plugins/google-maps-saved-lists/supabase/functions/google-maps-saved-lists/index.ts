@@ -237,6 +237,7 @@ type ListDiscoveryJobStatus =
   | "pending"
   | "exporting_starred"
   | "exporting_collections"
+  | "exporting_mymaps"
   | "resolving_coords"
   | "completed"
   | "failed";
@@ -292,6 +293,7 @@ function isListDiscoveryActive(
     job?.status === "pending" ||
     job?.status === "exporting_starred" ||
     job?.status === "exporting_collections" ||
+    job?.status === "exporting_mymaps" ||
     job?.status === "resolving_coords"
   );
 }
@@ -305,6 +307,7 @@ function parseListDiscoveryJob(
     status !== "pending" &&
     status !== "exporting_starred" &&
     status !== "exporting_collections" &&
+    status !== "exporting_mymaps" &&
     status !== "resolving_coords" &&
     status !== "completed" &&
     status !== "failed"
@@ -319,7 +322,7 @@ function parseListDiscoveryJob(
     status,
     phase: typeof raw.phase === "string" ? raw.phase : undefined,
     step: Number(raw.step ?? 0),
-    totalSteps: Number(raw.totalSteps ?? 2),
+    totalSteps: Number(raw.totalSteps ?? 4),
     progress: Number(raw.progress ?? 0),
     error: typeof raw.error === "string" ? raw.error : undefined,
     startedAt: raw.startedAt,
@@ -334,7 +337,7 @@ function parseListDiscoveryJob(
 }
 
 function hasDiscoveryCache(cache: CachedExportData | null): boolean {
-  return Boolean(cache?.starred || cache?.collections);
+  return Boolean(cache?.starred || cache?.collections || cache?.mymaps);
 }
 
 function countExportLists(cache: CachedExportData | null): number {
@@ -342,6 +345,7 @@ function countExportLists(cache: CachedExportData | null): number {
   let count = 0;
   if ((cache.starred?.places.length ?? 0) > 0) count += 1;
   count += cache.collections?.items.length ?? 0;
+  count += cache.mymaps?.items.length ?? 0;
   return count;
 }
 
@@ -359,6 +363,7 @@ function buildListSourcesPayload(
     starred: (cache?.starred?.places.length ?? 0) > 0,
     starredCount: cache?.starred?.places.length ?? 0,
     collections: cache?.collections?.items ?? [],
+    mymaps: cache?.mymaps?.items ?? [],
     lastExportAt: userData.lastExportAt,
     accessType: userData.accessType,
     hasExportCache: hasDiscoveryCache(cache),
@@ -561,7 +566,46 @@ type ExportProgressUpdate = {
   progress: number;
 };
 
-const DISCOVERY_TOTAL_STEPS = 3;
+const DISCOVERY_TOTAL_STEPS = 4;
+
+const EXPORT_RESOURCE_STEPS: {
+  resource: DataPortabilityResource;
+  section: "starred" | "collections" | "mymaps";
+  label: string;
+  stepIndex: 0 | 1 | 2;
+}[] = [
+  {
+    resource: "maps.starred_places",
+    section: "starred",
+    label: "starred places",
+    stepIndex: 0,
+  },
+  {
+    resource: "saved.collections",
+    section: "collections",
+    label: "saved lists",
+    stepIndex: 1,
+  },
+  {
+    resource: "mymaps.maps",
+    section: "mymaps",
+    label: "My Maps",
+    stepIndex: 2,
+  },
+];
+
+function exportSectionHasData(
+  cache: CachedExportData,
+  section: "starred" | "collections" | "mymaps",
+): boolean {
+  if (section === "starred") {
+    return (cache.starred?.places.length ?? 0) > 0;
+  }
+  if (section === "collections") {
+    return (cache.collections?.items.length ?? 0) > 0;
+  }
+  return (cache.mymaps?.items.length ?? 0) > 0;
+}
 const LIST_DISCOVERY_MAX_MS = 45 * 60 * 1000;
 const COORD_BATCH_MAX_URLS = 40;
 const COORD_BATCH_TIME_BUDGET_MS = 90_000;
@@ -582,7 +626,7 @@ function coordResolutionProgress(
   const totalSteps = DISCOVERY_TOTAL_STEPS;
   return {
     phase: `Resolving coordinates (${urlsDone}/${urlsTotal} URLs)…`,
-    step: 2,
+    step: 3,
     totalSteps,
     progress: listDiscoveryCoordProgress(urlsDone, urlsTotal),
   };
@@ -633,7 +677,7 @@ async function runCoordResolutionBatch(
 
   await patchListDiscoveryJob(admin, userId, jobId, {
     status: "resolving_coords",
-    step: 2,
+    step: 3,
     totalSteps: DISCOVERY_TOTAL_STEPS,
     coordUrlsTotal: urlsTotal,
     coordUrlsDone: urlsDoneOffset,
@@ -651,7 +695,7 @@ async function runCoordResolutionBatch(
       await patchListDiscoveryJob(admin, userId, jobId, {
         status: "resolving_coords",
         phase: update.phase,
-        step: 2,
+        step: 3,
         totalSteps: DISCOVERY_TOTAL_STEPS,
         coordUrlsTotal: update.total,
         coordUrlsDone: update.done,
@@ -719,7 +763,8 @@ function maybeResumeCoordResolution(
 }
 
 function discoveryStatusForStep(step: number): ListDiscoveryJobStatus {
-  if (step >= 2) return "resolving_coords";
+  if (step >= 3) return "resolving_coords";
+  if (step === 2) return "exporting_mymaps";
   if (step === 1) return "exporting_collections";
   return "exporting_starred";
 }
@@ -760,36 +805,21 @@ async function refreshExportsIfNeeded(
   let cache = (await loadCachedExport(admin, userId)) ?? {};
   const userData = await loadUserExportPluginData(admin, userId);
 
-  const resources: DataPortabilityResource[] = [
-    "maps.starred_places",
-    "saved.collections",
-  ];
-
   let latestExportAt = userData.lastExportAt;
   let latestAccessType = userData.accessType;
   const totalSteps = DISCOVERY_TOTAL_STEPS;
 
-  for (let index = 0; index < resources.length; index++) {
-    const resource = resources[index]!;
-    const sectionKey =
-      resource === "maps.starred_places" ? "starred" : "collections";
-    const hasData =
-      sectionKey === "starred"
-        ? (cache.starred?.places.length ?? 0) > 0
-        : (cache.collections?.items.length ?? 0) > 0;
-
-    if (!force && hasData) {
+  for (const exportStep of EXPORT_RESOURCE_STEPS) {
+    const { resource, section, label, stepIndex } = exportStep;
+    if (!force && exportSectionHasData(cache, section)) {
       continue;
     }
 
-    const label =
-      resource === "maps.starred_places" ? "starred places" : "saved lists";
-
     await onProgress?.({
       phase: `Requesting ${label} from Google…`,
-      step: index,
+      step: stepIndex,
       totalSteps,
-      progress: listDiscoveryExportProgress(index as 0 | 1, 0),
+      progress: listDiscoveryExportProgress(stepIndex, 0),
     });
 
     const bundle = await runPortabilityExport(accessToken, resource, {
@@ -800,21 +830,18 @@ async function refreshExportsIfNeeded(
           phase: waiting
             ? `Waiting for Google (${label})…`
             : `Downloading ${label}…`,
-          step: index,
+          step: stepIndex,
           totalSteps,
-          progress: listDiscoveryExportProgress(
-            index as 0 | 1,
-            pollRatio * 0.92,
-          ),
+          progress: listDiscoveryExportProgress(stepIndex, pollRatio * 0.92),
         });
       },
     });
 
     await onProgress?.({
       phase: `Processing ${label}…`,
-      step: index,
+      step: stepIndex,
       totalSteps,
-      progress: listDiscoveryExportProgress(index as 0 | 1, 0.96),
+      progress: listDiscoveryExportProgress(stepIndex, 0.96),
     });
 
     cache = mergeCachedExport(cache, parseExportBundle(bundle));
@@ -823,7 +850,7 @@ async function refreshExportsIfNeeded(
       latestAccessType = bundle.accessType;
     }
 
-    if (cache.starred || cache.collections) {
+    if (cache.starred || cache.collections || cache.mymaps) {
       await saveCachedExport(admin, userId, cache);
     }
   }
@@ -840,7 +867,7 @@ async function refreshExportsIfNeeded(
     const urlsTotal = countUniqueUrlsNeedingCoords(cache);
     await onProgress?.({
       phase: `Resolving coordinates (0/${urlsTotal} URLs)…`,
-      step: 2,
+      step: 3,
       totalSteps,
       progress: LIST_DISCOVERY_EXPORT_COMPLETE_PROGRESS,
     });
@@ -871,7 +898,7 @@ async function beginCoordResolution(
 
   await patchListDiscoveryJob(admin, userId, jobId, {
     status: "resolving_coords",
-    step: 2,
+    step: 3,
     totalSteps: DISCOVERY_TOTAL_STEPS,
     coordUrlsTotal: urlsTotal,
     coordUrlsDone: 0,

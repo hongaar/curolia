@@ -12,7 +12,7 @@ export type ParsedPlace = {
   googleMapsUrl: string;
   lat: number | null;
   lng: number | null;
-  source: "starred" | "collection";
+  source: "starred" | "collection" | "mymap";
   collectionName?: string;
   /** Set after an HTTP coordinate lookup was attempted (even when it failed). */
   coordLookupAttempted?: boolean;

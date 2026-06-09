@@ -9,12 +9,14 @@ import { googleMapsSavedListsPluginMeta } from "./plugin-meta";
 const GOOGLE_MAPS_SAVED_LISTS_RESOURCE_SCOPES = [
   "https://www.googleapis.com/auth/dataportability.maps.starred_places",
   "https://www.googleapis.com/auth/dataportability.saved.collections",
+  "https://www.googleapis.com/auth/dataportability.mymaps.maps",
 ] as const;
 
 export const googleMapsSavedListsPluginManifest: PluginPackageManifest = {
   id: googleMapsSavedListsPluginMeta.typeId,
   displayName: googleMapsSavedListsPluginMeta.displayName,
-  description: "Import starred places and saved lists from Google Maps.",
+  description:
+    "Import starred places, saved lists, and My Maps from Google Maps.",
   icon: GoogleMapsSavedListsIcon,
   implemented: googleMapsSavedListsPluginMeta.implemented,
   AccountSettingsPanel: GoogleMapsSavedListsAccountSettingsPanel,
@@ -38,7 +40,7 @@ export const googleMapsSavedListsPluginManifest: PluginPackageManifest = {
         slug: "google-maps-saved-lists",
         verifyJwt: false,
         description:
-          "Import Google Maps starred places and saved lists via Data Portability API.",
+          "Import Google Maps starred places, saved lists, and My Maps via Data Portability API.",
       },
     ],
   },

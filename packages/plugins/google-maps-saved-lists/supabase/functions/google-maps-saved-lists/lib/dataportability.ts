@@ -12,7 +12,8 @@ export function portabilityArchiveStateUrl(archiveJobId: string): string {
 
 export type DataPortabilityResource =
   | "maps.starred_places"
-  | "saved.collections";
+  | "saved.collections"
+  | "mymaps.maps";
 
 export type ExportAccessType =
   | "ACCESS_TYPE_ONE_TIME"

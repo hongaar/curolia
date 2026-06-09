@@ -17,11 +17,12 @@ export const WIZARD_STEPS = [
   { id: "import", title: "Add to map" },
 ] as const;
 
-/** Matches edge `list-discovery-progress.ts` weights (5% / 5% / 90%). */
+/** Matches edge `list-discovery-progress.ts` weights (5% / 5% / 5% / 85%). */
 const DISCOVERY_PROGRESS = {
   starred: 0.05,
   collections: 0.05,
-  coordinates: 0.9,
+  mymaps: 0.05,
+  coordinates: 0.85,
 } as const;
 
 function listDiscoveryCoordProgressPercent(
@@ -29,7 +30,10 @@ function listDiscoveryCoordProgressPercent(
   urlsTotal: number,
 ): number {
   const ratio = urlsDone / Math.max(urlsTotal, 1);
-  const start = DISCOVERY_PROGRESS.starred + DISCOVERY_PROGRESS.collections;
+  const start =
+    DISCOVERY_PROGRESS.starred +
+    DISCOVERY_PROGRESS.collections +
+    DISCOVERY_PROGRESS.mymaps;
   return Math.round((start + DISCOVERY_PROGRESS.coordinates * ratio) * 100);
 }
 
@@ -219,11 +223,12 @@ export function buildMapSettingsStatus(args: {
       : `Google data ready · ${listPart}`;
   }
 
-  return "Import starred places and saved lists from Google Maps.";
+  return "Import starred places, saved lists, and My Maps from Google Maps.";
 }
 
 export function importListLabel(source: GoogleMapsSavedListSource): string {
-  return source.type === "starred" ? "Starred places" : source.name;
+  if (source.type === "starred") return "Starred places";
+  return source.name;
 }
 
 export function importJobProgressPercent(
@@ -317,6 +322,7 @@ export function buildListDiscoveryProgressSteps(
   const steps = [
     { id: "starred", label: "Export starred places" },
     { id: "collections", label: "Export saved lists" },
+    { id: "mymaps", label: "Export My Maps" },
     { id: "coordinates", label: "Resolve coordinates" },
   ] as const;
 
@@ -332,7 +338,8 @@ export function buildListDiscoveryProgressSteps(
     return [
       { ...steps[0], state: "done" },
       { ...steps[1], state: "done" },
-      { ...steps[2], state: "current" },
+      { ...steps[2], state: "done" },
+      { ...steps[3], state: "current" },
     ];
   }
 
@@ -349,19 +356,27 @@ export function buildListDiscoveryProgressSteps(
     }));
   }
   const starredState: "pending" | "current" | "done" =
-    job.status === "exporting_collections"
+    job.status === "exporting_collections" || job.status === "exporting_mymaps"
       ? "done"
       : job.status === "exporting_starred" || job.status === "pending"
         ? "current"
         : "pending";
 
   const collectionsState: "pending" | "current" | "done" =
-    job.status === "exporting_collections" ? "current" : "pending";
+    job.status === "exporting_mymaps"
+      ? "done"
+      : job.status === "exporting_collections"
+        ? "current"
+        : "pending";
+
+  const mymapsState: "pending" | "current" | "done" =
+    job.status === "exporting_mymaps" ? "current" : "pending";
 
   return [
     { ...steps[0], state: starredState },
     { ...steps[1], state: collectionsState },
-    { ...steps[2], state: "pending" as const },
+    { ...steps[2], state: mymapsState },
+    { ...steps[3], state: "pending" as const },
   ];
 }
 

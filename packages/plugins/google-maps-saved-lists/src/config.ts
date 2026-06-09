@@ -5,7 +5,8 @@ export const GOOGLE_MAPS_SAVED_LISTS_PLUGIN_ID =
 
 export type GoogleMapsSavedListSource =
   | { type: "starred" }
-  | { type: "collection"; name: string };
+  | { type: "collection"; name: string }
+  | { type: "mymap"; name: string };
 
 export type GoogleMapsSavedListsSyncSummary = {
   added: number;
@@ -40,6 +41,7 @@ export type GoogleMapsListDiscoveryJobStatus =
   | "pending"
   | "exporting_starred"
   | "exporting_collections"
+  | "exporting_mymaps"
   | "resolving_coords"
   | "completed"
   | "failed";
@@ -82,6 +84,8 @@ function parseSources(raw: unknown): GoogleMapsSavedListSource[] | undefined {
       sources.push({ type: "starred" });
     } else if (s.type === "collection" && typeof s.name === "string") {
       sources.push({ type: "collection", name: s.name });
+    } else if (s.type === "mymap" && typeof s.name === "string") {
+      sources.push({ type: "mymap", name: s.name });
     }
   }
   return sources.length > 0 ? sources : undefined;
@@ -95,6 +99,9 @@ function parseSingleSource(
   if (s.type === "starred") return { type: "starred" };
   if (s.type === "collection" && typeof s.name === "string") {
     return { type: "collection", name: s.name };
+  }
+  if (s.type === "mymap" && typeof s.name === "string") {
+    return { type: "mymap", name: s.name };
   }
   return undefined;
 }
@@ -166,6 +173,7 @@ export function parseGoogleMapsListDiscoveryJob(
     status !== "pending" &&
     status !== "exporting_starred" &&
     status !== "exporting_collections" &&
+    status !== "exporting_mymaps" &&
     status !== "resolving_coords" &&
     status !== "completed" &&
     status !== "failed"
@@ -180,7 +188,7 @@ export function parseGoogleMapsListDiscoveryJob(
     status,
     phase: typeof job.phase === "string" ? job.phase : undefined,
     step: Number(job.step ?? 0),
-    totalSteps: Number(job.totalSteps ?? 2),
+    totalSteps: Number(job.totalSteps ?? 4),
     progress: Number(job.progress ?? 0),
     error: typeof job.error === "string" ? job.error : undefined,
     startedAt: job.startedAt,
@@ -241,6 +249,7 @@ export function isGoogleMapsListDiscoveryActive(
     job?.status === "pending" ||
     job?.status === "exporting_starred" ||
     job?.status === "exporting_collections" ||
+    job?.status === "exporting_mymaps" ||
     job?.status === "resolving_coords"
   );
 }

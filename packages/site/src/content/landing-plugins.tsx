@@ -84,7 +84,7 @@ export const landingPlugins: LandingPlugin[] = [
   {
     id: "google-maps",
     name: "Google Maps",
-    description: "Import saved places and lists",
+    description: "Import starred places, lists and My Maps",
     status: "available",
     icon: () => <GoogleMapsIcon size={6} />,
   },

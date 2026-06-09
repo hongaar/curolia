@@ -19,6 +19,7 @@ describe("list option ids", () => {
       starred: true,
       starredCount: 2,
       collections: [{ id: "60-in-wales", name: "60 in wales", itemCount: 10 }],
+      mymaps: [],
     });
 
     expect(

@@ -16,6 +16,7 @@ export type GoogleMapsListSourcesResponse = {
   starred: boolean;
   starredCount?: number;
   collections: GoogleMapsCollectionSource[];
+  mymaps: GoogleMapsCollectionSource[];
   lastExportAt?: string;
   accessType?: string;
   hasExportCache?: boolean;

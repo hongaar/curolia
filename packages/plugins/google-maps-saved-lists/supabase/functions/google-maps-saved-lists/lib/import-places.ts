@@ -5,6 +5,8 @@ import {
 } from "./_services/emoji/index.ts";
 import { coordsForPlace } from "./_services/geocoding/resolver.ts";
 import type { ExportBundle } from "./dataportability.ts";
+import { parseMyMapsExportFiles } from "./mymaps-export-files.ts";
+import type { ParsedMyMap } from "./mymaps-kml-parser.ts";
 import {
   parseSavedCollectionsCsv,
   parseStarredGeoJson,
@@ -17,7 +19,8 @@ export const STARRED_LIST_LABEL = "Starred places";
 
 export type ImportSource =
   | { type: "starred" }
-  | { type: "collection"; name: string };
+  | { type: "collection"; name: string }
+  | { type: "mymap"; name: string };
 
 export type ImportSummary = {
   added: number;
@@ -50,14 +53,27 @@ export type CachedExportData = {
     accessType?: string;
     archiveJobId?: string;
   };
+  mymaps?: {
+    items: { id: string; name: string; itemCount: number }[];
+    byName: Record<string, ParsedMyMap>;
+    exportedAt: string;
+    accessType?: string;
+    archiveJobId?: string;
+  };
 };
 
 export function collectionId(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
+export function mymapListOptionId(name: string): string {
+  return `mymap-${collectionId(name)}`;
+}
+
 export function listSourceToOptionId(source: ImportSource): string {
-  return source.type === "starred" ? "starred" : collectionId(source.name);
+  if (source.type === "starred") return "starred";
+  if (source.type === "mymap") return mymapListOptionId(source.name);
+  return collectionId(source.name);
 }
 
 export function mergeImportedListIds(
@@ -72,7 +88,8 @@ export function mergeImportedListIds(
 }
 
 export function listTagNameForSource(source: ImportSource): string {
-  return source.type === "starred" ? STARRED_LIST_LABEL : source.name;
+  if (source.type === "starred") return STARRED_LIST_LABEL;
+  return source.name;
 }
 
 export function listTagEmojiForSource(source: ImportSource): string {
@@ -115,25 +132,48 @@ export function parseExportBundle(bundle: ExportBundle): CachedExportData {
     };
   }
 
-  const byName: Record<string, ParsedCollection> = {};
+  if (bundle.resource === "saved.collections") {
+    const byName: Record<string, ParsedCollection> = {};
+    const items: { id: string; name: string; itemCount: number }[] = [];
+    for (const f of bundle.files) {
+      if (!f.name.endsWith(".csv")) continue;
+      const parsed = parseSavedCollectionsCsv(
+        f.name.split("/").pop() ?? f.name,
+        new TextDecoder().decode(f.bytes),
+      );
+      if (!parsed) continue;
+      byName[parsed.name] = parsed;
+      items.push({
+        id: collectionId(parsed.name),
+        name: parsed.name,
+        itemCount: parsed.places.length,
+      });
+    }
+    items.sort((a, b) => a.name.localeCompare(b.name));
+    return {
+      collections: {
+        items,
+        byName,
+        exportedAt: bundle.exportedAt,
+        accessType: bundle.accessType,
+        archiveJobId: bundle.archiveJobId,
+      },
+    };
+  }
+
+  const parsedMaps = parseMyMapsExportFiles(bundle.files);
+  const byName: Record<string, ParsedMyMap> = {};
   const items: { id: string; name: string; itemCount: number }[] = [];
-  for (const f of bundle.files) {
-    if (!f.name.endsWith(".csv")) continue;
-    const parsed = parseSavedCollectionsCsv(
-      f.name.split("/").pop() ?? f.name,
-      new TextDecoder().decode(f.bytes),
-    );
-    if (!parsed) continue;
-    byName[parsed.name] = parsed;
+  for (const map of parsedMaps) {
+    byName[map.name] = map;
     items.push({
-      id: collectionId(parsed.name),
-      name: parsed.name,
-      itemCount: parsed.places.length,
+      id: mymapListOptionId(map.name),
+      name: map.name,
+      itemCount: map.places.length,
     });
   }
-  items.sort((a, b) => a.name.localeCompare(b.name));
   return {
-    collections: {
+    mymaps: {
       items,
       byName,
       exportedAt: bundle.exportedAt,
@@ -150,6 +190,7 @@ export function mergeCachedExport(
   return {
     starred: patch.starred ?? current?.starred,
     collections: patch.collections ?? current?.collections,
+    mymaps: patch.mymaps ?? current?.mymaps,
   };
 }
 
@@ -437,6 +478,9 @@ export function placesForSource(
 ): ParsedPlace[] {
   if (!cache) return [];
   if (source.type === "starred") return cache.starred?.places ?? [];
+  if (source.type === "mymap") {
+    return cache.mymaps?.byName[source.name]?.places ?? [];
+  }
   const col = cache.collections?.byName[source.name];
   return col?.places ?? [];
 }

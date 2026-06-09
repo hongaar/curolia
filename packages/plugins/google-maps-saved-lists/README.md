@@ -1,6 +1,6 @@
 # Google Maps saved lists plugin (`@curolia/plugin-google-maps-saved-lists`)
 
-Imports **starred places** and **custom saved lists** from Google Maps into Curolia map pins via Google's official [Data Portability API](https://developers.google.com/data-portability).
+Imports **starred places**, **custom saved lists**, and **My Maps** (point markers only) into Curolia map pins via Google's official [Data Portability API](https://developers.google.com/data-portability).
 
 ## Prerequisites
 
@@ -18,6 +18,7 @@ Google **forbids mixing** Data Portability scopes with other scope types (Photos
 2. On that client’s consent screen, add **only** these scopes (no Photos / OIDC scopes):
    - `https://www.googleapis.com/auth/dataportability.maps.starred_places`
    - `https://www.googleapis.com/auth/dataportability.saved.collections`
+   - `https://www.googleapis.com/auth/dataportability.mymaps.maps`
 3. Set **`GOOGLE_DATAPORTABILITY_CLIENT_ID`** / **`GOOGLE_DATAPORTABILITY_CLIENT_SECRET`** to that client (Supabase Edge secrets + local `.env`).
 4. **Authorized redirect URI** (shared `plugin-oauth` callback; register on **both** clients if you use two):
    - Local: `http://127.0.0.1:54321/functions/v1/plugin-oauth?action=callback`
@@ -58,14 +59,15 @@ During OAuth, users choose **one-time** or **time-based** (30/180 day) export ac
 ## App usage
 
 1. **Plugins** (user menu): enable **Google Maps**, then **Link Google Maps**.
-2. **Map settings → Google Maps**: open the import wizard, **download** your Google Maps data (once per account), choose one or more lists, then **Import to map**.
+2. **Map settings → Google Maps**: open the import wizard, **download** your Google Maps data (once per account), choose one or more lists or My Maps, then **Import to map**.
 
 Downloaded data is cached per user and can be imported into any map. Coordinates are resolved during download so import stays fast. Refreshing the download will be supported in a future release.
 
 ## Limitations
 
-- Import is **Curolia ← Google only** (no write-back to Google lists).
+- Import is **Curolia ← Google only** (no write-back to Google lists or My Maps).
 - Not real-time; exports are async ZIP archives from Data Portability.
+- **My Maps** imports **point markers only** (lines, routes, and shapes are skipped).
 - Places that still lack coordinates after API lookup are reported as failed in the import summary.
 
 ## Troubleshooting

@@ -16,7 +16,7 @@ import {
 import { Stack } from "@curolia/ui/stack";
 import { TaskProgress } from "@curolia/ui/task-progress";
 import { WizardSteps, WizardStepsCaption } from "@curolia/ui/wizard-steps";
-import { List, Star } from "lucide-react";
+import { List, Map, Star } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { GOOGLE_MAPS_STARRED_LIST_ID } from "./import-list-options";
 import type { GoogleMapsMapImportState } from "./use-google-maps-map-import";
@@ -226,10 +226,10 @@ export function GoogleMapsMapImportWizard({
           {currentStep.id === "intro" ? (
             <>
               <PluginStatusText size="sm">
-                Curolia can copy places from your Google Maps saved lists into
-                pins on this map. Each list becomes a tag so you can filter pins
-                later—for example starred favorites, restaurants, or travel
-                plans.
+                Curolia can copy places from your Google Maps saved lists and My
+                Maps into pins on this map. Each list or map becomes a tag so
+                you can filter pins later—for example starred favorites,
+                restaurants, or travel plans.
               </PluginStatusText>
               <PluginStatusText size="sm">
                 Download your Google data once, then import one or more lists to
@@ -283,8 +283,9 @@ export function GoogleMapsMapImportWizard({
                   Your Google Maps lists
                 </PluginSettingsTitle>
                 <PluginSettingsHint>
-                  Starred places appear first. Select the lists you want to
-                  import, or continue without importing any.
+                  Starred places appear first, then saved lists and My Maps.
+                  Select what you want to import, or continue without importing
+                  any.
                   {hasImportedLists
                     ? " Lists already on this map are checked and cannot be selected again."
                     : null}
@@ -352,12 +353,16 @@ export function GoogleMapsMapImportWizard({
                             ? "Already imported to this map"
                             : option.id === GOOGLE_MAPS_STARRED_LIST_ID
                               ? "Your starred favorites on Google Maps"
-                              : "Saved list from Google Maps"
+                              : option.source.type === "mymap"
+                                ? "Custom map from Google My Maps"
+                                : "Saved list from Google Maps"
                         }
                         meta={formatPlaceCount(option.itemCount)}
                         icon={
                           option.id === GOOGLE_MAPS_STARRED_LIST_ID ? (
                             <Star aria-hidden />
+                          ) : option.source.type === "mymap" ? (
+                            <Map aria-hidden />
                           ) : (
                             <List aria-hidden />
                           )

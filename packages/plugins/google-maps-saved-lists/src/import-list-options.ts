@@ -12,9 +12,8 @@ export type GoogleMapsImportListOption = {
 };
 
 export function googleMapsListLabel(source: GoogleMapsSavedListSource): string {
-  return source.type === "starred"
-    ? GOOGLE_MAPS_STARRED_LIST_LABEL
-    : source.name;
+  if (source.type === "starred") return GOOGLE_MAPS_STARRED_LIST_LABEL;
+  return source.name;
 }
 
 /** Matches collection list ids from the export cache (`import-places.collectionId`). */
@@ -22,12 +21,16 @@ export function collectionListOptionId(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, "-");
 }
 
+export function mymapListOptionId(name: string): string {
+  return `mymap-${collectionListOptionId(name)}`;
+}
+
 export function listOptionIdFromSource(
   source: GoogleMapsSavedListSource,
 ): string {
-  return source.type === "starred"
-    ? GOOGLE_MAPS_STARRED_LIST_ID
-    : collectionListOptionId(source.name);
+  if (source.type === "starred") return GOOGLE_MAPS_STARRED_LIST_ID;
+  if (source.type === "mymap") return mymapListOptionId(source.name);
+  return collectionListOptionId(source.name);
 }
 
 /** Map stored ids (slug or legacy display name) to current checklist option ids. */
@@ -56,7 +59,9 @@ export function resolveImportedListOptionIds(args: {
     }
     const byName = args.options.find(
       (option) =>
-        option.source.type === "collection" && option.source.name === id,
+        (option.source.type === "collection" ||
+          option.source.type === "mymap") &&
+        option.source.name === id,
     );
     if (byName) {
       resolved.add(byName.id);
@@ -88,6 +93,15 @@ export function buildGoogleMapsImportListOptions(
       label: collection.name,
       itemCount: collection.itemCount,
       source: { type: "collection", name: collection.name },
+    });
+  }
+
+  for (const mymap of data.mymaps ?? []) {
+    options.push({
+      id: mymapListOptionId(mymap.name),
+      label: mymap.name,
+      itemCount: mymap.itemCount,
+      source: { type: "mymap", name: mymap.name },
     });
   }
 
