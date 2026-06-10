@@ -163,6 +163,11 @@ export function PrivacyPolicyContent({
             as IP address, browser type, and logs needed to operate and secure
             the Service.
           </li>
+          <li>
+            <strong>Usage analytics:</strong> page paths and in-app navigation
+            (for example which screens you open), plus coarse device and browser
+            metadata collected through our analytics tool — see Analytics below.
+          </li>
         </LegalList>
       </LegalSection>
 
@@ -191,13 +196,41 @@ export function PrivacyPolicyContent({
         </LegalParagraph>
       </LegalSection>
 
+      <LegalSection title="Analytics">
+        <LegalParagraph>
+          We use privacy-focused website analytics (Umami) to understand how the
+          Service is used — for example which pages are visited and how users
+          move between screens. Umami does not use advertising cookies and does
+          not track you across other websites. Analytics may include a truncated
+          or hashed IP address, browser type, device type, operating system,
+          referrer, and the page path you view. We use this information to
+          improve the Service, not to sell your data or profile you for
+          advertising.
+        </LegalParagraph>
+        <LegalParagraph>
+          Analytics is provided by Umami Software (hosted at{" "}
+          <a
+            className={styles.legalInlineLink}
+            href="https://umami.is/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            cloud.umami.is
+          </a>
+          ) as our processor. You can limit tracking with browser Do Not Track
+          settings or content blockers; the Service remains usable without
+          analytics.
+        </LegalParagraph>
+      </LegalSection>
+
       <LegalSection title="Sharing and processors">
         <LegalParagraph>
           We use trusted infrastructure and service providers (for example
-          hosting, authentication, email delivery, and optional plugin providers
-          you connect). They process data only on our instructions and under
-          appropriate safeguards. Map content is private by default; we share it
-          only when you use sharing features or when required by law.
+          hosting, authentication, email delivery, privacy-focused analytics,
+          and optional plugin providers you connect). They process data only on
+          our instructions and under appropriate safeguards. Map content is
+          private by default; we share it only when you use sharing features or
+          when required by law.
         </LegalParagraph>
       </LegalSection>
 
@@ -291,6 +324,18 @@ export function TermsContent({
           and optionally connect third-party plugins. Features may change as we
           improve the product. We may suspend or discontinue parts of the
           Service with reasonable notice where practicable.
+        </LegalParagraph>
+        <LegalParagraph>
+          We collect limited usage analytics (such as page views and in-app
+          navigation) as described in our{" "}
+          <LegalNavLink
+            target="privacy"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Privacy Policy
+          </LegalNavLink>
+          .
         </LegalParagraph>
       </LegalSection>
 

@@ -1,5 +1,6 @@
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
+import { initUmami } from "@/lib/umami";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Capacitor } from "@capacitor/core";
 import { ErrorBoundary } from "@curolia/ui/error-boundary";
@@ -30,6 +31,7 @@ const queryClient = new QueryClient({
 });
 
 registerSW({ immediate: true });
+initUmami();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

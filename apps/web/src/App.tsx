@@ -7,6 +7,7 @@ import { RootPage } from "@/pages/root-page";
 import { appShellRouteElements } from "@/routes/app-shell-routes";
 import { ProtectedLayout } from "@/routes/protected-layout";
 import { ScrollToTop } from "@/routes/scroll-to-top";
+import { UmamiNavigation } from "@/routes/umami-navigation";
 import { StackLayout } from "@/routes/stack-layout";
 import {
   ContactPageContent,
@@ -27,6 +28,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <UmamiNavigation />
       <Routes>
         <Route path="/" element={<RootPage />} />
         <Route path="/for/travel" element={<TravelLandingPage />} />

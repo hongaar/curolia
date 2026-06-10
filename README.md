@@ -295,6 +295,7 @@ When env vars are already configured in Vercel UI, copy these frontend vars manu
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_UMAMI_WEBSITE_ID` _(optional; omit to disable analytics)_
 
 ### Plugin OAuth + Edge config (production)
 
@@ -318,7 +319,7 @@ Provider-specific redirect URIs and dashboards: [Google Photos](packages/plugins
 Production checklist:
 
 1. In each provider’s developer console, register the Supabase callback URL `https://<project-ref>.supabase.co/functions/v1/plugin-oauth?action=callback` where required.
-2. Vercel **Preview + Production**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
+2. Vercel **Preview + Production**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and optionally `VITE_UMAMI_WEBSITE_ID` for analytics.
 3. `**config.toml`**: `plugin-oauth` keeps `**verify_jwt = false\*\*` (browser redirect has no JWT); other functions verify JWT in the handler if needed.
 4. After setting Edge Function secrets, update `**private.worker_config**` for plugin sync dispatch (see **Plugin sync jobs**).
 5. Deploy: GitHub workflow runs `**functions:sync**`, `**supabase db push**`, `**supabase functions deploy --use-api**`, then Vercel prebuilt deploy.
