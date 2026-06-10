@@ -8,7 +8,7 @@
   "outputDirectory": "dist",
   "functions": {
     "api/ssr.ts": {
-      "includeFiles": "{dist,dist-ssr}/**"
+      "includeFiles": "api/_ssr/**"
     }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/api/ssr" }]

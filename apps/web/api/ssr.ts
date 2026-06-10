@@ -1,76 +1,47 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-type SsrModule = {
-  enrichTemplateWithProductionStyles: (
-    template: string,
-    assetsDir: string,
-  ) => string;
-  render: (
-    pathname: string,
-    origin: string,
-    template?: string,
-  ) => Promise<{
-    status: number;
-    html: string;
-    headers?: Record<string, string>;
-  } | null>;
-  setSsrTemplate: (template: string) => void;
-};
+import { render, setSsrTemplate } from "./_ssr/entry-server.js";
 
-let ssrModule: SsrModule | null = null;
+const apiDir = dirname(fileURLToPath(import.meta.url));
+const templatePath = join(apiDir, "_ssr/template.html");
+
 let templateLoaded = false;
 let enrichedTemplate: string | null = null;
 
-async function loadSsrModule(): Promise<SsrModule> {
-  if (ssrModule) return ssrModule;
-
-  const entryPath = join(process.cwd(), "dist-ssr/entry-server.js");
-  ssrModule = (await import(pathToFileURL(entryPath).href)) as SsrModule;
-  return ssrModule;
-}
-
-async function ensureTemplate(ssr: SsrModule): Promise<void> {
+function ensureTemplate(): void {
   if (templateLoaded) return;
-  const template = readFileSync(join(process.cwd(), "dist/index.html"), "utf8");
-  enrichedTemplate = ssr.enrichTemplateWithProductionStyles(
-    template,
-    join(process.cwd(), "dist", "assets"),
-  );
-  ssr.setSsrTemplate(enrichedTemplate);
+  enrichedTemplate = readFileSync(templatePath, "utf8");
+  setSsrTemplate(enrichedTemplate);
   templateLoaded = true;
 }
 
-async function spaTemplate(ssr: SsrModule): Promise<string> {
-  await ensureTemplate(ssr);
-  return (
-    enrichedTemplate ??
-    readFileSync(join(process.cwd(), "dist/index.html"), "utf8")
-  );
+function spaTemplate(): string {
+  ensureTemplate();
+  return enrichedTemplate ?? readFileSync(templatePath, "utf8");
 }
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
-  const ssr = await loadSsrModule();
-  await ensureTemplate(ssr);
+  ensureTemplate();
 
   const host = req.headers.host ?? "localhost";
   const requestUrl = req.url ?? "/";
   const url = new URL(requestUrl, `https://${host}`);
   const origin = `${url.protocol}//${url.host}`;
 
-  const result = await ssr.render(url.pathname, origin);
+  const result = await render(url.pathname, origin);
 
   if (!result) {
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
-    res.end(await spaTemplate(ssr));
+    res.end(spaTemplate());
     return;
   }
 
