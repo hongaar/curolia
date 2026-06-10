@@ -29,7 +29,16 @@ export function useFrozenBaseLocation(): Location {
 
   useLayoutEffect(() => {
     if (isBaseRoute(location.pathname)) {
-      setFrozenBase(location);
+      setFrozenBase((prev) => {
+        if (
+          prev.pathname === location.pathname &&
+          prev.search === location.search &&
+          prev.hash === location.hash
+        ) {
+          return prev;
+        }
+        return location;
+      });
       return;
     }
     // Stack opened above map — drop ?pin= from frozen base so URL sync on the

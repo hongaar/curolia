@@ -375,6 +375,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const routeSegmentsRef = useRef(buildPinRouteSegments([]));
   const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
   const syncPinRouteFromRefsRef = useRef<() => void>(() => {});
+  const syncVisibleMarkersRef = useRef<() => void>(() => {});
+  const invalidateMarkerViewportCullingRef = useRef<() => void>(() => {});
+  const scheduleMarkerSyncWhenStyleReadyRef = useRef<() => void>(() => {});
+  const repaintMountedMarkersRef = useRef<() => void>(() => {});
+  const styleLoadSyncPendingRef = useRef(false);
+  const styleLoadHandlerRef = useRef<(() => void) | null>(null);
+  const prevFilteredCountRef = useRef(0);
 
   const filtered = useMemo(
     () => filterPinsByTags(pins, selectedTagIds),
@@ -585,6 +592,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       markerAddRafRef.current = requestAnimationFrame(flushMarkerAdds);
     } else {
       applyMarkerHoverStack(latestPinHoverIdRef.current);
+      repaintMountedMarkersRef.current();
     }
   }, [applyMarkerHoverStack, createMarkerForPin]);
 
@@ -608,7 +616,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const syncVisibleMarkers = useCallback(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map || !map.isStyleLoaded()) {
+      if (map) scheduleMarkerSyncWhenStyleReadyRef.current();
+      return;
+    }
 
     const gen = ++markerSyncGenerationRef.current;
     let bounds: maplibregl.LngLatBounds | null;
@@ -683,6 +694,49 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       syncVisibleMarkers();
     });
   }, [syncVisibleMarkers]);
+
+  const repaintMountedMarkers = useCallback(() => {
+    for (const [pinId, marker] of markerByPinIdRef.current) {
+      const pin = filteredByIdRef.current.get(pinId);
+      if (pin) marker.setLngLat([pin.lng, pin.lat]);
+    }
+  }, []);
+
+  const scheduleMarkerSyncWhenStyleReady = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (map.isStyleLoaded()) {
+      syncVisibleMarkersRef.current();
+      return;
+    }
+    if (styleLoadSyncPendingRef.current) return;
+    styleLoadSyncPendingRef.current = true;
+    const onReady = () => {
+      styleLoadSyncPendingRef.current = false;
+      styleLoadHandlerRef.current = null;
+      const sync = () => {
+        syncVisibleMarkersRef.current();
+      };
+      if (map.isStyleLoaded()) {
+        sync();
+      } else {
+        map.once("idle", sync);
+      }
+    };
+    styleLoadHandlerRef.current = onReady;
+    map.once("load", onReady);
+  }, []);
+
+  const invalidateMarkerViewportCulling = useCallback(() => {
+    mapHasIdledRef.current = false;
+    scheduleMarkerSyncWhenStyleReady();
+  }, [scheduleMarkerSyncWhenStyleReady]);
+
+  syncVisibleMarkersRef.current = syncVisibleMarkers;
+  invalidateMarkerViewportCullingRef.current = invalidateMarkerViewportCulling;
+  scheduleMarkerSyncWhenStyleReadyRef.current =
+    scheduleMarkerSyncWhenStyleReady;
+  repaintMountedMarkersRef.current = repaintMountedMarkers;
 
   useEffect(() => () => cancelHidePreview(), [cancelHidePreview]);
 
@@ -812,6 +866,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         const list = filteredRef.current;
         if (!map || list.length === 0) return;
 
+        invalidateMarkerViewportCullingRef.current();
+
         if (list.length === 1) {
           const t = list[0];
           map.flyTo({
@@ -883,15 +939,19 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       ) {
         const map = mapRef.current;
         if (!map) return;
+        invalidateMarkerViewportCullingRef.current();
         map.easeTo({
           center: [lng, lat],
           padding: { right: panelWidthPx, left: 0, top: 0, bottom: 0 },
           duration: 280,
           essential: true,
         });
-        if (onSettled) {
-          map.once("moveend", onSettled);
-        }
+        map.once("moveend", () => {
+          map.resize();
+          scheduleMarkerSyncWhenStyleReadyRef.current();
+          repaintMountedMarkersRef.current();
+          onSettled?.();
+        });
       },
       invalidatePendingMarkerSelection() {
         pinSelectGenerationRef.current += 1;
@@ -903,6 +963,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       ) {
         const map = mapRef.current;
         if (!map) return;
+        invalidateMarkerViewportCullingRef.current();
         const resolved =
           typeof options === "number" ? { zoom: options } : options;
         const zoom = resolved.zoom ?? SINGLE_PIN_ZOOM;
@@ -946,6 +1007,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       restoreCameraAfterPanel(camera: MapCamera) {
         const map = mapRef.current;
         if (!map) return;
+        invalidateMarkerViewportCullingRef.current();
         map.easeTo({
           center: [camera.lng, camera.lat],
           zoom: camera.zoom,
@@ -953,10 +1015,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           duration: 280,
           essential: true,
         });
+        map.once("moveend", () => {
+          map.resize();
+          repaintMountedMarkersRef.current();
+        });
       },
       clearPanelPadding() {
         const map = mapRef.current;
         if (!map) return;
+        invalidateMarkerViewportCullingRef.current();
         const c = map.getCenter();
         map.easeTo({
           center: [c.lng, c.lat],
@@ -964,6 +1031,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           padding: { right: 0, left: 0, top: 0, bottom: 0 },
           duration: 280,
           essential: true,
+        });
+        map.once("moveend", () => {
+          map.resize();
+          repaintMountedMarkersRef.current();
         });
       },
     }),
@@ -1101,6 +1172,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
       if (bbox && isValidMapBbox(bbox)) {
         lastAppliedSyncKeyRef.current = syncKey;
+        invalidateMarkerViewportCullingRef.current();
         m.fitBounds(
           new maplibregl.LngLatBounds(
             [bbox.west, bbox.south],
@@ -1117,17 +1189,25 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
       if (!cam) return;
 
+      // Side sheet owns camera + right padding; URL point camera must not clear it.
+      if (selectedPinIdRef.current) {
+        lastAppliedSyncKeyRef.current = syncKey;
+        return;
+      }
+
       if (cameraCloseEnough(m, cam)) {
         lastAppliedSyncKeyRef.current = syncKey;
         return;
       }
 
       lastAppliedSyncKeyRef.current = syncKey;
+      invalidateMarkerViewportCullingRef.current();
       m.flyTo({
         center: [cam.lng, cam.lat],
         zoom: cam.zoom,
         duration: CAMERA_DURATION_MS,
         essential: true,
+        padding: m.getPadding(),
       });
     };
 
@@ -1375,6 +1455,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (!map) return;
 
     cancelMarkerAdds();
+    if (prevFilteredCountRef.current === 0 && filtered.length > 0) {
+      mapHasIdledRef.current = false;
+    }
+    prevFilteredCountRef.current = filtered.length;
+
     const filteredIds = new Set(filtered.map((p) => p.id));
     for (const pinId of [...markerMountByPinIdRef.current.keys()]) {
       if (!filteredIds.has(pinId)) {
@@ -1388,15 +1473,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       return h;
     });
 
-    const runSync = () => syncVisibleMarkers();
-    if (map.isStyleLoaded()) {
-      runSync();
-    } else {
-      map.once("load", runSync);
-    }
+    scheduleMarkerSyncWhenStyleReadyRef.current();
 
     return () => {
-      map.off("load", runSync);
+      const handler = styleLoadHandlerRef.current;
+      if (handler) {
+        map.off("load", handler);
+        styleLoadHandlerRef.current = null;
+      }
+      styleLoadSyncPendingRef.current = false;
     };
   }, [filtered, cancelMarkerAdds, removeMarkerForPin, syncVisibleMarkers]);
 
@@ -1408,6 +1493,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const onMoveEnd = () => {
       setMarkersCameraMoving(false);
       syncVisibleMarkers();
+      repaintMountedMarkersRef.current();
       syncPinRouteFromRefsRef.current();
     };
     const onMove = () => scheduleSyncVisibleMarkers();
@@ -1415,6 +1501,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const onIdle = () => {
       mapHasIdledRef.current = true;
       syncVisibleMarkers();
+      repaintMountedMarkersRef.current();
       syncPinRouteFromRefsRef.current();
     };
 
@@ -1435,6 +1522,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const resizeObserver =
       container &&
       new ResizeObserver(() => {
+        mapHasIdledRef.current = false;
         map.resize();
         scheduleSyncVisibleMarkers();
         syncPinRouteFromRefsRef.current();
@@ -1465,6 +1553,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   ]);
 
   useEffect(() => {
+    if (selectedPinId) {
+      mapHasIdledRef.current = false;
+    }
     scheduleSyncVisibleMarkers();
   }, [selectedPinId, pinHover?.pin.id, scheduleSyncVisibleMarkers]);
 

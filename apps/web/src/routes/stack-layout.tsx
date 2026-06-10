@@ -136,7 +136,11 @@ export function StackLayout() {
       <div
         className={`${styles.baseLayer}${stackActive ? ` ${styles.baseLayerCovered}` : ""}`}
       >
-        <Routes location={baseLocation}>{appShellRouteElements}</Routes>
+        {stackActive ? (
+          <Routes location={baseLocation}>{appShellRouteElements}</Routes>
+        ) : (
+          <Routes>{appShellRouteElements}</Routes>
+        )}
       </div>
       {pathsToRender.map((path, index) => (
         <StackRouteLayer

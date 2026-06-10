@@ -789,6 +789,10 @@ export function MapPage() {
       // Switching pins (e.g. search result on another map) — pan to the new pin.
       panOpenPin(currId);
     } else if (!currId && prevId) {
+      // Pin id not resolved yet while ?pin= is still in the URL — not a real close.
+      if (sidebarPinTokenRef.current) {
+        return;
+      }
       const prevCamera = prevCameraBeforeSheetRef.current;
       const postPanCamera = postPanCameraBeforeSheetRef.current;
       const currentCamera = mapRef.current?.getCurrentCamera() ?? null;
