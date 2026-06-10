@@ -52,9 +52,11 @@ if (supabaseUrl && supabaseKey) {
   );
 }
 
-// Vercel serves dist/index.html for `/` before rewrites run. Remove it so all
-// document requests hit api/ssr (assets under dist/assets/ are still static).
-unlinkSync(indexHtml);
-console.log("removed dist/index.html so `/` is rendered by api/ssr");
+// Vercel serves dist/index.html for `/` before rewrites run. Remove it only on
+// Vercel builds so Capacitor sync (../web/dist) still gets index.html locally/CI.
+if (process.env.VERCEL === "1") {
+  unlinkSync(indexHtml);
+  console.log("removed dist/index.html so `/` is rendered by api/ssr");
+}
 
 console.log("staged SSR bundle for Vercel at api/_ssr/");
