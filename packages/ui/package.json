@@ -70,6 +70,7 @@
     "./suggestion-card": "./src/components/suggestion-card/index.ts",
     "./switch": "./src/components/switch/index.ts",
     "./tabs": "./src/components/tabs/index.ts",
+    "./tag-badge": "./src/components/tag-badge/index.ts",
     "./task-progress": {
       "types": "./src/components/task-progress/index.ts",
       "import": "./src/components/task-progress/index.ts",

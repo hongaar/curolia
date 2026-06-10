@@ -146,20 +146,6 @@ export function BlogTagRow({ children }: { children: React.ReactNode }) {
   return <div className={styles.tagRow}>{children}</div>;
 }
 
-export function BlogTagBadge({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <span className={styles.tagBadge} style={style}>
-      {children}
-    </span>
-  );
-}
-
 export function BlogPinDescription({ markdown }: { markdown: string }) {
   return (
     <MarkdownContent className={styles.pinDescription} markdown={markdown} />

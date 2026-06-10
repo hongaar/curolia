@@ -35,13 +35,13 @@ import {
   PinDetailHeader,
   PinDetailHeaderMain,
   PinDetailSubtitleStack,
-  PinDetailTagBadge,
   PinDetailTagRow,
   PinDetailTitle,
 } from "@curolia/ui/pin-detail";
 import { PinMetadataSubtitleContent } from "@curolia/ui/pin-metadata-subtitle";
 import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
+import { TagBadge } from "@curolia/ui/tag-badge";
 import { Link2Icon } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -187,7 +187,7 @@ export function PinDetailBody({
         {tagBadges.length > 0 ? (
           <PinDetailTagRow>
             {tagBadges.map((t) => (
-              <PinDetailTagBadge
+              <TagBadge
                 key={t.id}
                 style={{
                   backgroundColor: t.color,
@@ -195,7 +195,7 @@ export function PinDetailBody({
                 }}
               >
                 {t.icon_emoji} {t.name}
-              </PinDetailTagBadge>
+              </TagBadge>
             ))}
           </PinDetailTagRow>
         ) : null}

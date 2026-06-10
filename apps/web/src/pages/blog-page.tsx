@@ -44,7 +44,6 @@ import {
   BlogSortChevron,
   BlogSortLabel,
   BlogSortTrigger,
-  BlogTagBadge,
   BlogTagRow,
   BlogTitle,
 } from "@curolia/ui/blog";
@@ -74,6 +73,7 @@ import {
 import { PageMuted } from "@curolia/ui/page";
 import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
+import { TagBadge } from "@curolia/ui/tag-badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
@@ -437,7 +437,7 @@ export function BlogPage() {
                       {tagRows.length > 0 ? (
                         <BlogTagRow>
                           {tagRows.map((tag) => (
-                            <BlogTagBadge
+                            <TagBadge
                               key={tag.id}
                               style={{
                                 backgroundColor: tag.color,
@@ -446,7 +446,7 @@ export function BlogPage() {
                             >
                               <span>{tag.icon_emoji}</span>
                               {tag.name}
-                            </BlogTagBadge>
+                            </TagBadge>
                           ))}
                         </BlogTagRow>
                       ) : null}

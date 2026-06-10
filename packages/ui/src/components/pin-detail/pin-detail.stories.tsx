@@ -4,6 +4,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
 import { Button } from "../button";
 import { PinMetadataSubtitleContent } from "../pin-metadata-subtitle";
+import { TagBadge } from "../tag-badge";
 import {
   PinDetailActions,
   PinDetailCard,
@@ -18,7 +19,6 @@ import {
   PinDetailPhotoRow,
   PinDetailSubtitle,
   PinDetailSubtitleStack,
-  PinDetailTagBadge,
   PinDetailTagRow,
   PinDetailTitle,
 } from "./pin-detail";
@@ -27,7 +27,7 @@ const meta = {
   title: "Pin Detail",
   ...componentStoryMeta(
     `Pin detail page badges, metadata, and section layout.`,
-    `Import tag badges and detail sections for the pin page sidebar and body.`,
+    `Import \`TagBadge\` from \`@curolia/ui/tag-badge\` and detail sections for the pin page sidebar and body.`,
   ),
   component: PinDetailCard,
   decorators: [
@@ -61,10 +61,8 @@ export const Default: Story = {
         <PinDetailContent>
           <PinDetailDescription markdown="Morning coffee before exploring **Saint-Germain-des-Prés**." />
           <PinDetailTagRow>
-            <PinDetailTagBadge style={{ background: "#3b82f6" }}>
-              Food
-            </PinDetailTagBadge>
-            <PinDetailTagBadge>Paris</PinDetailTagBadge>
+            <TagBadge style={{ background: "#3b82f6" }}>Food</TagBadge>
+            <TagBadge>Paris</TagBadge>
           </PinDetailTagRow>
         </PinDetailContent>
       </PinDetailCard>
@@ -153,14 +151,14 @@ export const InsetMap: Story = {
 };
 
 export const PlainTags: Story = {
-  parameters: storyDocs("`PinDetailTagBadge` without custom `style`."),
+  parameters: storyDocs("`TagBadge` without custom `style`."),
   render: () => (
     <StoryFrame width="md">
       <PinDetailCard>
         <PinDetailContent>
           <PinDetailTagRow>
-            <PinDetailTagBadge>Food</PinDetailTagBadge>
-            <PinDetailTagBadge>Paris</PinDetailTagBadge>
+            <TagBadge>Food</TagBadge>
+            <TagBadge>Paris</TagBadge>
           </PinDetailTagRow>
         </PinDetailContent>
       </PinDetailCard>

@@ -35,7 +35,7 @@ import {
   MapMarkerPopoverStatusStack,
   MapMarkerPopoverTagRow,
 } from "@curolia/ui/map-marker-popover";
-import { PinDetailTagBadge } from "@curolia/ui/pin-detail";
+import { TagBadge } from "@curolia/ui/tag-badge";
 import { PinMetadataSubtitleContent } from "@curolia/ui/pin-metadata-subtitle";
 import {
   PinPhotoLightbox,
@@ -322,7 +322,7 @@ export function PinMapMarkerPopover({
           {tagBadges.length > 0 ? (
             <MapMarkerPopoverTagRow>
               {tagBadges.map((t) => (
-                <PinDetailTagBadge
+                <TagBadge
                   key={t.id}
                   style={{
                     backgroundColor: t.color,
@@ -330,7 +330,7 @@ export function PinMapMarkerPopover({
                   }}
                 >
                   {t.icon_emoji} {t.name}
-                </PinDetailTagBadge>
+                </TagBadge>
               ))}
             </MapMarkerPopoverTagRow>
           ) : null}

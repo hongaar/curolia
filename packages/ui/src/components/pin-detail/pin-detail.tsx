@@ -79,20 +79,6 @@ export function PinDetailPhotoPlaceholder({
   return <div className={styles.photoPlaceholder}>{children}</div>;
 }
 
-export function PinDetailTagBadge({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <span className={styles.badgePlain} style={style}>
-      {children}
-    </span>
-  );
-}
-
 export function PinDetailInsetMapLink({
   to,
   children,

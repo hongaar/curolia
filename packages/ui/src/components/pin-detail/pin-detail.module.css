@@ -85,17 +85,6 @@
   color: var(--muted-foreground);
 }
 
-.badgePlain {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  border-radius: var(--radius-full);
-  border: 0;
-  padding: 0.125rem 0.625rem;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-}
-
 .insetMapLink {
   display: block;
   width: 100%;

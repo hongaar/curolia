@@ -1,0 +1,10 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-full);
+  padding: 0.125rem 0.625rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
