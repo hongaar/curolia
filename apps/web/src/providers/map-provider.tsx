@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- Provider module also exports useMap */
 /* eslint-disable react-hooks/set-state-in-effect -- hydrate active map from storage/profile when maps load */
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
+import { fetchPublicMapByRoute } from "@/lib/fetch-public-map";
 import {
   defaultMapIcon,
   normalizeMapIconForPersist,
@@ -10,7 +11,6 @@ import {
   fetchOwnerProfileSlugs,
   parseMapRoutePathname,
 } from "@/lib/map-route";
-import { fetchPublicMapByRoute } from "@/lib/fetch-public-map";
 import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
