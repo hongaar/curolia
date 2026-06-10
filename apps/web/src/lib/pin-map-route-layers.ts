@@ -175,6 +175,9 @@ function applySegmentPaint(
   paint: Record<string, unknown>,
 ): void {
   if (!map.getLayer(layerId)) return;
+  if ("line-gradient" in paint) {
+    map.setPaintProperty(layerId, "line-color", undefined);
+  }
   for (const [key, value] of Object.entries(paint)) {
     map.setPaintProperty(layerId, key, value);
   }

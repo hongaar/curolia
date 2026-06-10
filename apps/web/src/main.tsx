@@ -4,6 +4,7 @@ import {
   reportAppError,
 } from "@/lib/bugsink";
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
+import "@/lib/maplibre-worker";
 import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { initUmami } from "@/lib/umami";
 import { AuthProvider } from "@/providers/auth-provider";
