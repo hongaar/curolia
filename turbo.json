@@ -10,7 +10,8 @@
     },
     "@curolia/web#build": {
       "dependsOn": ["codegen"],
-      "outputs": ["dist/**", "dist-ssr/**"]
+      "outputs": ["dist/**", "dist-ssr/**"],
+      "env": ["VERCEL"]
     },
     "@curolia/web#lint": {
       "dependsOn": ["codegen"]
