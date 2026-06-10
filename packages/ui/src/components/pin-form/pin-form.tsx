@@ -116,8 +116,10 @@ export function PinFormFloatingHost({
   children: React.ReactNode;
 }) {
   return (
-    <div ref={hostRef} className={styles.floatingHost}>
-      <div className={styles.floatingInner}>{children}</div>
+    <div className={styles.floatingHost}>
+      <div ref={hostRef} className={styles.floatingInner}>
+        {children}
+      </div>
     </div>
   );
 }

@@ -84,14 +84,21 @@
 .floatingHost {
   pointer-events: none;
   z-index: 45;
-  width: max-content;
-  min-width: 0;
 }
 
 .floatingInner {
   pointer-events: auto;
   position: relative;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  box-sizing: border-box;
+  width: max-content;
   min-width: 0;
   max-width: min(28rem, calc(100vw - 2rem));
+}
+
+.floatingInner > * {
+  width: 100%;
+  box-sizing: border-box;
 }

@@ -95,7 +95,17 @@ export type PinMapHandle = {
   /** Drop stale marker pointer gestures (e.g. mouseup after ESC closed the sheet). */
   invalidatePendingMarkerSelection: () => void;
   /** Fly the map to a coordinate (e.g. after creating a pin from a pasted link). */
-  flyToLocation: (lng: number, lat: number, zoom?: number) => void;
+  flyToLocation: (
+    lng: number,
+    lat: number,
+    options?: number | PinMapFlyToOptions,
+  ) => void;
+};
+
+export type PinMapFlyToOptions = {
+  zoom?: number;
+  bbox?: MapBbox;
+  padding?: maplibregl.PaddingOptions | number;
 };
 
 export type PinMapPreviewPin = {
@@ -886,12 +896,49 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       invalidatePendingMarkerSelection() {
         pinSelectGenerationRef.current += 1;
       },
-      flyToLocation(lng: number, lat: number, zoom = SINGLE_PIN_ZOOM) {
+      flyToLocation(
+        lng: number,
+        lat: number,
+        options: number | PinMapFlyToOptions = {},
+      ) {
         const map = mapRef.current;
         if (!map) return;
+        const resolved =
+          typeof options === "number" ? { zoom: options } : options;
+        const zoom = resolved.zoom ?? SINGLE_PIN_ZOOM;
+        const padding: maplibregl.PaddingOptions =
+          typeof resolved.padding === "number"
+            ? {
+                top: resolved.padding,
+                right: resolved.padding,
+                bottom: resolved.padding,
+                left: resolved.padding,
+              }
+            : (resolved.padding ?? {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+              });
+        if (resolved.bbox && isValidMapBbox(resolved.bbox)) {
+          map.fitBounds(
+            [
+              [resolved.bbox.west, resolved.bbox.south],
+              [resolved.bbox.east, resolved.bbox.north],
+            ],
+            {
+              padding,
+              duration: CAMERA_DURATION_MS,
+              essential: true,
+              maxZoom: zoom,
+            },
+          );
+          return;
+        }
         map.flyTo({
           center: [lng, lat],
           zoom,
+          padding,
           duration: CAMERA_DURATION_MS,
           essential: true,
         });
@@ -1491,16 +1538,23 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     return { ...contextDraftPin, ...DEFAULT_DRAFT_PIN };
   }, [previewPin, contextDraftPin]);
 
+  const draftPinLat = staticDraftPin?.lat;
+  const draftPinLng = staticDraftPin?.lng;
+  const draftPinIcon = staticDraftPin?.icon;
+  const draftPinColor = staticDraftPin?.color;
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     previewMarkerRef.current?.remove();
     previewMarkerRef.current = null;
-    if (!staticDraftPin) return;
+    if (draftPinLat == null || draftPinLng == null || draftPinIcon == null) {
+      return;
+    }
 
     const mount = createMapMarkerMount({
-      emoji: staticDraftPin.icon,
-      fill: staticDraftPin.color,
+      emoji: draftPinIcon,
+      fill: draftPinColor ?? null,
       selected: false,
       interactive: false,
       draft: true,
@@ -1508,7 +1562,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       zIndex: "5",
     });
     const marker = new maplibregl.Marker({ element: mount.element })
-      .setLngLat([staticDraftPin.lng, staticDraftPin.lat])
+      .setLngLat([draftPinLng, draftPinLat])
       .addTo(map);
     previewMarkerRef.current = marker;
     return () => {
@@ -1516,7 +1570,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       mount.unmount();
       previewMarkerRef.current = null;
     };
-  }, [staticDraftPin]);
+  }, [draftPinLat, draftPinLng, draftPinIcon, draftPinColor]);
 
   const hoverTitle = pinHover?.pin.title?.trim() || "Untitled place";
 

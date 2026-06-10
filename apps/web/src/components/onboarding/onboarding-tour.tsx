@@ -188,9 +188,9 @@ export function OnboardingTour() {
             <OnboardingEyebrow>Your first pin</OnboardingEyebrow>
             <OnboardingTitle>Drop your first pin</OnboardingTitle>
             <OnboardingDescription>
-              Pins are the heart of Curolia. Enter placement mode, then click
-              anywhere on the map to drop a pin &mdash; Curolia fills in the
-              address automatically. Give it a try!
+              Pins are the heart of Curolia. Tap the add button, search for a
+              place, and pick it from the list &mdash; Curolia fills in the
+              title and address automatically. Give it a try!
             </OnboardingDescription>
             {placementMap?.slug ? (
               <Button size="lg" onClick={dropFirstPin}>

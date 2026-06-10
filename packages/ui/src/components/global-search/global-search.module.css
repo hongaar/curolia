@@ -161,6 +161,12 @@
   padding: var(--space-1) var(--space-1) var(--space-2);
 }
 
+.resultsEmbedded {
+  max-height: none;
+  overflow: visible;
+  padding: var(--space-1) var(--space-1) var(--space-2);
+}
+
 .emptyHint {
   padding: var(--space-3) var(--space-2);
   text-align: center;
@@ -187,6 +193,19 @@
   padding: var(--space-2) var(--space-2);
   text-align: left;
   font-weight: var(--font-weight-normal);
+}
+
+.resultRowSelected {
+  background: color-mix(in oklch, var(--orange) 14%, transparent);
+  color: var(--foreground);
+}
+
+.resultRowSelected:hover {
+  background: color-mix(in oklch, var(--orange) 20%, transparent);
+}
+
+.resultRowSelected .resultIcon {
+  color: var(--orange);
 }
 
 .resultIcon {

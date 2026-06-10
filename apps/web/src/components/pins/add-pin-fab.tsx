@@ -1,26 +1,20 @@
 import { FabButton } from "@curolia/ui/fab";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
+import { forwardRef } from "react";
 
 type AddPinFabProps = {
   onClick: () => void;
-  active?: boolean;
 };
 
-export function AddPinFab({ onClick, active }: AddPinFabProps) {
-  const title = active ? "Stop adding pins" : "Add pin";
-
-  return (
-    <FabButton
-      active={active}
-      title={title}
-      onClick={onClick}
-      icon={
-        active ? (
-          <X strokeWidth={2.25} aria-hidden />
-        ) : (
-          <Plus strokeWidth={2.25} aria-hidden />
-        )
-      }
-    />
-  );
-}
+export const AddPinFab = forwardRef<HTMLButtonElement, AddPinFabProps>(
+  function AddPinFab({ onClick }, ref) {
+    return (
+      <FabButton
+        ref={ref}
+        title="Add pin"
+        onClick={onClick}
+        icon={<Plus strokeWidth={2.25} aria-hidden />}
+      />
+    );
+  },
+);

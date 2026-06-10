@@ -8,7 +8,10 @@ import {
 } from "@floating-ui/dom";
 
 /** Space from map anchor (marker center) to panel — matches new-pin floating form. */
-export const MAP_ANCHOR_PANEL_GAP_PX = 28;
+export const MAP_ANCHOR_PANEL_GAP_PX = 14;
+
+/** Fixed width for the add-pin FAB panel — avoids horizontal shift when results load. */
+export const ADD_PIN_PANEL_WIDTH_PX = 352;
 
 const VIEWPORT_EDGE_PX = 12;
 
@@ -72,6 +75,70 @@ export function mapFloatingViewportPadding(): Padding {
     right: readRootCssLength("--safe-right") + VIEWPORT_EDGE_PX,
     bottom: readRootCssLength("--safe-bottom") + VIEWPORT_EDGE_PX,
     left: readRootCssLength("--safe-left") + VIEWPORT_EDGE_PX,
+  };
+}
+
+/** Floating panel anchored to the add-pin FAB (bottom-right map controls). */
+export function mapFabPanelMiddleware(): Middleware[] {
+  const padding = mapFloatingViewportPadding();
+
+  return [
+    offset(MAP_ANCHOR_PANEL_GAP_PX),
+    flip({
+      fallbackPlacements: ["left", "left-start", "top-end"],
+      padding,
+    }),
+    shift({ padding, crossAxis: true }),
+    size({
+      padding,
+      apply({ availableHeight, elements }) {
+        const maxH = Math.max(200, availableHeight);
+        Object.assign(elements.floating.style, {
+          maxHeight: `${maxH}px`,
+        });
+      },
+    }),
+  ];
+}
+
+function normalizePadding(padding: Padding): {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+} {
+  if (typeof padding === "number") {
+    return {
+      top: padding,
+      right: padding,
+      bottom: padding,
+      left: padding,
+    };
+  }
+  return {
+    top: padding.top ?? 0,
+    right: padding.right ?? 0,
+    bottom: padding.bottom ?? 0,
+    left: padding.left ?? 0,
+  };
+}
+
+/** Map fly/fit padding that keeps a point clear of a screen-rect (e.g. floating dialog). */
+export function mapPaddingAvoidRect(rect: DOMRect | null): {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+} {
+  const base = normalizePadding(mapFloatingViewportPadding());
+  if (!rect || typeof window === "undefined") return base;
+
+  const edge = 16;
+  return {
+    top: Math.max(base.top, edge),
+    left: Math.max(base.left, edge),
+    right: Math.max(base.right, window.innerWidth - rect.left + edge),
+    bottom: Math.max(base.bottom, window.innerHeight - rect.top + edge),
   };
 }
 

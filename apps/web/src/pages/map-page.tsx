@@ -8,8 +8,13 @@ import {
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
-import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
+import {
+  PinMap,
+  type PinMapHandle,
+  type PinMapPreviewPin,
+} from "@/components/map/pin-map";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
+import { AddPinDialog } from "@/components/pins/add-pin-dialog";
 import { AddPinFab } from "@/components/pins/add-pin-fab";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
@@ -19,6 +24,7 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref, pinEditHref } from "@/lib/app-paths";
+import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
   readStoredMapCamera,
   writeStoredMapCamera,
@@ -64,12 +70,6 @@ import { supabase } from "@/lib/supabase";
 import { useMap } from "@/providers/map-provider";
 import { useOnboardingPlacement } from "@/providers/onboarding-placement-provider";
 import type { Pin, Tag } from "@/types/database";
-import {
-  defaultLocationLabelDetail,
-  pinGeocodeToJson,
-  reverseGeocodeDetails,
-  reverseGeocodeForStorage,
-} from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
 import {
   Dialog,
@@ -88,7 +88,6 @@ import {
   MapHost,
   MapLayer,
   MapPageRoot,
-  MapPlacementHint,
   MapSidePanel,
   MapVignette,
 } from "@curolia/ui/map";
@@ -191,7 +190,21 @@ export function MapPage() {
   const sidebarPinTokenRef = useRef<string | null>(null);
   /** Latest camera parsed from URL — used to avoid idle sync clobbering search deep links. */
   const cameraFromUrlRef = useRef<MapCamera | null>(null);
-  const [placementActive, setPlacementActive] = useState(false);
+  const addPinFabRef = useRef<HTMLButtonElement>(null);
+  const [addPinDialogOpen, setAddPinDialogOpen] = useState(false);
+  const [addPinPreview, setAddPinPreview] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const addPinPreviewPin = useMemo((): PinMapPreviewPin | null => {
+    if (!addPinPreview) return null;
+    return {
+      lat: addPinPreview.lat,
+      lng: addPinPreview.lng,
+      icon: "📍",
+      color: null,
+    };
+  }, [addPinPreview?.lat, addPinPreview?.lng]);
   const [quickAddPin, setQuickAddPin] = useState<Pin | null>(null);
   const [quickAddAnchorScreen, setQuickAddAnchorScreen] = useState<{
     x: number;
@@ -572,39 +585,23 @@ export function MapPage() {
       });
 
       try {
-        const [{ shortTitle }, geocode] = await Promise.all([
-          reverseGeocodeDetails(lat, lng, zoom),
-          reverseGeocodeForStorage(lat, lng),
-        ]);
-        const labelDetail = defaultLocationLabelDetail(geocode);
-        const { data: row, error } = await supabase
-          .from("pins")
-          .insert({
-            map_id: activeMapId,
-            title: shortTitle || null,
-            geocode: pinGeocodeToJson(geocode),
-            location_label_detail: labelDetail,
-            lat,
-            lng,
-          })
-          .select("*")
-          .single();
-        if (error) throw error;
+        const row = await createPinAtLocation({
+          mapId: activeMapId,
+          lat,
+          lng,
+          zoom,
+        });
         toast.success("Pin created");
         await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
 
         if (awaitingPinPlacement) {
-          setPlacementActive(false);
-          setSearchParams((prev) => applyAddPinToSearchParams(prev, false), {
-            replace: true,
-          });
           completePinPlacement();
           return;
         }
 
         const p = mapRef.current?.lngLatToScreen(lng, lat);
         setQuickAddAnchorScreen(p ?? null);
-        setQuickAddPin(row as Pin);
+        setQuickAddPin(row);
       } catch (e) {
         toast.error(
           e instanceof Error ? e.message : "Could not create pin here.",
@@ -699,8 +696,8 @@ export function MapPage() {
 
   useEffect(() => {
     if (!addPinFromUrl || !canEdit) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- latch placement from one-shot ?add= URL deep link
-    setPlacementActive(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- latch dialog from one-shot ?add= URL deep link
+    setAddPinDialogOpen(true);
     setSearchParams(
       (prev) =>
         applyAddPinToSearchParams(
@@ -710,26 +707,6 @@ export function MapPage() {
       { replace: true },
     );
   }, [addPinFromUrl, canEdit, setSearchParams]);
-
-  useEffect(() => {
-    if (!placementActive) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (awaitingPinPlacement) cancelPinPlacement();
-        setPlacementActive(false);
-        setSearchParams((prev) => applyAddPinToSearchParams(prev, false), {
-          replace: true,
-        });
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [
-    awaitingPinPlacement,
-    cancelPinPlacement,
-    placementActive,
-    setSearchParams,
-  ]);
 
   useEffect(() => {
     if (!sidebarPinToken) return;
@@ -742,7 +719,7 @@ export function MapPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [sidebarPinToken, onClosePinMapPopover]);
 
-  // Redirect ?pin= → /pins/:mapSlug/:pinSlug on screens too narrow for the side panel
+  // Redirect ?pin= → pin detail on screens too narrow for the side panel
   useEffect(() => {
     if (isWideEnough || !sidebarPinId) return;
     const pin = pins.find((p) => p.id === sidebarPinId);
@@ -876,21 +853,12 @@ export function MapPage() {
     await qc.invalidateQueries({ queryKey: ["tags", activeMapId] });
   }
 
-  function toggleAddPinPlacement() {
+  function openAddPinDialog() {
     if (!canEdit) return;
-    const next = !placementActive;
-    if (!next && awaitingPinPlacement) cancelPinPlacement();
-    setPlacementActive(next);
-    setSearchParams(
-      (p) => {
-        let params = applyAddPinToSearchParams(p, false);
-        if (next) {
-          params = applySelectedPinToSearchParams(params, null);
-        }
-        return params;
-      },
-      { replace: true },
-    );
+    setSearchParams((p) => applySelectedPinToSearchParams(p, null), {
+      replace: true,
+    });
+    setAddPinDialogOpen(true);
   }
 
   const showSidePanel = Boolean(sidebarPinId && isWideEnough);
@@ -919,7 +887,7 @@ export function MapPage() {
             pins={pins}
             selectedTagIds={filterTagIds}
             selectedPinId={sidebarPinId}
-            previewPin={null}
+            previewPin={addPinPreviewPin}
             contextDraftPin={
               pointerContextMenu?.type === "map"
                 ? {
@@ -932,8 +900,6 @@ export function MapPage() {
             mapStyleOptions={mapStyleOptions}
             showPinRoute={showPinRoute}
             onSelectPin={onSelectPin}
-            placementMode={canEdit && placementActive}
-            onPlacementClick={onPlacementClick}
             initialCamera={resolvedInitialCamera}
             initialBbox={bboxFromUrl}
             cameraSyncKey={cameraSyncKey}
@@ -956,9 +922,6 @@ export function MapPage() {
             </MapControlsTopLeft>
           ) : null}
           <MapControlsBottomCenter>
-            {canEdit && placementActive ? (
-              <MapPlacementHint>Click to add a pin</MapPlacementHint>
-            ) : null}
             <MapViewSwitcher />
           </MapControlsBottomCenter>
           <MapControlsBottomStack>
@@ -972,10 +935,7 @@ export function MapPage() {
             />
             <MapControlsToolbar mapRef={mapRef} />
             {canEdit ? (
-              <AddPinFab
-                active={placementActive}
-                onClick={toggleAddPinPlacement}
-              />
+              <AddPinFab ref={addPinFabRef} onClick={openAddPinDialog} />
             ) : null}
           </MapControlsBottomStack>
         </MapControlsLayer>
@@ -996,6 +956,33 @@ export function MapPage() {
           </MapSidePanel>
         ) : null}
       </MapLayer>
+
+      {canEdit ? (
+        <AddPinDialog
+          open={addPinDialogOpen}
+          fabRef={addPinFabRef}
+          onOpenChange={(open) => {
+            setAddPinDialogOpen(open);
+            if (!open) {
+              setAddPinPreview(null);
+              if (awaitingPinPlacement) cancelPinPlacement();
+            }
+          }}
+          mapId={activeMapId}
+          mapRef={mapRef}
+          onPreviewChange={setAddPinPreview}
+          onOnboardingComplete={
+            awaitingPinPlacement ? completePinPlacement : undefined
+          }
+          onCreated={(pin) => {
+            if (awaitingPinPlacement) return;
+            mapRef.current?.flyToLocation(pin.lng, pin.lat);
+            const p = mapRef.current?.lngLatToScreen(pin.lng, pin.lat);
+            setQuickAddAnchorScreen(p ?? null);
+            setQuickAddPin(pin);
+          }}
+        />
+      ) : null}
 
       <MapPointerContextMenu
         target={pointerContextMenu}

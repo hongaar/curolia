@@ -173,10 +173,17 @@ export function GlobalSearchInputWrap({
 
 export function GlobalSearchResults({
   children,
+  embedded = false,
 }: {
   children: React.ReactNode;
+  /** Parent supplies scroll bounds (e.g. add-pin dialog above a fixed input). */
+  embedded?: boolean;
 }) {
-  return <div className={styles.results}>{children}</div>;
+  return (
+    <div className={embedded ? styles.resultsEmbedded : styles.results}>
+      {children}
+    </div>
+  );
 }
 
 export function GlobalSearchEmptyHint({
@@ -198,17 +205,21 @@ export function GlobalSearchSectionLabel({
 export function GlobalSearchResultRow({
   children,
   onClick,
+  selected = false,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  selected?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={cn(
         buttonClassName({ variant: "ghost", size: "sm" }),
         styles.resultRow,
+        selected && styles.resultRowSelected,
       )}
     >
       {children}

@@ -1,4 +1,5 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import * as React from "react";
 
 import { cn } from "../../lib/utils";
 import styles from "./button.module.css";
@@ -53,20 +54,27 @@ function buttonClassName({
   return cn(styles.root, variantClass[variant], sizeClass[size], className);
 }
 
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  nativeButton,
-  render,
-  ...props
-}: Omit<ButtonPrimitive.Props, "className"> & {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  className?: string;
-}) {
+const Button = React.forwardRef<
+  HTMLButtonElement,
+  Omit<ButtonPrimitive.Props, "className"> & {
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    className?: string;
+  }
+>(function Button(
+  {
+    className,
+    variant = "default",
+    size = "default",
+    nativeButton,
+    render,
+    ...props
+  },
+  ref,
+) {
   return (
     <ButtonPrimitive
+      ref={ref}
       data-slot="button"
       className={buttonClassName({ variant, size, className })}
       nativeButton={nativeButton ?? (render != null ? false : undefined)}
@@ -74,6 +82,6 @@ function Button({
       {...props}
     />
   );
-}
+});
 
 export { Button, buttonClassName, type ButtonSize, type ButtonVariant };
