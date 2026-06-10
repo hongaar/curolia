@@ -64,13 +64,6 @@ function segmentsGeoJson(
   };
 }
 
-function routeLayerInsertBefore(map: MaplibreMap): string | undefined {
-  const layers = map.getStyle()?.layers;
-  if (!layers) return undefined;
-  const symbol = layers.find((layer) => layer.type === "symbol");
-  return symbol?.id;
-}
-
 function isMapStyleReady(map: MaplibreMap): boolean {
   return map.isStyleLoaded() === true && map.getStyle() != null;
 }
@@ -117,9 +110,10 @@ function ensureSegmentLayer(
   segmentIndex: number,
   paint: Record<string, unknown>,
 ): void {
-  if (map.getLayer(layerId)) return;
-  map.addLayer(
-    {
+  if (!map.getLayer(layerId)) {
+    // Above the full basemap stack — inserting before the first symbol layer
+    // buries routes under later road/line layers on vector styles (Liberty, etc.).
+    map.addLayer({
       id: layerId,
       type: "line",
       source: PIN_ROUTE_SOURCE_ID,
@@ -129,9 +123,11 @@ function ensureSegmentLayer(
         "line-join": "round",
       },
       paint,
-    },
-    routeLayerInsertBefore(map),
-  );
+    });
+    return;
+  }
+  // Re-stack existing layers after setStyle or older builds that inserted too low.
+  map.moveLayer(layerId);
 }
 
 function segmentInvolvesPin(
@@ -264,6 +260,9 @@ export function schedulePinRouteSync(
     if (trySync()) finish();
   };
 
+  let shortDelay = 0;
+  let longDelay = 0;
+
   const finish = () => {
     if (finished) return;
     finished = true;
@@ -279,8 +278,8 @@ export function schedulePinRouteSync(
   map.on("idle", retry);
   requestAnimationFrame(retry);
   requestAnimationFrame(() => requestAnimationFrame(retry));
-  const shortDelay = window.setTimeout(retry, 50);
-  const longDelay = window.setTimeout(() => {
+  shortDelay = window.setTimeout(retry, 50);
+  longDelay = window.setTimeout(() => {
     retry();
     finish();
   }, 1_000);
