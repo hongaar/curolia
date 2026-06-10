@@ -174,13 +174,21 @@ export function GlobalSearchInputWrap({
 export function GlobalSearchResults({
   children,
   embedded = false,
+  id,
+  role = "listbox",
 }: {
   children: React.ReactNode;
   /** Parent supplies scroll bounds (e.g. add-pin dialog above a fixed input). */
   embedded?: boolean;
+  id?: string;
+  role?: "listbox" | "presentation";
 }) {
   return (
-    <div className={embedded ? styles.resultsEmbedded : styles.results}>
+    <div
+      id={id}
+      role={role}
+      className={embedded ? styles.resultsEmbedded : styles.results}
+    >
       {children}
     </div>
   );
@@ -206,19 +214,31 @@ export function GlobalSearchResultRow({
   children,
   onClick,
   selected = false,
+  active = false,
+  id,
+  onMouseMove,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  /** Confirmed selection in the list (e.g. picked place). */
   selected?: boolean;
+  /** Keyboard or pointer highlight while navigating results. */
+  active?: boolean;
+  id?: string;
+  onMouseMove?: () => void;
 }) {
   return (
     <button
       type="button"
+      role="option"
+      id={id}
       onClick={onClick}
-      aria-pressed={selected}
+      aria-selected={selected}
+      onMouseMove={onMouseMove}
       className={cn(
         buttonClassName({ variant: "ghost", size: "sm" }),
         styles.resultRow,
+        active && styles.resultRowActive,
         selected && styles.resultRowSelected,
       )}
     >

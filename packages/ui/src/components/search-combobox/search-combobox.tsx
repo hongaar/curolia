@@ -1,5 +1,10 @@
 import * as React from "react";
 
+import {
+  searchListOptionId,
+  useSearchListKeyboard,
+  type SearchListKeyboardItem,
+} from "../../lib/use-search-list-keyboard";
 import { cn } from "../../lib/utils";
 import { Input } from "../input";
 import { Popover, PopoverAnchor, PopoverContent } from "../popover";
@@ -35,6 +40,12 @@ export type SearchComboboxProps<T> = {
   emptyMessage?: string;
   errorMessage?: string | null;
   className?: string;
+  listboxId?: string;
+};
+
+type FlatComboboxItem<T> = {
+  groupId: string;
+  item: T;
 };
 
 export function SearchCombobox<T>({
@@ -53,7 +64,10 @@ export function SearchCombobox<T>({
   emptyMessage = "No results",
   errorMessage = null,
   className,
+  listboxId: listboxIdProp,
 }: SearchComboboxProps<T>) {
+  const generatedListboxId = React.useId();
+  const listboxId = listboxIdProp ?? generatedListboxId;
   const anchorRef = React.useRef<HTMLDivElement>(null);
   const [open, setOpen] = React.useState(false);
   const [anchorWidth, setAnchorWidth] = React.useState<number | null>(null);
@@ -62,6 +76,58 @@ export function SearchCombobox<T>({
   const canSearch = trimmed.length >= minChars;
   const needsMinChars = trimmed.length > 0 && trimmed.length < minChars;
   const totalItems = groups.reduce((n, g) => n + g.items.length, 0);
+
+  const flatItems = React.useMemo((): FlatComboboxItem<T>[] => {
+    const flat: FlatComboboxItem<T>[] = [];
+    for (const group of groups) {
+      for (const item of group.items) {
+        flat.push({ groupId: group.id, item });
+      }
+    }
+    return flat;
+  }, [groups]);
+
+  const handleSelect = React.useCallback(
+    (item: T) => {
+      onSelect(item);
+      setOpen(false);
+    },
+    [onSelect],
+  );
+
+  const keyboardItems = React.useMemo((): SearchListKeyboardItem[] => {
+    if (needsMinChars || loading || errorMessage || !canSearch) return [];
+    return flatItems.map(({ groupId, item }) => ({
+      id: `${groupId}:${getItemKey(item)}`,
+      onSelect: () => handleSelect(item),
+    }));
+  }, [
+    canSearch,
+    errorMessage,
+    flatItems,
+    getItemKey,
+    handleSelect,
+    loading,
+    needsMinChars,
+  ]);
+
+  const {
+    handleInputKeyDown: handleSearchListKeyDown,
+    getItemProps,
+    inputProps: searchListInputProps,
+  } = useSearchListKeyboard({
+    listboxId,
+    items: keyboardItems,
+    enabled: open && !disabled,
+  });
+
+  const flatIndexByKey = React.useMemo(() => {
+    const map = new Map<string, number>();
+    flatItems.forEach(({ groupId, item }, index) => {
+      map.set(`${groupId}:${getItemKey(item)}`, index);
+    });
+    return map;
+  }, [flatItems, getItemKey]);
 
   React.useLayoutEffect(() => {
     const el = anchorRef.current;
@@ -74,11 +140,6 @@ export function SearchCombobox<T>({
   }, []);
 
   const showPanel = open && !disabled && (needsMinChars || canSearch);
-
-  function handleSelect(item: T) {
-    onSelect(item);
-    setOpen(false);
-  }
 
   return (
     <div className={cn(styles.root, className)}>
@@ -101,8 +162,11 @@ export function SearchCombobox<T>({
               setOpen(true);
             }}
             onKeyDown={(e) => {
+              handleSearchListKeyDown(e);
               if (e.key === "Escape") setOpen(false);
             }}
+            aria-expanded={showPanel && keyboardItems.length > 0}
+            {...searchListInputProps}
           />
         </PopoverAnchor>
         <PopoverContent
@@ -113,7 +177,11 @@ export function SearchCombobox<T>({
           className={styles.content}
           style={anchorWidth ? { width: anchorWidth } : undefined}
         >
-          <div className={styles.list}>
+          <div
+            id={listboxId}
+            role={keyboardItems.length > 0 ? "listbox" : "presentation"}
+            className={styles.list}
+          >
             {needsMinChars ? (
               <p className={styles.status}>
                 {minCharsMessage ??
@@ -139,12 +207,29 @@ export function SearchCombobox<T>({
                     ) : (
                       group.items.map((item) => {
                         const pres = renderItem(item);
+                        const flatKey = `${group.id}:${getItemKey(item)}`;
+                        const flatIndex = flatIndexByKey.get(flatKey);
+                        const rowProps =
+                          flatIndex == null
+                            ? { active: false, onMouseMove: undefined }
+                            : getItemProps(flatIndex);
+                        const optionId =
+                          flatIndex == null
+                            ? undefined
+                            : searchListOptionId(listboxId, flatKey);
                         return (
                           <button
                             key={getItemKey(item)}
                             type="button"
-                            className={styles.item}
+                            role="option"
+                            id={optionId}
+                            aria-selected={false}
+                            className={cn(
+                              styles.item,
+                              rowProps.active && styles.itemActive,
+                            )}
                             disabled={disabled}
+                            onMouseMove={rowProps.onMouseMove}
                             onClick={() => handleSelect(item)}
                           >
                             {pres.imageUrl ? (

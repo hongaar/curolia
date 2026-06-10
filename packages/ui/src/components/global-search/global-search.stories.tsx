@@ -116,3 +116,43 @@ export const Title: Story = {
     </SearchPopover>
   ),
 };
+
+export const ResultStates: Story = {
+  parameters: storyDocs(
+    "Focus (keyboard/hover highlight) vs selected (confirmed pick) row styles.",
+  ),
+  render: () => (
+    <GlobalSearchResults>
+      <GlobalSearchResultRow onClick={() => undefined}>
+        <GlobalSearchResultBody>
+          <GlobalSearchResultTitle>Default row</GlobalSearchResultTitle>
+          <GlobalSearchResultSubtitle>No highlight</GlobalSearchResultSubtitle>
+        </GlobalSearchResultBody>
+      </GlobalSearchResultRow>
+      <GlobalSearchResultRow active onClick={() => undefined}>
+        <GlobalSearchResultBody>
+          <GlobalSearchResultTitle>Focused row</GlobalSearchResultTitle>
+          <GlobalSearchResultSubtitle>
+            Keyboard or pointer highlight
+          </GlobalSearchResultSubtitle>
+        </GlobalSearchResultBody>
+      </GlobalSearchResultRow>
+      <GlobalSearchResultRow selected onClick={() => undefined}>
+        <GlobalSearchResultBody>
+          <GlobalSearchResultTitle>Selected row</GlobalSearchResultTitle>
+          <GlobalSearchResultSubtitle>
+            Confirmed pick
+          </GlobalSearchResultSubtitle>
+        </GlobalSearchResultBody>
+      </GlobalSearchResultRow>
+      <GlobalSearchResultRow active selected onClick={() => undefined}>
+        <GlobalSearchResultBody>
+          <GlobalSearchResultTitle>Focused + selected</GlobalSearchResultTitle>
+          <GlobalSearchResultSubtitle>
+            Both states combined
+          </GlobalSearchResultSubtitle>
+        </GlobalSearchResultBody>
+      </GlobalSearchResultRow>
+    </GlobalSearchResults>
+  ),
+};

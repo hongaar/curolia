@@ -235,17 +235,54 @@
   font-weight: var(--font-weight-normal);
 }
 
-.resultRowSelected {
-  background: color-mix(in oklch, var(--orange) 14%, transparent);
-  color: var(--foreground);
+/* Beat ghost button hover; row states own background. */
+.resultRow.resultRow:hover {
+  background: transparent;
 }
 
-.resultRowSelected:hover {
-  background: color-mix(in oklch, var(--orange) 20%, transparent);
+/* Focus highlight — same for keyboard (active) and pointer hover. */
+.resultRowActive,
+.resultRow.resultRow:hover:not(.resultRowSelected) {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.resultRowActive .resultIcon,
+.resultRow.resultRow:hover:not(.resultRowSelected) .resultIcon {
+  color: var(--muted-foreground);
+}
+
+/* Selected — typography only, no fill. */
+.resultRowSelected {
+  background: transparent;
+  box-shadow: none;
+}
+
+.resultRowSelected .resultTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
 }
 
 .resultRowSelected .resultIcon {
-  color: var(--orange);
+  color: var(--primary);
+}
+
+/* Selected row while focused (keyboard or pointer). */
+.resultRowSelected.resultRowActive,
+.resultRowSelected.resultRow:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.resultRowSelected.resultRowActive .resultTitle,
+.resultRowSelected.resultRow:hover .resultTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
+}
+
+.resultRowSelected.resultRowActive .resultIcon,
+.resultRowSelected.resultRow:hover .resultIcon {
+  color: var(--primary);
 }
 
 .resultIcon {

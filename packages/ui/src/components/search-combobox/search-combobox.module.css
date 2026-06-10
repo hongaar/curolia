@@ -69,7 +69,38 @@
   outline: none;
 }
 
-.item:hover,
+.item:hover {
+  background: transparent;
+}
+
+.itemActive,
+.item:hover:not(.itemSelected) {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.itemSelected {
+  background: transparent;
+  box-shadow: none;
+}
+
+.itemSelected .itemTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
+}
+
+.itemActive.itemSelected,
+.itemSelected:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.itemActive.itemSelected .itemTitle,
+.itemSelected:hover .itemTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
+}
+
 .item:focus-visible {
   background: var(--accent);
   color: var(--accent-foreground);

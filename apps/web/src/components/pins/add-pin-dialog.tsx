@@ -37,6 +37,8 @@ import {
   GlobalSearchResults,
   GlobalSearchSectionLabel,
   GlobalSearchStatusText,
+  useSearchListKeyboard,
+  type SearchListKeyboardItem,
 } from "@curolia/ui/global-search";
 import { Input } from "@curolia/ui/input";
 import {
@@ -54,6 +56,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type RefObject,
@@ -62,6 +65,7 @@ import { toast } from "sonner";
 
 const DEBOUNCE_MS = 320;
 const MIN_SEARCH_CHARS = 2;
+const ADD_PIN_PLACES_LISTBOX_ID = "add-pin-places-listbox";
 
 const addPinPanelStyle = {
   width: `${ADD_PIN_PANEL_WIDTH_PX}px`,
@@ -268,6 +272,34 @@ export function AddPinDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onOpenChange]);
 
+  const showPlaces = debouncedSearch.length >= MIN_SEARCH_CHARS;
+  const places = placesQuery.data ?? [];
+  const placesBusy = showPlaces && placesQuery.isFetching;
+
+  const selectablePlaces = useMemo((): SearchListKeyboardItem[] => {
+    if (!showPlaces || placesQuery.isError || places.length === 0) return [];
+    return places.map((place) => ({
+      id: place.id,
+      onSelect: () => pickPlace(place, "manual"),
+    }));
+  }, [showPlaces, placesQuery.isError, places, pickPlace]);
+
+  const {
+    handleInputKeyDown: handleSearchListKeyDown,
+    getItemProps,
+    inputProps: searchListInputProps,
+  } = useSearchListKeyboard({
+    listboxId: ADD_PIN_PLACES_LISTBOX_ID,
+    items: selectablePlaces,
+    enabled: open,
+  });
+
+  const placeIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    selectablePlaces.forEach((item, index) => map.set(item.id, index));
+    return map;
+  }, [selectablePlaces]);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedPlace || busy) return;
@@ -295,10 +327,6 @@ export function AddPinDialog({
 
   if (!open) return null;
 
-  const showPlaces = debouncedSearch.length >= MIN_SEARCH_CHARS;
-  const places = placesQuery.data ?? [];
-  const placesBusy = showPlaces && placesQuery.isFetching;
-
   const close = () => onOpenChange(false);
 
   const form = (
@@ -313,7 +341,7 @@ export function AddPinDialog({
       <DialogBody>
         <div style={addPinBodyLayoutStyle}>
           <div style={addPinResultsPaneStyle}>
-            <GlobalSearchResults embedded>
+            <GlobalSearchResults embedded id={ADD_PIN_PLACES_LISTBOX_ID}>
               {debouncedSearch.length === 0 ? (
                 <GlobalSearchEmptyHint>
                   Search for a place to add to your map.
@@ -338,11 +366,14 @@ export function AddPinDialog({
                       const primary = p.primaryName.trim();
                       const full = p.fullLabel.trim();
                       const selected = selectedPlace?.id === p.id;
+                      const index = placeIndexById.get(p.id);
+                      const rowProps = index == null ? {} : getItemProps(index);
                       return (
                         <GlobalSearchResultRow
                           key={p.id}
                           selected={selected}
                           onClick={() => pickPlace(p, "manual")}
+                          {...rowProps}
                         >
                           <GlobalSearchResultIcon>
                             <MapIcon aria-hidden />
@@ -385,8 +416,12 @@ export function AddPinDialog({
                     setSelectedPlace(null);
                     onPreviewChange(null);
                   }}
+                  onKeyDown={handleSearchListKeyDown}
                   autoComplete="off"
                   placeholder="Search for a place…"
+                  aria-label="Search for a place"
+                  aria-expanded={selectablePlaces.length > 0}
+                  {...searchListInputProps}
                 />
               </FieldControl>
             </Field>
