@@ -1,5 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { componentStoryMeta, storyDocs } from "../../storybook/docs";
+import {
+  componentStoryMeta,
+  storyArgTypes,
+  storyDocs,
+} from "../../storybook/docs";
 import { StoryRow } from "../../storybook/story-frame";
 import { Button } from "./button";
 
@@ -7,7 +11,13 @@ const meta = {
   title: "Button",
   ...componentStoryMeta(
     `Primary interactive control built on Base UI with Curolia tokens.`,
-    `Use \`variant\` and \`size\` for hierarchy. For links styled as buttons, use \`variant="link"\`. Icon-only actions use \`size="icon"\` variants. Compose with \`render\` when wrapping a custom element.`,
+    `Use \`variant\` and \`size\` for hierarchy. For links styled as buttons, use \`variant="link"\`. Icon-only actions use \`size="icon"\` variants. Compose with \`render\` when wrapping a custom element (e.g. a router \`Link\`); \`nativeButton\` defaults to \`false\` in that case—set it explicitly only when \`render\` uses a real \`<button>\`.`,
+    {
+      argTypes: storyArgTypes({
+        nativeButton:
+          "Whether the rendered element is a native `<button>`. Defaults to `false` when `render` is set, otherwise `true`.",
+      }),
+    },
   ),
   component: Button,
   args: { children: "Button" },

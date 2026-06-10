@@ -57,6 +57,8 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  nativeButton,
+  render,
   ...props
 }: Omit<ButtonPrimitive.Props, "className"> & {
   variant?: ButtonVariant;
@@ -67,6 +69,8 @@ function Button({
     <ButtonPrimitive
       data-slot="button"
       className={buttonClassName({ variant, size, className })}
+      nativeButton={nativeButton ?? (render != null ? false : undefined)}
+      render={render}
       {...props}
     />
   );
