@@ -16,11 +16,6 @@ export type ParsedPinRoutePath = MapRoute & {
 const MAP_VIEW_PATH_RE = /^\/([^/]+)\/([^/]+)\/(map|blog|settings)\/?$/;
 const PIN_PATH_RE = /^\/([^/]+)\/([^/]+)\/pin\/([^/]+)\/?$/;
 
-const LEGACY_MAP_PATH_RE = /^\/map\/([^/]+)\/?$/;
-const LEGACY_BLOG_PATH_RE = /^\/blog\/([^/]+)\/?$/;
-const LEGACY_PIN_PATH_RE = /^\/pins\/([^/]+)\/([^/]+)\/?$/;
-const LEGACY_SETTINGS_PATH_RE = /^\/maps\/([^/]+)\/settings\/?$/;
-
 export function parseMapViewPathname(
   pathname: string,
 ): ParsedMapRoutePath | null {
@@ -46,39 +41,6 @@ export function parsePinRoutePathname(
   };
 }
 
-export function parseLegacyMapPathname(
-  pathname: string,
-): { mapSlug: string; view: "map" | "blog" } | null {
-  const mapMatch = LEGACY_MAP_PATH_RE.exec(pathname);
-  if (mapMatch?.[1]) {
-    return { mapSlug: decodeURIComponent(mapMatch[1]).trim(), view: "map" };
-  }
-  const blogMatch = LEGACY_BLOG_PATH_RE.exec(pathname);
-  if (blogMatch?.[1]) {
-    return { mapSlug: decodeURIComponent(blogMatch[1]).trim(), view: "blog" };
-  }
-  return null;
-}
-
-export function parseLegacyPinPathname(
-  pathname: string,
-): { mapSlug: string; pinSlug: string } | null {
-  const match = LEGACY_PIN_PATH_RE.exec(pathname);
-  if (!match?.[1] || !match[2]) return null;
-  return {
-    mapSlug: decodeURIComponent(match[1]).trim(),
-    pinSlug: decodeURIComponent(match[2]).trim(),
-  };
-}
-
-export function parseLegacyMapSettingsPathname(
-  pathname: string,
-): { mapSlug: string } | null {
-  const match = LEGACY_SETTINGS_PATH_RE.exec(pathname);
-  if (!match?.[1]) return null;
-  return { mapSlug: decodeURIComponent(match[1]).trim() };
-}
-
 export function parseMapRoutePathname(pathname: string): MapRoute | null {
   const mapView = parseMapViewPathname(pathname);
   if (mapView) {
@@ -100,9 +62,7 @@ export function parseMapRoutePathname(pathname: string): MapRoute | null {
 export function isPublicMapViewPathname(pathname: string): boolean {
   const parsed = parseMapViewPathname(pathname);
   if (parsed && (parsed.view === "map" || parsed.view === "blog")) return true;
-  if (parseLegacyMapPathname(pathname) !== null) return true;
-  if (parsePinRoutePathname(pathname) !== null) return true;
-  return parseLegacyPinPathname(pathname) !== null;
+  return parsePinRoutePathname(pathname) !== null;
 }
 
 export function mapRouteFromParts(

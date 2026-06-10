@@ -9,18 +9,18 @@ describe("isPublicMapViewPathname", () => {
   it("allows public map and blog views", () => {
     expect(isPublicMapViewPathname("/joram/trip/map")).toBe(true);
     expect(isPublicMapViewPathname("/joram/trip/blog")).toBe(true);
-    expect(isPublicMapViewPathname("/map/trip")).toBe(true);
   });
 
   it("allows pin detail but not pin edit", () => {
     expect(isPublicMapViewPathname("/joram/trip/pin/cafe")).toBe(true);
-    expect(isPublicMapViewPathname("/pins/trip/cafe")).toBe(true);
     expect(isPublicMapViewPathname("/joram/trip/pin/cafe/edit")).toBe(false);
   });
 
-  it("blocks account and settings routes", () => {
+  it("blocks account, settings, and legacy-style paths", () => {
     expect(isPublicMapViewPathname("/joram/trip/settings")).toBe(false);
     expect(isPublicMapViewPathname("/profile")).toBe(false);
+    expect(isPublicMapViewPathname("/map/trip")).toBe(false);
+    expect(isPublicMapViewPathname("/pins/trip/cafe")).toBe(false);
   });
 });
 

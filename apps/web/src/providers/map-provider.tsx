@@ -10,8 +10,7 @@ import {
   fetchOwnerProfileSlugs,
   parseMapRoutePathname,
 } from "@/lib/map-route";
-import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
-import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
+import { fetchPublicMapByRoute } from "@/lib/fetch-public-map";
 import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -68,31 +67,6 @@ async function fetchMapsForUser(userId: string): Promise<MapWithOwnerSlug[]> {
     maps.map((map) => map.created_by_user_id),
   );
   return attachOwnerProfileSlugs(maps, slugByOwner);
-}
-
-async function fetchPublicMapByRoute(
-  profileSlug: string,
-  mapSlug: string,
-): Promise<MapWithOwnerSlug | null> {
-  const profile = await resolveProfileBySlug(profileSlug);
-  if (!profile) return null;
-
-  const mapMatch = await resolveMapByOwnerSlug(profile.profileId, mapSlug);
-  if (!mapMatch) return null;
-
-  const { data, error } = await supabase
-    .from("maps")
-    .select("*")
-    .eq("id", mapMatch.mapId)
-    .eq("is_public", true)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-
-  return {
-    ...(data as CuroliaMap),
-    owner_profile_slug: profile.canonicalSlug,
-  };
 }
 
 async function fetchProfileDefaultMap(userId: string): Promise<string | null> {

@@ -20,6 +20,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      "react-refresh/only-export-components": [
+        "error",
+        { allowConstantExport: true },
+      ],
       "no-restricted-syntax": [
         "error",
         {
@@ -29,6 +33,18 @@ export default defineConfig([
             "Use @curolia/ui components and layout props instead of inline className strings in apps/web.",
         },
       ],
+    },
+  },
+  {
+    files: ["src/ssr/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    files: ["api/**/*.ts", "scripts/**/*.mjs"],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 ]);

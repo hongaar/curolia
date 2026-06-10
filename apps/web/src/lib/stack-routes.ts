@@ -4,9 +4,6 @@ import type { Location } from "react-router-dom";
 const BASE_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/[^/]+\/[^/]+\/map\/?$/,
   /^\/[^/]+\/[^/]+\/blog\/?$/,
-  /^\/map\/[^/]+\/?$/,
-  /^\/blog\/[^/]+\/?$/,
-  /^\/blog\/?$/,
 ];
 
 /** Screens stacked above the base (settings, pin detail, …). */
@@ -18,8 +15,6 @@ const STACK_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/invitations\/?$/,
   /^\/[^/]+\/[^/]+\/settings\/?$/,
   /^\/[^/]+\/[^/]+\/pin\//,
-  /^\/maps\/[^/]+\/settings\/?$/,
-  /^\/pins\//,
 ];
 
 function normalizePathname(pathname: string): string {

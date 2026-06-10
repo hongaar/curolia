@@ -1,3 +1,5 @@
+export { campaignById, campaigns } from "./campaigns";
+export type { CampaignTheme } from "./campaigns";
 export {
   ContactContent,
   LegalEmbed,

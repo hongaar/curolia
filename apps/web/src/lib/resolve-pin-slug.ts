@@ -1,3 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "@/lib/database.types";
 import { supabase } from "@/lib/supabase";
 
 export type ResolvedPinSlug = {
@@ -10,11 +13,12 @@ export type ResolvedPinSlug = {
 export async function resolvePinByMapSlug(
   mapId: string,
   slug: string,
+  client: SupabaseClient<Database> = supabase,
 ): Promise<ResolvedPinSlug | null> {
   const slugNorm = slug.trim().toLowerCase();
   if (!slugNorm) return null;
 
-  const { data: pin, error: pinErr } = await supabase
+  const { data: pin, error: pinErr } = await client
     .from("pins")
     .select("id, slug")
     .eq("map_id", mapId)
@@ -25,7 +29,7 @@ export async function resolvePinByMapSlug(
     return { pinId: pin.id, canonicalSlug: pin.slug, redirected: false };
   }
 
-  const { data: redirect, error: redirectErr } = await supabase
+  const { data: redirect, error: redirectErr } = await client
     .from("pin_slug_redirects")
     .select("pin_id")
     .eq("map_id", mapId)
@@ -34,7 +38,7 @@ export async function resolvePinByMapSlug(
   if (redirectErr) throw redirectErr;
   if (!redirect) return null;
 
-  const { data: target, error: targetErr } = await supabase
+  const { data: target, error: targetErr } = await client
     .from("pins")
     .select("id, slug")
     .eq("id", redirect.pin_id)

@@ -42,11 +42,7 @@ export function resolveMapFromSettingsParam(
 
 /** Map uses fullscreen chrome (floating toolbar, no page chrome). */
 export function isMapFullscreenPathname(pathname: string): boolean {
-  return (
-    pathname === "/" ||
-    /^\/[^/]+\/[^/]+\/map\/?$/.test(pathname) ||
-    /^\/map\/[^/]+\/?$/.test(pathname)
-  );
+  return pathname === "/" || /^\/[^/]+\/[^/]+\/map\/?$/.test(pathname);
 }
 
 export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {
@@ -117,7 +113,7 @@ export function mapHrefWithSearch(
   return q ? `${base}?${q}` : base;
 }
 
-/** Map with add-pin placement mode enabled (preserves unrelated search params). */
+/** Map with add-pin dialog open (preserves unrelated search params). */
 export function mapAddPinHref(
   route: MapRoute,
   searchParams: URLSearchParams | string = "",

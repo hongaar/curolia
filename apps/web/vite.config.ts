@@ -4,6 +4,8 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+import { SSR_NAVIGATE_FALLBACK_DENYLIST } from "./scripts/ssr-navigate-fallback-denylist";
+
 const repoRoot = path.resolve(__dirname, "../..");
 const webPackage = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8"),
@@ -53,7 +55,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         sourcemap: true,
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: SSR_NAVIGATE_FALLBACK_DENYLIST,
         runtimeCaching: [
           {
             urlPattern: ({ request }) =>
@@ -74,6 +76,24 @@ export default defineConfig({
       },
     }),
   ],
+  ssr: {
+    noExternal: [
+      "@curolia/site",
+      "@curolia/ui",
+      "@curolia/services",
+      /^@curolia\//,
+      "react-markdown",
+      "rehype-raw",
+      "rehype-sanitize",
+      "remark-breaks",
+      "remark-gfm",
+      "devlop",
+      "hast-util-to-jsx-runtime",
+      "unist-util-visit",
+      "unified",
+      "vfile",
+    ],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

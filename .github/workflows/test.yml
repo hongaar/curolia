@@ -27,7 +27,7 @@ jobs:
         run: npm run format:check
 
       - name: Validate packages
-        run: npx turbo run lint typecheck test build
+        run: npx turbo run lint typecheck test build ssr:smoke
 
   android:
     name: Android

@@ -10,7 +10,7 @@
     },
     "@curolia/web#build": {
       "dependsOn": ["codegen"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "dist-ssr/**"]
     },
     "@curolia/web#lint": {
       "dependsOn": ["codegen"]
@@ -20,6 +20,9 @@
     },
     "@curolia/web#test": {
       "dependsOn": ["codegen"]
+    },
+    "@curolia/web#ssr:smoke": {
+      "dependsOn": ["@curolia/web#build"]
     },
     "@curolia/supabase#stack": {
       "dependsOn": ["@curolia/supabase#functions:sync"],

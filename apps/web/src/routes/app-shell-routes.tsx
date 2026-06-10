@@ -1,16 +1,11 @@
 import { AppSettingsPage } from "@/pages/app-settings-page";
 import { BlogPage } from "@/pages/blog-page";
-import { BlogHomeRedirectPage } from "@/pages/home-redirect-page";
 import { InvitationsPage } from "@/pages/invitations-page";
-import { LegacyMapRouteRedirectPage } from "@/pages/legacy-map-route-redirect-page";
-import { LegacyMapSettingsRedirectPage } from "@/pages/legacy-map-settings-redirect-page";
-import { LegacyPinRouteRedirectPage } from "@/pages/legacy-pin-route-redirect-page";
 import { MapPage } from "@/pages/map-page";
 import { MapSettingsPage } from "@/pages/map-settings-page";
 import { NotificationsPage } from "@/pages/notifications-page";
 import { PinDetailPage } from "@/pages/pin-detail-page";
 import { PinEditPage } from "@/pages/pin-edit-page";
-import { PinLegacyRedirectPage } from "@/pages/pin-legacy-redirect-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { Navigate, Route } from "react-router-dom";
@@ -32,20 +27,6 @@ export const appShellRouteElements = (
       path=":profileSlug/:mapSlug/settings"
       element={<MapSettingsPage />}
     />
-    <Route
-      path="map/:mapSlug"
-      element={<LegacyMapRouteRedirectPage view="map" />}
-    />
-    <Route path="blog" element={<BlogHomeRedirectPage />} />
-    <Route
-      path="blog/:mapSlug"
-      element={<LegacyMapRouteRedirectPage view="blog" />}
-    />
-    <Route
-      path="pins/:mapSlug/:pinSlug"
-      element={<LegacyPinRouteRedirectPage />}
-    />
-    <Route path="pins/:legacyPinId" element={<PinLegacyRedirectPage />} />
     <Route path="profile" element={<ProfilePage />} />
     <Route path="settings" element={<AppSettingsPage />} />
     <Route path="plugins" element={<PluginsPage />} />
@@ -59,9 +40,5 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
-    <Route
-      path="maps/:mapSlug/settings"
-      element={<LegacyMapSettingsRedirectPage />}
-    />
   </>
 );
