@@ -3,6 +3,7 @@ import { NotificationsRealtimeSync } from "@/components/layout/notifications-rea
 import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
+import { reportAppError } from "@/lib/bugsink";
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import {
   installStackChromeLayoutSync,
@@ -46,7 +47,7 @@ function AppShellInner() {
         resetKeys={[pathname]}
         showErrorDetails={import.meta.env.DEV}
         onError={(error, errorInfo) => {
-          console.error("Route error", error, errorInfo);
+          reportAppError(error, errorInfo, "Route error");
         }}
       >
         <Outlet />

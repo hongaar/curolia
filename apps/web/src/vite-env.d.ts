@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_APP_VERSION: string;
   readonly VITE_UMAMI_WEBSITE_ID?: string;
   readonly VITE_UMAMI_SCRIPT_URL?: string;
+  readonly VITE_BUGSINK_DSN?: string;
 }
 
 interface ImportMeta {

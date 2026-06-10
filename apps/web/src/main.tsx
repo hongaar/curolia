@@ -1,3 +1,8 @@
+import {
+  bugsinkReactErrorHandler,
+  initBugsink,
+  reportAppError,
+} from "@/lib/bugsink";
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { initUmami } from "@/lib/umami";
@@ -31,6 +36,7 @@ const queryClient = new QueryClient({
 });
 
 registerSW({ immediate: true });
+initBugsink();
 initUmami();
 
 const rootEl = document.getElementById("root");
@@ -47,7 +53,7 @@ const app = (
             <ErrorBoundary
               showErrorDetails={import.meta.env.DEV}
               onError={(error, errorInfo) => {
-                console.error("Unhandled app error", error, errorInfo);
+                reportAppError(error, errorInfo, "Unhandled app error");
               }}
             >
               <App />
@@ -60,8 +66,14 @@ const app = (
   </StrictMode>
 );
 
+const rootOptions = {
+  onCaughtError: bugsinkReactErrorHandler(),
+  onUncaughtError: bugsinkReactErrorHandler(),
+  onRecoverableError: bugsinkReactErrorHandler(),
+};
+
 if (rootEl.hasChildNodes()) {
-  hydrateRoot(rootEl, app);
+  hydrateRoot(rootEl, app, rootOptions);
 } else {
-  createRoot(rootEl).render(app);
+  createRoot(rootEl, rootOptions).render(app);
 }
