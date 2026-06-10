@@ -247,7 +247,7 @@ export function AddPinDialog({
     const data = placesQuery.data;
     if (!data?.length) return;
     const exact = findExactPlaceMatch(debouncedSearch, data);
-    if (exact) pickPlace(exact, "auto");
+    if (exact) queueMicrotask(() => pickPlace(exact, "auto"));
   }, [
     open,
     debouncedSearch,

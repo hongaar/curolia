@@ -204,7 +204,7 @@ export function MapPage() {
       icon: "📍",
       color: null,
     };
-  }, [addPinPreview?.lat, addPinPreview?.lng]);
+  }, [addPinPreview]);
   const [quickAddPin, setQuickAddPin] = useState<Pin | null>(null);
   const [quickAddAnchorScreen, setQuickAddAnchorScreen] = useState<{
     x: number;
