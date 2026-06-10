@@ -11,6 +11,8 @@ import {
   fetchOwnerProfileSlugs,
   parseMapRoutePathname,
 } from "@/lib/map-route";
+import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
+import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -114,16 +116,37 @@ export function MapProvider({
     ? `${routePath.profileSlug}/${routePath.mapSlug}`
     : null;
 
-  const memberHasRouteMap = useMemo(() => {
-    if (!routePath) return false;
+  const routeMapExactMatch = useMemo(() => {
+    if (!routePath) return null;
     const profileNeedle = routePath.profileSlug.trim().toLowerCase();
     const mapNeedle = routePath.mapSlug.trim().toLowerCase();
-    return memberMaps.some(
-      (m) =>
-        m.owner_profile_slug.trim().toLowerCase() === profileNeedle &&
-        m.slug.trim().toLowerCase() === mapNeedle,
+    return (
+      memberMaps.find(
+        (m) =>
+          m.owner_profile_slug.trim().toLowerCase() === profileNeedle &&
+          m.slug.trim().toLowerCase() === mapNeedle,
+      ) ?? null
     );
   }, [memberMaps, routePath]);
+
+  const routeSlugResolveQuery = useQuery({
+    queryKey: ["route_map_slug", routeKey],
+    queryFn: async () => {
+      if (!routePath) return null;
+      const profile = await resolveProfileBySlug(routePath.profileSlug);
+      if (!profile) return null;
+      return resolveMapByOwnerSlug(profile.profileId, routePath.mapSlug);
+    },
+    enabled: Boolean(routePath) && !routeMapExactMatch,
+  });
+
+  const memberHasRouteMap = useMemo(() => {
+    if (!routePath) return false;
+    if (routeMapExactMatch) return true;
+    const resolved = routeSlugResolveQuery.data;
+    if (!resolved) return false;
+    return memberMaps.some((m) => m.id === resolved.mapId);
+  }, [memberMaps, routePath, routeMapExactMatch, routeSlugResolveQuery.data]);
 
   const needsPublicMap =
     Boolean(routePath) && (publicView || !memberHasRouteMap);
@@ -152,18 +175,28 @@ export function MapProvider({
     if (!routePath) return null;
     const profileNeedle = routePath.profileSlug.trim().toLowerCase();
     const mapNeedle = routePath.mapSlug.trim().toLowerCase();
-    return (
+    const exact =
       maps.find(
         (m) =>
           m.owner_profile_slug.trim().toLowerCase() === profileNeedle &&
           m.slug.trim().toLowerCase() === mapNeedle,
-      ) ?? null
-    );
-  }, [maps, routePath]);
+      ) ?? null;
+    if (exact) return exact;
+    const resolved = routeSlugResolveQuery.data;
+    if (!resolved) return null;
+    return maps.find((m) => m.id === resolved.mapId) ?? null;
+  }, [maps, routePath, routeSlugResolveQuery.data]);
 
   const routeMapStatus = useMemo((): RouteMapStatus => {
     if (!routePath) return "none";
     if (resolvedRouteMap) return "ready";
+    if (
+      !routeMapExactMatch &&
+      routeSlugResolveQuery.isPending &&
+      !memberMapsQuery.isPending
+    ) {
+      return "loading";
+    }
     if (publicView) {
       if (publicMapQuery.isPending) return "loading";
       return "unavailable";
@@ -174,6 +207,8 @@ export function MapProvider({
   }, [
     routePath,
     resolvedRouteMap,
+    routeMapExactMatch,
+    routeSlugResolveQuery.isPending,
     publicView,
     publicMapQuery.isPending,
     memberMapsQuery.isPending,

@@ -124,19 +124,7 @@
     right: calc(var(--nav-shell-pad) + var(--safe-right));
   }
 
-  .brandNameOverlayLight {
-    color: #fff;
-  }
-
-  .brand:hover .brandNameOverlayLight {
-    color: color-mix(in oklch, #fff 85%, var(--orange));
-  }
-
-  .brandNameOverlayDark {
-    color: #000;
-  }
-
-  .brand:hover .brandNameOverlayDark {
-    color: color-mix(in oklch, #000 85%, var(--orange));
+  .brandName {
+    display: none;
   }
 }

@@ -6,6 +6,8 @@ import {
   mapShowMetadataForSave,
 } from "@/components/map-collection/map-show-metadata";
 import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
+import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import {
   mapSettingsHref,
   mapViewHref,
@@ -24,6 +26,8 @@ import {
   type MapStylePreset,
 } from "@/lib/map-style";
 import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
+import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
+import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
@@ -57,7 +61,7 @@ export function MapSettingsPage() {
     mapSlug: string;
   }>();
   const { user } = useAuth();
-  const { maps, activeMapId, setActiveMapId } = useMap();
+  const { maps, activeMapId, setActiveMapId, refetch: refetchMaps } = useMap();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [name, setName] = useState("");
@@ -74,10 +78,35 @@ export function MapSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const map = useMemo(
+  useMapSlugRouteSync(profileSlugParam, mapSlugParam);
+
+  const mapFromList = useMemo(
     () => resolveMapFromSettingsParam(maps, profileSlugParam, mapSlugParam),
     [maps, profileSlugParam, mapSlugParam],
   );
+
+  const redirectMapQuery = useQuery({
+    queryKey: [
+      "settings_map_slug",
+      profileSlugParam,
+      mapSlugParam,
+      maps.map((m) => m.id).join(","),
+    ],
+    queryFn: async () => {
+      if (!profileSlugParam?.trim() || !mapSlugParam?.trim()) return null;
+      const profile = await resolveProfileBySlug(profileSlugParam);
+      if (!profile) return null;
+      const resolved = await resolveMapByOwnerSlug(
+        profile.profileId,
+        mapSlugParam,
+      );
+      if (!resolved) return null;
+      return maps.find((m) => m.id === resolved.mapId) ?? null;
+    },
+    enabled: Boolean(profileSlugParam && mapSlugParam && !mapFromList),
+  });
+
+  const map = mapFromList ?? redirectMapQuery.data ?? null;
   const mapId = map?.id ?? null;
 
   useEffect(() => {
@@ -153,6 +182,17 @@ export function MapSettingsPage() {
       await qc.invalidateQueries({
         queryKey: ["maps", mapId, "show_pin_metadata"],
       });
+      if (nameChanged) {
+        await refetchMaps();
+        const updatedMaps = qc.getQueryData<MapWithOwnerSlug[]>([
+          "maps",
+          user.id,
+        ]);
+        const updated = updatedMaps?.find((m) => m.id === mapId);
+        if (updated?.owner_profile_slug && updated.slug) {
+          navigate(mapSettingsHref(mapRouteForMap(updated)), { replace: true });
+        }
+      }
     }
   }
 
@@ -161,9 +201,11 @@ export function MapSettingsPage() {
   }
 
   if (!map) {
+    if (redirectMapQuery.isPending && !mapFromList) {
+      return <PageCenteredLoading>Loading map…</PageCenteredLoading>;
+    }
     return (
-      <AppPageLayout>
-        <PageBackButton />
+      <AppPageLayout toolbar={<PageBackButton />}>
         <PagePanel>
           <PageMuted>
             You do not have access to this map or it does not exist.
@@ -209,8 +251,7 @@ export function MapSettingsPage() {
     !saving;
 
   return (
-    <AppPageLayout>
-      <PageBackButton />
+    <AppPageLayout toolbar={<PageBackButton />}>
       <PagePanel>
         <PageHeader>
           <PageHeaderTitle>Map settings</PageHeaderTitle>
