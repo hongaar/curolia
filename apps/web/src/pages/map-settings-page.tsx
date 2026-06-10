@@ -214,7 +214,7 @@ export function MapSettingsPage() {
       <PagePanel>
         <PageHeader>
           <PageHeaderTitle>Map settings</PageHeaderTitle>
-          <PageHeaderLead>More options will land here later.</PageHeaderLead>
+          <PageHeaderLead>Manage your map settings.</PageHeaderLead>
         </PageHeader>
 
         <PageFormBlockSpaced>
@@ -343,22 +343,20 @@ export function MapSettingsPage() {
         </PageFormBlockSpaced>
       </PagePanel>
 
+      <MapSharingSection
+        mapId={map.id}
+        mapName={map.name}
+        ownerProfileSlug={mapRouteForMap(map).profileSlug}
+        mapSlug={map.slug}
+        isPublic={map.is_public}
+        isOwner={isOwner}
+      />
+
       <MapPluginsSection
         mapId={map.id}
         isOwner={isOwner}
         roleLoading={roleQuery.isLoading}
       />
-
-      <PagePanel>
-        <MapSharingSection
-          mapId={map.id}
-          mapName={map.name}
-          ownerProfileSlug={mapRouteForMap(map).profileSlug}
-          mapSlug={map.slug}
-          isPublic={map.is_public}
-          isOwner={isOwner}
-        />
-      </PagePanel>
     </AppPageLayout>
   );
 }

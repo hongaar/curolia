@@ -46,7 +46,10 @@ import {
   PageInviteEmailField,
   PageInviteRoleField,
   PageInviteRow,
-  PageSectionHeading,
+  PageMuted,
+  PagePanel,
+  PagePanelIcon,
+  PagePanelTitleRow,
   PageSectionHint,
   PageSectionSubheading,
   PageSharingRoot,
@@ -60,6 +63,7 @@ import {
 } from "@curolia/ui/select";
 import { Switch } from "@curolia/ui/switch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Share2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -304,334 +308,347 @@ export function MapSharingSection({
   }
 
   return (
-    <PageSharingRoot>
-      <div>
-        <PageSectionHeading>Sharing</PageSectionHeading>
-        <PageSectionHint>
-          Invite others by email. They must sign in with that email to accept.
-          Connectors stay with each owner; transferring ownership clears all
-          plugins for this map.
-        </PageSectionHint>
-      </div>
+    <PagePanel mobileCard>
+      <PagePanelTitleRow
+        icon={
+          <PagePanelIcon>
+            <Share2 />
+          </PagePanelIcon>
+        }
+      >
+        Sharing
+      </PagePanelTitleRow>
+      <PageMuted>
+        Invite others by email. They must sign in with that email to accept.
+        Connectors stay with each owner; transferring ownership clears all
+        plugins for this map.
+      </PageMuted>
+      <PageSharingRoot>
+        {inviteErr ? <PageErrorText>{inviteErr}</PageErrorText> : null}
 
-      {inviteErr ? <PageErrorText>{inviteErr}</PageErrorText> : null}
+        <PageSharingSection>
+          <PageSectionSubheading>Members</PageSectionSubheading>
+          <BorderedList>
+            {membersQuery.isLoading ? (
+              <ListEmptyItem>Loading…</ListEmptyItem>
+            ) : (
+              members.map((m) => {
+                const isSelf = m.user_id === user?.id;
+                const label =
+                  m.profile?.display_name?.trim() ||
+                  (isSelf ? "You" : "Member");
+                return (
+                  <MemberListRow key={m.user_id}>
+                    <MemberAvatar>
+                      <UserAvatar
+                        storedAvatarUrl={m.profile?.avatar_url}
+                        email={isSelf ? user?.email : undefined}
+                        gravatarFallback={isSelf}
+                        gravatarSize={64}
+                        label={label}
+                        size="sm"
+                      />
+                    </MemberAvatar>
+                    <MemberPrimary
+                      secondary={isSelf && user?.email ? user.email : undefined}
+                    >
+                      {label}
+                    </MemberPrimary>
+                    <MemberRole>{mapRoleLabel(m.role)}</MemberRole>
+                    {isOwner && !isSelf && m.role !== "owner" ? (
+                      <MemberActions>
+                        <Select
+                          value={m.role}
+                          onValueChange={(v) =>
+                            void changeRole(m.user_id, v as MapMemberRole)
+                          }
+                        >
+                          <FormSelectTriggerCompact>
+                            <SelectValue>{mapRoleLabel(m.role)}</SelectValue>
+                          </FormSelectTriggerCompact>
+                          <SelectContent>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                            <SelectItem value="editor">Contributor</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void removeMember(m.user_id)}
+                        >
+                          Remove
+                        </Button>
+                      </MemberActions>
+                    ) : null}
+                  </MemberListRow>
+                );
+              })
+            )}
+          </BorderedList>
+        </PageSharingSection>
 
-      <PageSharingSection>
-        <PageSectionSubheading>Members</PageSectionSubheading>
-        <BorderedList>
-          {membersQuery.isLoading ? (
-            <ListEmptyItem>Loading…</ListEmptyItem>
-          ) : (
-            members.map((m) => {
-              const isSelf = m.user_id === user?.id;
-              const label =
-                m.profile?.display_name?.trim() || (isSelf ? "You" : "Member");
-              return (
-                <MemberListRow key={m.user_id}>
-                  <MemberAvatar>
-                    <UserAvatar
-                      storedAvatarUrl={m.profile?.avatar_url}
-                      email={isSelf ? user?.email : undefined}
-                      gravatarFallback={isSelf}
-                      gravatarSize={64}
-                      label={label}
-                      size="sm"
-                    />
-                  </MemberAvatar>
-                  <MemberPrimary
-                    secondary={isSelf && user?.email ? user.email : undefined}
-                  >
-                    {label}
-                  </MemberPrimary>
-                  <MemberRole>{mapRoleLabel(m.role)}</MemberRole>
-                  {isOwner && !isSelf && m.role !== "owner" ? (
-                    <MemberActions>
+        {isOwner ? (
+          <>
+            <PageSharingSection>
+              <PageSectionSubheading>Invite by email</PageSectionSubheading>
+              <PageInviteRow>
+                <PageInviteEmailField>
+                  <Field>
+                    <FieldLabel htmlFor="inv-email">Email</FieldLabel>
+                    <FieldControl>
+                      <Input
+                        id="inv-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="friend@example.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                      />
+                    </FieldControl>
+                  </Field>
+                </PageInviteEmailField>
+                <PageInviteRoleField>
+                  <Field>
+                    <FieldLabel htmlFor="inv-role">Access</FieldLabel>
+                    <FieldControl>
                       <Select
-                        value={m.role}
-                        onValueChange={(v) =>
-                          void changeRole(m.user_id, v as MapMemberRole)
-                        }
+                        value={inviteRole}
+                        onValueChange={(v) => setInviteRole(v as InviteMapRole)}
                       >
-                        <FormSelectTriggerCompact>
-                          <SelectValue>{mapRoleLabel(m.role)}</SelectValue>
-                        </FormSelectTriggerCompact>
+                        <FormSelectTriggerInvite id="inv-role">
+                          <SelectValue>
+                            {inviteRoleSelectLabel(inviteRole)}
+                          </SelectValue>
+                        </FormSelectTriggerInvite>
                         <SelectContent>
                           <SelectItem value="viewer">Viewer</SelectItem>
                           <SelectItem value="editor">Contributor</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => void removeMember(m.user_id)}
-                      >
-                        Remove
-                      </Button>
-                    </MemberActions>
-                  ) : null}
-                </MemberListRow>
-              );
-            })
-          )}
-        </BorderedList>
-      </PageSharingSection>
-
-      {isOwner ? (
-        <>
-          <PageSharingSection>
-            <PageSectionSubheading>Invite by email</PageSectionSubheading>
-            <PageInviteRow>
-              <PageInviteEmailField>
-                <Field>
-                  <FieldLabel htmlFor="inv-email">Email</FieldLabel>
-                  <FieldControl>
-                    <Input
-                      id="inv-email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="friend@example.com"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                    />
-                  </FieldControl>
-                </Field>
-              </PageInviteEmailField>
-              <PageInviteRoleField>
-                <Field>
-                  <FieldLabel htmlFor="inv-role">Access</FieldLabel>
-                  <FieldControl>
-                    <Select
-                      value={inviteRole}
-                      onValueChange={(v) => setInviteRole(v as InviteMapRole)}
-                    >
-                      <FormSelectTriggerInvite id="inv-role">
-                        <SelectValue>
-                          {inviteRoleSelectLabel(inviteRole)}
-                        </SelectValue>
-                      </FormSelectTriggerInvite>
-                      <SelectContent>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                        <SelectItem value="editor">Contributor</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FieldControl>
-                </Field>
-              </PageInviteRoleField>
-              <Button
-                type="button"
-                disabled={inviteBusy || !inviteEmail.trim()}
-                onClick={() => void sendInvite()}
-              >
-                Send invite
-              </Button>
-            </PageInviteRow>
-            <PageSectionHint>
-              If they already have an account, they get an in-app notification.
-              Pending invites work after they sign up with the same email.
-            </PageSectionHint>
-          </PageSharingSection>
-
-          <PageSharingSection>
-            <PageSectionSubheading>Public access</PageSectionSubheading>
-            <Field>
-              <FieldLabel htmlFor="map-public-toggle">
-                Anyone with the link can view this map (read-only)
-              </FieldLabel>
-              <Switch
-                id="map-public-toggle"
-                checked={isPublic}
-                disabled={publicBusy}
-                onCheckedChange={(checked) => void togglePublic(checked)}
-              />
-            </Field>
-            {isPublic && publicMapUrl ? (
-              <PageInviteRow>
-                <PageInviteEmailField>
-                  <Field>
-                    <FieldLabel htmlFor="public-map-url">
-                      Public link
-                    </FieldLabel>
-                    <FieldControl>
-                      <Input
-                        id="public-map-url"
-                        readOnly
-                        value={publicMapUrl}
-                        onFocus={(e) => e.target.select()}
-                      />
                     </FieldControl>
                   </Field>
-                </PageInviteEmailField>
+                </PageInviteRoleField>
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={() => void copyPublicLink()}
+                  disabled={inviteBusy || !inviteEmail.trim()}
+                  onClick={() => void sendInvite()}
                 >
-                  Copy link
+                  Send invite
                 </Button>
               </PageInviteRow>
-            ) : null}
-            <PageSectionHint>
-              Public viewers can browse pins without signing in. Editing still
-              requires an invite.
-            </PageSectionHint>
-          </PageSharingSection>
-
-          {pendingInvites.length > 0 ? (
-            <PageSharingSection>
-              <PageSectionSubheading>Pending invitations</PageSectionSubheading>
-              <BorderedList>
-                {pendingInvites.map((inv) => (
-                  <MemberListRow key={inv.id}>
-                    <MemberPrimary>{inv.invitee_email}</MemberPrimary>
-                    <MemberRole>{mapRoleLabel(inv.invited_role)}</MemberRole>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void cancelInvite(inv.id)}
-                    >
-                      Cancel
-                    </Button>
-                  </MemberListRow>
-                ))}
-              </BorderedList>
+              <PageSectionHint>
+                If they already have an account, they get an in-app
+                notification. Pending invites work after they sign up with the
+                same email.
+              </PageSectionHint>
             </PageSharingSection>
-          ) : null}
 
-          <CautionPanel
-            title="Transfer ownership"
-            description={
-              <>
-                Enter the new owner&apos;s email. They must have an account (or
-                sign up with that email). You will become a contributor. All map
-                plugins and calendar feed links for &quot;{mapName}&quot; will
-                be removed.
-              </>
-            }
-          >
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setTransferErr(null);
-                setTransferEmail("");
-                setTransferOpen(true);
-              }}
-            >
-              Transfer ownership…
-            </Button>
-          </CautionPanel>
-
-          <CautionPanel
-            title="Delete map"
-            description={
-              <>
-                Permanently delete &quot;{mapName}&quot; and all of its pins.
-                You cannot delete your only map.
-              </>
-            }
-          >
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                setDeleteErr(null);
-                setDeleteOpen(true);
-              }}
-            >
-              Delete map…
-            </Button>
-          </CautionPanel>
-
-          <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Transfer ownership</DialogTitle>
-                <DialogDescription>
-                  This cannot be undone from here. Plugins for this map will be
-                  cleared.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogBody>
-                <DialogFormStack>
-                  <DialogField>
+            <PageSharingSection>
+              <PageSectionSubheading>Public access</PageSectionSubheading>
+              <Field>
+                <FieldLabel htmlFor="map-public-toggle">
+                  Anyone with the link can view this map (read-only)
+                </FieldLabel>
+                <Switch
+                  id="map-public-toggle"
+                  checked={isPublic}
+                  disabled={publicBusy}
+                  onCheckedChange={(checked) => void togglePublic(checked)}
+                />
+              </Field>
+              {isPublic && publicMapUrl ? (
+                <PageInviteRow>
+                  <PageInviteEmailField>
                     <Field>
-                      <FieldLabel htmlFor="transfer-email">
-                        New owner email
+                      <FieldLabel htmlFor="public-map-url">
+                        Public link
                       </FieldLabel>
                       <FieldControl>
                         <Input
-                          id="transfer-email"
-                          type="email"
-                          autoComplete="email"
-                          placeholder="friend@example.com"
-                          value={transferEmail}
-                          onChange={(e) => setTransferEmail(e.target.value)}
+                          id="public-map-url"
+                          readOnly
+                          value={publicMapUrl}
+                          onFocus={(e) => e.target.select()}
                         />
                       </FieldControl>
                     </Field>
-                  </DialogField>
-                  {transferErr ? <FieldError>{transferErr}</FieldError> : null}
-                </DialogFormStack>
-              </DialogBody>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setTransferOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  disabled={!transferEmail.trim() || transferBusy}
-                  onClick={() => void runTransfer()}
-                >
-                  Confirm transfer
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                  </PageInviteEmailField>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => void copyPublicLink()}
+                  >
+                    Copy link
+                  </Button>
+                </PageInviteRow>
+              ) : null}
+              <PageSectionHint>
+                Public viewers can browse pins without signing in. Editing still
+                requires an invite.
+              </PageSectionHint>
+            </PageSharingSection>
 
-          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-            <DialogContent>
-              <DialogHeader showCloseButton={!deleteBusy}>
-                <DialogTitle>Delete map?</DialogTitle>
-              </DialogHeader>
-              <DialogBody>
-                <DialogDescription>
-                  This removes &quot;{mapName}&quot; and every pin on it. This
-                  cannot be undone.
-                </DialogDescription>
-                {deleteErr ? <FieldError>{deleteErr}</FieldError> : null}
-              </DialogBody>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={deleteBusy}
-                  onClick={() => setDeleteOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  disabled={deleteBusy}
-                  onClick={() => void runDelete()}
-                >
-                  {deleteBusy ? "Deleting…" : "Delete map"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </>
-      ) : (
-        <PageSectionHint>
-          Only the map owner can invite people or transfer ownership.
-        </PageSectionHint>
-      )}
-    </PageSharingRoot>
+            {pendingInvites.length > 0 ? (
+              <PageSharingSection>
+                <PageSectionSubheading>
+                  Pending invitations
+                </PageSectionSubheading>
+                <BorderedList>
+                  {pendingInvites.map((inv) => (
+                    <MemberListRow key={inv.id}>
+                      <MemberPrimary>{inv.invitee_email}</MemberPrimary>
+                      <MemberRole>{mapRoleLabel(inv.invited_role)}</MemberRole>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void cancelInvite(inv.id)}
+                      >
+                        Cancel
+                      </Button>
+                    </MemberListRow>
+                  ))}
+                </BorderedList>
+              </PageSharingSection>
+            ) : null}
+
+            <CautionPanel
+              title="Transfer ownership"
+              description={
+                <>
+                  Enter the new owner&apos;s email. They must have an account
+                  (or sign up with that email). You will become a contributor.
+                  All map plugins and calendar feed links for &quot;{mapName}
+                  &quot; will be removed.
+                </>
+              }
+            >
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setTransferErr(null);
+                  setTransferEmail("");
+                  setTransferOpen(true);
+                }}
+              >
+                Transfer ownership…
+              </Button>
+            </CautionPanel>
+
+            <CautionPanel
+              title="Delete map"
+              description={
+                <>
+                  Permanently delete &quot;{mapName}&quot; and all of its pins.
+                  You cannot delete your only map.
+                </>
+              }
+            >
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  setDeleteErr(null);
+                  setDeleteOpen(true);
+                }}
+              >
+                Delete map…
+              </Button>
+            </CautionPanel>
+
+            <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Transfer ownership</DialogTitle>
+                  <DialogDescription>
+                    This cannot be undone from here. Plugins for this map will
+                    be cleared.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogBody>
+                  <DialogFormStack>
+                    <DialogField>
+                      <Field>
+                        <FieldLabel htmlFor="transfer-email">
+                          New owner email
+                        </FieldLabel>
+                        <FieldControl>
+                          <Input
+                            id="transfer-email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="friend@example.com"
+                            value={transferEmail}
+                            onChange={(e) => setTransferEmail(e.target.value)}
+                          />
+                        </FieldControl>
+                      </Field>
+                    </DialogField>
+                    {transferErr ? (
+                      <FieldError>{transferErr}</FieldError>
+                    ) : null}
+                  </DialogFormStack>
+                </DialogBody>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setTransferOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={!transferEmail.trim() || transferBusy}
+                    onClick={() => void runTransfer()}
+                  >
+                    Confirm transfer
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <DialogContent>
+                <DialogHeader showCloseButton={!deleteBusy}>
+                  <DialogTitle>Delete map?</DialogTitle>
+                </DialogHeader>
+                <DialogBody>
+                  <DialogDescription>
+                    This removes &quot;{mapName}&quot; and every pin on it. This
+                    cannot be undone.
+                  </DialogDescription>
+                  {deleteErr ? <FieldError>{deleteErr}</FieldError> : null}
+                </DialogBody>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={deleteBusy}
+                    onClick={() => setDeleteOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={deleteBusy}
+                    onClick={() => void runDelete()}
+                  >
+                    {deleteBusy ? "Deleting…" : "Delete map"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
+        ) : (
+          <PageSectionHint>
+            Only the map owner can invite people or transfer ownership.
+          </PageSectionHint>
+        )}
+      </PageSharingRoot>
+    </PagePanel>
   );
 }
