@@ -4,7 +4,12 @@
     "deploymentEnabled": false
   },
   "installCommand": "npm ci --prefix ../..",
-  "buildCommand": "npm run build",
+  "buildCommand": "cd ../.. && npx turbo run codegen build --filter=@curolia/web",
   "outputDirectory": "dist",
+  "functions": {
+    "api/ssr.ts": {
+      "includeFiles": "{dist,dist-ssr}/**"
+    }
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/api/ssr" }]
 }

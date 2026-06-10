@@ -76,23 +76,10 @@ export default defineConfig({
       },
     }),
   ],
+  // Bundle all dependencies into dist-ssr so Vercel Functions do not rely on
+  // hoisted node_modules paths (e.g. react-router-dom/dist/index.js).
   ssr: {
-    noExternal: [
-      "@curolia/site",
-      "@curolia/ui",
-      "@curolia/services",
-      /^@curolia\//,
-      "react-markdown",
-      "rehype-raw",
-      "rehype-sanitize",
-      "remark-breaks",
-      "remark-gfm",
-      "devlop",
-      "hast-util-to-jsx-runtime",
-      "unist-util-visit",
-      "unified",
-      "vfile",
-    ],
+    noExternal: true,
   },
   resolve: {
     alias: {

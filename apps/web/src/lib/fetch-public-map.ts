@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database.types";
-import { supabase } from "@/lib/supabase";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import type { CuroliaMap } from "@/types/database";
@@ -19,7 +18,7 @@ type DbClient = SupabaseClient<Database>;
 export async function fetchPublicMapByRoute(
   profileSlug: string,
   mapSlug: string,
-  client: DbClient = supabase,
+  client: DbClient,
 ): Promise<MapWithOwnerSlug | null> {
   const profile = await resolveProfileBySlug(profileSlug, client);
   if (!profile) return null;
@@ -48,7 +47,7 @@ export async function fetchPublicMapByRoute(
 
 export async function fetchPublicMapOwnerProfile(
   mapId: string,
-  client: DbClient = supabase,
+  client: DbClient,
 ): Promise<PublicMapOwnerProfile | null> {
   const { data: ownerRow, error: memberError } = await client
     .from("map_members")

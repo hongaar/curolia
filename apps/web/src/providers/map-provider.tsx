@@ -132,7 +132,11 @@ export function MapProvider({
     queryKey: ["public_map", routeKey],
     queryFn: async () => {
       if (!routePath) return null;
-      return fetchPublicMapByRoute(routePath.profileSlug, routePath.mapSlug);
+      return fetchPublicMapByRoute(
+        routePath.profileSlug,
+        routePath.mapSlug,
+        supabase,
+      );
     },
     enabled: needsPublicMap,
   });

@@ -14,7 +14,8 @@ export function usePublicMapOwnerProfile(
     queryKey: ["public_map_owner", mapId],
     queryFn: async (): Promise<PublicMapOwnerProfile | null> => {
       if (!mapId) return null;
-      return fetchPublicMapOwnerProfile(mapId);
+      const { supabase } = await import("@/lib/supabase");
+      return fetchPublicMapOwnerProfile(mapId, supabase);
     },
     enabled: Boolean(mapId && enabled),
   });
