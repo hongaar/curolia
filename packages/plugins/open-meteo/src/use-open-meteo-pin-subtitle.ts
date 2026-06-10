@@ -35,6 +35,12 @@ export type UseOpenMeteoPinSubtitleArgs = {
   queryEnabled?: boolean;
 };
 
+export type UseOpenMeteoPinSubtitleResult = {
+  subtitle: OpenMeteoPinSubtitle | null;
+  /** True while weather is expected but not yet available for the subtitle. */
+  isPending: boolean;
+};
+
 export function useOpenMeteoPinSubtitle({
   supabase,
   pinId,
@@ -44,7 +50,7 @@ export function useOpenMeteoPinSubtitle({
   pinDate,
   pinEndDate,
   queryEnabled = true,
-}: UseOpenMeteoPinSubtitleArgs): OpenMeteoPinSubtitle | null {
+}: UseOpenMeteoPinSubtitleArgs): UseOpenMeteoPinSubtitleResult {
   const qc = useQueryClient();
 
   const request = useMemo(
@@ -140,6 +146,13 @@ export function useOpenMeteoPinSubtitle({
   }, [syncQuery.isSuccess, syncQuery.data, qc, entityDataKey]);
 
   const payload = cachedPayload ?? syncQuery.data ?? null;
-  if (!canSync || !payload) return null;
-  return openMeteoPinSubtitleFromPayload(payload);
+  const subtitle =
+    canSync && payload ? openMeteoPinSubtitleFromPayload(payload) : null;
+  const isPending =
+    canSync &&
+    subtitle == null &&
+    !syncQuery.isError &&
+    (cachedRowQuery.isFetching || syncQuery.isFetching);
+
+  return { subtitle, isPending };
 }

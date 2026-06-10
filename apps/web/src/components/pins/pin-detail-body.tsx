@@ -22,6 +22,7 @@ import type { Photo, Pin } from "@/types/database";
 import {
   OPEN_METEO_PLUGIN_ID,
   OpenMeteoPinWeatherSubtitle,
+  OpenMeteoPinWeatherSubtitlePlaceholder,
   useOpenMeteoPinSubtitle,
 } from "@curolia/plugin-open-meteo";
 import { POI_PLUGIN_ID } from "@curolia/plugin-poi";
@@ -125,16 +126,17 @@ export function PinDetailBody({
     (p) => p.id === OPEN_METEO_PLUGIN_ID,
   );
   const poiGloballyEnabled = enabledPlugins.some((p) => p.id === POI_PLUGIN_ID);
-  const weatherSubtitle = useOpenMeteoPinSubtitle({
-    supabase,
-    pinId: pin.id,
-    mapId: pin.map_id,
-    lat: pin.lat,
-    lng: pin.lng,
-    pinDate: pin.date,
-    pinEndDate: pin.end_date,
-    queryEnabled: openMeteoGloballyEnabled,
-  });
+  const { subtitle: weatherSubtitle, isPending: weatherSubtitlePending } =
+    useOpenMeteoPinSubtitle({
+      supabase,
+      pinId: pin.id,
+      mapId: pin.map_id,
+      lat: pin.lat,
+      lng: pin.lng,
+      pinDate: pin.date,
+      pinEndDate: pin.end_date,
+      queryEnabled: openMeteoGloballyEnabled,
+    });
   const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin.id,
     mapId: pin.map_id,
@@ -146,6 +148,8 @@ export function PinDetailBody({
     locationLabel: pinLocationLabel(pin),
     weather: weatherSubtitle ? (
       <OpenMeteoPinWeatherSubtitle subtitle={weatherSubtitle} />
+    ) : weatherSubtitlePending ? (
+      <OpenMeteoPinWeatherSubtitlePlaceholder />
     ) : null,
     enrichment: metadataSubtitle ? (
       <PinMetadataSubtitleContent subtitle={metadataSubtitle} />

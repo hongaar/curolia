@@ -25,7 +25,10 @@ export {
   parseOpenMeteoPinPayload,
   type OpenMeteoPinPayload,
 } from "./open-meteo-pin-data";
-export { OpenMeteoPinWeatherSubtitle } from "./open-meteo-pin-weather-subtitle";
+export {
+  OpenMeteoPinWeatherSubtitle,
+  OpenMeteoPinWeatherSubtitlePlaceholder,
+} from "./open-meteo-pin-weather-subtitle";
 export {
   dominantWeatherCode,
   formatOpenMeteoSubtitle,
@@ -43,4 +46,7 @@ export {
   openMeteoWeatherQueryKey,
 } from "./query-keys";
 export { syncOpenMeteoPinWeather } from "./sync-open-meteo-pin-weather";
-export { useOpenMeteoPinSubtitle } from "./use-open-meteo-pin-subtitle";
+export {
+  useOpenMeteoPinSubtitle,
+  type UseOpenMeteoPinSubtitleResult,
+} from "./use-open-meteo-pin-subtitle";
