@@ -6,6 +6,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 import { render, setSsrTemplate } from "./_ssr/entry-server.js";
 
+type SsrRenderResult = {
+  status: number;
+  html: string;
+  headers?: Record<string, string>;
+};
+
 const apiDir = dirname(fileURLToPath(import.meta.url));
 const templatePath = join(apiDir, "_ssr/template.html");
 
@@ -35,7 +41,7 @@ export default async function handler(
   const url = new URL(requestUrl, `https://${host}`);
   const origin = `${url.protocol}//${url.host}`;
 
-  const result = await render(url.pathname, origin);
+  const result = (await render(url.pathname, origin)) as SsrRenderResult | null;
 
   if (!result) {
     res.statusCode = 200;
