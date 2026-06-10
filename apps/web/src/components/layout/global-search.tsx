@@ -17,7 +17,6 @@ import {
   fetchGlobalSearchSelectedPin,
   parseSelectedPinLookup,
 } from "@/lib/global-search-selected-pin";
-import { openPinEditor } from "@/lib/open-pin-editor";
 import {
   formatShortcutKeys,
   formatShortcutLabel,
@@ -32,6 +31,7 @@ import {
   normalizeCameraForUrl,
   PIN_FOCUS_ZOOM,
 } from "@/lib/map-view-params";
+import { openPinEditor } from "@/lib/open-pin-editor";
 import {
   searchPinsInMaps,
   sortPinsByPreferredMap,
@@ -274,8 +274,12 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     setFocused(false);
     setInput("");
     setDebounced("");
-    inputRef.current?.blur();
   }, []);
+
+  useEffect(() => {
+    if (open) return;
+    inputRef.current?.blur();
+  }, [open]);
 
   const runCommand = useCallback(
     (command: GlobalSearchCommandDef) => {
@@ -362,70 +366,79 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     return sortPinsByPreferredMap(rows, activeMapId);
   }, [pinsQuery.data, activeMapId]);
 
-  function onPickMap(j: MapWithOwnerSlug) {
-    if (!j.slug.trim()) return;
-    navigate(mapSwitchHref(j, location.pathname, location.search));
-    closeSearch();
-  }
+  const onPickMap = useCallback(
+    (j: MapWithOwnerSlug) => {
+      if (!j.slug.trim()) return;
+      navigate(mapSwitchHref(j, location.pathname, location.search));
+      closeSearch();
+    },
+    [closeSearch, location.pathname, location.search, navigate],
+  );
 
-  function onPickPin(t: PinSearchRow) {
-    if (isMapRoute) {
-      const map = mapById.get(t.map_id);
+  const onPickPin = useCallback(
+    (t: PinSearchRow) => {
+      if (isMapRoute) {
+        const map = mapById.get(t.map_id);
+        if (!map?.owner_profile_slug || !map.slug?.trim()) {
+          closeSearch();
+          return;
+        }
+        const route = mapRouteForMap(map);
+        const withPin = applySelectedPinToSearchParams(
+          new URLSearchParams(),
+          t.slug,
+        );
+        const params = applyMapCameraToSearchParams(
+          withPin,
+          normalizeCameraForUrl({
+            lat: t.lat,
+            lng: t.lng,
+            zoom: PIN_FOCUS_ZOOM,
+          }),
+        );
+        navigate(mapHrefWithSearch(route, `?${params.toString()}`));
+      } else {
+        const map = mapById.get(t.map_id);
+        if (!map?.owner_profile_slug || !map.slug?.trim()) {
+          navigate("/");
+          closeSearch();
+          return;
+        }
+        navigate(pinDetailHref(mapRouteForMap(map), t.slug));
+      }
+      closeSearch();
+    },
+    [closeSearch, isMapRoute, mapById, navigate],
+  );
+
+  const onPickPlace = useCallback(
+    (p: PlaceSearchResult) => {
+      const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
       if (!map?.owner_profile_slug || !map.slug?.trim()) {
         closeSearch();
         return;
       }
       const route = mapRouteForMap(map);
-      const withPin = applySelectedPinToSearchParams(
-        new URLSearchParams(),
-        t.slug,
-      );
-      const params = applyMapCameraToSearchParams(
-        withPin,
-        normalizeCameraForUrl({
-          lat: t.lat,
-          lng: t.lng,
-          zoom: PIN_FOCUS_ZOOM,
-        }),
+      let params = new URLSearchParams();
+      if (p.bbox) {
+        params = applyMapBboxToSearchParams(params, p.bbox);
+      }
+      const center = p.bbox
+        ? {
+            lat: (p.bbox.south + p.bbox.north) / 2,
+            lng: (p.bbox.west + p.bbox.east) / 2,
+            zoom: 11,
+          }
+        : { lat: p.lat, lng: p.lng, zoom: 12 };
+      params = applyMapCameraToSearchParams(
+        params,
+        normalizeCameraForUrl(center),
       );
       navigate(mapHrefWithSearch(route, `?${params.toString()}`));
-    } else {
-      const map = mapById.get(t.map_id);
-      if (!map?.owner_profile_slug || !map.slug?.trim()) {
-        navigate("/");
-        closeSearch();
-        return;
-      }
-      navigate(pinDetailHref(mapRouteForMap(map), t.slug));
-    }
-    closeSearch();
-  }
-
-  function onPickPlace(p: PlaceSearchResult) {
-    const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
-    if (!map?.owner_profile_slug || !map.slug?.trim()) {
       closeSearch();
-      return;
-    }
-    const route = mapRouteForMap(map);
-    let params = new URLSearchParams();
-    if (p.bbox) {
-      params = applyMapBboxToSearchParams(params, p.bbox);
-    }
-    const center = p.bbox
-      ? {
-          lat: (p.bbox.south + p.bbox.north) / 2,
-          lng: (p.bbox.west + p.bbox.east) / 2,
-          zoom: 11,
-        }
-      : { lat: p.lat, lng: p.lng, zoom: 12 };
-    params = applyMapCameraToSearchParams(
-      params,
-      normalizeCameraForUrl(center),
-    );
-    navigate(mapHrefWithSearch(route, `?${params.toString()}`));
-    closeSearch();
-  }
+    },
+    [activeMapId, closeSearch, maps, navigate],
+  );
 
   const commandMatches = useMemo(
     () =>
@@ -510,6 +523,9 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     placesQuery.isError,
     placesQuery.data,
     runCommand,
+    onPickMap,
+    onPickPin,
+    onPickPlace,
   ]);
 
   const {

@@ -273,7 +273,7 @@ export function AddPinDialog({
   }, [open, onOpenChange]);
 
   const showPlaces = debouncedSearch.length >= MIN_SEARCH_CHARS;
-  const places = placesQuery.data ?? [];
+  const places = useMemo(() => placesQuery.data ?? [], [placesQuery.data]);
   const placesBusy = showPlaces && placesQuery.isFetching;
 
   const selectablePlaces = useMemo((): SearchListKeyboardItem[] => {

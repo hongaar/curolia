@@ -87,13 +87,9 @@ export async function fetchGlobalSearchSelectedPin(
   const token = lookup.pinToken.trim();
   if (!token) return null;
 
-  let pinId: string | null = null;
-  if (PIN_ID_PARAM_RE.test(token)) {
-    pinId = token;
-  } else {
-    const resolved = await resolvePinByMapSlug(lookup.mapId, token);
-    pinId = resolved?.pinId ?? null;
-  }
+  const pinId = PIN_ID_PARAM_RE.test(token)
+    ? token
+    : ((await resolvePinByMapSlug(lookup.mapId, token))?.pinId ?? null);
   if (!pinId) return null;
 
   const pin = await fetchPinRow(pinId);
