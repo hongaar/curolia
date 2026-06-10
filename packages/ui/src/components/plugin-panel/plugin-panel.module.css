@@ -21,7 +21,7 @@
 }
 
 .statusMuted {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--muted-foreground);
 }
 

@@ -42,9 +42,3 @@
 :global(.dark) .root:disabled {
   background: color-mix(in oklch, var(--input) 80%, transparent);
 }
-
-@media (min-width: 48rem) {
-  .root {
-    font-size: var(--font-size-sm);
-  }
-}

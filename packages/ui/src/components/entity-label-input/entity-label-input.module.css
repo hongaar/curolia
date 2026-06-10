@@ -114,13 +114,6 @@
 .input::placeholder {
   color: var(--muted-foreground);
 }
-
-@media (min-width: 48rem) {
-  .input {
-    font-size: var(--font-size-sm);
-  }
-}
-
 .popoverColor {
   width: min(calc(100vw - 2rem), 18rem);
   padding: var(--space-3);

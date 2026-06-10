@@ -52,7 +52,7 @@
 
 .kicker {
   font-family: var(--font-display);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -76,7 +76,7 @@
 .lead {
   margin-top: var(--space-3);
   max-width: 32rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
@@ -151,7 +151,7 @@
 
 .pinDate {
   font-family: var(--font-display);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
   letter-spacing: 0.05em;
   color: var(--muted-foreground);

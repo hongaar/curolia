@@ -132,13 +132,6 @@
 :global(.dark) .contentEditable {
   background: color-mix(in oklch, var(--input) 30%, transparent);
 }
-
-@media (min-width: 48rem) {
-  .contentEditable {
-    font-size: var(--font-size-sm);
-  }
-}
-
 /* Placeholder */
 .mdxEditor :global([class*="placeholder"]) {
   color: var(--muted-foreground);

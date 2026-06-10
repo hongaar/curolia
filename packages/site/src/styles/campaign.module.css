@@ -54,7 +54,7 @@
   width: fit-content;
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;

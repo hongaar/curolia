@@ -94,7 +94,7 @@
 }
 
 .headerLead {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
@@ -106,13 +106,13 @@
 }
 
 .sectionTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }
 
 .muted {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   color: var(--muted-foreground);
 }
 
@@ -152,7 +152,7 @@
 }
 
 .sectionHeading {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.025em;
   color: var(--foreground);
@@ -168,7 +168,7 @@
 
 .sectionHint {
   margin-top: var(--space-1);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-caption);
   line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
@@ -202,7 +202,7 @@
 }
 
 .switchRowLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
 }
 
@@ -277,7 +277,7 @@
 
 .emailLine {
   margin-top: var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--muted-foreground);
 }
 
@@ -344,18 +344,18 @@
 }
 
 .errorText {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--destructive);
 }
 
 .errorTextSpaced {
   margin-top: var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--destructive);
 }
 
 .messageText {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
 }
 
 .capitalize {

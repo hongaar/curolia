@@ -53,13 +53,6 @@
   font-size: var(--font-size-base);
   white-space: nowrap;
 }
-
-@media (min-width: 48rem) {
-  .prefix {
-    font-size: var(--font-size-sm);
-  }
-}
-
 .group :global([data-slot="input"]) {
   flex: 1;
   min-width: 0;

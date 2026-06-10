@@ -53,7 +53,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight) 5;
 }
@@ -63,7 +63,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight) 5;
   color: inherit;
@@ -89,7 +89,7 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: 1.45;
   color: var(--muted-foreground);
 }

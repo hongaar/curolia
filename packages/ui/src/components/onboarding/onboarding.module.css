@@ -178,7 +178,7 @@
 }
 
 .featureTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   color: var(--foreground);
 }
@@ -223,7 +223,7 @@
 }
 
 .pluginName {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   color: var(--foreground);
 }

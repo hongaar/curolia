@@ -131,7 +131,7 @@
   width: fit-content;
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -193,7 +193,7 @@
   gap: var(--space-2);
   border-radius: var(--radius-xl);
   padding: 0.625rem 0.875rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   color: var(--foreground);
   background: color-mix(in oklch, var(--card) 88%, transparent);
@@ -429,7 +429,7 @@
 
 .footerNote {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   color: var(--muted-foreground);
 }
 
@@ -509,7 +509,7 @@
 
 .legalEffective {
   margin: 0 0 0.5rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   color: var(--muted-foreground);
 }
 
@@ -673,7 +673,7 @@
 }
 
 .audienceLinkLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   color: var(--primary);
 }

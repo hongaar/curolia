@@ -65,7 +65,7 @@
 
 .mutedSm {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   color: var(--muted-foreground);
 }
 

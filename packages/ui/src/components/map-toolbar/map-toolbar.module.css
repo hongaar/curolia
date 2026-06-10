@@ -90,7 +90,7 @@
   align-items: center;
   align-self: center;
   padding: 0 0.5rem 0 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }

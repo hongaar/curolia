@@ -8,7 +8,7 @@
 .loading {
   margin: 0;
   padding: var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: var(--icon-size-lg);
   color: var(--muted-foreground);
 }
@@ -34,7 +34,7 @@
   margin: 0;
   min-width: 0;
   padding-top: 0.0625rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--icon-size-lg);
   color: var(--muted-foreground);
@@ -50,7 +50,7 @@
 .value {
   margin: 0;
   min-width: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: var(--icon-size-lg);
   color: var(--foreground);
 }
@@ -83,7 +83,7 @@
 .source {
   display: block;
   margin-top: var(--space-1);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-caption);
   line-height: var(--line-height-tight) 5;
   color: var(--muted-foreground);
 }

@@ -12,7 +12,7 @@
   border-radius: var(--radius-lg);
   background: var(--popover);
   padding: var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--popover-foreground);
   box-shadow:
     0 4px 6px -1px color-mix(in oklch, var(--foreground) 8%, transparent),
@@ -24,7 +24,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
 }
 
 .title {
@@ -32,6 +32,7 @@
 }
 
 .description {
+  font-size: var(--text-caption);
   color: var(--muted-foreground);
 }
 
@@ -99,6 +100,6 @@
 .anchorInputHint {
   margin: 0;
   padding: var(--space-3);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--muted-foreground);
 }

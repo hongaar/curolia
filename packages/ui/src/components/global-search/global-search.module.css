@@ -34,7 +34,7 @@
   border: 0;
   background: transparent;
   padding: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   box-shadow: none;
 }
 
@@ -102,7 +102,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--muted-foreground);
 }
 
@@ -113,7 +113,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--muted-foreground);
 }
 
@@ -204,7 +204,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: var(--line-height-snug);
   color: var(--foreground);
 }

@@ -6,7 +6,7 @@
 
 .sectionLabel {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }

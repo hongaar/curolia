@@ -72,7 +72,7 @@
 
 .placeText {
   min-height: 1.35rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: 1.375;
   color: var(--muted-foreground);
 }

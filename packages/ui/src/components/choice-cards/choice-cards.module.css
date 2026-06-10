@@ -121,14 +121,14 @@
 }
 
 .label {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight) 5;
 }
 
 .description {
   color: var(--muted-foreground);
-  font-size: var(--font-size-xs);
+  font-size: var(--text-caption);
   line-height: var(--line-height-snug);
 }
 

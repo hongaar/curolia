@@ -94,7 +94,7 @@
 
 .mapAttribution {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
@@ -124,7 +124,7 @@
 .npmItem {
   display: grid;
   gap: 0.125rem;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: 1.45;
 }
 
@@ -140,7 +140,7 @@
 }
 
 .npmRepo {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   color: var(--primary);
   text-decoration: none;
@@ -153,12 +153,12 @@
 
 .npmEmpty {
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   line-height: var(--line-height-normal);
   color: var(--muted-foreground);
 }
 
 .npmCode {
   font-family: ui-monospace, monospace;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
 }

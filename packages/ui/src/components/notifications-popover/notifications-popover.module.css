@@ -12,7 +12,7 @@
 }
 
 .popoverTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
 }
 
@@ -46,7 +46,7 @@
   background: transparent;
   padding: 0.625rem 0.75rem;
   text-align: left;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   cursor: pointer;
   transition: background 150ms;
 }

@@ -42,7 +42,7 @@
 }
 
 .rowDescription {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   line-height: 1.4;
   color: var(--muted-foreground);
 }
@@ -63,7 +63,7 @@
 }
 
 .toggleLabel {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   color: var(--muted-foreground);
 }
 

@@ -83,7 +83,7 @@
 
 .formLink {
   flex-shrink: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   color: var(--muted-foreground);
@@ -96,7 +96,7 @@
 }
 
 .error {
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   color: var(--destructive);
 }
 
@@ -108,13 +108,13 @@
 
 .actionsSecondaryLink {
   align-self: center;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
 }
 
 .footerNote {
   margin-top: 1.5rem;
   text-align: center;
-  font-size: var(--font-size-xs);
+  font-size: var(--text-caption);
   line-height: var(--line-height-relaxed);
   color: var(--muted-foreground);
 }
@@ -134,7 +134,7 @@
   gap: var(--space-1);
   margin-top: 1.5rem;
   text-align: center;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   color: var(--muted-foreground);

@@ -58,9 +58,9 @@
   --text-display: var(--font-size-4xl);
   --text-title-lg: var(--font-size-3xl);
   --text-title: var(--font-size-2xl);
-  --text-body: var(--font-size-sm);
-  --text-label: var(--font-size-sm);
-  --text-caption: var(--font-size-xs);
+  --text-body: var(--font-size-base);
+  --text-label: var(--font-size-base);
+  --text-caption: var(--font-size-sm);
 
   /* ── Control sizing (toolbar, search, map-picker, inputs) ──── */
   --control-h-sm: 2rem;

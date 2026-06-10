@@ -49,18 +49,12 @@
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 40%, transparent);
 }
 
-@media (min-width: 48rem) {
-  .root {
-    font-size: var(--font-size-sm);
-  }
-}
-
 .root[type="file"]::file-selector-button {
   display: inline-flex;
   height: var(--control-h-sm);
   border: 0;
   background: transparent;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   color: var(--foreground);
 }
