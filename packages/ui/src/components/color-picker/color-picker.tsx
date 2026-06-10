@@ -94,7 +94,7 @@ function ColorPickerGrid({ className, ...props }: ComponentProps<"div">) {
     <div
       {...props}
       className={cn(styles.grid, className)}
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: `repeat(${columns}, auto)` }}
       role="listbox"
       aria-label="Color presets"
       data-slot="color-picker-grid"
@@ -109,16 +109,17 @@ function ColorPickerGrid({ className, ...props }: ComponentProps<"div">) {
               role="option"
               aria-selected={selected}
               aria-label={hex}
-              className={
-                selected
-                  ? `${styles.swatch} ${styles.swatchSelected}`
-                  : styles.swatch
-              }
-              style={{ backgroundColor: hex }}
+              className={cn(styles.swatch, selected && styles.swatchSelected)}
               title={hex}
               data-slot="color-picker-swatch"
               onClick={() => onColorSelect(hex)}
-            />
+            >
+              <span
+                className={styles.swatchColor}
+                style={{ backgroundColor: hex }}
+                aria-hidden
+              />
+            </button>
           );
         }),
       )}
