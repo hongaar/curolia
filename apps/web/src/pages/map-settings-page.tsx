@@ -15,8 +15,8 @@ import {
   defaultMapIcon,
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
-import { mapRouteForMap } from "@/lib/map-route";
 import { normalizeShowPinRoute } from "@/lib/map-pin-route";
+import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -256,7 +256,6 @@ export function MapSettingsPage() {
                 previewSrc={MAP_STYLE_PREVIEW_SRC.street}
                 footer={
                   <MapStyleOptionCheckbox
-                    id="map-style-hillshades"
                     label="Terrain"
                     checked={styleOptions.hillshades}
                     disabled={controlsDisabled || mapStyle !== "street"}
@@ -276,7 +275,6 @@ export function MapSettingsPage() {
                 previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
                 footer={
                   <MapStyleOptionCheckbox
-                    id="map-style-satellite-labels"
                     label="Labels"
                     checked={styleOptions.satelliteLabels}
                     disabled={controlsDisabled || mapStyle !== "satellite"}
@@ -292,14 +290,12 @@ export function MapSettingsPage() {
             </ChoiceCards>
           </Field>
           <Field>
-            <FieldLabel id="map-show-pin-route-label">Map view</FieldLabel>
-            <Label htmlFor="map-show-pin-route">
+            <FieldLabel>Map view</FieldLabel>
+            <Label>
               <Checkbox
-                id="map-show-pin-route"
                 checked={showPinRoute}
                 disabled={controlsDisabled}
                 onCheckedChange={(value) => setShowPinRoute(value === true)}
-                aria-labelledby="map-show-pin-route-label"
               />
               Route lines
             </Label>
@@ -368,22 +364,19 @@ export function MapSettingsPage() {
 }
 
 function MapStyleOptionCheckbox({
-  id,
   label,
   checked,
   disabled,
   onCheckedChange,
 }: {
-  id: string;
   label: string;
   checked: boolean;
   disabled: boolean;
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
-    <Label htmlFor={id}>
+    <Label>
       <Checkbox
-        id={id}
         checked={checked}
         disabled={disabled}
         onCheckedChange={(value) => onCheckedChange(value === true)}

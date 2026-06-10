@@ -1,5 +1,18 @@
-.root {
+/* Positioning context for Base UI's visually hidden native input (defaults to fixed top-left). */
+.anchor {
   position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.anchor > :global(input) {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.root {
   display: flex;
   width: var(--icon-size-md);
   height: var(--icon-size-md);

@@ -17,7 +17,7 @@ import {
   DropdownMenuItemEmoji,
   DropdownMenuItemName,
 } from "@curolia/ui/dropdown-menu-list";
-import { Check, Pencil, Plus } from "lucide-react";
+import { Check, Plus, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function mapEmoji(map: MapWithOwnerSlug) {
@@ -65,16 +65,18 @@ export function MapPickerMenuContent({
                   <DropdownMenuCheckSpacer />
                 )}
               </DropdownMenuCheckItem>
-              <DropdownMenuEditButton
-                title="Edit map"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onOpenMapSettings(mapRouteForMap(j));
-                }}
-              >
-                <Pencil aria-hidden />
-              </DropdownMenuEditButton>
+              {selected ? (
+                <DropdownMenuEditButton
+                  title="Map settings"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onOpenMapSettings(mapRouteForMap(j));
+                  }}
+                >
+                  <Settings aria-hidden />
+                </DropdownMenuEditButton>
+              ) : null}
             </DropdownMenuEditRow>
           );
         })}
