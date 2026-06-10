@@ -1,3 +1,8 @@
+import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
+import {
+  isPinDetailPagePathname,
+  pinDetailBackTarget,
+} from "@/lib/pin-detail-back";
 import { isStackRoute } from "@/lib/stack-routes";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
@@ -8,6 +13,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 export function useNativeBackButton() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const frozenBase = useFrozenBaseLocation();
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -15,6 +21,13 @@ export function useNativeBackButton() {
     let remove: (() => void) | undefined;
 
     void App.addListener("backButton", () => {
+      if (isPinDetailPagePathname(pathname)) {
+        const target = pinDetailBackTarget(frozenBase);
+        if (target) {
+          navigate(target.href);
+          return;
+        }
+      }
       if (isStackRoute(pathname)) {
         navigate(-1);
         return;
@@ -27,5 +40,5 @@ export function useNativeBackButton() {
     return () => {
       remove?.();
     };
-  }, [navigate, pathname]);
+  }, [frozenBase, navigate, pathname]);
 }

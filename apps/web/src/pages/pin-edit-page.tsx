@@ -110,8 +110,7 @@ export function PinEditPage() {
   }
 
   return (
-    <AppPageLayout width="2xl">
-      <PageBackButton />
+    <AppPageLayout width="2xl" toolbar={<PageBackButton />}>
       <PagePanel>
         <Suspense fallback={null}>
           <PinFormDialog

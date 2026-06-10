@@ -229,8 +229,7 @@ export function PluginsPage() {
   }
 
   return (
-    <AppPageLayout width="2xl">
-      <PageBackButton />
+    <AppPageLayout width="2xl" toolbar={<PageBackButton />}>
       <PagePanel>
         <Stack gap="md">
           <PageHeader>

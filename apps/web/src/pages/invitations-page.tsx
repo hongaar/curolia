@@ -135,8 +135,7 @@ export function InvitationsPage() {
 
   if (!token) {
     return (
-      <AppPageLayout>
-        <PageBackButton />
+      <AppPageLayout toolbar={<PageBackButton />}>
         <PagePanel>
           <PageMuted>
             Missing invitation link. Open the link from your email or
@@ -148,8 +147,7 @@ export function InvitationsPage() {
   }
 
   return (
-    <AppPageLayout>
-      <PageBackButton />
+    <AppPageLayout toolbar={<PageBackButton />}>
       <PagePanel>
         <PageHeader>
           <PageHeaderTitle>Curolia map invitation</PageHeaderTitle>

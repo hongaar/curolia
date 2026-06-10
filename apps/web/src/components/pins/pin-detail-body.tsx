@@ -4,6 +4,7 @@ import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { PinSequenceNavSection } from "@/components/pins/pin-sequence-nav-section";
 import { useMapMemberRole } from "@/hooks/use-map-access";
+import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { pinDetailHref } from "@/lib/app-paths";
 import type { MapRoute } from "@/lib/map-route";
@@ -93,6 +94,7 @@ export function PinDetailBody({
   const { plugins: enabledPlugins } = useEnabledPlugins();
   const { canEdit } = useMapMemberRole(pin.map_id);
   const isWideEnough = useMinMd();
+  const isMaxSm = useMaxSm();
   const [photoLightbox, setPhotoLightbox] = useState<{
     photoId: string;
   } | null>(null);
@@ -162,7 +164,7 @@ export function PinDetailBody({
         <PinDetailHeaderMain>
           <PinDetailTitle>{pin.title || "Untitled place"}</PinDetailTitle>
           <PinDetailActions>
-            {canEdit ? (
+            {canEdit && !isMaxSm ? (
               <PinFormDialogTrigger
                 mapId={pin.map_id}
                 pin={pin}
@@ -194,6 +196,7 @@ export function PinDetailBody({
             mapPins={mapPins}
             mapRoute={permalinkMapRoute ?? null}
             onNavigatePin={onNavigateSequencePin}
+            showDots={isWideEnough && !onNavigateSequencePin}
           />
         ) : null}
         {tagBadges.length > 0 ? (

@@ -59,8 +59,7 @@ export function NotificationsPage() {
   const items = listQuery.data ?? [];
 
   return (
-    <AppPageLayout>
-      <PageBackButton />
+    <AppPageLayout toolbar={<PageBackButton />}>
       <PagePanel>
         <Stack gap="xl">
           <PageHeader>

@@ -318,8 +318,7 @@ export function ProfilePage() {
   });
 
   return (
-    <AppPageLayout>
-      <PageBackButton />
+    <AppPageLayout toolbar={<PageBackButton />}>
       <PagePanel>
         <PageHeader>
           <PageHeaderTitle>Profile</PageHeaderTitle>

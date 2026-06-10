@@ -145,8 +145,7 @@ export function AppSettingsPage() {
   }
 
   return (
-    <AppPageLayout>
-      <PageBackButton />
+    <AppPageLayout toolbar={<PageBackButton />}>
       <PagePanel>
         <PageHeader>
           <PageHeaderTitle>Settings</PageHeaderTitle>

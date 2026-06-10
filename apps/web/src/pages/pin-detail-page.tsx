@@ -1,11 +1,12 @@
-import { PageBackButton } from "@/components/layout/page-back-button";
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
+import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger";
+import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
+import { usePinDetailBack } from "@/hooks/use-pin-detail-back";
 import { mapHrefWithSearch, mapViewHref, pinDetailHref } from "@/lib/app-paths";
-import { canNavigateBack } from "@/lib/can-navigate-back";
-import { defaultMapIcon } from "@/lib/map-display-icon";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
@@ -24,49 +25,28 @@ import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
-import { MapNavButton } from "@curolia/ui/map-picker";
 import { AppPageLayout, PageCenteredError, PagePanel } from "@curolia/ui/page";
-import { PageBackButton as UiPageBackButton } from "@curolia/ui/page-back-button";
+import { PageBackButton } from "@curolia/ui/page-back-button";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 function PinDetailPageNav({
-  mapHref,
-  mapName,
-  mapEmoji,
+  profileSlug,
+  mapSlug,
+  fallbackMapHref,
 }: {
-  mapHref: string | null;
-  mapName: string;
-  mapEmoji: string;
+  profileSlug: string | undefined;
+  mapSlug: string | undefined;
+  fallbackMapHref: string | null;
 }) {
-  const navigate = useNavigate();
-  const isWideEnough = useMinMd();
-  useLocation();
+  const { label, onBack } = usePinDetailBack({
+    profileSlug,
+    mapSlug,
+    fallbackMapHref,
+  });
 
-  if (canNavigateBack()) {
-    return <PageBackButton />;
-  }
-
-  if (!mapHref) return null;
-
-  if (!isWideEnough) {
-    return (
-      <MapNavButton
-        mapEmoji={mapEmoji}
-        mapName={mapName}
-        onClick={() => navigate(mapHref)}
-      />
-    );
-  }
-
-  return (
-    <UiPageBackButton
-      label="Go to map"
-      direction="forward"
-      onClick={() => navigate(mapHref)}
-    />
-  );
+  return <PageBackButton label={label} onClick={onBack} />;
 }
 
 export function PinDetailPage() {
@@ -77,6 +57,7 @@ export function PinDetailPage() {
   }>();
   const navigate = useNavigate();
   const isWideEnough = useMinMd();
+  const isMaxSm = useMaxSm();
   const { maps, activeMapId, loading: mapsLoading } = useMap();
   useMapSlugRouteSync(profileSlug, mapSlug);
 
@@ -92,6 +73,8 @@ export function PinDetailPage() {
       ) ?? null
     );
   }, [maps, profileSlug, mapSlug]);
+
+  const { canEdit } = useMapMemberRole(mapForRoute?.id);
 
   const pinQuery = useQuery({
     queryKey: ["pin", mapForRoute?.id, pinSlug],
@@ -223,12 +206,26 @@ export function PinDetailPage() {
     (pin.pin_tags ?? []).map((tt) => tt.tags).filter(Boolean)[0] ?? null;
 
   return (
-    <AppPageLayout width="2xl">
-      <PinDetailPageNav
-        mapHref={mapHref}
-        mapName={mapForRoute?.name.trim() || "Map"}
-        mapEmoji={mapForRoute?.icon_emoji ?? defaultMapIcon()}
-      />
+    <AppPageLayout
+      width="2xl"
+      toolbar={
+        <PinDetailPageNav
+          profileSlug={profileSlug}
+          mapSlug={mapSlug}
+          fallbackMapHref={mapHref}
+        />
+      }
+      toolbarEnd={
+        isMaxSm && canEdit ? (
+          <PinFormDialogTrigger
+            mapId={pin.map_id}
+            pin={pin}
+            variant="outline"
+            size="sm"
+          />
+        ) : null
+      }
+    >
       <PagePanel>
         <PinDetailBody
           pin={pin}

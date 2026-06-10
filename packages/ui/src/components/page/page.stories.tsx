@@ -83,8 +83,9 @@ export const AppPageLayoutDefault: Story = {
   ),
   render: () => (
     <PageShell>
-      <AppPageLayout>
-        <PageBackButton label="Back" onClick={() => undefined} />
+      <AppPageLayout
+        toolbar={<PageBackButton label="Back" onClick={() => undefined} />}
+      >
         <PagePanel>
           <PageHeader>
             <PageHeaderTitle>Map settings</PageHeaderTitle>
@@ -177,8 +178,9 @@ export const PageHeaderWithFormBlock: Story = {
   ),
   render: () => (
     <PageShell>
-      <AppPageLayout>
-        <PageBackButton label="Back" onClick={() => undefined} />
+      <AppPageLayout
+        toolbar={<PageBackButton label="Back" onClick={() => undefined} />}
+      >
         <PagePanel>
           <PageHeader>
             <PageHeaderTitle>Profile</PageHeaderTitle>

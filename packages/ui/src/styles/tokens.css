@@ -87,6 +87,7 @@
   --toolbar-h: 4.75rem;
   --toolbar-pad-x: var(--space-6);
   --toolbar-offset: calc(var(--safe-top) + var(--toolbar-h));
+  --page-toolbar-h: 3.25rem;
   --mdx-editor-overlay-z: 120;
   --mdx-editor-overlay-content-z: 121;
   --app-chrome-top: var(--toolbar-offset);

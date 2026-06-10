@@ -24,8 +24,79 @@
   padding-left: calc(var(--page-pad-x) + var(--safe-left));
 }
 
+.scrollWithPageToolbar {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: calc(var(--page-chrome-top) + var(--space-3));
+  padding-right: calc(var(--page-pad-x) + var(--safe-right));
+  padding-bottom: calc(2.5rem + var(--safe-bottom));
+  padding-left: calc(var(--page-pad-x) + var(--safe-left));
+}
+
+.pageToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.pageToolbarMain {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.pageToolbarMain > * {
+  align-self: center;
+}
+
+.pageToolbarEnd {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.pageToolbarEnd > * {
+  align-self: center;
+}
+
+:global(html.stack-chrome) .scrollWithPageToolbar {
+  padding-top: calc(var(--safe-top) + var(--page-toolbar-h) + var(--space-3));
+  background: var(--panel-bg);
+}
+
+:global(html.stack-chrome) .pageToolbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 50;
+  box-sizing: border-box;
+  height: calc(var(--safe-top) + var(--page-toolbar-h));
+  margin: 0;
+  padding-top: var(--safe-top);
+  padding-right: calc(var(--page-pad-x) + var(--safe-right));
+  padding-left: calc(var(--page-pad-x) + var(--safe-left));
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+:global(html.stack-chrome) .pageToolbarMain {
+  height: var(--page-toolbar-h);
+  padding-left: calc(var(--space-2) * -1);
+}
+
+:global(html.stack-chrome) .pageToolbarEnd {
+  height: var(--page-toolbar-h);
+}
+
 @media (min-width: 40rem) {
   .scrollUnderNav {
+    padding-top: calc(var(--page-chrome-top) + 1rem);
+  }
+
+  .scrollWithPageToolbar {
     padding-top: calc(var(--page-chrome-top) + 1rem);
   }
 }

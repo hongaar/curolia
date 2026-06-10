@@ -18,13 +18,40 @@ export function Page({
 export function PageScroll({
   children,
   underNav = false,
+  pageToolbar = false,
 }: {
   children: React.ReactNode;
   underNav?: boolean;
+  /** Scroll region that begins with a sticky `PageToolbar` (stack screens on mobile). */
+  pageToolbar?: boolean;
 }) {
   return (
-    <div className={underNav ? styles.scrollUnderNav : styles.scroll}>
+    <div
+      className={
+        pageToolbar
+          ? styles.scrollWithPageToolbar
+          : underNav
+            ? styles.scrollUnderNav
+            : styles.scroll
+      }
+    >
       {children}
+    </div>
+  );
+}
+
+export function PageToolbar({
+  children,
+  end,
+}: {
+  children: React.ReactNode;
+  /** Trailing actions (e.g. Edit) — right-aligned on mobile stack toolbars. */
+  end?: React.ReactNode;
+}) {
+  return (
+    <div className={styles.pageToolbar}>
+      <div className={styles.pageToolbarMain}>{children}</div>
+      {end ? <div className={styles.pageToolbarEnd}>{end}</div> : null}
     </div>
   );
 }
@@ -54,10 +81,29 @@ export function PageContentStack({
 export function AppPageLayout({
   children,
   width = "narrow",
+  toolbar,
+  toolbarEnd,
 }: {
   children: React.ReactNode;
   width?: "narrow" | "default" | "wide" | "2xl";
+  /** Back navigation shown in a distinct toolbar on mobile stack screens. */
+  toolbar?: React.ReactNode;
+  /** Trailing toolbar actions (mobile stack screens). */
+  toolbarEnd?: React.ReactNode;
 }) {
+  if (toolbar) {
+    return (
+      <Page>
+        <PageScroll underNav pageToolbar>
+          <PageContentStack width={width}>
+            <PageToolbar end={toolbarEnd}>{toolbar}</PageToolbar>
+            {children}
+          </PageContentStack>
+        </PageScroll>
+      </Page>
+    );
+  }
+
   return (
     <Page>
       <PageScroll underNav>
