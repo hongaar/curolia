@@ -1,5 +1,6 @@
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import type { MapRoute } from "@/lib/map-route";
+import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { Button } from "@curolia/ui/button";
@@ -10,12 +11,16 @@ interface PinDetailSideSheetProps {
   pinId: string;
   mapId: string;
   mapRoute: MapRoute | null;
+  mapPins: PinWithTags[];
+  onNavigatePin: (pinId: string) => void;
   onClose: () => void;
 }
 
 export function PinDetailSideSheet({
   pinId,
   mapRoute,
+  mapPins,
+  onNavigatePin,
   onClose,
 }: PinDetailSideSheetProps) {
   const pinQuery = useQuery({
@@ -50,6 +55,8 @@ export function PinDetailSideSheet({
       photos={photos}
       signedUrlByPhotoId={signedUrlByPhotoId}
       permalinkMapRoute={mapRoute ?? undefined}
+      mapPins={mapPins}
+      onNavigateSequencePin={(target) => onNavigatePin(target.id)}
       extraActions={
         <Button
           type="button"

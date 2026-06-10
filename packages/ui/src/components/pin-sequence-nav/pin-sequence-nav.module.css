@@ -1,0 +1,176 @@
+.panel {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--card) 82%, transparent);
+}
+
+.row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.endpointSlot {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.endpointNext {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.dotsSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  max-width: 100%;
+  padding-inline: 0.125rem;
+}
+
+.dotsOnly {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 1rem;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--foreground) 18%, transparent);
+  transition:
+    width 200ms ease,
+    background 200ms ease;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.dotInteractive {
+  cursor: pointer;
+}
+
+.dotActive {
+  width: 1.4rem;
+}
+
+.collapsedButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1875rem;
+  height: 0.5rem;
+  margin-inline: 0.125rem;
+  padding: 0 0.125rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.collapsedButton:disabled {
+  cursor: default;
+}
+
+.collapsedDot {
+  width: 0.1875rem;
+  height: 0.1875rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--foreground) 30%, transparent);
+}
+
+.navControl {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  transition: color 150ms ease;
+}
+
+.navControl:hover {
+  color: var(--foreground);
+}
+
+.navControl:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.navControlPrevious {
+  text-align: left;
+}
+
+.navControlNext {
+  text-align: right;
+}
+
+.navLinkText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  line-height: 1;
+}
+
+.navControlNext .navLinkText {
+  align-items: flex-end;
+}
+
+.arrowIcon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.navLinkLabel {
+  display: block;
+  padding-top: 0.0625rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.navLinkTitle {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.15;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.navControl:hover .navLinkTitle {
+  color: var(--primary);
+}

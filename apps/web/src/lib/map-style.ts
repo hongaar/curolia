@@ -93,6 +93,24 @@ function mapStyleUrlForTheme(resolvedTheme: string | undefined): string {
 }
 
 /** Stable key for comparing whether the basemap needs to change. */
+/** Satellite imagery and auto-in-dark use a dark basemap; route lines need brighter paint. */
+export function isDarkBasemap(
+  preset: MapStylePreset,
+  resolvedTheme: string | undefined,
+): boolean {
+  if (preset === "satellite") return true;
+  if (preset === "street") return false;
+  if (resolvedTheme === "dark") return true;
+  if (resolvedTheme === "light") return false;
+  if (
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark")
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function mapStyleCacheKey(
   preset: MapStylePreset,
   resolvedTheme: string | undefined,

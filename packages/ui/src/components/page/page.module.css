@@ -221,7 +221,7 @@
 .profileGrid {
   margin-top: 1.5rem;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--gap-form-grid);
 }
 
 .avatarSection {
@@ -340,7 +340,7 @@
   margin-top: 2rem;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--gap-form-grid);
 }
 
 .errorText {

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-1);
+  gap: var(--space-3);
 }
 
 .detailHeaderMain {
@@ -21,7 +21,6 @@
 }
 
 .detailSubtitleStack {
-  margin-top: var(--space-1);
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
@@ -40,7 +39,6 @@
 }
 
 .tagRow {
-  margin-top: var(--space-2);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);

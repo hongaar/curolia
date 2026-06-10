@@ -8,6 +8,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "../dialog";
+import { ProgressDots } from "../progress-dots";
 import styles from "./onboarding.module.css";
 
 export type OnboardingTone = "brand" | "sky" | "amber" | "violet" | "rose";
@@ -177,31 +178,18 @@ function OnboardingProgress({
   current: number;
   onSelectStep?: (index: number) => void;
 }) {
+  const items = Array.from({ length: total }, (_, index) => ({
+    id: String(index),
+  }));
+
   return (
-    <div
-      className={styles.progress}
-      role="tablist"
-      aria-label="Onboarding steps"
-    >
-      {Array.from({ length: total }, (_, index) => {
-        const isActive = index === current;
-        return (
-          <button
-            key={index}
-            type="button"
-            role="tab"
-            aria-selected={isActive}
-            aria-label={`Step ${index + 1} of ${total}`}
-            className={cn(
-              styles.dot,
-              isActive && styles.dotActive,
-              index < current && styles.dotDone,
-            )}
-            disabled={!onSelectStep}
-            onClick={onSelectStep ? () => onSelectStep(index) : undefined}
-          />
-        );
-      })}
+    <div className={styles.progress}>
+      <ProgressDots
+        items={items}
+        currentIndex={current}
+        onSelectIndex={onSelectStep}
+        ariaLabel="Onboarding steps"
+      />
     </div>
   );
 }

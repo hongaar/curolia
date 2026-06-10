@@ -17,6 +17,7 @@ import {
   normalizeCameraForUrl,
   PIN_FOCUS_ZOOM,
 } from "@/lib/map-view-params";
+import type { PinWithTags } from "@/lib/pin-with-tags";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { supabase } from "@/lib/supabase";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
@@ -123,6 +124,24 @@ export function PinDetailPage() {
   const redirectSlug = pinQuery.data?.redirectSlug ?? null;
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
 
+  const mapPinsQuery = useQuery({
+    queryKey: ["pins-sequence", mapForRoute?.id],
+    queryFn: async () => {
+      if (!mapForRoute) return [];
+      const { data, error } = await supabase
+        .from("pins")
+        .select(
+          `id, slug, title, date, end_date, lat, lng,
+          pin_tags ( tag_id, tags ( id, name, color, icon_emoji ) )`,
+        )
+        .eq("map_id", mapForRoute.id);
+      if (error) throw error;
+      return (data ?? []) as PinWithTags[];
+    },
+    enabled: Boolean(mapForRoute),
+  });
+  const mapPins = mapPinsQuery.data ?? [];
+
   const mapRoute = useMemo(
     () => (mapForRoute ? mapRouteForMap(mapForRoute) : null),
     [mapForRoute],
@@ -216,6 +235,7 @@ export function PinDetailPage() {
           photos={photos}
           signedUrlByPhotoId={signedUrlByPhotoId}
           permalinkMapRoute={mapRoute ?? undefined}
+          mapPins={mapPins}
           topContent={
             isWideEnough && mapHref ? (
               <PinDetailInsetMapView

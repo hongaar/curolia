@@ -18,7 +18,7 @@
   /* Semantic spacing aliases */
   --gap-form-field: var(--space-2);
   --gap-form-section: var(--space-6);
-  --gap-form-grid: var(--space-5);
+  --gap-form-grid: var(--space-8);
   --card-pad: var(--space-6);
   --card-pad-sm: var(--space-4);
   --dialog-pad: var(--card-pad);

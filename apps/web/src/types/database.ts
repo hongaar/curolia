@@ -40,6 +40,8 @@ export type CuroliaMap = {
   style_hillshades: boolean;
   /** Reference labels overlay when `style` is `satellite`. */
   style_satellite_labels: boolean;
+  /** Connect dated pins with route lines on the map view. */
+  show_pin_route: boolean;
   /** Per-field pin metadata visibility (`{ fields: string[] }`). */
   show_pin_metadata?: import("@/lib/database.types").Json | null;
   created_by_user_id: string;

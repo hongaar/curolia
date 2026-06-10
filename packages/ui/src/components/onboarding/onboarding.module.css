@@ -253,31 +253,7 @@
   gap: var(--space-2);
 }
 
-/* Progress dots */
+/* Progress dots — shared component; tone via descendant custom property */
 .progress {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: color-mix(in oklch, var(--foreground) 18%, transparent);
-  transition:
-    width 200ms ease,
-    background 200ms ease;
-  cursor: pointer;
-}
-
-.dotActive {
-  width: 1.4rem;
-  background: var(--onboarding-tone);
-}
-
-.dotDone {
-  background: color-mix(in oklch, var(--onboarding-tone) 55%, transparent);
+  --primary: var(--onboarding-tone);
 }

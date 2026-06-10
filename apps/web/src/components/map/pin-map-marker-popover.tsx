@@ -35,13 +35,13 @@ import {
   MapMarkerPopoverStatusStack,
   MapMarkerPopoverTagRow,
 } from "@curolia/ui/map-marker-popover";
-import { TagBadge } from "@curolia/ui/tag-badge";
 import { PinMetadataSubtitleContent } from "@curolia/ui/pin-metadata-subtitle";
 import {
   PinPhotoLightbox,
   PinPhotoThumb,
 } from "@curolia/ui/pin-photo-lightbox";
 import { Sheet } from "@curolia/ui/sheet";
+import { TagBadge } from "@curolia/ui/tag-badge";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";

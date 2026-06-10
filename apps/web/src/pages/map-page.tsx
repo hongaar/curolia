@@ -23,10 +23,7 @@ import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
-import {
-  readShowPinRoute,
-  writeShowPinRoute,
-} from "@/lib/map-pin-route-storage";
+import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
@@ -179,20 +176,12 @@ export function MapPage() {
   const prevMapIdRef = useRef<string | null>(null);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);
   const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
-  const [showPinRoute, setShowPinRoute] = useState(() =>
-    readShowPinRoute(activeMapId),
-  );
-
   useLayoutEffect(() => {
     const prev = prevMapIdRef.current;
     if (prev !== null && activeMapId !== null && prev !== activeMapId) {
       setMapFitGeneration((g) => g + 1);
     }
     prevMapIdRef.current = activeMapId;
-  }, [activeMapId]);
-
-  useEffect(() => {
-    setShowPinRoute(readShowPinRoute(activeMapId));
   }, [activeMapId]);
 
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -384,15 +373,12 @@ export function MapPage() {
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
 
-  const pinRouteAvailable = useMemo(() => hasPinTravelSequence(pins), [pins]);
-
-  const onTogglePinRoute = useCallback(() => {
-    setShowPinRoute((prev) => {
-      const next = !prev;
-      writeShowPinRoute(activeMapId, next);
-      return next;
-    });
-  }, [activeMapId]);
+  const showPinRoute = useMemo(
+    () =>
+      normalizeShowPinRoute(activeMap?.show_pin_route) &&
+      hasPinTravelSequence(pins),
+    [activeMap?.show_pin_route, pins],
+  );
 
   const pinsReadyForMapFit =
     Boolean(activeMapId) && !mapLoading && !pinsQuery.isPending;
@@ -944,7 +930,7 @@ export function MapPage() {
             }
             mapStyle={normalizeMapStylePreset(activeMap?.style)}
             mapStyleOptions={mapStyleOptions}
-            showPinRoute={showPinRoute && pinRouteAvailable}
+            showPinRoute={showPinRoute}
             onSelectPin={onSelectPin}
             placementMode={canEdit && placementActive}
             onPlacementClick={onPlacementClick}
@@ -984,12 +970,7 @@ export function MapPage() {
               onEditTag={openEditTagDialog}
               canEdit={canEdit}
             />
-            <MapControlsToolbar
-              mapRef={mapRef}
-              showPinRoute={showPinRoute}
-              onTogglePinRoute={onTogglePinRoute}
-              pinRouteAvailable={pinRouteAvailable}
-            />
+            <MapControlsToolbar mapRef={mapRef} />
             {canEdit ? (
               <AddPinFab
                 active={placementActive}

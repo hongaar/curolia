@@ -1,6 +1,7 @@
 import { mapFloatingViewportPadding } from "@/lib/map-anchor-floating-ui";
 import {
   DEFAULT_MAP_STYLE_OPTIONS,
+  isDarkBasemap,
   mapStyleCacheKey,
   normalizeMapStylePreset,
   resolveMapStyle,
@@ -15,6 +16,11 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
+import {
+  buildPinRouteSegments,
+  schedulePinRouteSync,
+  updatePinRouteAnimation,
+} from "@/lib/pin-map-route-layers";
 import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
 import { isValidMapBbox, type MapBbox } from "@curolia/services/coords";
 import { MapCanvas } from "@curolia/ui/map";
@@ -142,6 +148,8 @@ type PinMapProps = {
   mapStyle?: MapStylePreset;
   /** Per-map basemap overlays (hillshades, satellite labels). */
   mapStyleOptions?: MapStyleOptions;
+  /** Draw chronological route lines between dated pins. */
+  showPinRoute?: boolean;
 };
 
 const CAMERA_DURATION_MS = 850;
@@ -282,6 +290,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onPinContextMenu,
     mapStyle = "auto",
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
+    showPinRoute = false,
   },
   ref,
 ) {
@@ -349,11 +358,21 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const pinSelectGenerationRef = useRef(0);
   const markerPointerDownGenerationRef = useRef(0);
   const suppressNextMapClickRef = useRef(false);
+  const routeAnimationPhaseRef = useRef(0);
+  const showPinRouteRef = useRef(showPinRoute);
+  const routeSegmentsRef = useRef(buildPinRouteSegments([]));
+  const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
+  const syncPinRouteFromRefsRef = useRef<() => void>(() => {});
 
   const filtered = useMemo(
     () => filterPinsByTags(pins, selectedTagIds),
     [pins, selectedTagIds],
   );
+  const routeSegments = useMemo(
+    () => buildPinRouteSegments(filtered),
+    [filtered],
+  );
+
   const filteredRef = useRef(filtered);
   const selectedPinIdRef = useRef(selectedPinId);
   const latestPinHoverIdRef = useRef<string | null>(null);
@@ -949,6 +968,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         mapStylePresetRef.current,
         mapStyleOptsRef.current,
       );
+      syncPinRouteFromRefsRef.current();
     };
     map.on("style.load", onStyleLoad);
 
@@ -969,6 +989,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (appliedMapStyleKeyRef.current === key) return;
     appliedMapStyleKeyRef.current = key;
     map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
+    syncPinRouteFromRefsRef.current();
   }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {
@@ -1369,6 +1390,70 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   useEffect(() => {
     scheduleSyncVisibleMarkers();
   }, [selectedPinId, pinHover?.pin.id, scheduleSyncVisibleMarkers]);
+
+  useLayoutEffect(() => {
+    showPinRouteRef.current = showPinRoute;
+    routeSegmentsRef.current = routeSegments;
+    darkBasemapRef.current = isDarkBasemap(mapStylePreset, resolvedTheme);
+    syncPinRouteFromRefsRef.current = () => {
+      const map = mapRef.current;
+      if (!map) return;
+      schedulePinRouteSync(map, () => ({
+        show: showPinRouteRef.current,
+        segments: routeSegmentsRef.current,
+        selectedPinId: selectedPinIdRef.current,
+        animationPhase: routeAnimationPhaseRef.current,
+        darkBasemap: darkBasemapRef.current,
+      }));
+    };
+  }, [showPinRoute, routeSegments, mapStylePreset, resolvedTheme]);
+
+  useEffect(() => {
+    syncPinRouteFromRefsRef.current();
+  }, [
+    showPinRoute,
+    routeSegments,
+    selectedPinId,
+    mapStylePreset,
+    mapStyleOpts,
+    resolvedTheme,
+  ]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        syncPinRouteFromRefsRef.current();
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!showPinRoute || !selectedPinId) return;
+
+    let raf = 0;
+    const tick = (now: number) => {
+      routeAnimationPhaseRef.current = (now / 2200) % 1;
+      const map = mapRef.current;
+      const selectedPinId = selectedPinIdRef.current;
+      if (map?.isStyleLoaded() && selectedPinId) {
+        updatePinRouteAnimation(
+          map,
+          routeSegmentsRef.current,
+          selectedPinId,
+          routeAnimationPhaseRef.current,
+          darkBasemapRef.current,
+        );
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [showPinRoute, selectedPinId]);
 
   const staticDraftPin = useMemo((): PinMapPreviewPin | null => {
     if (previewPin) return previewPin;

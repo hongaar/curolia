@@ -16,6 +16,7 @@ import {
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
 import { mapRouteForMap } from "@/lib/map-route";
+import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -69,6 +70,7 @@ export function MapSettingsPage() {
   const [showPinMetadata, setShowPinMetadata] = useState(
     resolveMapPinMetadataShow(null),
   );
+  const [showPinRoute, setShowPinRoute] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -116,6 +118,7 @@ export function MapSettingsPage() {
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
     setShowPinMetadata(resolveMapPinMetadataShow(map.show_pin_metadata));
+    setShowPinRoute(normalizeShowPinRoute(map.show_pin_route));
   }, [map]);
 
   async function save() {
@@ -134,6 +137,7 @@ export function MapSettingsPage() {
         style_hillshades: styleOptions.hillshades,
         style_satellite_labels: styleOptions.satelliteLabels,
         show_pin_metadata: mapShowMetadataForSave(showPinMetadata),
+        show_pin_route: showPinRoute,
         updated_at: new Date().toISOString(),
       })
       .eq("id", mapId);
@@ -195,12 +199,13 @@ export function MapSettingsPage() {
     styleOptions.hillshades !== savedStyleOptions.hillshades ||
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
   const metadataDirty = mapShowMetadataDirty(map, showPinMetadata);
+  const routeDirty = showPinRoute !== normalizeShowPinRoute(map.show_pin_route);
   const controlsDisabled = !isOwner || roleQuery.isLoading;
 
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
-    (nameDirty || iconDirty || styleDirty || metadataDirty) &&
+    (nameDirty || iconDirty || styleDirty || metadataDirty || routeDirty) &&
     !saving;
 
   return (
@@ -285,6 +290,22 @@ export function MapSettingsPage() {
                 }
               />
             </ChoiceCards>
+          </Field>
+          <Field>
+            <FieldLabel id="map-show-pin-route-label">Map view</FieldLabel>
+            <Label htmlFor="map-show-pin-route">
+              <Checkbox
+                id="map-show-pin-route"
+                checked={showPinRoute}
+                disabled={controlsDisabled}
+                onCheckedChange={(value) => setShowPinRoute(value === true)}
+                aria-labelledby="map-show-pin-route-label"
+              />
+              Route lines
+            </Label>
+            <PageMuted>
+              Connect dated pins in chronological order on the map.
+            </PageMuted>
           </Field>
           <MapShowMetadataField
             mapId={map.id}
