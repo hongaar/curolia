@@ -42,6 +42,46 @@
   box-shadow: none;
 }
 
+.shortcutKeys {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.shortcutKeysResult {
+  margin-left: auto;
+}
+
+.shortcutKeysFooter {
+  display: inline-flex;
+  vertical-align: baseline;
+}
+
+.shortcutKey {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 1px);
+  background: color-mix(in oklch, var(--foreground) 7%, transparent);
+  padding: 0.1em 0.35em;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+  color: color-mix(in oklch, var(--muted-foreground) 88%, var(--foreground));
+}
+
+.shortcutKeysToolbar .shortcutKey {
+  min-width: 1.2rem;
+  padding: 0.15em 0.4em;
+  font-size: var(--font-size-xs);
+}
+
 .searchTriggerEmbed {
   min-height: var(--control-h-md);
   width: 100%;
@@ -124,7 +164,7 @@
 }
 
 .popoverContentToolbar {
-  width: min(calc(100vw - var(--space-8)), 28rem);
+  width: min(calc(100vw - var(--space-8)), 30rem);
 }
 
 .popoverContent {
@@ -209,8 +249,18 @@
 }
 
 .resultIcon {
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
   color: var(--muted-foreground);
+}
+
+.resultIcon svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
 }
 
 .resultBody {
@@ -257,13 +307,6 @@
   .footer {
     display: block;
   }
-}
-
-.kbd {
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  padding: 0 var(--space-1);
-  font-family: var(--font-mono, monospace);
 }
 
 .spinner {

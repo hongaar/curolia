@@ -275,8 +275,37 @@ export function GlobalSearchFooter({
   return <div className={styles.footer}>{children}</div>;
 }
 
+export function GlobalSearchShortcutKeys({
+  keys,
+  variant = "result",
+}: {
+  keys: string[];
+  variant?: "toolbar" | "result" | "footer";
+}) {
+  return (
+    <span
+      className={cn(
+        styles.shortcutKeys,
+        variant === "toolbar" && styles.shortcutKeysToolbar,
+        variant === "result" && styles.shortcutKeysResult,
+        variant === "footer" && styles.shortcutKeysFooter,
+      )}
+      aria-hidden
+    >
+      {keys.map((key, index) => (
+        <kbd key={`${key}-${index}`} className={styles.shortcutKey}>
+          {key}
+        </kbd>
+      ))}
+    </span>
+  );
+}
+
+/** @deprecated Prefer `GlobalSearchShortcutKeys` for multi-key hints. */
 export function GlobalSearchKbd({ children }: { children: React.ReactNode }) {
-  return <kbd className={styles.kbd}>{children}</kbd>;
+  return (
+    <GlobalSearchShortcutKeys keys={[String(children)]} variant="footer" />
+  );
 }
 
 export function GlobalSearchSpinner({
@@ -285,4 +314,14 @@ export function GlobalSearchSpinner({
   children: React.ReactNode;
 }) {
   return <span className={styles.spinner}>{children}</span>;
+}
+
+/** Keyboard shortcut hint shown inside the toolbar search field. */
+export function GlobalSearchToolbarShortcutHint({ keys }: { keys: string[] }) {
+  return <GlobalSearchShortcutKeys keys={keys} variant="toolbar" />;
+}
+
+/** Trailing shortcut label on a search result row. */
+export function GlobalSearchResultShortcut({ keys }: { keys: string[] }) {
+  return <GlobalSearchShortcutKeys keys={keys} variant="result" />;
 }
