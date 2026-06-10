@@ -3,14 +3,24 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), "../..");
+const stagedTemplate = join(webRoot, "api/_ssr/template.html");
 
 /** Default for `ssr:preview` — intentionally not 4173 (Vite `preview`). */
 export const SSR_PREVIEW_PORT = 4321;
 
+function resolveSsrTemplatePath() {
+  const distIndex = join(webRoot, "dist/index.html");
+  if (existsSync(distIndex)) return distIndex;
+  if (existsSync(stagedTemplate)) return stagedTemplate;
+  throw new Error(
+    'Missing SSR template. Run "npm run build -w @curolia/web" first.',
+  );
+}
+
 export function webDistPaths() {
   return {
     webRoot,
-    indexHtml: join(webRoot, "dist/index.html"),
+    indexHtml: resolveSsrTemplatePath(),
     assetsDir: join(webRoot, "dist/assets"),
     entryServer: join(webRoot, "dist-ssr/entry-server.js"),
   };
@@ -19,7 +29,6 @@ export function webDistPaths() {
 export function assertProductionBuild() {
   const paths = webDistPaths();
   for (const [label, file] of [
-    ["dist/index.html", paths.indexHtml],
     ["dist-ssr/entry-server.js", paths.entryServer],
     ["dist/assets", paths.assetsDir],
   ]) {
