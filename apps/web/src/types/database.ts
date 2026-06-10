@@ -15,6 +15,8 @@ export type Profile = {
   /** URL-safe slug, globally unique. */
   slug: string;
   display_name: string | null;
+  /** Short optional bio for public map blog attribution. */
+  bio: string | null;
   avatar_url: string | null;
   default_map_id: string | null;
   notification_email_enabled: boolean;

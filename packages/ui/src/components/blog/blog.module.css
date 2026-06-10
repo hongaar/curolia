@@ -44,6 +44,75 @@
   max-width: 40rem;
 }
 
+.authorCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-3);
+  border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--card) 70%, transparent);
+  padding: var(--space-3);
+}
+
+@media (min-width: 40rem) {
+  .authorCard {
+    padding: var(--space-4);
+  }
+}
+
+.authorCardFloating {
+  margin: 0;
+  border-color: var(--panel-border);
+  background: var(--panel-bg);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+
+.authorAvatar {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  display: flex;
+  line-height: 0;
+}
+
+.authorIdentity {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  min-width: 0;
+}
+
+.authorEyebrow {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.authorName {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.02em;
+}
+
+.authorBio {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--muted-foreground);
+}
+
 .header {
   margin-bottom: 2.5rem;
   border-bottom: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
@@ -60,7 +129,7 @@
 }
 
 .title {
-  margin-top: var(--space-2);
+  margin-top: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-normal);

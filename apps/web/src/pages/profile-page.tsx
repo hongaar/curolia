@@ -11,6 +11,7 @@ import { Button } from "@curolia/ui/button";
 import {
   Field,
   FieldControl,
+  FieldDescription,
   FieldError,
   FieldLabel,
   SrOnlyInput,
@@ -33,12 +34,14 @@ import {
   PagePanel,
   PageProfileGrid,
 } from "@curolia/ui/page";
+import { Textarea } from "@curolia/ui/textarea";
 import type { User } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+const MAX_PROFILE_BIO_LENGTH = 500;
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -65,6 +68,7 @@ function ProfileEditor({
   const [displayName, setDisplayName] = useState(
     () => profile?.display_name ?? "",
   );
+  const [bio, setBio] = useState(() => profile?.bio ?? "");
   const [profileSlug, setProfileSlug] = useState(() => profile?.slug ?? "");
   const [avatarUrl, setAvatarUrl] = useState(() => profile?.avatar_url ?? "");
   const [saving, setSaving] = useState(false);
@@ -90,6 +94,7 @@ function ProfileEditor({
       .from("profiles")
       .update({
         display_name: displayName.trim() || null,
+        bio: bio.trim() || null,
         slug: profileSlug.trim() || undefined,
         avatar_url: avatarUrl.trim() || null,
         updated_at: new Date().toISOString(),
@@ -193,6 +198,24 @@ function ProfileEditor({
             disabled={profileLoading}
           />
         </FieldControl>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="pf-bio">Bio</FieldLabel>
+        <FieldControl>
+          <Textarea
+            id="pf-bio"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="A short intro for visitors on your public map blog"
+            disabled={profileLoading}
+            maxLength={MAX_PROFILE_BIO_LENGTH}
+            rows={3}
+          />
+        </FieldControl>
+        <FieldDescription>
+          Optional. Shown on your public map blog when visitors are not signed
+          in.
+        </FieldDescription>
       </Field>
       <PageAvatarSection>
         <Label>Photo</Label>

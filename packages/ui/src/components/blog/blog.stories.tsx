@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import {
+  BlogAuthorCard,
   BlogContent,
   BlogHeader,
-  BlogKicker,
   BlogLead,
   BlogPageRoot,
   BlogScroll,
@@ -37,8 +37,23 @@ export const Default: Story = {
       <BlogScroll>
         <BlogContent>
           <BlogHeader>
-            <BlogKicker>Map blog</BlogKicker>
             <BlogTitle>Summer 2025</BlogTitle>
+            <BlogAuthorCard
+              avatar={
+                <span
+                  aria-hidden
+                  style={{
+                    display: "inline-flex",
+                    width: "2rem",
+                    height: "2rem",
+                    borderRadius: "9999px",
+                    background: "var(--muted)",
+                  }}
+                />
+              }
+              name="Alex Rivera"
+              bio="Travel writer mapping favorite cafés and coastal trails."
+            />
             <BlogLead>Stories from the road, sorted by date.</BlogLead>
           </BlogHeader>
           <p style={{ margin: 0 }}>Post list would appear here.</p>

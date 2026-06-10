@@ -1,11 +1,9 @@
-import { usePublicMapOwnerName } from "@/hooks/use-public-map-owner-name";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useMap } from "@/providers/map-provider";
 import { PublicMapToolbarInfo } from "@curolia/ui/map-picker";
 
 export function PublicMapToolbarSlot() {
-  const { activeMap, activeMapId, publicView } = useMap();
-  const ownerQuery = usePublicMapOwnerName(activeMapId, publicView);
+  const { activeMap, publicView } = useMap();
 
   if (!publicView || !activeMap) return null;
 
@@ -15,7 +13,6 @@ export function PublicMapToolbarSlot() {
     <PublicMapToolbarInfo
       mapEmoji={mapEmoji}
       mapName={activeMap.name.trim() || "Map"}
-      ownerName={ownerQuery.data}
     />
   );
 }

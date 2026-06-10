@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
+import { cn } from "../../lib/utils";
 import { MarkdownContent } from "../markdown-content";
 import styles from "./blog.module.css";
 
@@ -18,6 +19,36 @@ export function BlogScroll({ children }: { children: React.ReactNode }) {
 
 export function BlogContent({ children }: { children: React.ReactNode }) {
   return <div className={styles.content}>{children}</div>;
+}
+
+export function BlogAuthorCard({
+  avatar,
+  name,
+  bio,
+  surface = "default",
+}: {
+  avatar: React.ReactNode;
+  name: React.ReactNode;
+  /** Optional short profile bio; omitted when empty. */
+  bio?: React.ReactNode;
+  /** `floating` uses frosted panel styling for map overlays. */
+  surface?: "default" | "floating";
+}) {
+  return (
+    <div
+      className={cn(
+        styles.authorCard,
+        surface === "floating" && styles.authorCardFloating,
+      )}
+    >
+      <div className={styles.authorAvatar}>{avatar}</div>
+      <div className={styles.authorIdentity}>
+        <p className={styles.authorEyebrow}>Author</p>
+        <p className={styles.authorName}>{name}</p>
+      </div>
+      {bio ? <p className={styles.authorBio}>{bio}</p> : null}
+    </div>
+  );
 }
 
 export function BlogHeader({ children }: { children: React.ReactNode }) {

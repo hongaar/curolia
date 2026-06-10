@@ -3,6 +3,7 @@ import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loade
 import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
+import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useBlogPinListSort } from "@/hooks/use-blog-pin-list-order";
 import {
@@ -30,7 +31,6 @@ import {
   BlogContent,
   BlogEmptyPanel,
   BlogHeader,
-  BlogKicker,
   BlogLead,
   BlogPageRoot,
   BlogPinActions,
@@ -81,6 +81,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
@@ -113,6 +114,8 @@ export function BlogPage() {
   } = useBlogPinListSort(activeMapId);
 
   const blogMapRoute = activeMap ? mapRouteForMap(activeMap) : null;
+  const ownerProfileQuery = usePublicMapOwnerProfile(activeMapId, publicView);
+  const ownerProfile = ownerProfileQuery.data;
   const [photoLightbox, setPhotoLightbox] = useState<{
     pinId: string;
     photoId: string;
@@ -287,8 +290,10 @@ export function BlogPage() {
       <BlogScroll>
         <BlogContent>
           <BlogHeader>
-            <BlogKicker>Map</BlogKicker>
             <BlogTitle>{activeMap?.name.trim() || mapSlug || "Map"}</BlogTitle>
+            {publicView && ownerProfile ? (
+              <PublicMapOwnerCard profile={ownerProfile} />
+            ) : null}
             <BlogLead>
               Pins are listed in{" "}
               <DropdownMenu>

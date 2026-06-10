@@ -9,6 +9,7 @@ import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
+import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { AddPinFab } from "@/components/pins/add-pin-fab";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
@@ -16,11 +17,16 @@ import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
+import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref, pinEditHref } from "@/lib/app-paths";
 import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
+import {
+  readShowPinRoute,
+  writeShowPinRoute,
+} from "@/lib/map-pin-route-storage";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
@@ -51,6 +57,7 @@ import {
 } from "@/lib/pin-form-clipboard";
 import { createPinFromLinkMetadata } from "@/lib/pin-from-link";
 import { fetchLinkMetadata } from "@/lib/pin-links";
+import { hasPinTravelSequence } from "@/lib/pin-sequence";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
@@ -80,6 +87,7 @@ import {
   MapControlsBottomCenter,
   MapControlsBottomStack,
   MapControlsLayer,
+  MapControlsTopLeft,
   MapHost,
   MapLayer,
   MapPageRoot,
@@ -160,6 +168,8 @@ export function MapPage() {
   );
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
+  const ownerProfileQuery = usePublicMapOwnerProfile(activeMapId, publicView);
+  const ownerProfile = ownerProfileQuery.data;
   const { awaitingPinPlacement, completePinPlacement, cancelPinPlacement } =
     useOnboardingPlacement();
   const mapStyleOptions = useMemo(
@@ -169,6 +179,9 @@ export function MapPage() {
   const prevMapIdRef = useRef<string | null>(null);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);
   const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
+  const [showPinRoute, setShowPinRoute] = useState(() =>
+    readShowPinRoute(activeMapId),
+  );
 
   useLayoutEffect(() => {
     const prev = prevMapIdRef.current;
@@ -176,6 +189,10 @@ export function MapPage() {
       setMapFitGeneration((g) => g + 1);
     }
     prevMapIdRef.current = activeMapId;
+  }, [activeMapId]);
+
+  useEffect(() => {
+    setShowPinRoute(readShowPinRoute(activeMapId));
   }, [activeMapId]);
 
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -366,6 +383,16 @@ export function MapPage() {
   };
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
+
+  const pinRouteAvailable = useMemo(() => hasPinTravelSequence(pins), [pins]);
+
+  const onTogglePinRoute = useCallback(() => {
+    setShowPinRoute((prev) => {
+      const next = !prev;
+      writeShowPinRoute(activeMapId, next);
+      return next;
+    });
+  }, [activeMapId]);
 
   const pinsReadyForMapFit =
     Boolean(activeMapId) && !mapLoading && !pinsQuery.isPending;
@@ -917,6 +944,7 @@ export function MapPage() {
             }
             mapStyle={normalizeMapStylePreset(activeMap?.style)}
             mapStyleOptions={mapStyleOptions}
+            showPinRoute={showPinRoute && pinRouteAvailable}
             onSelectPin={onSelectPin}
             placementMode={canEdit && placementActive}
             onPlacementClick={onPlacementClick}
@@ -932,6 +960,15 @@ export function MapPage() {
           />
         </MapHost>
         <MapControlsLayer>
+          {publicView && ownerProfile ? (
+            <MapControlsTopLeft>
+              <PublicMapOwnerCard
+                profile={ownerProfile}
+                surface="floating"
+                showBio={false}
+              />
+            </MapControlsTopLeft>
+          ) : null}
           <MapControlsBottomCenter>
             {canEdit && placementActive ? (
               <MapPlacementHint>Click to add a pin</MapPlacementHint>
@@ -947,7 +984,12 @@ export function MapPage() {
               onEditTag={openEditTagDialog}
               canEdit={canEdit}
             />
-            <MapControlsToolbar mapRef={mapRef} />
+            <MapControlsToolbar
+              mapRef={mapRef}
+              showPinRoute={showPinRoute}
+              onTogglePinRoute={onTogglePinRoute}
+              pinRouteAvailable={pinRouteAvailable}
+            />
             {canEdit ? (
               <AddPinFab
                 active={placementActive}
@@ -966,6 +1008,8 @@ export function MapPage() {
               pinId={sidebarPinId!}
               mapId={activeMapId!}
               mapRoute={activeMapRoute}
+              mapPins={pins}
+              onNavigatePin={onSelectPin}
               onClose={onClosePinMapPopover}
             />
           </MapSidePanel>

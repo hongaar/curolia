@@ -42,17 +42,41 @@
   z-index: 8;
 }
 
+.controlsTopLeft {
+  pointer-events: auto;
+  position: absolute;
+  top: calc(var(--toolbar-offset) + var(--nav-shell-pad));
+  left: calc(var(--nav-shell-pad) + var(--safe-left));
+  max-width: min(
+    calc(100vw - 2rem - var(--safe-left) - var(--safe-right)),
+    18rem
+  );
+}
+
+@media (min-width: 40rem) {
+  .controlsTopLeft {
+    top: var(--space-4);
+    left: calc(var(--toolbar-pad-x) + var(--safe-left));
+    max-width: min(
+      calc(
+        100vw - 2 * var(--toolbar-pad-x) - var(--safe-left) - var(--safe-right)
+      ),
+      18rem
+    );
+  }
+}
+
 .controlsTopRight {
   pointer-events: auto;
   position: absolute;
-  top: calc(var(--app-chrome-top) + 0.75rem);
-  right: calc(0.75rem + var(--safe-right));
+  top: calc(var(--toolbar-offset) + var(--nav-shell-pad));
+  right: calc(var(--nav-shell-pad) + var(--safe-right));
 }
 
 @media (min-width: 40rem) {
   .controlsTopRight {
-    top: calc(var(--app-chrome-top) + 1rem);
-    right: calc(1rem + var(--safe-right));
+    top: var(--space-4);
+    right: calc(var(--toolbar-pad-x) + var(--safe-right));
   }
 }
 

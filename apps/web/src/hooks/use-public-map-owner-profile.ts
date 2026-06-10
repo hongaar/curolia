@@ -1,13 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 
-export function usePublicMapOwnerName(
+export type PublicMapOwnerProfile = {
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+};
+
+export function usePublicMapOwnerProfile(
   mapId: string | null | undefined,
   enabled: boolean,
 ) {
   return useQuery({
     queryKey: ["public_map_owner", mapId],
-    queryFn: async () => {
+    queryFn: async (): Promise<PublicMapOwnerProfile | null> => {
       if (!mapId) return null;
       const { data: ownerRow, error: memberError } = await supabase
         .from("map_members")
@@ -20,13 +26,17 @@ export function usePublicMapOwnerName(
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, avatar_url, bio")
         .eq("id", ownerRow.user_id)
         .maybeSingle();
       if (profileError) throw profileError;
+      if (!profile) return null;
 
-      const name = profile?.display_name?.trim();
-      return name || "Map owner";
+      const displayName = profile.display_name?.trim() || "Map owner";
+      const avatarUrl = profile.avatar_url?.trim() || null;
+      const bio = profile.bio?.trim() || null;
+
+      return { displayName, avatarUrl, bio };
     },
     enabled: Boolean(mapId && enabled),
   });

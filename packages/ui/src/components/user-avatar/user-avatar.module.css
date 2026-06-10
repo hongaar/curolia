@@ -2,6 +2,7 @@
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
+  line-height: 0;
 }
 
 .rootFull {
@@ -43,6 +44,10 @@
 .imageWrap {
   display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-full);
 }
 
 .imageWrapSm {
@@ -70,6 +75,7 @@
 }
 
 .image {
+  display: block;
   border-radius: var(--radius-full);
   object-fit: cover;
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 15%, transparent);

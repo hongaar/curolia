@@ -59,6 +59,14 @@ export function MapControlsLayer({ children }: { children: React.ReactNode }) {
   return <div className={styles.controlsLayer}>{children}</div>;
 }
 
+export function MapControlsTopLeft({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.controlsTopLeft}>{children}</div>;
+}
+
 export function MapControlsTopRight({
   children,
 }: {
