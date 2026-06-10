@@ -72,7 +72,7 @@ function routeLayerInsertBefore(map: MaplibreMap): string | undefined {
 }
 
 function isMapStyleReady(map: MaplibreMap): boolean {
-  return map.isStyleLoaded() && Boolean(map.getStyle());
+  return map.isStyleLoaded() === true && map.getStyle() != null;
 }
 
 function ensureGeoJsonSource(
