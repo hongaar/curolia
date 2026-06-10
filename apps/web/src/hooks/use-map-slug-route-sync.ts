@@ -1,4 +1,9 @@
-import { mapViewHref, mapViewSegmentFromPathname } from "@/lib/app-paths";
+import {
+  mapViewHref,
+  mapViewSegmentFromPathname,
+  pinDetailHref,
+} from "@/lib/app-paths";
+import { parsePinRoutePathname } from "@/lib/map-route";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { useMap } from "@/providers/map-provider";
@@ -62,14 +67,17 @@ export function useMapSlugRouteSync(
         return;
       }
 
+      const route = {
+        profileSlug: canonicalProfile,
+        mapSlug: canonicalMap,
+      };
+      const pinRoute = parsePinRoutePathname(location.pathname);
+      if (pinRoute) {
+        navigate(pinDetailHref(route, pinRoute.pinSlug), { replace: true });
+        return;
+      }
       const view = mapViewSegmentFromPathname(location.pathname);
-      navigate(
-        mapViewHref(view, {
-          profileSlug: canonicalProfile,
-          mapSlug: canonicalMap,
-        }),
-        { replace: true },
-      );
+      navigate(mapViewHref(view, route), { replace: true });
     })();
 
     return () => {

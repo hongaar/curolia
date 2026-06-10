@@ -79,10 +79,30 @@ export function parseLegacyMapSettingsPathname(
   return { mapSlug: decodeURIComponent(match[1]).trim() };
 }
 
+export function parseMapRoutePathname(pathname: string): MapRoute | null {
+  const mapView = parseMapViewPathname(pathname);
+  if (mapView) {
+    return {
+      profileSlug: mapView.profileSlug,
+      mapSlug: mapView.mapSlug,
+    };
+  }
+  const pinRoute = parsePinRoutePathname(pathname);
+  if (pinRoute) {
+    return {
+      profileSlug: pinRoute.profileSlug,
+      mapSlug: pinRoute.mapSlug,
+    };
+  }
+  return null;
+}
+
 export function isPublicMapViewPathname(pathname: string): boolean {
   const parsed = parseMapViewPathname(pathname);
   if (parsed && (parsed.view === "map" || parsed.view === "blog")) return true;
-  return parseLegacyMapPathname(pathname) !== null;
+  if (parseLegacyMapPathname(pathname) !== null) return true;
+  if (parsePinRoutePathname(pathname) !== null) return true;
+  return parseLegacyPinPathname(pathname) !== null;
 }
 
 export function mapRouteFromParts(

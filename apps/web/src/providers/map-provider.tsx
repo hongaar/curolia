@@ -8,7 +8,7 @@ import {
 import {
   attachOwnerProfileSlugs,
   fetchOwnerProfileSlugs,
-  parseMapViewPathname,
+  parseMapRoutePathname,
 } from "@/lib/map-route";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
@@ -118,7 +118,7 @@ export function MapProvider({
   const [activeMapId, setActiveMapIdState] = useState<string | null>(null);
 
   const routePath = useMemo(
-    () => parseMapViewPathname(location.pathname),
+    () => parseMapRoutePathname(location.pathname),
     [location.pathname],
   );
 

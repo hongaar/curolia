@@ -2,6 +2,7 @@ import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger"
 import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
+import { PinSequenceNavSection } from "@/components/pins/pin-sequence-nav-section";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMinMd } from "@/hooks/use-min-md";
 import { pinDetailHref } from "@/lib/app-paths";
@@ -12,6 +13,7 @@ import {
   pinPhotoGalleryPlaceholderCount,
 } from "@/lib/pin-photo-gallery-items";
 import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
+import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinMetadataSubtitle } from "@/lib/use-pin-metadata-subtitle";
@@ -71,6 +73,9 @@ interface PinDetailBodyProps {
    * that links to the standalone pin detail page for this pin.
    */
   permalinkMapRoute?: MapRoute;
+  /** Map pins for chronological travel sequence navigation. */
+  mapPins?: PinWithTags[];
+  onNavigateSequencePin?: (pin: PinWithTags) => void;
 }
 
 export function PinDetailBody({
@@ -80,6 +85,8 @@ export function PinDetailBody({
   extraActions,
   topContent,
   permalinkMapRoute,
+  mapPins,
+  onNavigateSequencePin,
 }: PinDetailBodyProps) {
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
@@ -151,12 +158,14 @@ export function PinDetailBody({
         <PinDetailHeaderMain>
           <PinDetailTitle>{pin.title || "Untitled place"}</PinDetailTitle>
           <PinDetailActions>
-            <PinFormDialogTrigger
-              mapId={pin.map_id}
-              pin={pin}
-              variant="outline"
-              size="sm"
-            />
+            {canEdit ? (
+              <PinFormDialogTrigger
+                mapId={pin.map_id}
+                pin={pin}
+                variant="outline"
+                size="sm"
+              />
+            ) : null}
             {permalinkMapRoute && isWideEnough ? (
               <Button
                 variant="ghost"
@@ -189,6 +198,14 @@ export function PinDetailBody({
               </PinDetailTagBadge>
             ))}
           </PinDetailTagRow>
+        ) : null}
+        {mapPins ? (
+          <PinSequenceNavSection
+            pinId={pin.id}
+            mapPins={mapPins}
+            mapRoute={permalinkMapRoute ?? null}
+            onNavigatePin={onNavigateSequencePin}
+          />
         ) : null}
       </PinDetailHeader>
       <PinDetailContent>
