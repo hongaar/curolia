@@ -9,6 +9,7 @@
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
+  text-decoration: none;
   transition: all 150ms ease;
   outline: none;
   user-select: none;

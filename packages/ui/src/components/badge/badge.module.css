@@ -13,6 +13,7 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
+  text-decoration: none;
   transition: all 150ms;
 }
 
