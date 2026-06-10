@@ -110,9 +110,8 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const homeMatch = useMatch({ path: "/", end: true });
-  const mapMapMatch = useMatch("/map/:mapSlug");
   const nestedMapMatch = useMatch("/:profileSlug/:mapSlug/map");
-  const isMapRoute = Boolean(homeMatch || mapMapMatch || nestedMapMatch);
+  const isMapRoute = Boolean(homeMatch || nestedMapMatch);
   const { maps, activeMapId } = useMap();
 
   const [open, setOpen] = useState(false);
