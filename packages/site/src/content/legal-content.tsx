@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 
 import styles from "../styles/site.module.css";
 
-export type LegalNavTarget = "contact" | "privacy" | "terms" | "licenses";
+export type LegalNavTarget =
+  | "contact"
+  | "privacy"
+  | "terms"
+  | "licenses"
+  | "openSource";
 
 export type LegalContentProps = {
   contactEmail?: string;
@@ -18,6 +23,7 @@ const LEGAL_PATHS: Record<LegalNavTarget, string> = {
   privacy: "/privacy",
   terms: "/terms",
   licenses: "/licenses",
+  openSource: "/open-source",
 };
 
 export function LegalEmbed({ children }: { children: React.ReactNode }) {
@@ -168,6 +174,12 @@ export function PrivacyPolicyContent({
             (for example which screens you open), plus coarse device and browser
             metadata collected through our analytics tool — see Analytics below.
           </li>
+          <li>
+            <strong>Error reports:</strong> when the app fails unexpectedly, we
+            may receive crash information such as error messages, stack traces,
+            browser type, and app version — see Error reporting below. We do not
+            include your map content or passwords in these reports.
+          </li>
         </LegalList>
       </LegalSection>
 
@@ -223,14 +235,38 @@ export function PrivacyPolicyContent({
         </LegalParagraph>
       </LegalSection>
 
+      <LegalSection title="Error reporting">
+        <LegalParagraph>
+          We use Bugsink, a privacy-focused error tracking service, to learn
+          when the Service crashes or hits unexpected errors. Reports may
+          include error messages, stack traces, browser and device type, app
+          version, and coarse session metadata. We use this information only to
+          diagnose and fix bugs — not for advertising or profiling.
+        </LegalParagraph>
+        <LegalParagraph>
+          Error reporting is provided by Bugsink B.V. (hosted in the European
+          Union) as our processor. See{" "}
+          <a
+            className={styles.legalInlineLink}
+            href="https://www.bugsink.com/gdpr/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Bugsink&apos;s GDPR information
+          </a>
+          . You can limit reporting with browser extensions that block error
+          trackers; the Service remains usable without it.
+        </LegalParagraph>
+      </LegalSection>
+
       <LegalSection title="Sharing and processors">
         <LegalParagraph>
           We use trusted infrastructure and service providers (for example
           hosting, authentication, email delivery, privacy-focused analytics,
-          and optional plugin providers you connect). They process data only on
-          our instructions and under appropriate safeguards. Map content is
-          private by default; we share it only when you use sharing features or
-          when required by law.
+          error reporting, and optional plugin providers you connect). They
+          process data only on our instructions and under appropriate
+          safeguards. Map content is private by default; we share it only when
+          you use sharing features or when required by law.
         </LegalParagraph>
       </LegalSection>
 
@@ -296,6 +332,14 @@ export function PrivacyPolicyContent({
             onNavigate={onNavigate}
           >
             Terms and Conditions
+          </LegalNavLink>{" "}
+          and{" "}
+          <LegalNavLink
+            target="openSource"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Open source at Curolia
           </LegalNavLink>
           .
         </LegalParagraph>
@@ -326,8 +370,8 @@ export function TermsContent({
           Service with reasonable notice where practicable.
         </LegalParagraph>
         <LegalParagraph>
-          We collect limited usage analytics (such as page views and in-app
-          navigation) as described in our{" "}
+          We collect limited usage analytics and error reports (such as page
+          views, in-app navigation, and crash diagnostics) as described in our{" "}
           <LegalNavLink
             target="privacy"
             embedded={embedded}
@@ -392,9 +436,19 @@ export function TermsContent({
 
       <LegalSection title="Open source">
         <LegalParagraph>
-          Portions of Curolia may be available as open-source software. Your use
-          of that code is governed by the applicable open-source licences. These
-          Terms still apply to the hosted Service we operate for you.
+          Curolia is built with open source software and an open development
+          model. Portions of the product may be available under open-source
+          licences; your use of that code is governed by those licences. These
+          Terms still apply to the hosted Service we operate for you. Read more
+          in{" "}
+          <LegalNavLink
+            target="openSource"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Open source at Curolia
+          </LegalNavLink>
+          .
         </LegalParagraph>
       </LegalSection>
 
@@ -561,6 +615,187 @@ export function OpenSourceLicensesSummaryContent({
       <LegalSection title="Related">
         <LegalParagraph>
           See also{" "}
+          <LegalNavLink
+            target="openSource"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Open source at Curolia
+          </LegalNavLink>
+          ,{" "}
+          <LegalNavLink
+            target="privacy"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Privacy Policy
+          </LegalNavLink>
+          ,{" "}
+          <LegalNavLink
+            target="terms"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Terms and Conditions
+          </LegalNavLink>
+          , and{" "}
+          <LegalNavLink
+            target="contact"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            Contact
+          </LegalNavLink>
+          .
+        </LegalParagraph>
+      </LegalSection>
+    </>
+  );
+}
+
+export function OpenSourceMindsetContent({
+  embedded,
+  onNavigate,
+  githubUrl = "https://github.com/hongaar/curolia",
+}: LegalContentProps & { githubUrl?: string }) {
+  return (
+    <>
+      <LegalParagraph>
+        Curolia is built in the open. We believe map software should be
+        transparent, inspectable, and respectful of the people who use it — not
+        a black box that monetises your memories.
+      </LegalParagraph>
+
+      <LegalSection title="Why open source matters to us">
+        <LegalParagraph>
+          Open source lets anyone review how the product works, contribute
+          improvements, and run their own copy if they choose. That aligns with
+          how we think about trust: you should not have to take our word for it.
+        </LegalParagraph>
+        <LegalParagraph>
+          Our code lives on{" "}
+          <a
+            className={styles.legalInlineLink}
+            href={githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+          . Issues, discussions, and pull requests are welcome.
+        </LegalParagraph>
+      </LegalSection>
+
+      <LegalSection title="How we choose third-party services">
+        <LegalParagraph>
+          No product is an island. We rely on external services for hosting,
+          authentication, analytics, and more. When we pick a provider, we look
+          for three things:
+        </LegalParagraph>
+        <LegalList>
+          <li>
+            <strong>Open source</strong> — we prefer software we (and you) can
+            read, audit, and self-host where practical.
+          </li>
+          <li>
+            <strong>Security</strong> — sensible defaults, clear data handling,
+            and infrastructure we would trust with our own maps.
+          </li>
+          <li>
+            <strong>Privacy</strong> — providers that collect only what they
+            need, do not sell personal data, and share our view that your map
+            content is yours.
+          </li>
+        </LegalList>
+        <LegalParagraph>
+          We are pragmatic: not every layer of the stack is fully open source
+          today. When a proprietary option is unavoidable, we still apply the
+          same bar for security and privacy, keep data in the European Union
+          where we can, and favour processors with transparent practices.
+        </LegalParagraph>
+      </LegalSection>
+
+      <LegalSection title="Examples in our stack">
+        <LegalList>
+          <li>
+            <strong>Maps:</strong> vector tiles and styles from{" "}
+            <a
+              className={styles.legalInlineLink}
+              href="https://openfreemap.org"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              OpenFreeMap
+            </a>{" "}
+            and geographic data from{" "}
+            <a
+              className={styles.legalInlineLink}
+              href="https://www.openstreetmap.org"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              OpenStreetMap
+            </a>{" "}
+            contributors.
+          </li>
+          <li>
+            <strong>Backend:</strong>{" "}
+            <a
+              className={styles.legalInlineLink}
+              href="https://supabase.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Supabase
+            </a>{" "}
+            (open source) for authentication and data storage in the EU.
+          </li>
+          <li>
+            <strong>Analytics:</strong>{" "}
+            <a
+              className={styles.legalInlineLink}
+              href="https://umami.is"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Umami
+            </a>{" "}
+            — privacy-focused, cookieless usage metrics without ad tracking.
+          </li>
+          <li>
+            <strong>Error reporting:</strong>{" "}
+            <a
+              className={styles.legalInlineLink}
+              href="https://www.bugsink.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Bugsink
+            </a>{" "}
+            — self-hostable error tracking hosted in the EU to help us fix
+            crashes without profiling you.
+          </li>
+        </LegalList>
+      </LegalSection>
+
+      <LegalSection title="Licences and attribution">
+        <LegalParagraph>
+          Curolia bundles many open source libraries and map data sources. The
+          summary and full dependency list live on our{" "}
+          <LegalNavLink
+            target="licenses"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            open source licenses
+          </LegalNavLink>{" "}
+          page.
+        </LegalParagraph>
+      </LegalSection>
+
+      <LegalSection title="Related">
+        <LegalParagraph>
+          See also our{" "}
           <LegalNavLink
             target="privacy"
             embedded={embedded}

@@ -1,7 +1,7 @@
 import { PrivacyPolicyContent, TermsContent } from "../content/legal-content";
 import { MarketingDocumentPage } from "../shell/marketing-shell";
 
-const EFFECTIVE_DATE = "31 May 2026";
+const EFFECTIVE_DATE = "10 June 2026";
 
 export function PrivacyPolicyPageContent({
   logoSrc = "/icon.png",

@@ -1,7 +1,5 @@
-import { buttonClassName } from "@curolia/ui/button";
 import {
   BookOpen,
-  Github,
   Globe,
   Lock,
   MapPinned,
@@ -211,22 +209,25 @@ export function LandingPlugins() {
       </div>
 
       <ul className={styles.pluginGrid}>
-        {landingPlugins.map((plugin) => (
-          <li key={plugin.id} className={styles.pluginCard}>
-            <span className={styles.pluginIcon}>{plugin.icon()}</span>
-            <div className={styles.pluginBody}>
-              <div className={styles.pluginNameRow}>
-                <h3 className={styles.pluginName}>{plugin.name}</h3>
-                {plugin.status === "coming-soon" ? (
-                  <span className={styles.pluginBadge}>Coming soon</span>
-                ) : (
-                  <span className={styles.pluginBadgeAvailable}>Available</span>
-                )}
+        {[...landingPlugins]
+          .sort((a, b) => {
+            if (a.status === b.status) return 0;
+            return a.status === "coming-soon" ? 1 : -1;
+          })
+          .map((plugin) => (
+            <li key={plugin.id} className={styles.pluginCard}>
+              <span className={styles.pluginIcon}>{plugin.icon()}</span>
+              <div className={styles.pluginBody}>
+                <div className={styles.pluginNameRow}>
+                  <h3 className={styles.pluginName}>{plugin.name}</h3>
+                  {plugin.status === "coming-soon" ? (
+                    <span className={styles.pluginBadge}>Coming soon</span>
+                  ) : null}
+                </div>
+                <p className={styles.pluginDescription}>{plugin.description}</p>
               </div>
-              <p className={styles.pluginDescription}>{plugin.description}</p>
-            </div>
-          </li>
-        ))}
+            </li>
+          ))}
       </ul>
     </section>
   );
@@ -276,11 +277,7 @@ export function LandingFeatures({
   );
 }
 
-export function LandingOpenSource({
-  githubUrl = "https://github.com/hongaar/curolia",
-}: {
-  githubUrl?: string;
-}) {
+export function LandingOpenSource() {
   return (
     <section
       className={styles.openSource}
@@ -300,19 +297,9 @@ export function LandingOpenSource({
             Union — we never sell it, track you for ads, or train AI on it.
           </p>
         </div>
-        <a
-          href={githubUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonClassName({
-            variant: "outline",
-            size: "lg",
-            className: styles.externalButtonLink,
-          })}
-        >
-          <Github aria-hidden size={18} />
-          View on GitHub
-        </a>
+        <MarketingButtonLink to="/open-source" variant="outline" size="lg">
+          Open source at Curolia
+        </MarketingButtonLink>
       </div>
     </section>
   );
@@ -368,11 +355,7 @@ export function LandingPhotoCredits({ images }: { images: UnsplashImage[] }) {
   );
 }
 
-export function LandingPageMain({
-  githubUrl = "https://github.com/hongaar/curolia",
-}: {
-  githubUrl?: string;
-} = {}) {
+export function LandingPageMain() {
   const creditImages = [
     unsplashImages.hero,
     unsplashImages.mapFeature,
@@ -388,7 +371,7 @@ export function LandingPageMain({
       <LandingSharing />
       <LandingPlugins />
       <LandingFeatures />
-      <LandingOpenSource githubUrl={githubUrl} />
+      <LandingOpenSource />
       <LandingCta />
       <LandingPhotoCredits images={creditImages} />
     </>

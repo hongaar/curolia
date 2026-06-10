@@ -8,6 +8,7 @@ export {
   LegalParagraph,
   LegalSection,
   OpenSourceLicensesSummaryContent,
+  OpenSourceMindsetContent,
   PrivacyPolicyContent,
   TermsContent,
 } from "./legal-content";

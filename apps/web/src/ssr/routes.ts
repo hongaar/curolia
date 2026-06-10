@@ -5,6 +5,7 @@ export type StaticSsrRouteId =
   | "contact"
   | "privacy"
   | "terms"
+  | "openSource"
   | "licenses"
   | "campaign";
 
@@ -27,6 +28,7 @@ const STATIC_PATHS: Record<string, StaticSsrRouteId> = {
   "/contact": "contact",
   "/privacy": "privacy",
   "/terms": "terms",
+  "/open-source": "openSource",
   "/licenses": "licenses",
 };
 

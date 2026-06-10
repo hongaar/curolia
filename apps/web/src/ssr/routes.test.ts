@@ -9,6 +9,10 @@ describe("matchSsrRoute", () => {
       kind: "static",
       id: "privacy",
     });
+    expect(matchSsrRoute("/open-source")).toEqual({
+      kind: "static",
+      id: "openSource",
+    });
     expect(matchSsrRoute("/for/travel/")).toEqual({
       kind: "static",
       id: "campaign",

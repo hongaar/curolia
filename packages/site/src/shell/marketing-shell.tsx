@@ -97,6 +97,9 @@ export function MarketingFooter() {
           <MarketingLink to="/contact" className={styles.footerLink}>
             Contact
           </MarketingLink>
+          <MarketingLink to="/open-source" className={styles.footerLink}>
+            Open source
+          </MarketingLink>
           <MarketingLink to="/licenses" className={styles.footerLink}>
             Licenses
           </MarketingLink>

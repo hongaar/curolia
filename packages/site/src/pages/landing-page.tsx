@@ -10,16 +10,14 @@ import { PrivacyPolicyPageContent, TermsPageContent } from "./legal-pages";
 
 export function LandingPage({
   logoSrc = "/icon.png",
-  githubUrl = "https://github.com/hongaar/curolia",
 }: {
   logoSrc?: string;
-  githubUrl?: string;
 } = {}) {
   return (
     <MarketingLayout>
       <MarketingHeader logoSrc={logoSrc} />
       <main>
-        <LandingPageMain githubUrl={githubUrl} />
+        <LandingPageMain />
       </main>
       <MarketingFooter />
     </MarketingLayout>

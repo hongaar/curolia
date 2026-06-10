@@ -795,24 +795,15 @@
   color: var(--muted-foreground);
 }
 
-.pluginBadge,
-.pluginBadgeAvailable {
+.pluginBadge {
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.03em;
   text-transform: uppercase;
-}
-
-.pluginBadge {
   color: var(--muted-foreground);
   background: color-mix(in oklch, var(--muted) 80%, transparent);
-}
-
-.pluginBadgeAvailable {
-  color: var(--primary);
-  background: color-mix(in oklch, var(--primary) 12%, transparent);
 }
 
 .photoCredits {

@@ -3,6 +3,7 @@ import {
   ContactContent,
   LegalEmbed,
   OpenSourceLicensesSummaryContent,
+  OpenSourceMindsetContent,
   PrivacyPolicyContent,
   TermsContent,
   type LegalNavTarget,
@@ -15,13 +16,20 @@ import {
 } from "@curolia/ui/about-dialog";
 import { useState, type ReactNode } from "react";
 
-export type AboutView = "main" | "contact" | "privacy" | "terms" | "licenses";
+export type AboutView =
+  | "main"
+  | "contact"
+  | "privacy"
+  | "terms"
+  | "openSource"
+  | "licenses";
 
 const VIEW_TITLES: Record<AboutView, string> = {
   main: "About Curolia",
   contact: "Contact",
   privacy: "Privacy Policy",
   terms: "Terms and Conditions",
+  openSource: "Open source at Curolia",
   licenses: "Open source licenses",
 };
 
@@ -29,6 +37,7 @@ const ABOUT_LINKS = [
   { id: "contact", label: "Contact" },
   { id: "terms", label: "Terms and Conditions" },
   { id: "privacy", label: "Privacy Policy" },
+  { id: "openSource", label: "Open source at Curolia" },
   { id: "licenses", label: "Open source licenses" },
 ] as const;
 
@@ -62,6 +71,7 @@ export function AboutDialog({
         contact: "contact",
         privacy: "privacy",
         terms: "terms",
+        openSource: "openSource",
         licenses: "licenses",
       };
       setView(map[target]);
@@ -74,6 +84,9 @@ export function AboutDialog({
         {view === "contact" ? <ContactContent {...legalProps} /> : null}
         {view === "privacy" ? <PrivacyPolicyContent {...legalProps} /> : null}
         {view === "terms" ? <TermsContent {...legalProps} /> : null}
+        {view === "openSource" ? (
+          <OpenSourceMindsetContent {...legalProps} />
+        ) : null}
         {view === "licenses" ? (
           <OpenSourceLicensesSummaryContent
             {...legalProps}
