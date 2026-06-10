@@ -1,4 +1,5 @@
 import { useMapMemberRole } from "@/hooks/use-map-access";
+import { useMaxSm } from "@/hooks/use-max-sm";
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import {
   mapHrefWithSearch,
@@ -16,6 +17,7 @@ import {
   fetchGlobalSearchSelectedPin,
   parseSelectedPinLookup,
 } from "@/lib/global-search-selected-pin";
+import { openPinEditor } from "@/lib/open-pin-editor";
 import {
   formatShortcutKeys,
   formatShortcutLabel,
@@ -91,6 +93,8 @@ import {
   User,
 } from "lucide-react";
 import {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -104,6 +108,12 @@ const DEBOUNCE_MS = 320;
 const SEARCH_SHORTCUT_KEYS = formatShortcutKeys({ key: "k" });
 const SEARCH_SHORTCUT_LABEL = formatShortcutLabel({ key: "k" });
 const GLOBAL_SEARCH_LISTBOX_ID = "global-search-listbox";
+
+const PinFormDialog = lazy(() =>
+  import("@/components/pins/pin-form-dialog").then((m) => ({
+    default: m.PinFormDialog,
+  })),
+);
 
 const COMMAND_ICONS: Record<string, ReactNode> = {
   "new-map": <MapPlus />,
@@ -189,11 +199,13 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const { maps, activeMapId, activeMap, publicView } = useMap();
   const { signOut } = useAuth();
   const { openNewMapDialog, openAboutDialog } = useNavigationShell();
+  const isMobile = useMaxSm();
 
   const [open, setOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [editPinDialogOpen, setEditPinDialogOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedPinLookup = useMemo(
@@ -223,6 +235,17 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   );
   const canEditSelectedPin = !publicView && memberCanEditSelectedPin;
 
+  const editSelectedPin = useCallback(() => {
+    if (!selectedPin) return;
+    openPinEditor({
+      pin: selectedPin.pin,
+      mapRoute: selectedPin.mapRoute,
+      isMobile,
+      navigate,
+      onOpenDialog: () => setEditPinDialogOpen(true),
+    });
+  }, [isMobile, navigate, selectedPin]);
+
   const commandContext = useMemo(
     () => ({
       navigate,
@@ -231,6 +254,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       canEditSelectedPin,
       openNewMapDialog,
       openAboutDialog,
+      editSelectedPin,
       signOut,
     }),
     [
@@ -240,6 +264,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       canEditSelectedPin,
       openNewMapDialog,
       openAboutDialog,
+      editSelectedPin,
       signOut,
     ],
   );
@@ -677,6 +702,16 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
   return (
     <>
+      {editPinDialogOpen && selectedPin ? (
+        <Suspense fallback={null}>
+          <PinFormDialog
+            open={editPinDialogOpen}
+            onOpenChange={setEditPinDialogOpen}
+            mapId={selectedPin.pin.map_id}
+            pin={selectedPin.pin}
+          />
+        </Suspense>
+      ) : null}
       <Popover
         open={open}
         modal={false}

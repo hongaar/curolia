@@ -17,12 +17,14 @@ export function PinSequenceNavSection({
   mapPins,
   mapRoute,
   onNavigatePin,
+  showDots = true,
 }: {
   pinId: string;
   mapPins: PinWithTags[];
   mapRoute: MapRoute | null;
   /** Map side sheet: select another pin in place. */
   onNavigatePin?: (pin: PinWithTags) => void;
+  showDots?: boolean;
 }) {
   const navigate = useNavigate();
   const sequence = useMemo(() => orderedPinTravelSequence(mapPins), [mapPins]);
@@ -61,6 +63,7 @@ export function PinSequenceNavSection({
     <PinSequenceNav
       items={items}
       currentIndex={neighbors.index}
+      showDots={showDots}
       onSelectIndex={(index) => {
         const target = sequence[index];
         if (target) goToPin(target);

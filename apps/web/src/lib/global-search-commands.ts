@@ -1,5 +1,5 @@
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
-import { mapSettingsHref, pinEditHref } from "@/lib/app-paths";
+import { mapSettingsHref } from "@/lib/app-paths";
 import type { GlobalSearchSelectedPin } from "@/lib/global-search-selected-pin";
 import type { ShortcutBinding } from "@/lib/keyboard-shortcut";
 import { mapRouteForMap } from "@/lib/map-route";
@@ -14,6 +14,7 @@ export type GlobalSearchCommandContext = {
   canEditSelectedPin: boolean;
   openNewMapDialog: () => void;
   openAboutDialog: () => void;
+  editSelectedPin: () => void;
   signOut: () => Promise<void>;
 };
 
@@ -199,12 +200,10 @@ export function runGlobalSearchCommand(
     case "notifications":
       ctx.navigate("/notifications");
       return;
-    case "edit-pin": {
-      const pin = ctx.selectedPin;
-      if (!pin) return;
-      ctx.navigate(pinEditHref(pin.mapRoute, pin.pinSlug));
+    case "edit-pin":
+      if (!ctx.selectedPin) return;
+      ctx.editSelectedPin();
       return;
-    }
     case "about":
       ctx.openAboutDialog();
       return;

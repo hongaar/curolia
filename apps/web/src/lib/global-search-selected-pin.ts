@@ -11,12 +11,12 @@ import {
 } from "@/lib/map-view-params";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { supabase } from "@/lib/supabase";
+import type { Pin } from "@/types/database";
 
 export type GlobalSearchSelectedPin = {
   mapId: string;
   mapRoute: MapRoute;
-  pinSlug: string;
-  pinTitle: string | null;
+  pin: Pin;
 };
 
 export type SelectedPinLookup = {
@@ -71,43 +71,37 @@ export function parseSelectedPinLookup(
   };
 }
 
+async function fetchPinRow(pinId: string): Promise<Pin | null> {
+  const { data, error } = await supabase
+    .from("pins")
+    .select("*")
+    .eq("id", pinId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Pin | null) ?? null;
+}
+
 export async function fetchGlobalSearchSelectedPin(
   lookup: SelectedPinLookup,
 ): Promise<GlobalSearchSelectedPin | null> {
   const token = lookup.pinToken.trim();
   if (!token) return null;
 
+  let pinId: string | null = null;
   if (PIN_ID_PARAM_RE.test(token)) {
-    const { data, error } = await supabase
-      .from("pins")
-      .select("id, slug, title, map_id")
-      .eq("map_id", lookup.mapId)
-      .eq("id", token)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data?.slug?.trim()) return null;
-    return {
-      mapId: lookup.mapId,
-      mapRoute: lookup.mapRoute,
-      pinSlug: data.slug,
-      pinTitle: data.title,
-    };
+    pinId = token;
+  } else {
+    const resolved = await resolvePinByMapSlug(lookup.mapId, token);
+    pinId = resolved?.pinId ?? null;
   }
+  if (!pinId) return null;
 
-  const resolved = await resolvePinByMapSlug(lookup.mapId, token);
-  if (!resolved) return null;
-
-  const { data, error } = await supabase
-    .from("pins")
-    .select("title")
-    .eq("id", resolved.pinId)
-    .maybeSingle();
-  if (error) throw error;
+  const pin = await fetchPinRow(pinId);
+  if (!pin?.slug?.trim() || pin.map_id !== lookup.mapId) return null;
 
   return {
     mapId: lookup.mapId,
     mapRoute: lookup.mapRoute,
-    pinSlug: resolved.canonicalSlug,
-    pinTitle: data?.title ?? null,
+    pin,
   };
 }

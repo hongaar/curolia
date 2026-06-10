@@ -152,7 +152,7 @@ function PinSequenceDots({
 
         const { index, item } = segment;
         const isActive = index === currentIndex;
-        const color = item.color?.trim() || null;
+        const color = item.color?.trim() || "var(--primary)";
 
         return (
           <button
@@ -166,17 +166,11 @@ function PinSequenceDots({
               isActive && styles.dotActive,
               interactive && styles.dotInteractive,
             )}
-            style={
-              color
-                ? {
-                    background: isActive
-                      ? color
-                      : `color-mix(in oklch, ${color} 40%, transparent)`,
-                  }
-                : isActive
-                  ? { background: "var(--primary)" }
-                  : undefined
-            }
+            style={{
+              background: isActive
+                ? color
+                : `color-mix(in oklch, ${color} 40%, transparent)`,
+            }}
             disabled={!interactive}
             onClick={onSelectIndex ? () => onSelectIndex(index) : undefined}
           />
@@ -192,6 +186,7 @@ export function PinSequenceNav({
   onSelectIndex,
   previous,
   next,
+  showDots = true,
   ariaLabel = "Trip stops",
   dotsAriaLabel = "Trip stops",
 }: {
@@ -200,32 +195,36 @@ export function PinSequenceNav({
   onSelectIndex?: (index: number) => void;
   previous?: PinSequenceNavEndpoint | null;
   next?: PinSequenceNavEndpoint | null;
+  /** Progress dots between prev/next links; omit on narrow detail or side sheet. */
+  showDots?: boolean;
   ariaLabel?: string;
   dotsAriaLabel?: string;
 }) {
   if (items.length < 2 || currentIndex < 0) return null;
 
   const hasEndpoints = Boolean(previous || next);
-  const dots = (
+  if (!showDots && !hasEndpoints) return null;
+
+  const dots = showDots ? (
     <PinSequenceDots
       items={items}
       currentIndex={currentIndex}
       onSelectIndex={onSelectIndex}
       ariaLabel={dotsAriaLabel}
     />
-  );
+  ) : null;
 
   return (
     <nav className={styles.root} aria-label={ariaLabel}>
       <div className={styles.panel}>
         {hasEndpoints ? (
-          <div className={styles.row}>
+          <div className={cn(styles.row, !showDots && styles.rowEndpointsOnly)}>
             <div className={styles.endpointSlot}>
               {previous ? (
                 <SequenceNavControl direction="previous" endpoint={previous} />
               ) : null}
             </div>
-            <div className={styles.dotsSlot}>{dots}</div>
+            {dots ? <div className={styles.dotsSlot}>{dots}</div> : null}
             <div className={cn(styles.endpointSlot, styles.endpointNext)}>
               {next ? (
                 <SequenceNavControl direction="next" endpoint={next} />

@@ -12,6 +12,7 @@ const baseCtx = {
   canEditSelectedPin: false,
   openNewMapDialog: () => undefined,
   openAboutDialog: () => undefined,
+  editSelectedPin: () => undefined,
   signOut: async () => undefined,
 };
 
@@ -61,8 +62,12 @@ describe("filterGlobalSearchCommands", () => {
         selectedPin: {
           mapId: "map-1",
           mapRoute: { profileSlug: "me", mapSlug: "trip" },
-          pinSlug: "cafe",
-          pinTitle: "Café",
+          pin: {
+            id: "pin-1",
+            map_id: "map-1",
+            slug: "cafe",
+            title: "Café",
+          } as never,
         },
         canEditSelectedPin: true,
       },

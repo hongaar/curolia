@@ -72,6 +72,15 @@ export const DotsOnly: Story = {
   },
 };
 
+export const EndpointsOnly: Story = {
+  parameters: storyDocs(
+    "Prev/next links without dots — used on mobile detail and map side sheet.",
+  ),
+  args: {
+    showDots: false,
+  },
+};
+
 export const ManyStops: Story = {
   parameters: storyDocs(
     "Long sequences condense to nearby stops; collapsed markers hint at hidden pins.",
