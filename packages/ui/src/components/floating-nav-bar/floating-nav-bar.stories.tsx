@@ -34,7 +34,10 @@ export const Default: Story = {
         />
       </AccountMenuTrigger>
       <AccountMenuContent>
-        <AccountMenuSignedInLabel email="demo@curolia.app" />
+        <AccountMenuSignedInLabel
+          displayName="Demo User"
+          email="demo@curolia.app"
+        />
         <Button variant="ghost" size="sm">
           Profile
         </Button>

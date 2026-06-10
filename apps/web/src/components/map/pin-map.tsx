@@ -46,6 +46,9 @@ import {
 import { toast } from "sonner";
 
 const HOVER_LEAVE_MS = 140;
+/** Hold still on empty map canvas before opening the add-pin context menu (touch). */
+const MAP_LONG_PRESS_MS = 500;
+const MAP_LONG_PRESS_MOVE_TOLERANCE_PX = 10;
 
 /** Marker hover preview: screen x/y updated while the map camera moves. */
 type PinHoverPreview = {
@@ -241,6 +244,25 @@ function pinIdFromContextEvent(orig: Event | undefined): string | null {
   return host?.getAttribute("data-pin-id")?.trim() || null;
 }
 
+function clientPointHitsPinMarker(clientX: number, clientY: number): boolean {
+  for (const node of document.elementsFromPoint(clientX, clientY)) {
+    if (node instanceof Element && node.closest(".maplibregl-marker")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function lngLatAtClientPoint(
+  map: maplibregl.Map,
+  container: HTMLElement,
+  clientX: number,
+  clientY: number,
+): maplibregl.LngLat {
+  const rect = container.getBoundingClientRect();
+  return map.unproject([clientX - rect.left, clientY - rect.top]);
+}
+
 export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   {
     pins,
@@ -326,6 +348,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   /** Bumped when the side panel closes so in-flight marker clicks are ignored. */
   const pinSelectGenerationRef = useRef(0);
   const markerPointerDownGenerationRef = useRef(0);
+  const suppressNextMapClickRef = useRef(false);
 
   const filtered = useMemo(
     () => filterPinsByTags(pins, selectedTagIds),
@@ -1084,28 +1107,27 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
        * Touch → synthetic click often reports `target` as the canvas, not the marker.
        * Hit-test at viewport coords — do not use `rect + e.point` (point is scaled canvas space).
        */
-      let clientX: number | undefined;
-      let clientY: number | undefined;
-      if (orig instanceof MouseEvent) {
-        clientX = orig.clientX;
-        clientY = orig.clientY;
-      }
-      if (
-        clientX !== undefined &&
-        clientY !== undefined &&
-        Number.isFinite(clientX) &&
-        Number.isFinite(clientY)
-      ) {
-        for (const node of document.elementsFromPoint(clientX, clientY)) {
-          if (node instanceof Element && node.closest(".maplibregl-marker")) {
-            return true;
-          }
-        }
+      const point = contextMenuClientPoint(orig);
+      if (point && clientPointHitsPinMarker(point.x, point.y)) {
+        return true;
       }
       return false;
     };
 
+    const openMapContextMenuAt = (
+      lng: number,
+      lat: number,
+      clientX: number,
+      clientY: number,
+    ) => {
+      onMapContextMenuRef.current?.(lng, lat, map.getZoom(), clientX, clientY);
+    };
+
     const onClick = (e: maplibregl.MapMouseEvent) => {
+      if (suppressNextMapClickRef.current) {
+        suppressNextMapClickRef.current = false;
+        return;
+      }
       if (placementMode) {
         const fn = onPlacementClickRef.current;
         if (fn) fn(e.lngLat.lng, e.lngLat.lat, map.getZoom());
@@ -1127,13 +1149,74 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         return;
       }
 
-      onMapContextMenuRef.current?.(
-        e.lngLat.lng,
-        e.lngLat.lat,
-        map.getZoom(),
-        point.x,
-        point.y,
+      openMapContextMenuAt(e.lngLat.lng, e.lngLat.lat, point.x, point.y);
+    };
+
+    let mapLongPressTimer: ReturnType<typeof setTimeout> | null = null;
+    let mapLongPressTouch: {
+      clientX: number;
+      clientY: number;
+      lng: number;
+      lat: number;
+    } | null = null;
+
+    const clearMapLongPress = () => {
+      if (mapLongPressTimer) {
+        clearTimeout(mapLongPressTimer);
+        mapLongPressTimer = null;
+      }
+      mapLongPressTouch = null;
+    };
+
+    const onCanvasTouchStart = (e: TouchEvent) => {
+      if (placementModeRef.current) return;
+      if (e.touches.length !== 1) {
+        clearMapLongPress();
+        return;
+      }
+      const touch = e.touches[0];
+      if (clientPointHitsPinMarker(touch.clientX, touch.clientY)) {
+        return;
+      }
+      const container = containerRef.current;
+      if (!container) return;
+      const lngLat = lngLatAtClientPoint(
+        map,
+        container,
+        touch.clientX,
+        touch.clientY,
       );
+      mapLongPressTouch = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        lng: lngLat.lng,
+        lat: lngLat.lat,
+      };
+      mapLongPressTimer = setTimeout(() => {
+        mapLongPressTimer = null;
+        const pending = mapLongPressTouch;
+        mapLongPressTouch = null;
+        if (!pending || placementModeRef.current) return;
+        suppressNextMapClickRef.current = true;
+        openMapContextMenuAt(
+          pending.lng,
+          pending.lat,
+          pending.clientX,
+          pending.clientY,
+        );
+      }, MAP_LONG_PRESS_MS);
+    };
+
+    const onCanvasTouchMove = (e: TouchEvent) => {
+      if (!mapLongPressTouch || !mapLongPressTimer) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+      const dx = touch.clientX - mapLongPressTouch.clientX;
+      const dy = touch.clientY - mapLongPressTouch.clientY;
+      const tolerance = MAP_LONG_PRESS_MOVE_TOLERANCE_PX;
+      if (dx * dx + dy * dy > tolerance * tolerance) {
+        clearMapLongPress();
+      }
     };
 
     const onPlacementMouseMove = (e: maplibregl.MapMouseEvent) => {
@@ -1146,6 +1229,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
     map.on("click", onClick);
     map.on("contextmenu", onContextMenu);
+    canvas.addEventListener("touchstart", onCanvasTouchStart, {
+      passive: true,
+    });
+    canvas.addEventListener("touchmove", onCanvasTouchMove, { passive: true });
+    canvas.addEventListener("touchend", clearMapLongPress);
+    canvas.addEventListener("touchcancel", clearMapLongPress);
 
     let attachPlacementMove: (() => void) | null = null;
     if (placementMode && !previewPin) {
@@ -1171,6 +1260,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       map.off("click", onClick);
       map.off("contextmenu", onContextMenu);
       map.off("mousemove", onPlacementMouseMove);
+      canvas.removeEventListener("touchstart", onCanvasTouchStart);
+      canvas.removeEventListener("touchmove", onCanvasTouchMove);
+      canvas.removeEventListener("touchend", clearMapLongPress);
+      canvas.removeEventListener("touchcancel", clearMapLongPress);
+      clearMapLongPress();
       if (attachPlacementMove) {
         map.off("load", attachPlacementMove);
       }

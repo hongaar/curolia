@@ -79,7 +79,7 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
         );
         const MapSettingsPanel = plugin.MapSettingsPanel;
         return (
-          <PagePanel key={plugin.id}>
+          <PagePanel key={plugin.id} mobileCard>
             <PagePanelTitleRow
               icon={
                 <PagePanelIcon>

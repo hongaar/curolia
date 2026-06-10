@@ -1,11 +1,12 @@
 .root {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
   gap: 0.625rem;
 }
 
 .card {
   display: flex;
+  flex: 1 1 0;
   flex-direction: column;
   align-items: stretch;
   min-width: 0;

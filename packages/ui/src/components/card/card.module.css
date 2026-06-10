@@ -29,10 +29,19 @@
 }
 
 @media (max-width: 39.99rem) {
-  .card[data-surface="page"] {
+  .card[data-surface="page"]:not([data-mobile-card]) {
     border-radius: 0;
     background: transparent;
     box-shadow: none;
+  }
+
+  .card[data-surface="page"][data-mobile-card] {
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius-xl);
+    background: var(--panel-bg);
+    box-shadow: var(--panel-shadow);
+    backdrop-filter: blur(24px);
+    padding: var(--space-4);
   }
 }
 

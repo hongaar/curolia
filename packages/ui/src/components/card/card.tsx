@@ -12,11 +12,14 @@ function Card({
   size = "default",
   variant = "default",
   surface = "default",
+  mobileCard = false,
   ...props
 }: React.ComponentProps<"div"> & {
   size?: CardSize;
   variant?: CardVariant;
   surface?: CardSurface;
+  /** Keep frosted panel chrome on narrow viewports (`surface="page"` only). */
+  mobileCard?: boolean;
 }) {
   return (
     <div
@@ -24,6 +27,7 @@ function Card({
       data-size={size}
       data-variant={variant}
       data-surface={surface === "page" ? "page" : undefined}
+      data-mobile-card={mobileCard ? "" : undefined}
       className={cn(styles.card, className)}
       {...props}
     />

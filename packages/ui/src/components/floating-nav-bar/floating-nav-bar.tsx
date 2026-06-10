@@ -37,14 +37,18 @@ export function AccountMenuContent({
 }
 
 export function AccountMenuSignedInLabel({
+  displayName,
   email,
 }: {
-  email: string | null | undefined;
+  displayName?: string | null;
+  email?: string | null;
 }) {
+  const label = displayName?.trim() || email || "—";
+
   return (
     <DropdownMenuLabel className={styles.menuSignedIn}>
       <span className={styles.menuSignedIn}>Signed in</span>
-      <span className={styles.menuEmail}>{email ?? "—"}</span>
+      <span className={styles.menuEmail}>{label}</span>
     </DropdownMenuLabel>
   );
 }

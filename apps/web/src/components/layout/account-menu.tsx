@@ -64,7 +64,10 @@ export function AccountMenu() {
         </AccountMenuTrigger>
         <AccountMenuContent>
           <DropdownMenuGroup>
-            <AccountMenuSignedInLabel email={user?.email} />
+            <AccountMenuSignedInLabel
+              displayName={profileQuery.data?.display_name}
+              email={user?.email}
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/profile")}>
               <AccountMenuItemIcon>

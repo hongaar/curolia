@@ -124,8 +124,19 @@ export function PageHeaderLead({ children }: { children: React.ReactNode }) {
   return <p className={styles.headerLead}>{children}</p>;
 }
 
-export function PagePanel({ children }: { children: React.ReactNode }) {
-  return <Card surface="page">{children}</Card>;
+export function PagePanel({
+  children,
+  mobileCard = false,
+}: {
+  children: React.ReactNode;
+  /** Frosted card chrome on mobile; default page panels stay flat below 40rem. */
+  mobileCard?: boolean;
+}) {
+  return (
+    <Card surface="page" mobileCard={mobileCard}>
+      {children}
+    </Card>
+  );
 }
 
 export function PageSection({
