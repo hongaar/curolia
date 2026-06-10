@@ -1,6 +1,9 @@
 import { renderSsrRoute } from "@/ssr/render";
 import { matchSsrRoute } from "@/ssr/routes";
+import { getSsrSmokeRoutes } from "@/ssr/smoke-routes";
 import { enrichTemplateWithProductionStyles } from "@/ssr/stylesheets";
+
+export { getSsrSmokeRoutes };
 
 import "@curolia/ui/styles";
 

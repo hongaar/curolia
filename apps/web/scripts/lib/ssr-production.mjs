@@ -43,8 +43,12 @@ export function assertProductionBuild() {
 
 export async function loadProductionSsr() {
   const paths = assertProductionBuild();
-  const { enrichTemplateWithProductionStyles, render, setSsrTemplate } =
-    await import(paths.entryServer);
+  const {
+    enrichTemplateWithProductionStyles,
+    getSsrSmokeRoutes,
+    render,
+    setSsrTemplate,
+  } = await import(paths.entryServer);
 
   const template = readFileSync(paths.indexHtml, "utf8");
   const enrichedTemplate = enrichTemplateWithProductionStyles(
@@ -54,6 +58,7 @@ export async function loadProductionSsr() {
   setSsrTemplate(enrichedTemplate);
 
   return {
+    getSsrSmokeRoutes,
     render,
     enrichedTemplate,
     paths,

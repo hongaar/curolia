@@ -8,13 +8,6 @@ import {
 
 const ORIGIN = "http://127.0.0.1:4173";
 
-/** Static SSR routes — no Supabase needed. */
-const STATIC_ROUTES = [
-  { path: "/", titleIncludes: "Curolia", bodyIncludes: "map" },
-  { path: "/privacy", titleIncludes: "Privacy", bodyIncludes: "Privacy" },
-  { path: "/for/travel", titleIncludes: "travel", bodyIncludes: "map" },
-];
-
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -99,9 +92,9 @@ async function smokeRoute(
 }
 
 async function main() {
-  const { render, paths } = await loadProductionSsr();
+  const { getSsrSmokeRoutes, render, paths } = await loadProductionSsr();
 
-  for (const route of STATIC_ROUTES) {
+  for (const route of getSsrSmokeRoutes()) {
     await smokeRoute(render, paths, route);
     console.log(`ok ${route.path}`);
   }

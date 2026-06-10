@@ -1,13 +1,16 @@
 import { parseMapViewPathname, parsePinRoutePathname } from "@/lib/map-route";
 
-export type StaticSsrRouteId =
-  | "home"
-  | "contact"
-  | "privacy"
-  | "terms"
-  | "openSource"
-  | "licenses"
-  | "campaign";
+import { SSR_STATIC_PATHS, type StaticSsrRouteId } from "@/ssr/ssr-route-paths";
+
+export {
+  buildSsrNavigateFallbackDenylist,
+  isDeniedByNavigateFallback,
+  pathnameToNavigateDenylistRegex,
+  SSR_DYNAMIC_NAVIGATE_DENYLIST,
+  SSR_STATIC_PATHNAMES,
+  SSR_STATIC_PATHS,
+} from "@/ssr/ssr-route-paths";
+export type { StaticSsrRouteId };
 
 export type SsrRouteMatch =
   | { kind: "static"; id: StaticSsrRouteId; campaignId?: string }
@@ -23,15 +26,6 @@ export type SsrRouteMatch =
       pinSlug: string;
     };
 
-const STATIC_PATHS: Record<string, StaticSsrRouteId> = {
-  "/": "home",
-  "/contact": "contact",
-  "/privacy": "privacy",
-  "/terms": "terms",
-  "/open-source": "openSource",
-  "/licenses": "licenses",
-};
-
 const CAMPAIGN_PATH_RE = /^\/for\/([^/]+)\/?$/;
 
 function normalizePathname(pathname: string): string {
@@ -44,7 +38,7 @@ function normalizePathname(pathname: string): string {
 export function matchSsrRoute(pathname: string): SsrRouteMatch | null {
   const path = normalizePathname(pathname);
 
-  const staticId = STATIC_PATHS[path];
+  const staticId = SSR_STATIC_PATHS[path];
   if (staticId) {
     return { kind: "static", id: staticId };
   }
