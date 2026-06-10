@@ -47,6 +47,8 @@
 .shellEmbedded {
   flex: 1;
   min-height: 0;
+  /* Room for split footers (e.g. map quick-add Delete | Edit Open). */
+  min-width: 20rem;
 }
 
 .content {
@@ -163,6 +165,11 @@
   justify-content: flex-end;
   gap: var(--space-2);
   margin-left: auto;
+}
+
+.footerBetween .footerEnd {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 @media (min-width: 40rem) {
