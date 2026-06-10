@@ -64,8 +64,46 @@ function segmentsGeoJson(
   };
 }
 
-function isMapStyleReady(map: MaplibreMap): boolean {
+export function isMapStyleReady(map: MaplibreMap): boolean {
   return map.isStyleLoaded() === true && map.getStyle() != null;
+}
+
+/** Retry `tryRun` until it returns true or the 1s cap elapses (style swap, tab restore). */
+export function scheduleWhenMapStyleReady(
+  map: MaplibreMap,
+  tryRun: () => boolean,
+): void {
+  if (tryRun()) return;
+
+  let finished = false;
+  const retry = () => {
+    if (finished) return;
+    if (tryRun()) finish();
+  };
+
+  let shortDelay = 0;
+  let longDelay = 0;
+
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    map.off("style.load", retry);
+    map.off("load", retry);
+    map.off("idle", retry);
+    window.clearTimeout(shortDelay);
+    window.clearTimeout(longDelay);
+  };
+
+  map.on("style.load", retry);
+  map.on("load", retry);
+  map.on("idle", retry);
+  requestAnimationFrame(retry);
+  requestAnimationFrame(() => requestAnimationFrame(retry));
+  shortDelay = window.setTimeout(retry, 50);
+  longDelay = window.setTimeout(() => {
+    retry();
+    finish();
+  }, 1_000);
 }
 
 function ensureGeoJsonSource(
@@ -255,37 +293,7 @@ export function schedulePinRouteSync(
 ): void {
   const trySync = (): boolean => syncPinRouteLayers(map, getOptions());
 
-  if (trySync()) return;
-
-  let finished = false;
-  const retry = () => {
-    if (finished) return;
-    if (trySync()) finish();
-  };
-
-  let shortDelay = 0;
-  let longDelay = 0;
-
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    map.off("style.load", retry);
-    map.off("load", retry);
-    map.off("idle", retry);
-    window.clearTimeout(shortDelay);
-    window.clearTimeout(longDelay);
-  };
-
-  map.on("style.load", retry);
-  map.on("load", retry);
-  map.on("idle", retry);
-  requestAnimationFrame(retry);
-  requestAnimationFrame(() => requestAnimationFrame(retry));
-  shortDelay = window.setTimeout(retry, 50);
-  longDelay = window.setTimeout(() => {
-    retry();
-    finish();
-  }, 1_000);
+  scheduleWhenMapStyleReady(map, trySync);
 }
 
 export function updatePinRouteAnimation(

@@ -18,7 +18,9 @@ import {
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
 import {
   buildPinRouteSegments,
-  schedulePinRouteSync,
+  isMapStyleReady,
+  scheduleWhenMapStyleReady,
+  syncPinRouteLayers,
   updatePinRouteAnimation,
 } from "@/lib/pin-map-route-layers";
 import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
@@ -213,6 +215,11 @@ function pinInMapBounds(
   return bounds.contains([lng, lat]);
 }
 
+function hasMapContainerSize(map: maplibregl.Map): boolean {
+  const container = map.getContainer();
+  return container.clientWidth > 0 && container.clientHeight > 0;
+}
+
 function cameraFitPaddingPx(map: maplibregl.Map): number {
   const width = map.getContainer().clientWidth;
   if (width <= 0) return 80;
@@ -374,14 +381,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const showPinRouteRef = useRef(showPinRoute);
   const routeSegmentsRef = useRef(buildPinRouteSegments([]));
   const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
-  const syncPinRouteFromRefsRef = useRef<() => void>(() => {});
+  const syncMapOverlaysRef = useRef<() => void>(() => {});
   const syncVisibleMarkersRef = useRef<() => void>(() => {});
   const invalidateMarkerViewportCullingRef = useRef<() => void>(() => {});
-  const scheduleMarkerSyncWhenStyleReadyRef = useRef<() => void>(() => {});
   const repaintMountedMarkersRef = useRef<() => void>(() => {});
-  const styleLoadSyncPendingRef = useRef(false);
-  const styleLoadHandlerRef = useRef<(() => void) | null>(null);
-  const prevFilteredCountRef = useRef(0);
 
   const filtered = useMemo(
     () => filterPinsByTags(pins, selectedTagIds),
@@ -581,29 +584,59 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     [cancelHidePreview, requestHidePreview],
   );
 
-  const flushMarkerAdds = useCallback(() => {
-    markerAddRafRef.current = null;
-    const batch = pendingMarkerAddsRef.current.splice(0, MARKER_ADD_BATCH_SIZE);
-    for (const pin of batch) {
-      if (!filteredByIdRef.current.has(pin.id)) continue;
-      createMarkerForPin(pin);
-    }
-    if (pendingMarkerAddsRef.current.length > 0) {
-      markerAddRafRef.current = requestAnimationFrame(flushMarkerAdds);
-    } else {
-      applyMarkerHoverStack(latestPinHoverIdRef.current);
-      repaintMountedMarkersRef.current();
-    }
-  }, [applyMarkerHoverStack, createMarkerForPin]);
+  const drainPendingMarkerAdds = useCallback(
+    (viaRaf: boolean) => {
+      const runBatch = () => {
+        const batch = pendingMarkerAddsRef.current.splice(
+          0,
+          MARKER_ADD_BATCH_SIZE,
+        );
+        for (const pin of batch) {
+          if (!filteredByIdRef.current.has(pin.id)) continue;
+          createMarkerForPin(pin);
+        }
+      };
+
+      if (!viaRaf) {
+        if (markerAddRafRef.current !== null) {
+          cancelAnimationFrame(markerAddRafRef.current);
+          markerAddRafRef.current = null;
+        }
+        while (pendingMarkerAddsRef.current.length > 0) runBatch();
+        applyMarkerHoverStack(latestPinHoverIdRef.current);
+        repaintMountedMarkersRef.current();
+        return;
+      }
+
+      markerAddRafRef.current = null;
+      runBatch();
+      if (pendingMarkerAddsRef.current.length > 0) {
+        markerAddRafRef.current = requestAnimationFrame(() =>
+          drainPendingMarkerAdds(true),
+        );
+      } else {
+        applyMarkerHoverStack(latestPinHoverIdRef.current);
+        repaintMountedMarkersRef.current();
+      }
+    },
+    [applyMarkerHoverStack, createMarkerForPin],
+  );
 
   const scheduleMarkerAdds = useCallback(
     (pins: PinWithTags[]) => {
       if (pins.length === 0) return;
       pendingMarkerAddsRef.current.push(...pins);
-      if (markerAddRafRef.current !== null) return;
-      markerAddRafRef.current = requestAnimationFrame(flushMarkerAdds);
+      const viaRaf = mapCameraMovingRef.current;
+      if (viaRaf) {
+        if (markerAddRafRef.current !== null) return;
+        markerAddRafRef.current = requestAnimationFrame(() =>
+          drainPendingMarkerAdds(true),
+        );
+        return;
+      }
+      drainPendingMarkerAdds(false);
     },
-    [flushMarkerAdds],
+    [drainPendingMarkerAdds],
   );
 
   const cancelMarkerAdds = useCallback(() => {
@@ -616,17 +649,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const syncVisibleMarkers = useCallback(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) {
-      if (map) scheduleMarkerSyncWhenStyleReadyRef.current();
-      return;
-    }
+    if (!map || !map.isStyleLoaded()) return;
 
     const gen = ++markerSyncGenerationRef.current;
-    let bounds: maplibregl.LngLatBounds | null;
-    if (!mapHasIdledRef.current) {
-      // getBounds() is often wrong before the first idle/resize — mount all pins.
-      bounds = null;
-    } else {
+    let bounds: maplibregl.LngLatBounds | null = null;
+    const trustBounds =
+      mapHasIdledRef.current &&
+      hasMapContainerSize(map) &&
+      !mapCameraMovingRef.current;
+    if (trustBounds) {
       try {
         bounds = paddedMapBounds(map);
       } catch {
@@ -688,11 +719,20 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   ]);
 
   const scheduleSyncVisibleMarkers = useCallback(() => {
-    if (markerSyncRafRef.current !== null) return;
-    markerSyncRafRef.current = requestAnimationFrame(() => {
+    const run = () => {
       markerSyncRafRef.current = null;
       syncVisibleMarkers();
-    });
+    };
+    if (!mapCameraMovingRef.current) {
+      if (markerSyncRafRef.current !== null) {
+        cancelAnimationFrame(markerSyncRafRef.current);
+        markerSyncRafRef.current = null;
+      }
+      run();
+      return;
+    }
+    if (markerSyncRafRef.current !== null) return;
+    markerSyncRafRef.current = requestAnimationFrame(run);
   }, [syncVisibleMarkers]);
 
   const repaintMountedMarkers = useCallback(() => {
@@ -702,40 +742,32 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }
   }, []);
 
-  const scheduleMarkerSyncWhenStyleReady = useCallback(() => {
+  const syncMapOverlays = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
-    if (map.isStyleLoaded()) {
-      syncVisibleMarkersRef.current();
-      return;
-    }
-    if (styleLoadSyncPendingRef.current) return;
-    styleLoadSyncPendingRef.current = true;
-    const onReady = () => {
-      styleLoadSyncPendingRef.current = false;
-      styleLoadHandlerRef.current = null;
-      const sync = () => {
-        syncVisibleMarkersRef.current();
-      };
-      if (map.isStyleLoaded()) {
-        sync();
-      } else {
-        map.once("idle", sync);
-      }
-    };
-    styleLoadHandlerRef.current = onReady;
-    map.once("load", onReady);
-  }, []);
+    scheduleWhenMapStyleReady(map, () => {
+      if (!isMapStyleReady(map)) return false;
+      // Markers first — route layer writes must not block DOM marker mounts.
+      syncVisibleMarkers();
+      syncPinRouteLayers(map, {
+        show: showPinRouteRef.current,
+        segments: routeSegmentsRef.current,
+        selectedPinId: selectedPinIdRef.current,
+        animationPhase: routeAnimationPhaseRef.current,
+        darkBasemap: darkBasemapRef.current,
+      });
+      return true;
+    });
+  }, [syncVisibleMarkers]);
 
   const invalidateMarkerViewportCulling = useCallback(() => {
     mapHasIdledRef.current = false;
-    scheduleMarkerSyncWhenStyleReady();
-  }, [scheduleMarkerSyncWhenStyleReady]);
+    syncMapOverlaysRef.current();
+  }, []);
 
   syncVisibleMarkersRef.current = syncVisibleMarkers;
+  syncMapOverlaysRef.current = syncMapOverlays;
   invalidateMarkerViewportCullingRef.current = invalidateMarkerViewportCulling;
-  scheduleMarkerSyncWhenStyleReadyRef.current =
-    scheduleMarkerSyncWhenStyleReady;
   repaintMountedMarkersRef.current = repaintMountedMarkers;
 
   useEffect(() => () => cancelHidePreview(), [cancelHidePreview]);
@@ -948,8 +980,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         });
         map.once("moveend", () => {
           map.resize();
-          scheduleMarkerSyncWhenStyleReadyRef.current();
-          repaintMountedMarkersRef.current();
+          syncMapOverlaysRef.current();
           onSettled?.();
         });
       },
@@ -1093,7 +1124,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         mapStylePresetRef.current,
         mapStyleOptsRef.current,
       );
-      syncPinRouteFromRefsRef.current();
+      syncMapOverlaysRef.current();
     };
     map.on("style.load", onStyleLoad);
 
@@ -1115,7 +1146,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     appliedMapStyleKeyRef.current = key;
     mapHasIdledRef.current = false;
     map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
-    syncPinRouteFromRefsRef.current();
+    syncMapOverlaysRef.current();
   }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {
@@ -1454,12 +1485,6 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const map = mapRef.current;
     if (!map) return;
 
-    cancelMarkerAdds();
-    if (prevFilteredCountRef.current === 0 && filtered.length > 0) {
-      mapHasIdledRef.current = false;
-    }
-    prevFilteredCountRef.current = filtered.length;
-
     const filteredIds = new Set(filtered.map((p) => p.id));
     for (const pinId of [...markerMountByPinIdRef.current.keys()]) {
       if (!filteredIds.has(pinId)) {
@@ -1473,17 +1498,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       return h;
     });
 
-    scheduleMarkerSyncWhenStyleReadyRef.current();
-
-    return () => {
-      const handler = styleLoadHandlerRef.current;
-      if (handler) {
-        map.off("load", handler);
-        styleLoadHandlerRef.current = null;
-      }
-      styleLoadSyncPendingRef.current = false;
-    };
-  }, [filtered, cancelMarkerAdds, removeMarkerForPin, syncVisibleMarkers]);
+    syncMapOverlaysRef.current();
+  }, [filtered, removeMarkerForPin]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1492,17 +1508,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const onMoveStart = () => setMarkersCameraMoving(true);
     const onMoveEnd = () => {
       setMarkersCameraMoving(false);
-      syncVisibleMarkers();
-      repaintMountedMarkersRef.current();
-      syncPinRouteFromRefsRef.current();
+      syncMapOverlaysRef.current();
     };
     const onMove = () => scheduleSyncVisibleMarkers();
 
     const onIdle = () => {
       mapHasIdledRef.current = true;
-      syncVisibleMarkers();
-      repaintMountedMarkersRef.current();
-      syncPinRouteFromRefsRef.current();
+      syncMapOverlaysRef.current();
     };
 
     map.on("movestart", onMoveStart);
@@ -1511,13 +1523,6 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     map.on("zoom", onMove);
     map.on("idle", onIdle);
 
-    const onLoad = () => syncVisibleMarkers();
-    if (map.isStyleLoaded()) {
-      onLoad();
-    } else {
-      map.once("load", onLoad);
-    }
-
     const container = containerRef.current;
     const resizeObserver =
       container &&
@@ -1525,7 +1530,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         mapHasIdledRef.current = false;
         map.resize();
         scheduleSyncVisibleMarkers();
-        syncPinRouteFromRefsRef.current();
+        syncMapOverlaysRef.current();
       });
     if (container && resizeObserver) {
       resizeObserver.observe(container);
@@ -1537,7 +1542,6 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       map.off("move", onMove);
       map.off("zoom", onMove);
       map.off("idle", onIdle);
-      map.off("load", onLoad);
       resizeObserver?.disconnect();
       if (markerSyncRafRef.current !== null) {
         cancelAnimationFrame(markerSyncRafRef.current);
@@ -1563,21 +1567,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     showPinRouteRef.current = showPinRoute;
     routeSegmentsRef.current = routeSegments;
     darkBasemapRef.current = isDarkBasemap(mapStylePreset, resolvedTheme);
-    syncPinRouteFromRefsRef.current = () => {
-      const map = mapRef.current;
-      if (!map) return;
-      schedulePinRouteSync(map, () => ({
-        show: showPinRouteRef.current,
-        segments: routeSegmentsRef.current,
-        selectedPinId: selectedPinIdRef.current,
-        animationPhase: routeAnimationPhaseRef.current,
-        darkBasemap: darkBasemapRef.current,
-      }));
-    };
   }, [showPinRoute, routeSegments, mapStylePreset, resolvedTheme]);
 
   useEffect(() => {
-    syncPinRouteFromRefsRef.current();
+    syncMapOverlaysRef.current();
   }, [
     showPinRoute,
     routeSegments,
@@ -1593,7 +1586,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        syncPinRouteFromRefsRef.current();
+        syncMapOverlaysRef.current();
       }
     });
     observer.observe(container);
