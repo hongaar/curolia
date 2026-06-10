@@ -9,6 +9,7 @@ import { renderBlogPageHtml } from "@/ssr/blog-page";
 import { renderPinPageHtml } from "@/ssr/pin-page";
 import { assembleHtml, type PageMeta } from "@/ssr/render-document";
 import type { SsrRouteMatch } from "@/ssr/routes";
+import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/ssr/seo";
 import { createServerSupabase } from "@/ssr/server-supabase";
 import { renderStaticPage, staticPageMeta } from "@/ssr/static-pages";
 import { renderToString } from "react-dom/server";
@@ -93,10 +94,12 @@ export async function renderSsrRoute(
 
     const mapName = map.name.trim() || mapSlug;
     const meta: PageMeta = {
-      title: `${mapName} — Curolia blog`,
+      title: `${mapName} — ${SITE_NAME} blog`,
       description: owner?.bio
         ? `${mapName} by ${owner.displayName}. ${owner.bio}`
-        : `Explore ${mapName}, a public travel map on Curolia.`,
+        : `Explore ${mapName}, a public travel map on ${SITE_NAME}.`,
+      imageUrl: DEFAULT_OG_IMAGE,
+      imageAlt: `${mapName} travel map on ${SITE_NAME}`,
     };
 
     const bodyHtml = renderBlogPageHtml({
@@ -186,10 +189,12 @@ export async function renderSsrRoute(
   const mapName = map.name.trim() || mapSlug;
   const pinTitle = pin.title?.trim() || "Untitled place";
   const meta: PageMeta = {
-    title: `${pinTitle} — ${mapName} — Curolia`,
+    title: `${pinTitle} — ${mapName} — ${SITE_NAME}`,
     description:
       pin.description?.trim().slice(0, 300) ||
-      `${pinTitle} on ${mapName}, a public map on Curolia.`,
+      `${pinTitle} on ${mapName}, a public map on ${SITE_NAME}.`,
+    imageUrl: DEFAULT_OG_IMAGE,
+    imageAlt: pinTitle,
   };
 
   const bodyHtml = renderPinPageHtml({ mapName, pin });

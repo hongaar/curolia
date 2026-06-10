@@ -31,7 +31,39 @@ describe("assembleHtml", () => {
     expect(html).toContain(
       'rel="canonical" href="https://curolia.com/joram/europe/pin/paris"',
     );
+    expect(html).toContain('property="og:site_name" content="Curolia"');
+    expect(html).toContain(
+      'property="og:title" content="Paris — Europe — Curolia"',
+    );
     expect(html).toContain('<div id="root"><main><h1>Paris</h1></main></div>');
+  });
+
+  it("injects social images and JSON-LD when provided", () => {
+    const html = assembleHtml(
+      TEMPLATE,
+      {
+        title: "Curolia — Remember every place you go",
+        description: "Map your adventures.",
+        canonicalUrl: "https://curolia.com/",
+        imageUrl: "https://curolia.com/og.png",
+        imageAlt: "Curolia travel atlas",
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Curolia",
+        },
+      },
+      "<main></main>",
+    );
+
+    expect(html).toContain(
+      'property="og:image" content="https://curolia.com/og.png"',
+    );
+    expect(html).toContain(
+      'name="twitter:image" content="https://curolia.com/og.png"',
+    );
+    expect(html).toContain('<script type="application/ld+json">');
+    expect(html).toContain('"@type":"WebSite"');
   });
 
   it("escapes unsafe HTML in metadata", () => {

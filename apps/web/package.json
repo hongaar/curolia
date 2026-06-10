@@ -8,7 +8,7 @@
     "licenses:generate": "node scripts/generate-npm-licenses.mjs",
     "codegen": "npm run plugins:sync && npm run licenses:generate",
     "dev": "vite",
-    "build": "tsc -b && vite build --ssrManifest && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/stage-vercel-ssr.mjs",
+    "build": "tsc -b && vite build --ssrManifest && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/generate-sitemap.mjs && node scripts/stage-vercel-ssr.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "ssr:preview": "node scripts/ssr-preview.mjs",

@@ -23,7 +23,9 @@ const SMOKE_BODY_BY_ID: Partial<
 };
 
 function staticTitleNeedle(id: StaticSsrRouteId): string {
-  return staticPageMeta(id).title.replace(/ — Curolia$/, "");
+  const title = staticPageMeta(id).title.replace(/ — Curolia$/, "");
+  // Titles may contain "&", which SSR escapes as "&amp;" in <title>.
+  return title.replaceAll("&", "&amp;");
 }
 
 /** Production smoke paths for fixed static SSR routes (from {@link SSR_STATIC_PATHNAMES}). */

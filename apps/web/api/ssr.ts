@@ -4,7 +4,12 @@ import { fileURLToPath } from "node:url";
 
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { render, setSsrTemplate } from "./_ssr/entry-server.js";
+import {
+  assembleHtml,
+  matchSpaPageMeta,
+  render,
+  setSsrTemplate,
+} from "./_ssr/entry-server.js";
 
 type SsrRenderResult = {
   status: number;
@@ -44,10 +49,22 @@ export default async function handler(
   const result = (await render(url.pathname, origin)) as SsrRenderResult | null;
 
   if (!result) {
+    const spaMeta = matchSpaPageMeta(url.pathname);
+    const html = spaMeta
+      ? assembleHtml(
+          spaTemplate(),
+          {
+            ...spaMeta,
+            canonicalUrl: `${origin}${url.pathname}`,
+          },
+          "",
+        )
+      : spaTemplate();
+
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
-    res.end(spaTemplate());
+    res.end(html);
     return;
   }
 

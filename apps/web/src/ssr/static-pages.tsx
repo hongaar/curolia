@@ -8,45 +8,55 @@ import {
   HeritageLandingPage,
   HikingLandingPage,
   LandingPage,
+  OpenSourceLicensesPageContent,
   OpenSourceMindsetPageContent,
   PrivacyPolicyPageContent,
   TermsPageContent,
   TravelLandingPage,
   VanlifeLandingPage,
 } from "@curolia/site/pages";
-import { OpenSourceLicensesPageContent } from "@curolia/site/pages";
 import type { ReactElement } from "react";
 
 import type { PageMeta } from "@/ssr/render-document";
 import type { StaticSsrRouteId } from "@/ssr/routes";
-
-const DEFAULT_DESCRIPTION =
-  "Curolia maps and maps your adventures — collaborative maps with pins, photos, and public blogs.";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_TITLE,
+  homePageJsonLd,
+  SITE_NAME,
+} from "@/ssr/seo";
 
 const STATIC_META: Record<Exclude<StaticSsrRouteId, "campaign">, PageMeta> = {
   home: {
-    title: "Curolia — map your adventures",
+    title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
+    imageUrl: DEFAULT_OG_IMAGE,
+    imageAlt: "Traveler planning their next stop on a map in Curolia",
+    jsonLd: homePageJsonLd(),
   },
   contact: {
     title: "Contact — Curolia",
-    description: "Get in touch with the Curolia team.",
+    description:
+      "Questions about Curolia, your travel maps, or partnerships? Email the Curolia team.",
   },
   privacy: {
     title: "Privacy Policy — Curolia",
-    description: "How Curolia collects, uses, and protects your data.",
+    description:
+      "How Curolia collects, uses, and protects your data when you map places and share trips.",
   },
   terms: {
     title: "Terms and Conditions — Curolia",
-    description: "Terms and conditions for using Curolia.",
+    description:
+      "Terms and conditions for using Curolia's travel atlas and map journal.",
   },
   openSource: {
-    title: "Open source at Curolia",
+    title: "Open Source at Curolia",
     description:
       "How Curolia builds in the open and chooses privacy-respecting, open source services.",
   },
   licenses: {
-    title: "Open source licenses — Curolia",
+    title: "Open Source Licenses — Curolia",
     description: "Open source software used by Curolia.",
   },
 };
@@ -70,14 +80,16 @@ export function staticPageMeta(
     const campaign = campaigns.find((entry) => entry.id === campaignId);
     if (!campaign) {
       return {
-        title: "Curolia",
+        title: DEFAULT_TITLE,
         description: DEFAULT_DESCRIPTION,
         robots: "noindex",
       };
     }
     return {
-      title: `${campaign.title} — Curolia`,
+      title: `${campaign.title} — ${SITE_NAME}`,
       description: campaign.lead,
+      imageUrl: campaign.heroImage.src.replace(/\?w=\d+/, "?w=1200&h=630"),
+      imageAlt: campaign.heroImage.alt,
     };
   }
   return STATIC_META[id];

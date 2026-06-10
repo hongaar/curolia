@@ -3,6 +3,8 @@ import { matchSsrRoute } from "@/ssr/routes";
 import { getSsrSmokeRoutes } from "@/ssr/smoke-routes";
 import { enrichTemplateWithProductionStyles } from "@/ssr/stylesheets";
 
+export { assembleHtml } from "@/ssr/render-document";
+export { matchSpaPageMeta, renderSitemapXml } from "@/ssr/seo";
 export { getSsrSmokeRoutes };
 
 import "@curolia/ui/styles";
