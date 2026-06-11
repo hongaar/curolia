@@ -65,6 +65,15 @@ export type PinDraftEnrichmentSlotProps = {
   onApplySuggestion: (fields: PinEditorFieldSuggestion) => void;
 };
 
+/** Props for plugin actions rendered on pin detail and map marker popovers. */
+export type PinDetailActionProps = PinContextProps & {
+  pinLat: number;
+  pinLng: number;
+  pinTitle?: string | null;
+  /** `header` = pin detail actions row; `popover` = map marker popover footer. */
+  surface: "header" | "popover";
+};
+
 /** Props for per-map plugin settings panels rendered in the map settings dialog. */
 export type MapSettingsPanelProps = {
   supabase: SupabaseClient;
@@ -112,6 +121,11 @@ export type PluginDefinition = {
    * Optional read-only block on the pin detail page.
    */
   PinDetailSection?: ComponentType<PinContextProps>;
+  /**
+   * Optional action control in the pin detail header and map marker popover
+   * (e.g. open external navigation).
+   */
+  PinDetailAction?: ComponentType<PinDetailActionProps>;
   /**
    * Optional background-suggestion surface on the pin detail page. Rendered only
    * for users with edit access; the plugin fetches info in the background

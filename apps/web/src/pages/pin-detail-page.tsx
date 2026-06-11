@@ -1,6 +1,10 @@
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
 import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger";
+import {
+  hasPinPluginDetailActions,
+  PinPluginDetailActions,
+} from "@/components/pins/pin-plugin-detail-actions";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
@@ -22,6 +26,7 @@ import {
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { supabase } from "@/lib/supabase";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useMap } from "@/providers/map-provider";
 import { Button } from "@curolia/ui/button";
@@ -59,6 +64,7 @@ export function PinDetailPage() {
   const navigate = useNavigate();
   const isWideEnough = useMinMd();
   const isMaxSm = useMaxSm();
+  const { plugins: enabledPlugins } = useEnabledPlugins();
   const {
     maps,
     activeMap,
@@ -224,13 +230,18 @@ export function PinDetailPage() {
         />
       }
       toolbarEnd={
-        isMaxSm && canEdit ? (
-          <PinFormDialogTrigger
-            mapId={pin.map_id}
-            pin={pin}
-            variant="outline"
-            size="sm"
-          />
+        isMaxSm && (canEdit || hasPinPluginDetailActions(enabledPlugins)) ? (
+          <>
+            <PinPluginDetailActions pin={pin} surface="header" />
+            {canEdit ? (
+              <PinFormDialogTrigger
+                mapId={pin.map_id}
+                pin={pin}
+                variant="outline"
+                size="sm"
+              />
+            ) : null}
+          </>
         ) : null
       }
     >

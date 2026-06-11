@@ -359,6 +359,24 @@ export function PinMapMarkerPopover({
             </MapMarkerPopoverPhotoStrip>
           ) : null}
           <MapMarkerPopoverActions>
+            {enabledPlugins.map((p) => {
+              const Action = p.PinDetailAction;
+              if (!Action) return null;
+              return (
+                <Action
+                  key={`action-${p.id}`}
+                  supabase={supabase}
+                  pinId={pin.id}
+                  mapId={pin.map_id}
+                  pinDate={pin.date}
+                  pinEndDate={pin.end_date}
+                  pinLat={pin.lat}
+                  pinLng={pin.lng}
+                  pinTitle={pin.title}
+                  surface="popover"
+                />
+              );
+            })}
             <Button
               variant="secondary"
               size="lg"

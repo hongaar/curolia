@@ -18,6 +18,7 @@ export type {
 export type {
   MapSettingsPanelProps,
   PinContextProps,
+  PinDetailActionProps,
   PinDraftEnrichmentSlotProps,
   PinEditorFieldSuggestion,
   PinPhotoImportSlotProps,
@@ -92,9 +93,9 @@ export {
   type PinMetadataSubtitlePart,
 } from "./pin-metadata-subtitle";
 export {
-  isPluginSyncJobActive,
   PLUGIN_SYNC_DISPATCH_SECRET_ENV,
   PLUGIN_SYNC_EVENT_PIN_COORDINATES_CHANGED,
+  isPluginSyncJobActive,
   pluginSyncEventsFromConfig,
   withPluginSyncEvents,
   type PluginSyncEvent,

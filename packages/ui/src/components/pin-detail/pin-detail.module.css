@@ -52,6 +52,13 @@
   gap: var(--space-2);
 }
 
+.detailActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 @media (min-width: 40rem) {
   .detailActions {
     flex-direction: row;

@@ -7,6 +7,8 @@ const wikipediaLogo = new URL("../assets/wikipedia-logo.svg", import.meta.url)
   .href;
 const polarstepsLogo = new URL("../assets/polarsteps-icon.svg", import.meta.url)
   .href;
+const directionsLogo = new URL("../assets/directions-icon.svg", import.meta.url)
+  .href;
 
 type IconProps = {
   className?: string;
@@ -239,6 +241,15 @@ export function OpenMeteoIcon({ size = 5 }: IconProps) {
           d="M6 22c2-4 6-6 10-6s9 2 11 6H6z"
         />
       </svg>
+    </MarketingPluginIcon>
+  );
+}
+
+/** Turn-by-turn directions (generic navigation arrow). */
+export function DirectionsIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <img src={directionsLogo} alt="" className={styles.logoImg} />
     </MarketingPluginIcon>
   );
 }

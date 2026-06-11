@@ -59,6 +59,15 @@ export function PinDetailActions({ children }: { children: React.ReactNode }) {
   return <div className={styles.detailActions}>{children}</div>;
 }
 
+/** Plugin and edit actions below the title when the header is crowded. */
+export function PinDetailActionRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.detailActionRow}>{children}</div>;
+}
+
 export function PinDetailContent({ children }: { children: React.ReactNode }) {
   return <CardContent className={styles.detailContent}>{children}</CardContent>;
 }

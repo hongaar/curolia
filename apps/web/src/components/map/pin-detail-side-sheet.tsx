@@ -57,6 +57,7 @@ export function PinDetailSideSheet({
       permalinkMapRoute={mapRoute ?? undefined}
       mapPins={mapPins}
       onNavigateSequencePin={(target) => onNavigatePin(target.id)}
+      sideSheet
       extraActions={
         <Button
           type="button"

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import {
   ApiAccessIcon,
+  DirectionsIcon,
   GoogleMapsIcon,
   GooglePhotosIcon,
   IcalIcon,
@@ -25,6 +26,13 @@ export type LandingPlugin = {
 };
 
 export const landingPlugins: LandingPlugin[] = [
+  {
+    id: "directions",
+    name: "Directions",
+    description: "Open navigation to pins in your map app",
+    status: "available",
+    icon: () => <DirectionsIcon size={6} />,
+  },
   {
     id: "google-photos",
     name: "Google Photos",
