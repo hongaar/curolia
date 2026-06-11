@@ -7,7 +7,9 @@ export const DEFAULT_APP_VERSION = "dev";
  * Release version for web, Android, and iOS.
  * Production CI sets APP_VERSION; local builds use DEFAULT_APP_VERSION.
  */
-export function resolveAppVersion(env = process.env) {
+export function resolveAppVersion(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
   const fromEnv = env.APP_VERSION?.trim();
   if (fromEnv) {
     return fromEnv;

@@ -4,7 +4,7 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-import { resolveAppVersion } from "../../scripts/resolve-app-version.mjs";
+import { resolveAppVersion } from "../../scripts/resolve-app-version.ts";
 import { buildSsrNavigateFallbackDenylist } from "./src/ssr/ssr-route-paths";
 
 const SSR_NAVIGATE_FALLBACK_DENYLIST = buildSsrNavigateFallbackDenylist();

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { resolveAppVersion } from "./resolve-app-version.mjs";
+import { resolveAppVersion } from "./resolve-app-version.ts";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -11,7 +11,7 @@ const repoRoot = path.resolve(
 const version = resolveAppVersion();
 
 /** Xcode build settings: quote non-numeric values (e.g. dev). */
-function formatXcodeVersion(value) {
+function formatXcodeVersion(value: string): string {
   return /^\d+(\.\d+)*$/.test(value) ? value : `"${value}"`;
 }
 

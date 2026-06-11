@@ -9,3 +9,5 @@ ios
 
 # generated static build artifacts
 packages/ui/storybook-static
+apps/web/dist-ssr
+apps/web/api/_ssr

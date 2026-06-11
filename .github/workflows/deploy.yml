@@ -205,7 +205,7 @@ jobs:
         run: npx turbo run sync --filter=@curolia/mobile
 
       - name: Sync release version to native projects
-        run: node scripts/sync-native-version.mjs
+        run: npx tsx scripts/sync-native-version.ts
 
       - name: Build signed Android App Bundle
         working-directory: apps/mobile/android

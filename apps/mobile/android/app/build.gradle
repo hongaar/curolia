@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// Local defaults match scripts/resolve-app-version.mjs (DEFAULT_APP_VERSION = dev).
+// Local defaults match scripts/resolve-app-version.ts (DEFAULT_APP_VERSION = dev).
 def localVersionName = "dev"
 def localVersionCode = 1
 def ciVersionCode = project.findProperty('versionCode')?.toString()?.toInteger()

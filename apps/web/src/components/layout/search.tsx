@@ -262,11 +262,15 @@ export function Search() {
   const [focused, setFocused] = useState(false);
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [pinDialogAction, setPinDialogAction] =
-    useState<PinDialogAction | null>(null);
+  const [pinDialog, setPinDialog] = useState<{
+    action: PinDialogAction;
+    pinId: string;
+  } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   /** Debounced query to restore when dismissing the active place panel. */
-  const queryBeforePlacePickRef = useRef<string | null>(null);
+  const [queryBeforePlacePick, setQueryBeforePlacePick] = useState<
+    string | null
+  >(null);
 
   const selectedPinLookup = useMemo(
     () =>
@@ -307,28 +311,26 @@ export function Search() {
       mapRoute: selectedPin.mapRoute,
       isMobile,
       navigate,
-      onOpenDialog: () => setPinDialogAction("edit"),
+      onOpenDialog: () =>
+        setPinDialog({ action: "edit", pinId: selectedPin.pin.id }),
     });
   }, [isMobile, navigate, selectedPin]);
 
   const moveSelectedPin = useCallback(() => {
-    if (!canMoveSelectedPin) return;
-    setPinDialogAction("move");
-  }, [canMoveSelectedPin]);
+    if (!canMoveSelectedPin || !selectedPin) return;
+    setPinDialog({ action: "move", pinId: selectedPin.pin.id });
+  }, [canMoveSelectedPin, selectedPin]);
 
   const deleteSelectedPin = useCallback(() => {
     if (!selectedPin || !canEditSelectedPin) return;
-    setPinDialogAction("delete");
+    setPinDialog({ action: "delete", pinId: selectedPin.pin.id });
   }, [canEditSelectedPin, selectedPin]);
 
   const selectedPinId = selectedPin?.pin.id ?? null;
-
-  useEffect(() => {
-    setPinDialogAction((current) => {
-      if (current === "move" || current === "delete") return null;
-      return current;
-    });
-  }, [selectedPinId]);
+  const pinDialogAction =
+    pinDialog && selectedPinId && pinDialog.pinId === selectedPinId
+      ? pinDialog.action
+      : null;
 
   const mapViewContext = useMemo(
     () => resolveGlobalSearchMapViewContext(location.pathname),
@@ -399,30 +401,28 @@ export function Search() {
   const dismissActivePlacePanel = useCallback(() => {
     clearSelectedPlace();
     stripPlaceHighlightFromUrl();
-    const q = queryBeforePlacePickRef.current;
-    queryBeforePlacePickRef.current = null;
-    if (q != null) {
-      setInput(q);
-      setDebounced(q);
+    if (queryBeforePlacePick != null) {
+      setInput(queryBeforePlacePick);
+      setDebounced(queryBeforePlacePick);
+      setQueryBeforePlacePick(null);
     }
     setOpen(true);
-  }, [clearSelectedPlace, stripPlaceHighlightFromUrl]);
+  }, [clearSelectedPlace, queryBeforePlacePick, stripPlaceHighlightFromUrl]);
 
-  const clearSearch = useCallback(() => {
+  const dismissSearchAfterPick = useCallback(() => {
     dismissPopover();
     setInput("");
     setDebounced("");
-    queryBeforePlacePickRef.current = null;
     clearSelectedPlace();
+  }, [clearSelectedPlace, dismissPopover]);
+
+  const clearSearch = useCallback(() => {
+    dismissSearchAfterPick();
+    setQueryBeforePlacePick(null);
     if (selectedPlace) {
       stripPlaceHighlightFromUrl();
     }
-  }, [
-    clearSelectedPlace,
-    dismissPopover,
-    selectedPlace,
-    stripPlaceHighlightFromUrl,
-  ]);
+  }, [dismissSearchAfterPick, selectedPlace, stripPlaceHighlightFromUrl]);
 
   useEffect(() => {
     if (open) return;
@@ -432,9 +432,9 @@ export function Search() {
   const runCommand = useCallback(
     (command: GlobalSearchCommandDef) => {
       runGlobalSearchCommand(command.id, commandContext);
-      clearSearch();
+      dismissSearchAfterPick();
     },
-    [clearSearch, commandContext],
+    [commandContext, dismissSearchAfterPick],
   );
 
   useEffect(() => {
@@ -514,9 +514,9 @@ export function Search() {
     (j: MapWithOwnerSlug) => {
       if (!j.slug.trim()) return;
       navigate(mapSwitchHref(j, location.pathname, location.search));
-      clearSearch();
+      dismissSearchAfterPick();
     },
-    [clearSearch, location.pathname, location.search, navigate],
+    [dismissSearchAfterPick, location.pathname, location.search, navigate],
   );
 
   const onPickPin = useCallback(
@@ -524,7 +524,7 @@ export function Search() {
       if (isMapRoute) {
         const map = mapById.get(t.map_id);
         if (!map?.owner_profile_slug || !map.slug?.trim()) {
-          clearSearch();
+          dismissSearchAfterPick();
           return;
         }
         const route = mapRouteForMap(map);
@@ -545,21 +545,21 @@ export function Search() {
         const map = mapById.get(t.map_id);
         if (!map?.owner_profile_slug || !map.slug?.trim()) {
           navigate("/");
-          clearSearch();
+          dismissSearchAfterPick();
           return;
         }
         navigate(pinDetailHref(mapRouteForMap(map), t.slug));
       }
-      clearSearch();
+      dismissSearchAfterPick();
     },
-    [clearSearch, isMapRoute, mapById, navigate],
+    [dismissSearchAfterPick, isMapRoute, mapById, navigate],
   );
 
   const onPickPlace = useCallback(
     (p: PlaceSearchResult) => {
       const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
       if (!map?.owner_profile_slug || !map.slug?.trim()) {
-        clearSearch();
+        dismissSearchAfterPick();
         return;
       }
       const route = mapRouteForMap(map);
@@ -578,7 +578,6 @@ export function Search() {
           zoom: 12,
         }),
       );
-      queryBeforePlacePickRef.current = debounced;
       selectPlace(p);
       setInput(p.primaryName);
       setDebounced(p.primaryName);
@@ -587,13 +586,20 @@ export function Search() {
     },
     [
       activeMapId,
-      clearSearch,
-      debounced,
+      dismissSearchAfterPick,
       location.search,
       maps,
       navigate,
       selectPlace,
     ],
+  );
+
+  const rememberQueryAndPickPlace = useCallback(
+    (place: PlaceSearchResult) => {
+      setQueryBeforePlacePick(debounced);
+      onPickPlace(place);
+    },
+    [debounced, onPickPlace],
   );
 
   const commandMatches = useMemo(
@@ -664,7 +670,7 @@ export function Search() {
       for (const place of placesQuery.data ?? []) {
         items.push({
           id: `place-${place.id}`,
-          onSelect: () => onPickPlace(place),
+          onSelect: () => rememberQueryAndPickPlace(place),
         });
       }
     }
@@ -684,7 +690,7 @@ export function Search() {
     runCommand,
     onPickMap,
     onPickPin,
-    onPickPlace,
+    rememberQueryAndPickPlace,
   ]);
 
   const {
@@ -854,7 +860,7 @@ export function Search() {
                     subtitle={subtitle}
                     categoryLabel={p.categoryLabel}
                     trailing={placeCategorySearchIcon(p.categoryLabel)}
-                    onPick={() => onPickPlace(p)}
+                    onPick={() => rememberQueryAndPickPlace(p)}
                     {...rowProps}
                   />
                 );
@@ -942,7 +948,7 @@ export function Search() {
             key={`${selectedPin.pin.id}:${pinDialogAction}`}
             open
             onOpenChange={(next) => {
-              if (!next) setPinDialogAction(null);
+              if (!next) setPinDialog(null);
             }}
             mapId={selectedPin.pin.map_id}
             pin={selectedPin.pin}
@@ -994,7 +1000,7 @@ export function Search() {
                 if (selectedPlace && value !== selectedPlace.primaryName) {
                   clearSelectedPlace();
                   stripPlaceHighlightFromUrl();
-                  queryBeforePlacePickRef.current = null;
+                  setQueryBeforePlacePick(null);
                 }
                 setInput(value);
                 setOpen(true);

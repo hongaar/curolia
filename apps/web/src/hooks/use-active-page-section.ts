@@ -53,13 +53,9 @@ export function useActivePageSection(
 ) {
   const [active, setActive] = useState(sectionIds[0] ?? "");
   const scrollLockRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (sectionIds.length === 0) return;
-    setActive((current) =>
-      sectionIds.includes(current) ? current : sectionIds[0],
-    );
-  }, [sectionIds]);
+  const resolvedActive = sectionIds.includes(active)
+    ? active
+    : (sectionIds[0] ?? "");
 
   useEffect(() => {
     if (!enabled || sectionIds.length === 0) return;
@@ -113,5 +109,5 @@ export function useActivePageSection(
     setActive(id);
   }, []);
 
-  return { active, setActiveSection };
+  return { active: resolvedActive, setActiveSection };
 }

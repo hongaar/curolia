@@ -60,16 +60,16 @@ Save a file in the editor and the WebView reloads automatically.
 
 Curolia uses a **single monotonic integer** for every surface (web, Android, iOS) — not semver. The same commit deployed to production gets the same number everywhere.
 
-| Context                              | Version source                                                     |
-| ------------------------------------ | ------------------------------------------------------------------ |
-| **Production deploy** (`deploy.yml`) | `github.run_number` of that workflow run                           |
-| **Local / PR builds**                | `dev` (`DEFAULT_APP_VERSION` in `scripts/resolve-app-version.mjs`) |
+| Context                              | Version source                                                    |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| **Production deploy** (`deploy.yml`) | `github.run_number` of that workflow run                          |
+| **Local / PR builds**                | `dev` (`DEFAULT_APP_VERSION` in `scripts/resolve-app-version.ts`) |
 
 Flow on deploy:
 
 1. `resolve-version` job (`.github/actions/app-version`) computes `APP_VERSION` once per deploy.
 2. **Vercel** sets `APP_VERSION` during `vercel build` → baked into `VITE_APP_VERSION` (About dialog, Bugsink `release`).
-3. **Google Play** passes the same integer as `versionCode` and `versionName`, and runs `scripts/sync-native-version.mjs` so the iOS Xcode project matches for future TestFlight/App Store jobs.
+3. **Google Play** passes the same integer as `versionCode` and `versionName`, and runs `scripts/sync-native-version.ts` so the iOS Xcode project matches for future TestFlight/App Store jobs.
 
 Helpers:
 
