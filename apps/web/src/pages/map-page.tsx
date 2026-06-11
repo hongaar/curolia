@@ -8,7 +8,15 @@ import {
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
-import { PinMap, type PinMapHandle } from "@/components/map/pin-map";
+import {
+  PinMap,
+  type PinCollisionClickPayload,
+  type PinMapHandle,
+} from "@/components/map/pin-map";
+import {
+  PinMapCollisionPicker,
+  type PinMapCollisionPickerState,
+} from "@/components/map/pin-map-collision-picker";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
@@ -205,6 +213,8 @@ export function MapPage() {
   const [pointerContextMenu, setPointerContextMenu] =
     useState<MapPointerContextMenuTarget | null>(null);
   const [relocatePinId, setRelocatePinId] = useState<string | null>(null);
+  const [pinCollisionPicker, setPinCollisionPicker] =
+    useState<PinMapCollisionPickerState | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
@@ -470,8 +480,35 @@ export function MapPage() {
     cameraFromUrlRef.current = cameraFromUrl;
   }, [cameraFromUrl]);
 
+  const onClosePinCollisionPicker = useCallback(() => {
+    setPinCollisionPicker(null);
+    mapRef.current?.invalidatePendingMarkerSelection();
+  }, []);
+
+  const onPinCollisionClick = useCallback(
+    (payload: PinCollisionClickPayload) => {
+      setQuickAddPin(null);
+      setQuickAddAnchorScreen(null);
+      setPinCollisionPicker({
+        pinIds: payload.pinIds,
+        lng: payload.lng,
+        lat: payload.lat,
+      });
+      setSidePanelAnimateIn(false);
+      mapRef.current?.invalidatePendingMarkerSelection();
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+        replace: true,
+      });
+    },
+    [setSearchParams],
+  );
+
   const onSelectPin = useCallback(
     (id: string) => {
+      setPinCollisionPicker(null);
       setQuickAddPin(null);
       setQuickAddAnchorScreen(null);
       const row = pins.find((x) => x.id === id);
@@ -491,6 +528,14 @@ export function MapPage() {
       });
     },
     [setSearchParams, pins, isWideEnough, activeMapRoute, navigate],
+  );
+
+  const onPickCollisionPin = useCallback(
+    (id: string) => {
+      setPinCollisionPicker(null);
+      onSelectPin(id);
+    },
+    [onSelectPin],
   );
 
   const onClosePinMapPopover = useCallback(() => {
@@ -802,6 +847,17 @@ export function MapPage() {
   }, [sidebarPinToken, onClosePinMapPopover]);
 
   useEffect(() => {
+    if (!pinCollisionPicker) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClosePinCollisionPicker();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [pinCollisionPicker, onClosePinCollisionPicker]);
+
+  useEffect(() => {
     if (!activeRelocatePinId) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setRelocatePinId(null);
@@ -987,13 +1043,18 @@ export function MapPage() {
             showPinRoute={showPinRoute}
             placeHighlight={globalSearchPlaceHighlight}
             onSelectPin={onSelectPin}
+            onPinCollisionClick={onPinCollisionClick}
             initialCamera={resolvedInitialCamera}
             initialBbox={bboxFromUrl}
             cameraSyncKey={cameraSyncKey}
             onCameraIdle={onCameraIdle}
-            onMapBackgroundClick={
-              sidebarPinId ? onClosePinMapPopover : undefined
-            }
+            onMapBackgroundClick={() => {
+              if (pinCollisionPicker) {
+                onClosePinCollisionPicker();
+                return;
+              }
+              if (sidebarPinId) onClosePinMapPopover();
+            }}
             onMapContextMenu={onMapContextMenu}
             onPinContextMenu={onPinContextMenu}
             relocatePinId={canEdit ? activeRelocatePinId : null}
@@ -1049,6 +1110,16 @@ export function MapPage() {
           </MapSidePanel>
         ) : null}
       </MapLayer>
+
+      {pinCollisionPicker ? (
+        <PinMapCollisionPicker
+          state={pinCollisionPicker}
+          pins={pins}
+          mapRef={mapRef}
+          onSelectPin={onPickCollisionPin}
+          onClose={onClosePinCollisionPicker}
+        />
+      ) : null}
 
       <MapPointerContextMenu
         target={pointerContextMenu}

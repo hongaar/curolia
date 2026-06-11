@@ -17,6 +17,11 @@ import {
 } from "@/lib/map-view-params";
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
 import {
+  buildCollisionLayout,
+  collisionRepresentativePinId,
+  type CollisionLayout,
+} from "@/lib/pin-map-collisions";
+import {
   syncPlaceHighlightLayer,
   type PlaceMapHighlight,
 } from "@/lib/pin-map-place-highlight";
@@ -123,6 +128,13 @@ export type PinMapPreviewPin = {
 
 export type PinMapDraftPinLocation = Pick<PinMapPreviewPin, "lat" | "lng">;
 
+export type PinCollisionClickPayload = {
+  pinIds: string[];
+  lng: number;
+  lat: number;
+  clickedPinId: string;
+};
+
 const DEFAULT_DRAFT_PIN: Pick<PinMapPreviewPin, "icon" | "color"> = {
   icon: "📍",
   color: null,
@@ -132,6 +144,8 @@ type PinMapProps = {
   pins: PinWithTags[];
   selectedTagIds: Set<string>;
   onSelectPin: (id: string) => void;
+  /** Overlapping markers at the same map point — open a disambiguation picker. */
+  onPinCollisionClick?: (payload: PinCollisionClickPayload) => void;
   /** Pin whose detail panel is open — distinct marker styling. */
   selectedPinId?: string | null;
   /** Draft pin while creating a pin (e.g. New pin dialog). */
@@ -307,6 +321,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     pins,
     selectedTagIds,
     onSelectPin,
+    onPinCollisionClick,
     selectedPinId = null,
     previewPin = null,
     contextDraftPin = null,
@@ -357,7 +372,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const markerVisualByPinIdRef = useRef(
     new Map<
       string,
-      { selected: boolean; hovered: boolean; dimmed: boolean; zIndex: string }
+      {
+        selected: boolean;
+        hovered: boolean;
+        dimmed: boolean;
+        zIndex: string;
+        badge: number | null;
+      }
     >(),
   );
   const markerContentByPinIdRef = useRef<Map<string, PinMarkerVisual>>(
@@ -378,6 +399,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const onPlacementClickRef = useRef(onPlacementClick);
   const onRelocateClickRef = useRef(onRelocateClick);
   const onSelectPinRef = useRef(onSelectPin);
+  const onPinCollisionClickRef = useRef(onPinCollisionClick);
+  const collisionGroupByPinIdRef = useRef<Map<string, string[]>>(new Map());
+  const collisionRepresentativeByPinIdRef = useRef<Map<string, string>>(
+    new Map(),
+  );
+  const collisionCentroidByRepresentativeRef = useRef<
+    Map<string, { lng: number; lat: number }>
+  >(new Map());
   const onCameraIdleRef = useRef(onCameraIdle);
   const onMapBackgroundClickRef = useRef(onMapBackgroundClick);
   const onMapContextMenuRef = useRef(onMapContextMenu);
@@ -424,6 +453,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onPlacementClickRef.current = onPlacementClick;
     onRelocateClickRef.current = onRelocateClick;
     onSelectPinRef.current = onSelectPin;
+    onPinCollisionClickRef.current = onPinCollisionClick;
     onCameraIdleRef.current = onCameraIdle;
     onMapBackgroundClickRef.current = onMapBackgroundClick;
     onMapContextMenuRef.current = onMapContextMenu;
@@ -438,6 +468,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onPlacementClick,
     onRelocateClick,
     onSelectPin,
+    onPinCollisionClick,
     onCameraIdle,
     onMapBackgroundClick,
     onMapContextMenu,
@@ -457,6 +488,49 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }
   }, []);
 
+  const markerLngLatForPin = useCallback((pinId: string): [number, number] => {
+    const centroid = collisionCentroidByRepresentativeRef.current.get(pinId);
+    if (centroid) return [centroid.lng, centroid.lat];
+    const pin = filteredByIdRef.current.get(pinId);
+    return pin ? [pin.lng, pin.lat] : [0, 0];
+  }, []);
+
+  const updateCollisionLayout = useCallback(
+    (
+      map: maplibregl.Map,
+      selectedId: string | null,
+      hoveredId: string | null,
+    ): CollisionLayout => {
+      const relocatingId = relocatePinIdRef.current;
+      const points = filteredRef.current
+        .filter((pin) => pin.id !== relocatingId)
+        .map((pin) => {
+          const projected = map.project([pin.lng, pin.lat]);
+          return {
+            pinId: pin.id,
+            lng: pin.lng,
+            lat: pin.lat,
+            x: projected.x,
+            y: projected.y,
+          };
+        });
+      const layout = buildCollisionLayout(points, selectedId, hoveredId);
+      collisionGroupByPinIdRef.current = layout.groupByPinId;
+      collisionRepresentativeByPinIdRef.current = layout.representativeByPinId;
+      collisionCentroidByRepresentativeRef.current =
+        layout.centroidByRepresentativeId;
+      return layout;
+    },
+    [],
+  );
+
+  const applyRepresentativeMarkerPositions = useCallback(() => {
+    for (const [pinId, marker] of markerByPinIdRef.current) {
+      const [lng, lat] = markerLngLatForPin(pinId);
+      marker.setLngLat([lng, lat]);
+    }
+  }, [markerLngLatForPin]);
+
   const removeMarkerForPin = useCallback((pinId: string) => {
     markerByPinIdRef.current.get(pinId)?.remove();
     markerByPinIdRef.current.delete(pinId);
@@ -473,17 +547,21 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     for (const [pinId, mount] of markerMountByPinIdRef.current) {
       const t = filteredByIdRef.current.get(pinId);
       if (!t) continue;
-      const selected = pinId === selectedId;
-      const hovered = hoveredId !== null && pinId === hoveredId;
-      const dimmed = hasSelection && !selected;
+      const group = collisionGroupByPinIdRef.current.get(pinId) ?? [pinId];
+      const selected = selectedId !== null && group.includes(selectedId);
+      const hovered = hoveredId !== null && group.includes(hoveredId);
+      const dimmed =
+        hasSelection && !(selectedId !== null && group.includes(selectedId));
       const zIndex = selected || hovered ? "3" : "1";
+      const badge = group.length > 1 ? group.length : null;
 
       const prev = markerVisualByPinIdRef.current.get(pinId);
       if (
         prev?.selected === selected &&
         prev?.hovered === hovered &&
         prev?.dimmed === dimmed &&
-        prev?.zIndex === zIndex
+        prev?.zIndex === zIndex &&
+        prev?.badge === badge
       ) {
         continue;
       }
@@ -492,6 +570,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         hovered,
         dimmed,
         zIndex,
+        badge,
       });
       mount.setZIndex(zIndex);
 
@@ -502,6 +581,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         selected,
         hovered,
         dimmed,
+        badge,
         interactive: true,
       });
     }
@@ -564,6 +644,17 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           ) {
             return;
           }
+          const group = collisionGroupByPinIdRef.current.get(t.id) ?? [t.id];
+          const [lng, lat] = markerLngLatForPin(t.id);
+          if (group.length > 1 && onPinCollisionClickRef.current) {
+            onPinCollisionClickRef.current({
+              pinIds: group,
+              lng,
+              lat,
+              clickedPinId: t.id,
+            });
+            return;
+          }
           onSelectPinRef.current(t.id);
         },
         onContextMenu: (e) => {
@@ -578,13 +669,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           const wrap = containerRef.current;
           let x = 0;
           let y = 0;
+          const [lng, lat] = markerLngLatForPin(t.id);
           if (mapInst && wrap) {
-            const p = mapInst.project([t.lng, t.lat]);
+            const p = mapInst.project([lng, lat]);
             const r = wrap.getBoundingClientRect();
             x = r.left + p.x;
             y = r.top + p.y;
           }
-          setPinHover({ pin: t, lng: t.lng, lat: t.lat, x, y });
+          setPinHover({ pin: t, lng, lat, x, y });
         },
         onMouseLeave: () => {
           requestHidePreview();
@@ -599,13 +691,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         hovered: false,
         dimmed: hasSelection && !initialSelected,
         zIndex: initialSelected ? "3" : "1",
+        badge: null,
       });
+      const [lng, lat] = markerLngLatForPin(t.id);
       const marker = new maplibregl.Marker({ element: mount.element })
-        .setLngLat([t.lng, t.lat])
+        .setLngLat([lng, lat])
         .addTo(map);
       markerByPinIdRef.current.set(t.id, marker);
     },
-    [cancelHidePreview, requestHidePreview],
+    [cancelHidePreview, markerLngLatForPin, requestHidePreview],
   );
 
   const drainPendingMarkerAdds = useCallback(
@@ -627,8 +721,16 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           markerAddRafRef.current = null;
         }
         while (pendingMarkerAddsRef.current.length > 0) runBatch();
+        const map = mapRef.current;
+        if (map) {
+          updateCollisionLayout(
+            map,
+            selectedPinIdRef.current,
+            latestPinHoverIdRef.current,
+          );
+        }
+        applyRepresentativeMarkerPositions();
         applyMarkerHoverStack(latestPinHoverIdRef.current);
-        repaintMountedMarkersRef.current();
         return;
       }
 
@@ -639,11 +741,24 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           drainPendingMarkerAdds(true),
         );
       } else {
+        const map = mapRef.current;
+        if (map) {
+          updateCollisionLayout(
+            map,
+            selectedPinIdRef.current,
+            latestPinHoverIdRef.current,
+          );
+        }
+        applyRepresentativeMarkerPositions();
         applyMarkerHoverStack(latestPinHoverIdRef.current);
-        repaintMountedMarkersRef.current();
       }
     },
-    [applyMarkerHoverStack, createMarkerForPin],
+    [
+      applyMarkerHoverStack,
+      applyRepresentativeMarkerPositions,
+      createMarkerForPin,
+      updateCollisionLayout,
+    ],
   );
 
   const scheduleMarkerAdds = useCallback(
@@ -691,47 +806,67 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }
     const selectedId = selectedPinIdRef.current;
     const hoveredId = latestPinHoverIdRef.current;
-    const relocatingId = relocatePinIdRef.current;
-    const shouldMount = new Set<string>();
 
-    for (const pin of filteredRef.current) {
-      if (pin.id === relocatingId) continue;
-      if (
+    const layout = updateCollisionLayout(map, selectedId, hoveredId);
+    const uniqueGroups = [...new Set(layout.groupByPinId.values())];
+    const mountRepresentatives = new Set<string>();
+
+    for (const group of uniqueGroups) {
+      const representativeId = collisionRepresentativePinId(
+        group,
+        selectedId,
+        hoveredId,
+      );
+      const centroid = layout.centroidByRepresentativeId.get(representativeId);
+      if (!centroid) continue;
+
+      const groupVisible =
         bounds === null ||
-        shouldMountPinMarker(pin, bounds, selectedId, hoveredId)
-      ) {
-        shouldMount.add(pin.id);
+        (selectedId !== null && group.includes(selectedId)) ||
+        (hoveredId !== null && group.includes(hoveredId)) ||
+        pinInMapBounds(centroid.lng, centroid.lat, bounds) ||
+        group.some((pinId) => {
+          const pin = filteredByIdRef.current.get(pinId);
+          return (
+            pin !== undefined &&
+            shouldMountPinMarker(pin, bounds, selectedId, hoveredId)
+          );
+        });
+
+      if (groupVisible) {
+        mountRepresentatives.add(representativeId);
       }
     }
 
-    for (const pinId of markerMountByPinIdRef.current.keys()) {
-      if (!shouldMount.has(pinId)) {
+    for (const pinId of [...markerMountByPinIdRef.current.keys()]) {
+      if (!mountRepresentatives.has(pinId)) {
         removeMarkerForPin(pinId);
       }
     }
 
     pendingMarkerAddsRef.current = pendingMarkerAddsRef.current.filter((p) =>
-      shouldMount.has(p.id),
+      mountRepresentatives.has(p.id),
     );
 
     const toAdd: PinWithTags[] = [];
-    for (const pinId of shouldMount) {
-      const pin = filteredByIdRef.current.get(pinId);
+    for (const representativeId of mountRepresentatives) {
+      const pin = filteredByIdRef.current.get(representativeId);
       if (!pin) continue;
-      if (!markerMountByPinIdRef.current.has(pinId)) {
+      const [lng, lat] = markerLngLatForPin(representativeId);
+      if (!markerMountByPinIdRef.current.has(representativeId)) {
         toAdd.push(pin);
         continue;
       }
       const visual = pinMarkerVisual(pin);
-      const prev = markerContentByPinIdRef.current.get(pinId);
+      const prev = markerContentByPinIdRef.current.get(representativeId);
       if (prev?.emoji !== visual.emoji || prev?.fill !== visual.fill) {
-        markerContentByPinIdRef.current.set(pinId, visual);
-        markerMountByPinIdRef.current.get(pinId)?.update({
+        markerContentByPinIdRef.current.set(representativeId, visual);
+        markerMountByPinIdRef.current.get(representativeId)?.update({
           emoji: visual.emoji,
           fill: visual.fill,
         });
       }
-      markerByPinIdRef.current.get(pinId)?.setLngLat([pin.lng, pin.lat]);
+      markerByPinIdRef.current.get(representativeId)?.setLngLat([lng, lat]);
     }
 
     if (gen !== markerSyncGenerationRef.current) return;
@@ -739,9 +874,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     applyMarkerHoverStack(hoveredId);
   }, [
     applyMarkerHoverStack,
+    markerLngLatForPin,
     removeMarkerForPin,
     scheduleMarkerAdds,
     shouldMountPinMarker,
+    updateCollisionLayout,
   ]);
 
   const scheduleSyncVisibleMarkers = useCallback(() => {
@@ -762,11 +899,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   }, [syncVisibleMarkers]);
 
   const repaintMountedMarkers = useCallback(() => {
-    for (const [pinId, marker] of markerByPinIdRef.current) {
-      const pin = filteredByIdRef.current.get(pinId);
-      if (pin) marker.setLngLat([pin.lng, pin.lat]);
-    }
-  }, []);
+    applyRepresentativeMarkerPositions();
+  }, [applyRepresentativeMarkerPositions]);
 
   const syncMapOverlays = useCallback(() => {
     const map = mapRef.current;
@@ -847,8 +981,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   }, [pinHover, applyMarkerHoverStack]);
 
   useLayoutEffect(() => {
-    applyMarkerHoverStack(latestPinHoverIdRef.current);
-  }, [selectedPinId, applyMarkerHoverStack]);
+    scheduleSyncVisibleMarkers();
+  }, [selectedPinId, scheduleSyncVisibleMarkers]);
 
   useLayoutEffect(() => {
     if (!pinHover) {

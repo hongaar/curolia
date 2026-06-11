@@ -16,6 +16,8 @@ export type MapMarkerProps = {
   hovered?: boolean;
   /** De-emphasize when another marker is selected. */
   dimmed?: boolean;
+  /** Stack count when multiple pins share the same map point. */
+  badge?: number | null;
   interactive?: boolean;
   draft?: boolean;
   ariaLabel?: string;
@@ -86,6 +88,19 @@ export function applyMapMarkerFace(el: HTMLElement, props: MapMarkerProps) {
   }
 }
 
+function mapMarkerBadgeLabel(count: number): string {
+  if (count > 99) return "99+";
+  return String(count);
+}
+
+function MapMarkerBadge({ count }: { count: number }) {
+  return (
+    <span className={styles.badge} aria-hidden>
+      {mapMarkerBadgeLabel(count)}
+    </span>
+  );
+}
+
 export function MapMarker({
   emoji,
   fill,
@@ -93,6 +108,7 @@ export function MapMarker({
   selected = false,
   hovered = false,
   dimmed = false,
+  badge = null,
   interactive = false,
   draft = false,
   ariaLabel,
@@ -111,33 +127,41 @@ export function MapMarker({
     draft,
   });
   const inlineStyle = mapMarkerFillStyle(fill, dimmed);
+  const badgeNode =
+    badge != null && badge > 1 ? <MapMarkerBadge count={badge} /> : null;
 
   if (interactive) {
     return (
-      <button
-        type="button"
-        className={className}
-        style={inlineStyle}
-        aria-label={ariaLabel ?? "Open pin"}
-        onClick={onClick}
-        onContextMenu={onContextMenu}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-      >
-        {emoji}
-      </button>
+      <span className={styles.host}>
+        <button
+          type="button"
+          className={className}
+          style={inlineStyle}
+          aria-label={ariaLabel ?? "Open pin"}
+          onClick={onClick}
+          onContextMenu={onContextMenu}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+        >
+          {emoji}
+        </button>
+        {badgeNode}
+      </span>
     );
   }
 
   return (
-    <div
-      role="presentation"
-      aria-hidden
-      className={className}
-      style={inlineStyle}
-    >
-      {emoji}
-    </div>
+    <span className={styles.host}>
+      <div
+        role="presentation"
+        aria-hidden
+        className={className}
+        style={inlineStyle}
+      >
+        {emoji}
+      </div>
+      {badgeNode}
+    </span>
   );
 }
 
@@ -195,15 +219,31 @@ function syncInteractiveHandlers(
     : null;
 }
 
+function syncMapMarkerBadge(
+  wrapper: HTMLDivElement,
+  badgeEl: HTMLSpanElement | null,
+  count: number | null | undefined,
+): HTMLSpanElement | null {
+  if (count != null && count > 1) {
+    const el = badgeEl ?? document.createElement("span");
+    el.className = styles.badge;
+    el.setAttribute("aria-hidden", "true");
+    el.textContent = mapMarkerBadgeLabel(count);
+    if (!badgeEl) wrapper.appendChild(el);
+    return el;
+  }
+  badgeEl?.remove();
+  return null;
+}
+
 export function createMapMarkerMount(
   initial: MapMarkerMountOptions,
 ): MapMarkerMount {
   const wrapper = document.createElement("div");
-  wrapper.style.display = "flex";
-  wrapper.style.alignItems = "center";
-  wrapper.style.justifyContent = "center";
+  wrapper.className = styles.host;
 
   let props: MapMarkerMountOptions = { ...initial };
+  let badgeEl: HTMLSpanElement | null = null;
 
   const face = document.createElement(
     props.interactive ? "button" : "div",
@@ -233,6 +273,7 @@ export function createMapMarkerMount(
       btn.setAttribute("aria-label", props.ariaLabel ?? "Open pin");
       syncInteractiveHandlers(btn, props);
     }
+    badgeEl = syncMapMarkerBadge(wrapper, badgeEl, props.badge);
     applyHostStyles();
   };
 
@@ -251,6 +292,7 @@ export function createMapMarkerMount(
         next.selected !== props.selected ||
         next.hovered !== props.hovered ||
         next.dimmed !== props.dimmed ||
+        next.badge !== props.badge ||
         next.interactive !== props.interactive ||
         next.draft !== props.draft;
       const handlersChanged =

@@ -1,3 +1,32 @@
+.host {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.35rem;
+  z-index: 1;
+  display: inline-flex;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgb(255 255 255 / 0.92);
+  background: var(--foreground);
+  padding: 0 0.2rem;
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  color: var(--background);
+  pointer-events: none;
+  box-shadow: var(--shadow-sm);
+}
+
 .face {
   display: flex;
   width: var(--control-h-md);
