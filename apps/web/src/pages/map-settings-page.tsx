@@ -6,7 +6,9 @@ import {
   mapShowMetadataForSave,
 } from "@/components/map-collection/map-show-metadata";
 import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
+import { useActivePageSection } from "@/hooks/use-active-page-section";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { useMinMd } from "@/hooks/use-min-md";
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import {
   mapSettingsHref,
@@ -19,6 +21,7 @@ import {
 } from "@/lib/map-display-icon";
 import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import { mapRouteForMap } from "@/lib/map-route";
+import { MAP_SETTINGS_SECTION } from "@/lib/map-settings-sections";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
@@ -29,6 +32,7 @@ import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
+import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { resolveMapPinMetadataShow } from "@curolia/plugin-contract";
@@ -40,6 +44,7 @@ import { Field, FieldLabel } from "@curolia/ui/form-layout";
 import { Label } from "@curolia/ui/label";
 import {
   AppPageLayout,
+  PageAnchoredSection,
   PageCenteredLoading,
   PageErrorText,
   PageFormBlockSpaced,
@@ -49,9 +54,14 @@ import {
   PageInlineActions,
   PageMuted,
   PagePanel,
+  PageSideNav,
+  PageSideNavItem,
+  PageSideNavLayout,
+  PageSideNavLink,
+  PageSideNavList,
 } from "@curolia/ui/page";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -138,6 +148,48 @@ export function MapSettingsPage() {
   });
 
   const isOwner = roleQuery.data === "owner";
+  const isWideEnough = useMinMd();
+  const { plugins: enabledPlugins } = useEnabledPlugins({
+    queryEnabled: isOwner,
+  });
+
+  const sectionNavItems = useMemo(() => {
+    const items: { id: string; label: string }[] = [
+      { id: MAP_SETTINGS_SECTION.general, label: "General" },
+      { id: MAP_SETTINGS_SECTION.sharing, label: "Sharing" },
+    ];
+    if (isOwner) {
+      for (const plugin of enabledPlugins) {
+        if (!plugin.MapSettingsPanel) continue;
+        items.push({
+          id: MAP_SETTINGS_SECTION.plugin(plugin.id),
+          label: plugin.contributions?.mapSettings?.title ?? plugin.displayName,
+        });
+      }
+    }
+    return items;
+  }, [enabledPlugins, isOwner]);
+
+  const showSideNav = isWideEnough && sectionNavItems.length > 1;
+  const sectionIds = useMemo(
+    () => sectionNavItems.map((item) => item.id),
+    [sectionNavItems],
+  );
+  const { active: activeSection, setActiveSection } = useActivePageSection(
+    sectionIds,
+    showSideNav,
+  );
+
+  const scrollToSection = useCallback(
+    (id: string) => {
+      setActiveSection(id);
+      document.getElementById(id)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    },
+    [setActiveSection],
+  );
 
   useEffect(() => {
     if (!map) return;
@@ -250,155 +302,189 @@ export function MapSettingsPage() {
     (nameDirty || iconDirty || styleDirty || metadataDirty || routeDirty) &&
     !saving;
 
-  return (
-    <AppPageLayout toolbar={<PageBackButton />}>
-      <PagePanel>
-        <PageHeader>
-          <PageHeaderTitle>Map settings</PageHeaderTitle>
-          <PageHeaderLead>Manage your map settings.</PageHeaderLead>
-        </PageHeader>
-
-        <PageFormBlockSpaced>
-          {!isOwner && !roleQuery.isLoading ? (
-            <PageMuted>Only owners can change map settings.</PageMuted>
-          ) : null}
-          <Field>
-            <EntityLabelInput
-              id="jn-name"
-              label="Map"
-              name={name}
-              onNameChange={setName}
-              placeholder="Map name"
-              disabled={!isOwner || roleQuery.isLoading}
-              emoji={iconEmoji}
-              onEmojiChange={setIconEmoji}
-              emojiFallback={defaultMapIcon()}
-            />
-          </Field>
-          <Field>
-            <FieldLabel id="map-style-label">Map style</FieldLabel>
-            <ChoiceCards<MapStylePreset>
-              name="map-style"
-              value={mapStyle}
-              onValueChange={setMapStyle}
-              disabled={controlsDisabled}
-              aria-labelledby="map-style-label"
+  const sideNav = showSideNav ? (
+    <PageSideNav aria-label="Map settings sections">
+      <PageSideNavList>
+        {sectionNavItems.map((item) => (
+          <PageSideNavItem key={item.id}>
+            <PageSideNavLink
+              active={activeSection === item.id}
+              onClick={() => scrollToSection(item.id)}
             >
-              <ChoiceCard
-                value="auto"
-                label="Auto"
-                description="Light or dark"
-                previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
-              />
-              <ChoiceCard
-                value="street"
-                label="Street"
-                description="Detailed streets"
-                previewSrc={MAP_STYLE_PREVIEW_SRC.street}
-                footer={
-                  <MapStyleOptionCheckbox
-                    label="Terrain"
-                    checked={styleOptions.hillshades}
-                    disabled={controlsDisabled || mapStyle !== "street"}
-                    onCheckedChange={(checked) =>
-                      setStyleOptions((prev) => ({
-                        ...prev,
-                        hillshades: checked,
-                      }))
+              {item.label}
+            </PageSideNavLink>
+          </PageSideNavItem>
+        ))}
+      </PageSideNavList>
+    </PageSideNav>
+  ) : undefined;
+
+  return (
+    <AppPageLayout
+      toolbar={showSideNav ? undefined : <PageBackButton />}
+      width={showSideNav ? "2xl" : "narrow"}
+    >
+      <PageSideNavLayout
+        nav={sideNav}
+        navHeader={showSideNav ? <PageBackButton /> : undefined}
+      >
+        <PageAnchoredSection id={MAP_SETTINGS_SECTION.general}>
+          <PagePanel>
+            <PageHeader>
+              <PageHeaderTitle>Map settings</PageHeaderTitle>
+              <PageHeaderLead>Manage your map settings.</PageHeaderLead>
+            </PageHeader>
+
+            <PageFormBlockSpaced>
+              {!isOwner && !roleQuery.isLoading ? (
+                <PageMuted>Only owners can change map settings.</PageMuted>
+              ) : null}
+              <Field>
+                <EntityLabelInput
+                  id="jn-name"
+                  label="Map"
+                  name={name}
+                  onNameChange={setName}
+                  placeholder="Map name"
+                  disabled={!isOwner || roleQuery.isLoading}
+                  emoji={iconEmoji}
+                  onEmojiChange={setIconEmoji}
+                  emojiFallback={defaultMapIcon()}
+                />
+              </Field>
+              <Field>
+                <FieldLabel id="map-style-label">Map style</FieldLabel>
+                <ChoiceCards<MapStylePreset>
+                  name="map-style"
+                  value={mapStyle}
+                  onValueChange={setMapStyle}
+                  disabled={controlsDisabled}
+                  aria-labelledby="map-style-label"
+                >
+                  <ChoiceCard
+                    value="auto"
+                    label="Auto"
+                    description="Light or dark"
+                    previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
+                  />
+                  <ChoiceCard
+                    value="street"
+                    label="Street"
+                    description="Detailed streets"
+                    previewSrc={MAP_STYLE_PREVIEW_SRC.street}
+                    footer={
+                      <MapStyleOptionCheckbox
+                        label="Terrain"
+                        checked={styleOptions.hillshades}
+                        disabled={controlsDisabled || mapStyle !== "street"}
+                        onCheckedChange={(checked) =>
+                          setStyleOptions((prev) => ({
+                            ...prev,
+                            hillshades: checked,
+                          }))
+                        }
+                      />
                     }
                   />
-                }
-              />
-              <ChoiceCard
-                value="satellite"
-                label="Satellite"
-                description="Aerial imagery"
-                previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
-                footer={
-                  <MapStyleOptionCheckbox
-                    label="Labels"
-                    checked={styleOptions.satelliteLabels}
-                    disabled={controlsDisabled || mapStyle !== "satellite"}
-                    onCheckedChange={(checked) =>
-                      setStyleOptions((prev) => ({
-                        ...prev,
-                        satelliteLabels: checked,
-                      }))
+                  <ChoiceCard
+                    value="satellite"
+                    label="Satellite"
+                    description="Aerial imagery"
+                    previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
+                    footer={
+                      <MapStyleOptionCheckbox
+                        label="Labels"
+                        checked={styleOptions.satelliteLabels}
+                        disabled={controlsDisabled || mapStyle !== "satellite"}
+                        onCheckedChange={(checked) =>
+                          setStyleOptions((prev) => ({
+                            ...prev,
+                            satelliteLabels: checked,
+                          }))
+                        }
+                      />
                     }
                   />
-                }
-              />
-            </ChoiceCards>
-          </Field>
-          <Field>
-            <FieldLabel>Map view</FieldLabel>
-            <Label>
-              <Checkbox
-                checked={showPinRoute}
+                </ChoiceCards>
+              </Field>
+              <Field>
+                <FieldLabel>Map view</FieldLabel>
+                <Label>
+                  <Checkbox
+                    checked={showPinRoute}
+                    disabled={controlsDisabled}
+                    onCheckedChange={(value) => setShowPinRoute(value === true)}
+                  />
+                  Route lines
+                </Label>
+                <PageMuted>
+                  Connect dated pins in chronological order on the map.
+                </PageMuted>
+              </Field>
+              <MapShowMetadataField
+                mapId={map.id}
+                settings={showPinMetadata}
+                onChange={setShowPinMetadata}
                 disabled={controlsDisabled}
-                onCheckedChange={(value) => setShowPinRoute(value === true)}
               />
-              Route lines
-            </Label>
-            <PageMuted>
-              Connect dated pins in chronological order on the map.
-            </PageMuted>
-          </Field>
-          <MapShowMetadataField
+              {error ? <PageErrorText>{error}</PageErrorText> : null}
+              <PageInlineActions>
+                <Button disabled={!canSave} onClick={() => void save()}>
+                  Save
+                </Button>
+                {map.owner_profile_slug && map.slug.trim() ? (
+                  <Button
+                    variant="outline"
+                    type="button"
+                    render={
+                      <Link to={mapViewHref("blog", mapRouteForMap(map))} />
+                    }
+                  >
+                    View blog
+                  </Button>
+                ) : null}
+                {activeMapId !== map.id ? (
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => {
+                      setActiveMapId(map.id);
+                      navigate(
+                        map.owner_profile_slug
+                          ? mapViewHref("map", mapRouteForMap(map))
+                          : "/",
+                      );
+                    }}
+                  >
+                    Switch to this map
+                  </Button>
+                ) : null}
+              </PageInlineActions>
+            </PageFormBlockSpaced>
+          </PagePanel>
+        </PageAnchoredSection>
+
+        <PageAnchoredSection id={MAP_SETTINGS_SECTION.sharing}>
+          <MapSharingSection
             mapId={map.id}
-            settings={showPinMetadata}
-            onChange={setShowPinMetadata}
-            disabled={controlsDisabled}
+            mapName={map.name}
+            ownerProfileSlug={mapRouteForMap(map).profileSlug}
+            mapSlug={map.slug}
+            isPublic={map.is_public}
+            blockPublicCrawlers={map.block_public_crawlers}
+            isOwner={isOwner}
           />
-          {error ? <PageErrorText>{error}</PageErrorText> : null}
-          <PageInlineActions>
-            <Button disabled={!canSave} onClick={() => void save()}>
-              Save
-            </Button>
-            {map.owner_profile_slug && map.slug.trim() ? (
-              <Button
-                variant="outline"
-                type="button"
-                render={<Link to={mapViewHref("blog", mapRouteForMap(map))} />}
-              >
-                View blog
-              </Button>
-            ) : null}
-            {activeMapId !== map.id ? (
-              <Button
-                variant="secondary"
-                type="button"
-                onClick={() => {
-                  setActiveMapId(map.id);
-                  navigate(
-                    map.owner_profile_slug
-                      ? mapViewHref("map", mapRouteForMap(map))
-                      : "/",
-                  );
-                }}
-              >
-                Switch to this map
-              </Button>
-            ) : null}
-          </PageInlineActions>
-        </PageFormBlockSpaced>
-      </PagePanel>
+        </PageAnchoredSection>
 
-      <MapSharingSection
-        mapId={map.id}
-        mapName={map.name}
-        ownerProfileSlug={mapRouteForMap(map).profileSlug}
-        mapSlug={map.slug}
-        isPublic={map.is_public}
-        blockPublicCrawlers={map.block_public_crawlers}
-        isOwner={isOwner}
-      />
-
-      <MapPluginsSection
-        mapId={map.id}
-        isOwner={isOwner}
-        roleLoading={roleQuery.isLoading}
-      />
+        <MapPluginsSection
+          mapId={map.id}
+          isOwner={isOwner}
+          roleLoading={roleQuery.isLoading}
+          sectionIdForPlugin={
+            showSideNav ? MAP_SETTINGS_SECTION.plugin : undefined
+          }
+        />
+      </PageSideNavLayout>
     </AppPageLayout>
   );
 }

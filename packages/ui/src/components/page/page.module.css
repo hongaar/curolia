@@ -475,3 +475,103 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+.sideNavLayout {
+  display: contents;
+}
+
+@media (min-width: 48rem) {
+  .sideNavLayoutWithNav {
+    display: grid;
+    grid-template-columns: 10.5rem minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+.sideNav {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .sideNav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    position: sticky;
+    top: 0;
+  }
+}
+
+.sideNavHeader {
+  display: flex;
+  min-width: 0;
+}
+
+.sideNavHeader > * {
+  align-self: flex-start;
+}
+
+.sideNavNav {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.sideNavList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sideNavItem {
+  display: block;
+}
+
+.sideNavLink {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-snug);
+  text-align: left;
+  color: var(--muted-foreground);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.sideNavLink:hover {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--muted) 45%, transparent);
+}
+
+.sideNavLinkActive {
+  color: var(--foreground);
+  font-weight: var(--font-weight-medium);
+  background: color-mix(in oklch, var(--muted) 55%, transparent);
+}
+
+.sideNavMain {
+  display: contents;
+}
+
+@media (min-width: 48rem) {
+  .sideNavLayoutWithNav .sideNavMain {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+.anchoredSection {
+  scroll-margin-top: calc(var(--page-chrome-top) + var(--space-4));
+}

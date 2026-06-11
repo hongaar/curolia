@@ -2,6 +2,7 @@ import { supabase, supabaseUrl } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import type { MapPlugin } from "@/types/database";
 import {
+  PageAnchoredSection,
   PageMuted,
   PagePanel,
   PagePanelIcon,
@@ -13,12 +14,19 @@ type Props = {
   mapId: string;
   isOwner: boolean;
   roleLoading: boolean;
+  /** When set, each plugin panel is wrapped in a scroll target for page side nav. */
+  sectionIdForPlugin?: (pluginId: string) => string;
 };
 
 /**
  * For each account-level enabled plugin, shows per-map settings. Owners edit; other roles do not see this block.
  */
-export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
+export function MapPluginsSection({
+  mapId,
+  isOwner,
+  roleLoading,
+  sectionIdForPlugin,
+}: Props) {
   const { plugins: implementedEnabled, userPluginsQuery } = useEnabledPlugins({
     queryEnabled: isOwner,
   });
@@ -78,8 +86,8 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
           (c) => c.plugin_type_id === plugin.id,
         );
         const MapSettingsPanel = plugin.MapSettingsPanel;
-        return (
-          <PagePanel key={plugin.id} mobileCard>
+        const panel = (
+          <PagePanel mobileCard>
             <PagePanelTitleRow
               icon={
                 <PagePanelIcon>
@@ -103,6 +111,15 @@ export function MapPluginsSection({ mapId, isOwner, roleLoading }: Props) {
               />
             ) : null}
           </PagePanel>
+        );
+
+        const sectionId = sectionIdForPlugin?.(plugin.id);
+        return sectionId ? (
+          <PageAnchoredSection key={plugin.id} id={sectionId}>
+            {panel}
+          </PageAnchoredSection>
+        ) : (
+          <div key={plugin.id}>{panel}</div>
         );
       })}
     </>

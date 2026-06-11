@@ -12,6 +12,7 @@ import { Switch } from "../switch";
 import {
   AppPageLayout,
   Page,
+  PageAnchoredSection,
   PageAvatarActions,
   PageAvatarHint,
   PageAvatarRow,
@@ -54,6 +55,11 @@ import {
   PageSectionTitle,
   PageSharingRoot,
   PageSharingSection,
+  PageSideNav,
+  PageSideNavItem,
+  PageSideNavLayout,
+  PageSideNavLink,
+  PageSideNavList,
   PageSwitchRow,
   PageSwitchStack,
   PageTitle,
@@ -356,6 +362,66 @@ export const ProfileLayout: Story = {
             <Button>Save changes</Button>
           </PageFitButton>
         </PageProfileGrid>
+      </AppPageLayout>
+    </PageShell>
+  ),
+};
+
+export const SideNavLayout: Story = {
+  name: "Side nav layout",
+  parameters: storyDocs(
+    "`PageSideNavLayout` shows a sticky section nav from 48rem. Use `PageAnchoredSection` for scroll targets.",
+  ),
+  render: () => (
+    <PageShell>
+      <AppPageLayout width="2xl">
+        <PageSideNavLayout
+          navHeader={<PageBackButton label="Back" onClick={() => undefined} />}
+          nav={
+            <PageSideNav aria-label="Settings sections">
+              <PageSideNavList>
+                <PageSideNavItem>
+                  <PageSideNavLink active onClick={() => undefined}>
+                    General
+                  </PageSideNavLink>
+                </PageSideNavItem>
+                <PageSideNavItem>
+                  <PageSideNavLink onClick={() => undefined}>
+                    Sharing
+                  </PageSideNavLink>
+                </PageSideNavItem>
+                <PageSideNavItem>
+                  <PageSideNavLink onClick={() => undefined}>
+                    Calendar
+                  </PageSideNavLink>
+                </PageSideNavItem>
+              </PageSideNavList>
+            </PageSideNav>
+          }
+        >
+          <PageAnchoredSection id="story-page-general">
+            <PagePanel>
+              <PageHeader>
+                <PageHeaderTitle>General</PageHeaderTitle>
+                <PageHeaderLead>
+                  Map name, style, and display options.
+                </PageHeaderLead>
+              </PageHeader>
+            </PagePanel>
+          </PageAnchoredSection>
+          <PageAnchoredSection id="story-page-sharing">
+            <PagePanel>
+              <PagePanelTitleRow>Sharing</PagePanelTitleRow>
+              <PageMuted>Members, invites, and public access.</PageMuted>
+            </PagePanel>
+          </PageAnchoredSection>
+          <PageAnchoredSection id="story-page-calendar">
+            <PagePanel mobileCard>
+              <PagePanelTitleRow>Calendar</PagePanelTitleRow>
+              <PageMuted>Plugin map settings panel.</PageMuted>
+            </PagePanel>
+          </PageAnchoredSection>
+        </PageSideNavLayout>
       </AppPageLayout>
     </PageShell>
   ),

@@ -479,4 +479,92 @@ export function PageSharingSection({
   return <div className={styles.sharingSection}>{children}</div>;
 }
 
+export function PageSideNavLayout({
+  nav,
+  navHeader,
+  children,
+}: {
+  /** Sticky section nav — shown from 48rem when provided. */
+  nav?: React.ReactNode;
+  /** Leading chrome (e.g. back) pinned above the section nav on wide viewports. */
+  navHeader?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        styles.sideNavLayout,
+        nav ? styles.sideNavLayoutWithNav : undefined,
+      )}
+    >
+      {nav ? (
+        <aside className={styles.sideNav}>
+          {navHeader ? (
+            <div className={styles.sideNavHeader}>{navHeader}</div>
+          ) : null}
+          {nav}
+        </aside>
+      ) : null}
+      <div className={styles.sideNavMain}>{children}</div>
+    </div>
+  );
+}
+
+export function PageSideNav({
+  children,
+  "aria-label": ariaLabel,
+}: {
+  children: React.ReactNode;
+  "aria-label": string;
+}) {
+  return (
+    <nav className={styles.sideNavNav} aria-label={ariaLabel}>
+      {children}
+    </nav>
+  );
+}
+
+export function PageSideNavList({ children }: { children: React.ReactNode }) {
+  return <ul className={styles.sideNavList}>{children}</ul>;
+}
+
+export function PageSideNavItem({ children }: { children: React.ReactNode }) {
+  return <li className={styles.sideNavItem}>{children}</li>;
+}
+
+export function PageSideNavLink({
+  active = false,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(styles.sideNavLink, active && styles.sideNavLinkActive)}
+      aria-current={active ? "true" : undefined}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function PageAnchoredSection({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className={styles.anchoredSection}>
+      {children}
+    </section>
+  );
+}
+
 export const pageStyles = styles;
