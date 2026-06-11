@@ -4,7 +4,6 @@ import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
   ADD_PIN_PANEL_WIDTH_PX,
   mapFabPanelMiddleware,
-  mapPaddingAvoidRect,
 } from "@/lib/map-anchor-floating-ui";
 import {
   findExactPlaceMatch,
@@ -175,20 +174,13 @@ export function AddPinDialog({
     staleTime: 60_000,
   });
 
-  const dialogRect = useCallback((): DOMRect | null => {
-    return floatingRef.current?.getBoundingClientRect() ?? null;
-  }, []);
-
   const flyToPlace = useCallback(
     (place: PlaceSearchResult) => {
       const map = mapRef.current;
       if (!map) return;
-      map.flyToLocation(place.lng, place.lat, {
-        bbox: place.bbox,
-        padding: mapPaddingAvoidRect(dialogRect()),
-      });
+      map.flyToLocation(place.lng, place.lat);
     },
-    [dialogRect, mapRef],
+    [mapRef],
   );
 
   const pickPlace = useCallback(
@@ -247,8 +239,8 @@ export function AddPinDialog({
     ) {
       return;
     }
-    if (placesQuery.fetchStatus !== "idle") return;
     const data = placesQuery.data;
+    if (!data?.length && placesQuery.fetchStatus !== "idle") return;
     if (!data?.length) return;
     const exact = findExactPlaceMatch(debouncedSearch, data);
     if (exact) queueMicrotask(() => pickPlace(exact, "auto"));
