@@ -17,6 +17,10 @@ import {
 } from "@/lib/map-view-params";
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
 import {
+  syncPlaceHighlightLayer,
+  type PlaceMapHighlight,
+} from "@/lib/pin-map-place-highlight";
+import {
   buildPinRouteSegments,
   isMapStyleReady,
   scheduleWhenMapStyleReady,
@@ -162,6 +166,8 @@ type PinMapProps = {
   mapStyleOptions?: MapStyleOptions;
   /** Draw chronological route lines between dated pins. */
   showPinRoute?: boolean;
+  /** Circle overlay for a place picked from global search. */
+  placeHighlight?: PlaceMapHighlight | null;
 };
 
 const CAMERA_DURATION_MS = 850;
@@ -308,6 +314,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     mapStyle = "auto",
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
     showPinRoute = false,
+    placeHighlight = null,
   },
   ref,
 ) {
@@ -379,6 +386,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const suppressNextMapClickRef = useRef(false);
   const routeAnimationPhaseRef = useRef(0);
   const showPinRouteRef = useRef(showPinRoute);
+  const placeHighlightRef = useRef(placeHighlight);
   const routeSegmentsRef = useRef(buildPinRouteSegments([]));
   const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
   const syncMapOverlaysRef = useRef<() => void>(() => {});
@@ -756,6 +764,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         animationPhase: routeAnimationPhaseRef.current,
         darkBasemap: darkBasemapRef.current,
       });
+      syncPlaceHighlightLayer(map, placeHighlightRef.current);
       return true;
     });
   }, [syncVisibleMarkers]);
@@ -1205,13 +1214,23 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       if (bbox && isValidMapBbox(bbox)) {
         lastAppliedSyncKeyRef.current = syncKey;
         invalidateMarkerViewportCullingRef.current();
+        const basePad = cameraFitPaddingPx(m);
+        const highlightPad = Math.max(96, basePad + 40);
+        const padding = placeHighlightRef.current
+          ? {
+              top: highlightPad,
+              right: highlightPad,
+              bottom: highlightPad + 48,
+              left: highlightPad,
+            }
+          : basePad;
         m.fitBounds(
           new maplibregl.LngLatBounds(
             [bbox.west, bbox.south],
             [bbox.east, bbox.north],
           ),
           {
-            padding: cameraFitPaddingPx(m),
+            padding,
             maxZoom: CAMERA_MAX_ZOOM,
             duration: CAMERA_DURATION_MS,
           },
@@ -1566,14 +1585,22 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   useLayoutEffect(() => {
     showPinRouteRef.current = showPinRoute;
+    placeHighlightRef.current = placeHighlight;
     routeSegmentsRef.current = routeSegments;
     darkBasemapRef.current = isDarkBasemap(mapStylePreset, resolvedTheme);
-  }, [showPinRoute, routeSegments, mapStylePreset, resolvedTheme]);
+  }, [
+    showPinRoute,
+    placeHighlight,
+    routeSegments,
+    mapStylePreset,
+    resolvedTheme,
+  ]);
 
   useEffect(() => {
     syncMapOverlaysRef.current();
   }, [
     showPinRoute,
+    placeHighlight,
     routeSegments,
     selectedPinId,
     mapStylePreset,

@@ -13,6 +13,8 @@ export type GeocodeProperties = {
   country?: string;
   type?: string;
   extent?: number[];
+  osm_key?: string;
+  osm_value?: string;
 };
 
 /** One row from forward place search (browser). */
@@ -25,6 +27,8 @@ export type PlaceSearchResult = {
   lat: number;
   lng: number;
   bbox?: MapBbox;
+  /** e.g. City, Province, Landmark — from Photon/OSM type metadata. */
+  categoryLabel?: string;
 };
 
 export type ReverseGeocodeDetails = {

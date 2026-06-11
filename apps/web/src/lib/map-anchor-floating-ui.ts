@@ -10,9 +10,6 @@ import {
 /** Space from map anchor (marker center) to panel — matches new-pin floating form. */
 export const MAP_ANCHOR_PANEL_GAP_PX = 14;
 
-/** Fixed width for the add-pin FAB panel — avoids horizontal shift when results load. */
-export const ADD_PIN_PANEL_WIDTH_PX = 352;
-
 const VIEWPORT_EDGE_PX = 12;
 
 function readRootCssLength(varName: string, fallback = 0): number {
@@ -76,29 +73,6 @@ export function mapFloatingViewportPadding(): Padding {
     bottom: readRootCssLength("--safe-bottom") + VIEWPORT_EDGE_PX,
     left: readRootCssLength("--safe-left") + VIEWPORT_EDGE_PX,
   };
-}
-
-/** Floating panel anchored to the add-pin FAB (bottom-right map controls). */
-export function mapFabPanelMiddleware(): Middleware[] {
-  const padding = mapFloatingViewportPadding();
-
-  return [
-    offset(MAP_ANCHOR_PANEL_GAP_PX),
-    flip({
-      fallbackPlacements: ["left", "left-start", "top-end"],
-      padding,
-    }),
-    shift({ padding, crossAxis: true }),
-    size({
-      padding,
-      apply({ availableHeight, elements }) {
-        const maxH = Math.max(200, availableHeight);
-        Object.assign(elements.floating.style, {
-          maxHeight: `${maxH}px`,
-        });
-      },
-    }),
-  ];
 }
 
 function normalizePadding(padding: Padding): {

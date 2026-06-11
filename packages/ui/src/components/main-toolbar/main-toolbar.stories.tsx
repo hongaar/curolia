@@ -4,15 +4,15 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
 import { DropdownMenu } from "../dropdown-menu";
 import { AccountMenuContent, AccountMenuTrigger } from "../floating-nav-bar";
-import {
-  GlobalSearchIcon,
-  GlobalSearchInput,
-  GlobalSearchToolbarAnchor,
-  GlobalSearchToolbarField,
-} from "../global-search";
 import { Input } from "../input";
 import { MapPickerContent, MapPickerTrigger } from "../map-picker";
 import { Popover } from "../popover";
+import {
+  SearchIcon,
+  SearchInput,
+  SearchToolbarAnchor,
+  SearchToolbarField,
+} from "../search";
 import { UserAvatar } from "../user-avatar";
 import { MainToolbar } from "./main-toolbar";
 
@@ -52,18 +52,14 @@ function DemoMapPicker() {
 function DemoSearch() {
   return (
     <Popover modal={false}>
-      <GlobalSearchToolbarAnchor>
-        <GlobalSearchToolbarField>
-          <GlobalSearchIcon>
+      <SearchToolbarAnchor>
+        <SearchToolbarField>
+          <SearchIcon>
             <Search aria-hidden />
-          </GlobalSearchIcon>
-          <GlobalSearchInput
-            variant="toolbar"
-            placeholder="Search…"
-            aria-label="Search"
-          />
-        </GlobalSearchToolbarField>
-      </GlobalSearchToolbarAnchor>
+          </SearchIcon>
+          <SearchInput placeholder="Search…" aria-label="Search" />
+        </SearchToolbarField>
+      </SearchToolbarAnchor>
     </Popover>
   );
 }

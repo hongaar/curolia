@@ -1,13 +1,13 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { GlobalSearchIcon } from "./global-search";
+import { SearchIcon } from "./search";
 
-describe("GlobalSearchIcon", () => {
+describe("SearchIcon", () => {
   it("renders without crashing", () => {
     render(
-      <GlobalSearchIcon>
+      <SearchIcon>
         <span>S</span>
-      </GlobalSearchIcon>,
+      </SearchIcon>,
     );
     expect(document.body).toBeTruthy();
   });

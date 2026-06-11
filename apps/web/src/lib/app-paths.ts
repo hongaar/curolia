@@ -1,7 +1,5 @@
 import { parsePublicMapShortcutPathname, type MapRoute } from "@/lib/map-route";
 import {
-  applyAddPinToSearchParams,
-  applySelectedPinToSearchParams,
   MAP_VIEW_PARAM,
   stripMapCameraFromSearchParams,
 } from "@/lib/map-view-params";
@@ -77,7 +75,6 @@ export function mapViewSwitchHref(
   );
   p = stripMapCameraFromSearchParams(p);
   p.delete(MAP_VIEW_PARAM.pin);
-  p.delete(MAP_VIEW_PARAM.add);
   const q = p.toString();
   const base = mapViewHref(view, route);
   return q ? `${base}?${q}` : base;
@@ -100,7 +97,6 @@ export function mapSwitchHref(
   p.delete("filter");
   p.delete("tags");
   p.delete(MAP_VIEW_PARAM.pin);
-  p.delete(MAP_VIEW_PARAM.add);
   const q = p.toString();
   const base = mapViewHref(segment, route);
   return q ? `${base}?${q}` : base;
@@ -126,26 +122,6 @@ export function mapHrefWithSearch(
       : searchParamsStr,
   );
   const q = p.toString();
-  const base = mapViewHref("map", route);
-  return q ? `${base}?${q}` : base;
-}
-
-/** Map with add-pin dialog open (preserves unrelated search params). */
-export function mapAddPinHref(
-  route: MapRoute,
-  searchParams: URLSearchParams | string = "",
-): string {
-  const p =
-    typeof searchParams === "string"
-      ? new URLSearchParams(
-          searchParams.startsWith("?") ? searchParams.slice(1) : searchParams,
-        )
-      : new URLSearchParams(searchParams);
-  const next = applyAddPinToSearchParams(
-    applySelectedPinToSearchParams(p, null),
-    true,
-  );
-  const q = next.toString();
   const base = mapViewHref("map", route);
   return q ? `${base}?${q}` : base;
 }

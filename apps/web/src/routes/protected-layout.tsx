@@ -3,6 +3,7 @@ import {
   consumeSkipLoginNextRedirect,
   useAuth,
 } from "@/providers/auth-provider";
+import { GlobalSearchPlaceProvider } from "@/providers/global-search-place-provider";
 import { MapProvider } from "@/providers/map-provider";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
@@ -26,7 +27,9 @@ export function ProtectedLayout() {
 
   return (
     <MapProvider publicView={publicMapView}>
-      <Outlet />
+      <GlobalSearchPlaceProvider>
+        <Outlet />
+      </GlobalSearchPlaceProvider>
     </MapProvider>
   );
 }

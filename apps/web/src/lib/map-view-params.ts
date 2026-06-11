@@ -12,8 +12,6 @@ export const MAP_VIEW_PARAM = {
   filter: "filter",
   /** Legacy: comma-separated tag UUIDs (still read when present). */
   tags: "tags",
-  /** Enable map placement mode (e.g. from blog “Add pin”). */
-  add: "add",
 } as const;
 
 /** Tag slugs persisted in URL `filter=` (aligned with Postgres `tags.slug` check constraint). */
@@ -257,26 +255,5 @@ export function applyMapCameraToSearchParams(
   next.set(MAP_VIEW_PARAM.lat, String(n.lat));
   next.set(MAP_VIEW_PARAM.lng, String(n.lng));
   next.set(MAP_VIEW_PARAM.zoom, String(n.zoom));
-  return next;
-}
-
-export function parseAddPinFromSearchParams(
-  searchParams: URLSearchParams,
-): boolean {
-  const raw = searchParams.get(MAP_VIEW_PARAM.add)?.trim().toLowerCase();
-  return raw === "1" || raw === "true";
-}
-
-/** Set or remove `add` (map placement mode). */
-export function applyAddPinToSearchParams(
-  searchParams: URLSearchParams,
-  active: boolean,
-): URLSearchParams {
-  const next = new URLSearchParams(searchParams);
-  if (active) {
-    next.set(MAP_VIEW_PARAM.add, "1");
-  } else {
-    next.delete(MAP_VIEW_PARAM.add);
-  }
   return next;
 }

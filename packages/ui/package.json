@@ -32,7 +32,7 @@
     "./floating-nav-bar": "./src/components/floating-nav-bar/index.ts",
     "./floating-panel": "./src/components/floating-panel/index.ts",
     "./form-layout": "./src/components/form-layout/index.ts",
-    "./global-search": "./src/components/global-search/index.ts",
+    "./search": "./src/components/search/index.ts",
     "./input": "./src/components/input/index.ts",
     "./label": "./src/components/label/index.ts",
     "./list": "./src/components/list/index.ts",

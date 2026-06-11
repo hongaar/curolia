@@ -1,7 +1,7 @@
 import { AccountMenu } from "@/components/layout/account-menu";
-import { GlobalSearch } from "@/components/layout/global-search";
 import { MainToolbarBrandLink } from "@/components/layout/main-toolbar-brand-link";
 import { PublicMapToolbarSlot } from "@/components/layout/public-map-toolbar-slot";
+import { Search } from "@/components/layout/search";
 import { MapPicker } from "@/components/map/map-picker";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
@@ -17,7 +17,7 @@ export function MainToolbar() {
     <MainToolbarLayout
       brand={<MainToolbarBrandLink />}
       mapPicker={publicView ? <PublicMapToolbarSlot /> : <MapPicker />}
-      search={user ? <GlobalSearch toolbarEmbed /> : null}
+      search={user ? <Search /> : null}
       accountMenu={
         user ? (
           <AccountMenu />

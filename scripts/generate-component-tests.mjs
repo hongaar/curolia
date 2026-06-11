@@ -87,7 +87,7 @@ const CUSTOM_RENDER = {
         <SegmentedSwitcher items={[{ to: "/", label: "Map", icon: <span>M</span> }]} />
       </MemoryRouter>,
     );`,
-  "global-search": `render(<GlobalSearchTrigger placeholder="Search" onOpenChange={() => {}} />);`,
+  search: `render(<SearchIcon><span>S</span></SearchIcon>);`,
   map: `render(<MapPageRoot><div>Map</div></MapPageRoot>);`,
   "pin-detail": `render(<PinDetailRoot><div>Detail</div></PinDetailRoot>);`,
   "pin-form": `render(<PinFormSection><div>Form</div></PinFormSection>);`,

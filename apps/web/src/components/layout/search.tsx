@@ -33,12 +33,14 @@ import {
   PIN_FOCUS_ZOOM,
 } from "@/lib/map-view-params";
 import { openPinEditor } from "@/lib/open-pin-editor";
+import { placeHighlightFitBbox } from "@/lib/pin-map-place-highlight";
 import {
   searchPinsInMaps,
   sortPinsByPreferredMap,
   type PinSearchRow,
 } from "@/lib/pin-text-search";
 import { useAuth } from "@/providers/auth-provider";
+import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import {
@@ -46,34 +48,33 @@ import {
   searchPlaces,
   type PlaceSearchResult,
 } from "@curolia/services/geocoding";
+import { Button } from "@curolia/ui/button";
+import { Popover } from "@curolia/ui/popover";
 import {
-  GlobalSearchEmptyHint,
-  GlobalSearchFooter,
-  GlobalSearchHeader,
-  GlobalSearchIcon,
-  GlobalSearchInput,
-  GlobalSearchLabel,
-  GlobalSearchPopoverContent,
-  GlobalSearchPopoverTitle,
-  GlobalSearchPopoverTrigger,
-  GlobalSearchResultBody,
-  GlobalSearchResultIcon,
-  GlobalSearchResultRow,
-  GlobalSearchResults,
-  GlobalSearchResultShortcut,
-  GlobalSearchResultSubtitle,
-  GlobalSearchResultTitle,
-  GlobalSearchSectionLabel,
-  GlobalSearchShortcutKeys,
-  GlobalSearchSpinner,
-  GlobalSearchStatusText,
-  GlobalSearchToolbarAnchor,
-  GlobalSearchToolbarField,
-  GlobalSearchToolbarShortcutHint,
+  SearchEmptyHint,
+  SearchIcon as SearchFieldIcon,
+  SearchInput,
+  SearchPopoverContent,
+  SearchPopoverTitle,
+  SearchResultBody,
+  SearchResultCategory,
+  SearchResultIcon,
+  SearchResultRow,
+  SearchResults,
+  SearchResultShortcut,
+  SearchResultSubtitle,
+  SearchResultTitle,
+  SearchResultTitleRow,
+  SearchSectionLabel,
+  SearchSpinner,
+  SearchStatusText,
+  SearchToolbarActions,
+  SearchToolbarAnchor,
+  SearchToolbarField,
+  SearchToolbarShortcutHint,
   useSearchListKeyboard,
   type SearchListKeyboardItem,
-} from "@curolia/ui/global-search";
-import { Popover } from "@curolia/ui/popover";
+} from "@curolia/ui/search";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRightLeft,
@@ -90,11 +91,12 @@ import {
   Notebook,
   Pencil,
   Plug,
-  Search,
+  Search as SearchGlyph,
   Settings,
   Settings2,
   Trash2,
   User,
+  X,
 } from "lucide-react";
 import {
   lazy,
@@ -111,7 +113,7 @@ import { useLocation, useMatch, useNavigate } from "react-router-dom";
 const DEBOUNCE_MS = 320;
 const SEARCH_SHORTCUT_KEYS = formatShortcutKeys({ key: "k" });
 const SEARCH_SHORTCUT_LABEL = formatShortcutLabel({ key: "k" });
-const GLOBAL_SEARCH_LISTBOX_ID = "global-search-listbox";
+const SEARCH_LISTBOX_ID = "curolia-search-listbox";
 
 const PinFormDialog = lazy(() =>
   import("@/components/pins/pin-form-dialog").then((m) => ({
@@ -160,10 +162,12 @@ type ResultButtonProps = {
   icon: ReactNode;
   title: string;
   subtitle?: string;
+  categoryLabel?: string;
   shortcutKeys?: string[];
   onPick: () => void;
   id?: string;
   active?: boolean;
+  selected?: boolean;
   onMouseMove?: () => void;
 };
 
@@ -171,42 +175,54 @@ function ResultRow({
   icon,
   title,
   subtitle,
+  categoryLabel,
   shortcutKeys,
   onPick,
   id,
   active = false,
+  selected = false,
   onMouseMove,
 }: ResultButtonProps) {
   return (
-    <GlobalSearchResultRow
+    <SearchResultRow
       id={id}
       active={active}
+      selected={selected}
       onMouseMove={onMouseMove}
       onClick={onPick}
     >
-      <GlobalSearchResultIcon>{icon}</GlobalSearchResultIcon>
-      <GlobalSearchResultBody>
-        <GlobalSearchResultTitle>{title}</GlobalSearchResultTitle>
+      <SearchResultIcon>{icon}</SearchResultIcon>
+      <SearchResultBody>
+        <SearchResultTitleRow>
+          <SearchResultTitle>{title}</SearchResultTitle>
+          {categoryLabel ? (
+            <SearchResultCategory>{categoryLabel}</SearchResultCategory>
+          ) : null}
+        </SearchResultTitleRow>
         {subtitle ? (
-          <GlobalSearchResultSubtitle>{subtitle}</GlobalSearchResultSubtitle>
+          <SearchResultSubtitle>{subtitle}</SearchResultSubtitle>
         ) : null}
-      </GlobalSearchResultBody>
-      {shortcutKeys ? <GlobalSearchResultShortcut keys={shortcutKeys} /> : null}
-    </GlobalSearchResultRow>
+      </SearchResultBody>
+      {shortcutKeys ? <SearchResultShortcut keys={shortcutKeys} /> : null}
+    </SearchResultRow>
   );
 }
 
-type GlobalSearchProps = {
-  toolbarEmbed?: boolean;
-};
-
-export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
+export function Search() {
   const navigate = useNavigate();
   const location = useLocation();
   const homeMatch = useMatch({ path: "/", end: true });
   const nestedMapMatch = useMatch("/:profileSlug/:mapSlug/map");
   const isMapRoute = Boolean(homeMatch || nestedMapMatch);
   const { maps, activeMapId, activeMap, publicView } = useMap();
+  const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
+  const canEditMap = !publicView && memberCanEdit;
+  const {
+    selectedPlace,
+    selectPlace,
+    clearSelectedPlace,
+    requestAddPinFromSelectedPlace,
+  } = useGlobalSearchPlace();
   const { signOut } = useAuth();
   const { openNewMapDialog, openAboutDialog } = useNavigationShell();
   const isMobile = useMaxSm();
@@ -330,12 +346,17 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     ],
   );
 
-  const closeSearch = useCallback(() => {
+  const dismissPopover = useCallback(() => {
     setOpen(false);
     setFocused(false);
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    dismissPopover();
     setInput("");
     setDebounced("");
-  }, []);
+    clearSelectedPlace();
+  }, [clearSelectedPlace, dismissPopover]);
 
   useEffect(() => {
     if (open) return;
@@ -345,21 +366,15 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const runCommand = useCallback(
     (command: GlobalSearchCommandDef) => {
       runGlobalSearchCommand(command.id, commandContext);
-      closeSearch();
+      clearSearch();
     },
-    [commandContext, closeSearch],
+    [clearSearch, commandContext],
   );
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(input.trim()), DEBOUNCE_MS);
     return () => window.clearTimeout(t);
   }, [input]);
-
-  useEffect(() => {
-    if (!open || toolbarEmbed) return;
-    const id = window.requestAnimationFrame(() => inputRef.current?.focus());
-    return () => window.cancelAnimationFrame(id);
-  }, [open, toolbarEmbed]);
 
   useEffect(() => {
     const shortcutCommands = globalSearchCommandsWithShortcuts(
@@ -382,14 +397,14 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
         if (matchesShortcut(e, command.shortcut)) {
           e.preventDefault();
           runGlobalSearchCommand(command.id, commandContext);
-          closeSearch();
+          clearSearch();
           return;
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [commandContext, closeSearch]);
+  }, [clearSearch, commandContext]);
 
   const mapIds = useMemo(() => maps.map((j) => j.id), [maps]);
   const mapIdsKey = useMemo(() => [...mapIds].sort().join(","), [mapIds]);
@@ -418,7 +433,8 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const placesQuery = useQuery({
     queryKey: ["global-search-places", debounced],
     queryFn: () => searchPlaces(debounced),
-    enabled: open && isMapRoute && debounced.length >= 2,
+    enabled:
+      open && isMapRoute && debounced.length >= 2 && selectedPlace == null,
     staleTime: 60_000,
   });
 
@@ -431,9 +447,9 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     (j: MapWithOwnerSlug) => {
       if (!j.slug.trim()) return;
       navigate(mapSwitchHref(j, location.pathname, location.search));
-      closeSearch();
+      clearSearch();
     },
-    [closeSearch, location.pathname, location.search, navigate],
+    [clearSearch, location.pathname, location.search, navigate],
   );
 
   const onPickPin = useCallback(
@@ -441,7 +457,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       if (isMapRoute) {
         const map = mapById.get(t.map_id);
         if (!map?.owner_profile_slug || !map.slug?.trim()) {
-          closeSearch();
+          clearSearch();
           return;
         }
         const route = mapRouteForMap(map);
@@ -462,43 +478,46 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
         const map = mapById.get(t.map_id);
         if (!map?.owner_profile_slug || !map.slug?.trim()) {
           navigate("/");
-          closeSearch();
+          clearSearch();
           return;
         }
         navigate(pinDetailHref(mapRouteForMap(map), t.slug));
       }
-      closeSearch();
+      clearSearch();
     },
-    [closeSearch, isMapRoute, mapById, navigate],
+    [clearSearch, isMapRoute, mapById, navigate],
   );
 
   const onPickPlace = useCallback(
     (p: PlaceSearchResult) => {
       const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
       if (!map?.owner_profile_slug || !map.slug?.trim()) {
-        closeSearch();
+        clearSearch();
         return;
       }
       const route = mapRouteForMap(map);
       let params = new URLSearchParams();
-      if (p.bbox) {
-        params = applyMapBboxToSearchParams(params, p.bbox);
-      }
-      const center = p.bbox
-        ? {
-            lat: (p.bbox.south + p.bbox.north) / 2,
-            lng: (p.bbox.west + p.bbox.east) / 2,
-            zoom: 11,
-          }
-        : { lat: p.lat, lng: p.lng, zoom: 12 };
+      const fitBbox = placeHighlightFitBbox({
+        lng: p.lng,
+        lat: p.lat,
+        bbox: p.bbox,
+      });
+      params = applyMapBboxToSearchParams(params, fitBbox);
       params = applyMapCameraToSearchParams(
         params,
-        normalizeCameraForUrl(center),
+        normalizeCameraForUrl({
+          lat: p.lat,
+          lng: p.lng,
+          zoom: 12,
+        }),
       );
+      selectPlace(p);
+      setInput(p.primaryName);
+      setDebounced(p.primaryName);
+      dismissPopover();
       navigate(mapHrefWithSearch(route, `?${params.toString()}`));
-      closeSearch();
     },
-    [activeMapId, closeSearch, maps, navigate],
+    [activeMapId, clearSearch, dismissPopover, maps, navigate, selectPlace],
   );
 
   const commandMatches = useMemo(
@@ -519,13 +538,16 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     [commandMatches],
   );
 
-  const showPlaces = isMapRoute && debounced.length >= 2;
+  const showPlaces =
+    isMapRoute && debounced.length >= 2 && selectedPlace == null;
   const showPins = debounced.length >= 2;
   const showMapSearch = debounced.length >= 1;
   const busy =
     (showPins && pinsQuery.isFetching) ||
     (showPlaces && placesQuery.isFetching);
-  const showToolbarShortcutHint = toolbarEmbed && input.length === 0 && !busy;
+  const showToolbarShortcutHint =
+    input.length === 0 && !busy && selectedPlace == null;
+  const showToolbarPlaceActions = selectedPlace != null;
 
   const selectableItems = useMemo((): SearchListKeyboardItem[] => {
     const items: SearchListKeyboardItem[] = [];
@@ -594,7 +616,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     getItemProps,
     inputProps: searchListInputProps,
   } = useSearchListKeyboard({
-    listboxId: GLOBAL_SEARCH_LISTBOX_ID,
+    listboxId: SEARCH_LISTBOX_ID,
     items: selectableItems,
     enabled: open,
   });
@@ -613,25 +635,25 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
   const searchResults = (
     <>
-      <GlobalSearchResults id={GLOBAL_SEARCH_LISTBOX_ID}>
+      <SearchResults id={SEARCH_LISTBOX_ID}>
         {debounced.length === 0 ? (
-          <GlobalSearchEmptyHint>
+          <SearchEmptyHint>
             Jump to actions and pages, or search maps by name. Type two or more
             characters to find pins
             {isMapRoute ? " and map places" : ""}.
-          </GlobalSearchEmptyHint>
+          </SearchEmptyHint>
         ) : null}
 
         {actionMatches.length > 0 ? (
           <>
-            <GlobalSearchSectionLabel>Actions</GlobalSearchSectionLabel>
+            <SearchSectionLabel>Actions</SearchSectionLabel>
             {actionMatches.map((command) => {
               const itemId = `action-${command.id}`;
               const rowProps = resultRowProps(itemId);
               return (
                 <ResultRow
                   key={command.id}
-                  icon={COMMAND_ICONS[command.id] ?? <Search />}
+                  icon={COMMAND_ICONS[command.id] ?? <SearchGlyph />}
                   title={command.title}
                   subtitle={command.subtitle}
                   shortcutKeys={
@@ -649,7 +671,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
         {pageMatches.length > 0 ? (
           <>
-            <GlobalSearchSectionLabel>Pages</GlobalSearchSectionLabel>
+            <SearchSectionLabel>Pages</SearchSectionLabel>
             {pageMatches.map((command) => {
               const itemId = `page-${command.id}`;
               const rowProps = resultRowProps(itemId);
@@ -669,7 +691,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
         {showMapSearch && mapMatches.length > 0 ? (
           <>
-            <GlobalSearchSectionLabel>Maps</GlobalSearchSectionLabel>
+            <SearchSectionLabel>Maps</SearchSectionLabel>
             {mapMatches.map((j) => {
               const itemId = `map-${j.id}`;
               const rowProps = resultRowProps(itemId);
@@ -692,23 +714,21 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
         debounced.length < 2 &&
         actionMatches.length === 0 &&
         pageMatches.length === 0 ? (
-          <GlobalSearchStatusText>
+          <SearchStatusText>
             No maps match. Add another letter to search pins
             {isMapRoute ? " and places" : ""}.
-          </GlobalSearchStatusText>
+          </SearchStatusText>
         ) : null}
 
         {showPins ? (
           <>
-            <GlobalSearchSectionLabel>Pins</GlobalSearchSectionLabel>
+            <SearchSectionLabel>Pins</SearchSectionLabel>
             {pinsQuery.isError ? (
-              <GlobalSearchStatusText>
-                Could not load pins.
-              </GlobalSearchStatusText>
+              <SearchStatusText>Could not load pins.</SearchStatusText>
             ) : pinsQuery.isFetching && pinsSorted.length === 0 ? (
-              <GlobalSearchStatusText>Searching…</GlobalSearchStatusText>
+              <SearchStatusText>Searching…</SearchStatusText>
             ) : pinsSorted.length === 0 ? (
-              <GlobalSearchStatusText>No matching pins.</GlobalSearchStatusText>
+              <SearchStatusText>No matching pins.</SearchStatusText>
             ) : (
               pinsSorted.map((t) => {
                 const itemId = `pin-${t.id}`;
@@ -730,18 +750,14 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
         {showPlaces ? (
           <>
-            <GlobalSearchSectionLabel>Places</GlobalSearchSectionLabel>
+            <SearchSectionLabel>Places</SearchSectionLabel>
             {placesQuery.isError ? (
-              <GlobalSearchStatusText>
-                Could not load places.
-              </GlobalSearchStatusText>
+              <SearchStatusText>Could not load places.</SearchStatusText>
             ) : placesQuery.isFetching &&
               (placesQuery.data?.length ?? 0) === 0 ? (
-              <GlobalSearchStatusText>Searching…</GlobalSearchStatusText>
+              <SearchStatusText>Searching…</SearchStatusText>
             ) : (placesQuery.data?.length ?? 0) === 0 ? (
-              <GlobalSearchStatusText>
-                No matching places.
-              </GlobalSearchStatusText>
+              <SearchStatusText>No matching places.</SearchStatusText>
             ) : (
               (placesQuery.data ?? []).map((p) => {
                 const primary = p.primaryName.trim();
@@ -755,6 +771,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
                     icon={<MapIcon />}
                     title={primary || full || "Place"}
                     subtitle={subtitle}
+                    categoryLabel={p.categoryLabel}
                     onPick={() => onPickPlace(p)}
                     {...rowProps}
                   />
@@ -763,17 +780,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
             )}
           </>
         ) : null}
-      </GlobalSearchResults>
-
-      {!toolbarEmbed ? (
-        <GlobalSearchFooter>
-          <GlobalSearchShortcutKeys
-            keys={SEARCH_SHORTCUT_KEYS}
-            variant="footer"
-          />{" "}
-          to open · Pin results prefer the active map
-        </GlobalSearchFooter>
-      ) : null}
+      </SearchResults>
     </>
   );
 
@@ -801,122 +808,114 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
         open={open}
         modal={false}
         onOpenChange={(next) => {
-          if (
-            !next &&
-            toolbarEmbed &&
-            document.activeElement === inputRef.current
-          ) {
+          if (!next && document.activeElement === inputRef.current) {
             // Suppress spurious close: Base UI fires onOpenChange(false) when the
             // user clicks the anchor (outside the popup DOM). Since the input is
             // still focused this is not a genuine outside-click dismiss.
             return;
           }
           if (!next) {
-            closeSearch();
+            if (selectedPlace) {
+              dismissPopover();
+              return;
+            }
+            clearSearch();
             return;
           }
           setOpen(true);
         }}
       >
-        {toolbarEmbed ? (
-          <GlobalSearchToolbarAnchor
-            onPointerDown={(e) => {
-              if (e.target === e.currentTarget) {
-                inputRef.current?.focus();
-              }
-            }}
-          >
-            <GlobalSearchToolbarField focused={focused}>
-              <GlobalSearchIcon>
-                <Search aria-hidden />
-              </GlobalSearchIcon>
-              <GlobalSearchInput
-                ref={inputRef}
-                variant="toolbar"
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  setOpen(true);
-                }}
-                onFocus={() => {
-                  setFocused(true);
-                  setOpen(true);
-                }}
-                onBlur={() => {
-                  setFocused(false);
-                }}
-                onKeyDown={(e) => {
-                  handleSearchListKeyDown(e);
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    closeSearch();
-                  }
-                }}
-                placeholder="Search, actions…"
-                title={`Search (${SEARCH_SHORTCUT_LABEL})`}
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                aria-label="Search maps, pins, actions, and pages"
-                aria-expanded={open}
-                {...searchListInputProps}
-              />
-              {busy ? (
-                <GlobalSearchSpinner>
-                  <Loader2 aria-hidden />
-                </GlobalSearchSpinner>
-              ) : showToolbarShortcutHint ? (
-                <GlobalSearchToolbarShortcutHint keys={SEARCH_SHORTCUT_KEYS} />
-              ) : null}
-            </GlobalSearchToolbarField>
-          </GlobalSearchToolbarAnchor>
-        ) : (
-          <GlobalSearchPopoverTrigger
-            title={`Search (${SEARCH_SHORTCUT_LABEL})`}
-          >
-            <GlobalSearchIcon>
-              <Search />
-            </GlobalSearchIcon>
-            <GlobalSearchLabel toolbarEmbed={false}>Search…</GlobalSearchLabel>
-          </GlobalSearchPopoverTrigger>
-        )}
-        <GlobalSearchPopoverContent toolbarEmbed={toolbarEmbed}>
-          <GlobalSearchPopoverTitle>
+        <SearchToolbarAnchor
+          onPointerDown={(e) => {
+            if (e.target === e.currentTarget) {
+              inputRef.current?.focus();
+            }
+          }}
+        >
+          <SearchToolbarField focused={focused}>
+            <SearchFieldIcon>
+              <SearchGlyph aria-hidden />
+            </SearchFieldIcon>
+            <SearchInput
+              ref={inputRef}
+              value={input}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (selectedPlace && value !== selectedPlace.primaryName) {
+                  clearSelectedPlace();
+                }
+                setInput(value);
+                setOpen(true);
+              }}
+              onFocus={() => {
+                setFocused(true);
+                setOpen(true);
+              }}
+              onBlur={() => {
+                setFocused(false);
+              }}
+              onKeyDown={(e) => {
+                handleSearchListKeyDown(e);
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  clearSearch();
+                }
+              }}
+              placeholder="Search, actions…"
+              title={`Search (${SEARCH_SHORTCUT_LABEL})`}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              aria-label="Search maps, pins, actions, and pages"
+              aria-expanded={open}
+              {...searchListInputProps}
+            />
+            {busy ? (
+              <SearchSpinner>
+                <Loader2 aria-hidden />
+              </SearchSpinner>
+            ) : showToolbarPlaceActions ? (
+              <SearchToolbarActions>
+                {canEditMap && isMapRoute ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      requestAddPinFromSelectedPlace();
+                      dismissPopover();
+                    }}
+                  >
+                    Add pin
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Clear place search"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearSearch();
+                  }}
+                >
+                  <X aria-hidden />
+                </Button>
+              </SearchToolbarActions>
+            ) : showToolbarShortcutHint ? (
+              <SearchToolbarShortcutHint keys={SEARCH_SHORTCUT_KEYS} />
+            ) : null}
+          </SearchToolbarField>
+        </SearchToolbarAnchor>
+        <SearchPopoverContent>
+          <SearchPopoverTitle>
             Search maps, actions, and pages
-          </GlobalSearchPopoverTitle>
-          {!toolbarEmbed ? (
-            <GlobalSearchHeader>
-              <GlobalSearchIcon>
-                <Search aria-hidden />
-              </GlobalSearchIcon>
-              <GlobalSearchInput
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Maps, actions, pins…"
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                aria-label="Search maps, pins, actions, and pages"
-                aria-expanded={open}
-                onKeyDown={(e) => {
-                  handleSearchListKeyDown(e);
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    closeSearch();
-                  }
-                }}
-                {...searchListInputProps}
-              />
-              {busy ? (
-                <GlobalSearchSpinner>
-                  <Loader2 aria-hidden />
-                </GlobalSearchSpinner>
-              ) : null}
-            </GlobalSearchHeader>
-          ) : null}
+          </SearchPopoverTitle>
           <div>{searchResults}</div>
-        </GlobalSearchPopoverContent>
+        </SearchPopoverContent>
       </Popover>
     </>
   );

@@ -3,4 +3,4 @@ export {
   useSearchListKeyboard,
   type SearchListKeyboardItem,
 } from "../../lib/use-search-list-keyboard";
-export * from "./global-search";
+export * from "./search";

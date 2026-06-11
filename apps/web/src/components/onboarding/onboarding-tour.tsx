@@ -1,4 +1,4 @@
-import { mapAddPinHref } from "@/lib/app-paths";
+import { mapViewHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   getOnboardingCompleted,
@@ -131,7 +131,7 @@ export function OnboardingTour() {
   const dropFirstPin = () => {
     if (!placementMap?.slug || !placementMap.owner_profile_slug) return;
     beginPinPlacement();
-    navigate(mapAddPinHref(mapRouteForMap(placementMap)));
+    navigate(mapViewHref("map", mapRouteForMap(placementMap)));
   };
 
   const explorePlugins = () => {
@@ -188,9 +188,9 @@ export function OnboardingTour() {
             <OnboardingEyebrow>Your first pin</OnboardingEyebrow>
             <OnboardingTitle>Drop your first pin</OnboardingTitle>
             <OnboardingDescription>
-              Pins are the heart of Curolia. Tap the add button, search for a
-              place, and pick it from the list &mdash; Curolia fills in the
-              title and address automatically. Give it a try!
+              Pins are the heart of Curolia. Search for a place in the toolbar,
+              pick it from the list, then tap Add pin &mdash; Curolia fills in
+              the title and address automatically. Give it a try!
             </OnboardingDescription>
             {placementMap?.slug ? (
               <Button size="lg" onClick={dropFirstPin}>

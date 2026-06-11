@@ -58,13 +58,13 @@ describe("FabButton", () => {
   });
 });
 `,
-  "global-search": `import { render } from "@testing-library/react";
+  search: `import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { GlobalSearchIcon } from "./global-search";
+import { SearchIcon } from "./search";
 
-describe("GlobalSearchIcon", () => {
+describe("SearchIcon", () => {
   it("renders without crashing", () => {
-    render(<GlobalSearchIcon><span>S</span></GlobalSearchIcon>);
+    render(<SearchIcon><span>S</span></SearchIcon>);
     expect(document.body).toBeTruthy();
   });
 });

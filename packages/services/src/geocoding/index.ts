@@ -27,6 +27,12 @@ export {
 } from "./client.ts";
 
 export {
+  enrichGeocodeFromSearchPlace,
+  placeCategoryLabel,
+  placeTitleZoomForCategory,
+} from "./place-category.ts";
+
+export {
   DEFAULT_LOCATION_LABEL_DETAIL,
   LOCATION_LABEL_DETAILS,
   availableLocationLabelPatterns,
