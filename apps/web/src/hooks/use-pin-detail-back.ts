@@ -1,6 +1,8 @@
 import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
+import { mapViewSegmentFromPathname } from "@/lib/app-paths";
 import {
   pinDetailBackFallback,
+  pinDetailBackLabel,
   pinDetailBackTarget,
   type PinDetailBackTarget,
 } from "@/lib/pin-detail-back";
@@ -23,10 +25,13 @@ export function usePinDetailBack({
     const fromFrozen = pinDetailBackTarget(frozenBase);
     if (fromFrozen) return fromFrozen;
     if (fallbackMapHref) {
+      const view = mapViewSegmentFromPathname(
+        new URL(fallbackMapHref, "https://curolia.local").pathname,
+      );
       return {
         href: fallbackMapHref,
-        label: "Back to map",
-        view: "map",
+        label: pinDetailBackLabel(view),
+        view,
       };
     }
     if (profileSlug?.trim() && mapSlug?.trim()) {

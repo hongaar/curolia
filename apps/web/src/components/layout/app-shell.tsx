@@ -1,6 +1,7 @@
 import { MainToolbar } from "@/components/layout/main-toolbar";
 import { NotificationsRealtimeSync } from "@/components/layout/notifications-realtime-sync";
 import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
+import { FrozenBaseLocationProvider } from "@/hooks/use-frozen-base-location";
 import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { reportAppError } from "@/lib/bugsink";
@@ -61,7 +62,9 @@ export function AppShell() {
   return (
     <NavigationShellProvider>
       <OnboardingPlacementProvider>
-        <AppShellInner />
+        <FrozenBaseLocationProvider>
+          <AppShellInner />
+        </FrozenBaseLocationProvider>
       </OnboardingPlacementProvider>
     </NavigationShellProvider>
   );

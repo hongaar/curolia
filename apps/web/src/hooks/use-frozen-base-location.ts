@@ -4,8 +4,18 @@ import { mapRouteForMap } from "@/lib/map-route";
 import { applySelectedPinToSearchParams } from "@/lib/map-view-params";
 import { isBaseRoute, isStackRoute } from "@/lib/stack-routes";
 import { useMap } from "@/providers/map-provider";
-import { useLayoutEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useLocation, type Location } from "react-router-dom";
+
+const FrozenBaseLocationContext = createContext<Location | null>(null);
 
 function defaultBasePathname(
   activeMap: ReturnType<typeof useMap>["activeMap"],
@@ -18,8 +28,7 @@ function defaultBasePathname(
   return "/";
 }
 
-/** Last map/blog location — kept mounted while stack screens are open. */
-export function useFrozenBaseLocation(): Location {
+function useFrozenBaseLocationValue(): Location {
   const location = useLocation();
   const { activeMap, maps } = useMap();
   const fallbackMap = maps[0];
@@ -79,4 +88,25 @@ export function useFrozenBaseLocation(): Location {
   }
 
   return fallbackLocation;
+}
+
+/** Shares one frozen map/blog location across stack layers and back navigation. */
+export function FrozenBaseLocationProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const value = useFrozenBaseLocationValue();
+  return createElement(FrozenBaseLocationContext.Provider, { value }, children);
+}
+
+/** Last map/blog location — kept mounted while stack screens are open. */
+export function useFrozenBaseLocation(): Location {
+  const value = useContext(FrozenBaseLocationContext);
+  if (!value) {
+    throw new Error(
+      "useFrozenBaseLocation must be used within FrozenBaseLocationProvider",
+    );
+  }
+  return value;
 }
