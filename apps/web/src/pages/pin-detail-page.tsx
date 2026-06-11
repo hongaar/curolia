@@ -6,6 +6,7 @@ import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { usePinDetailBack } from "@/hooks/use-pin-detail-back";
+import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { mapHrefWithSearch, mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
@@ -58,8 +59,15 @@ export function PinDetailPage() {
   const navigate = useNavigate();
   const isWideEnough = useMinMd();
   const isMaxSm = useMaxSm();
-  const { maps, activeMapId, loading: mapsLoading } = useMap();
+  const {
+    maps,
+    activeMap,
+    activeMapId,
+    loading: mapsLoading,
+    publicView,
+  } = useMap();
   useMapSlugRouteSync(profileSlug, mapSlug);
+  usePublicMapCrawlerBlockMeta(activeMap, publicView);
 
   const mapForRoute = useMemo(() => {
     if (!profileSlug?.trim() || !mapSlug?.trim()) return null;
