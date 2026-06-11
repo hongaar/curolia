@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
-def appVersionFile = rootProject.file("../../../app.version")
-def localAppVersion = appVersionFile.exists() ? appVersionFile.text.trim() : "0"
+// Local defaults match scripts/resolve-app-version.mjs (DEFAULT_APP_VERSION = dev).
+def localVersionName = "dev"
+def localVersionCode = 1
 def ciVersionCode = project.findProperty('versionCode')?.toString()?.toInteger()
 def ciVersionName = project.findProperty('versionName')?.toString()
 def keystorePath = System.getenv('ANDROID_KEYSTORE_FILE')
@@ -14,8 +15,8 @@ android {
         applicationId = "com.curolia.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode ciVersionCode ?: localAppVersion.toInteger()
-        versionName ciVersionName ?: localAppVersion
+        versionCode ciVersionCode ?: localVersionCode
+        versionName ciVersionName ?: localVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

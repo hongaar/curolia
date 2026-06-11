@@ -10,6 +10,11 @@ const repoRoot = path.resolve(
 );
 const version = resolveAppVersion();
 
+/** Xcode build settings: quote non-numeric values (e.g. dev). */
+function formatXcodeVersion(value) {
+  return /^\d+(\.\d+)*$/.test(value) ? value : `"${value}"`;
+}
+
 const pbxprojPath = path.join(
   repoRoot,
   "apps/mobile/ios/App/App.xcodeproj/project.pbxproj",
@@ -18,11 +23,11 @@ const pbxprojPath = path.join(
 let pbxproj = fs.readFileSync(pbxprojPath, "utf8");
 pbxproj = pbxproj.replace(
   /MARKETING_VERSION = [^;]+;/g,
-  `MARKETING_VERSION = ${version};`,
+  `MARKETING_VERSION = ${formatXcodeVersion(version)};`,
 );
 pbxproj = pbxproj.replace(
   /CURRENT_PROJECT_VERSION = [^;]+;/g,
-  `CURRENT_PROJECT_VERSION = ${version};`,
+  `CURRENT_PROJECT_VERSION = ${formatXcodeVersion(version)};`,
 );
 fs.writeFileSync(pbxprojPath, pbxproj);
 

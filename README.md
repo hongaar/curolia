@@ -60,10 +60,10 @@ Save a file in the editor and the WebView reloads automatically.
 
 Curolia uses a **single monotonic integer** for every surface (web, Android, iOS) — not semver. The same commit deployed to production gets the same number everywhere.
 
-| Context                              | Version source                               |
-| ------------------------------------ | -------------------------------------------- |
-| **Production deploy** (`deploy.yml`) | `github.run_number` of that workflow run     |
-| **Local / PR builds**                | `app.version` at the repo root (default `0`) |
+| Context                              | Version source                                                     |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| **Production deploy** (`deploy.yml`) | `github.run_number` of that workflow run                           |
+| **Local / PR builds**                | `dev` (`DEFAULT_APP_VERSION` in `scripts/resolve-app-version.mjs`) |
 
 Flow on deploy:
 
@@ -75,10 +75,10 @@ Helpers:
 
 ```bash
 npm run version:resolve        # print resolved version (respects APP_VERSION env)
-npm run version:sync-native    # write app.version into iOS MARKETING_VERSION / CURRENT_PROJECT_VERSION
+npm run version:sync-native    # write resolved version into iOS MARKETING_VERSION / CURRENT_PROJECT_VERSION
 ```
 
-Android reads `app.version` locally via `apps/mobile/android/app/build.gradle`; CI overrides with `-PversionCode` / `-PversionName`.
+Android uses the same local defaults in `apps/mobile/android/app/build.gradle`; CI overrides with `-PversionCode` / `-PversionName`.
 
 ### Mobile CI/CD offload
 

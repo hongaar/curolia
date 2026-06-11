@@ -1,16 +1,11 @@
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-);
-const versionFile = path.join(repoRoot, "app.version");
+export const DEFAULT_APP_VERSION = "dev";
 
 /**
- * Monotonic integer release version for web, Android, and iOS.
- * CI sets APP_VERSION; local builds read app.version (default 0).
+ * Release version for web, Android, and iOS.
+ * Production CI sets APP_VERSION; local builds use DEFAULT_APP_VERSION.
  */
 export function resolveAppVersion(env = process.env) {
   const fromEnv = env.APP_VERSION?.trim();
@@ -18,11 +13,7 @@ export function resolveAppVersion(env = process.env) {
     return fromEnv;
   }
 
-  if (fs.existsSync(versionFile)) {
-    return fs.readFileSync(versionFile, "utf8").trim();
-  }
-
-  return "0";
+  return DEFAULT_APP_VERSION;
 }
 
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : null;

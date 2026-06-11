@@ -4,17 +4,13 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+import { resolveAppVersion } from "../../scripts/resolve-app-version.mjs";
 import { buildSsrNavigateFallbackDenylist } from "./src/ssr/ssr-route-paths";
 
 const SSR_NAVIGATE_FALLBACK_DENYLIST = buildSsrNavigateFallbackDenylist();
 
 const repoRoot = path.resolve(__dirname, "../..");
-const appVersionFile = path.resolve(repoRoot, "app.version");
-const appVersion =
-  process.env.APP_VERSION?.trim() ??
-  (fs.existsSync(appVersionFile)
-    ? fs.readFileSync(appVersionFile, "utf8").trim()
-    : "0");
+const appVersion = resolveAppVersion();
 const appAssetsConfig = JSON.parse(
   fs.readFileSync(
     path.resolve(repoRoot, "packages", "brand", "app-assets.config.json"),
