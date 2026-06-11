@@ -376,6 +376,10 @@ export function MapPage() {
   };
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
+  const activeRelocatePinId =
+    relocatePinId && pins.some((p) => p.id === relocatePinId)
+      ? relocatePinId
+      : null;
 
   const showPinRoute = useMemo(
     () =>
@@ -787,20 +791,13 @@ export function MapPage() {
   }, [sidebarPinToken, onClosePinMapPopover]);
 
   useEffect(() => {
-    if (!relocatePinId) return;
+    if (!activeRelocatePinId) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setRelocatePinId(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [relocatePinId]);
-
-  useEffect(() => {
-    if (!relocatePinId) return;
-    if (!pins.some((p) => p.id === relocatePinId)) {
-      setRelocatePinId(null);
-    }
-  }, [pins, relocatePinId]);
+  }, [activeRelocatePinId]);
 
   // Redirect ?pin= → pin detail on screens too narrow for the side panel
   useEffect(() => {
@@ -988,7 +985,7 @@ export function MapPage() {
             }
             onMapContextMenu={onMapContextMenu}
             onPinContextMenu={onPinContextMenu}
-            relocatePinId={canEdit ? relocatePinId : null}
+            relocatePinId={canEdit ? activeRelocatePinId : null}
             onRelocateClick={(pinId, lng, lat) => {
               void onRelocatePinAt(pinId, lng, lat);
             }}
@@ -1005,7 +1002,7 @@ export function MapPage() {
             </MapControlsTopLeft>
           ) : null}
           <MapControlsBottomCenter>
-            {relocatePinId ? (
+            {activeRelocatePinId ? (
               <MapPlacementHint>
                 Click the map to move this pin · Esc to cancel
               </MapPlacementHint>

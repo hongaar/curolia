@@ -2,10 +2,8 @@ import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger"
 import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
-import {
-  countPinPluginDetailActions,
-  PinPluginDetailActions,
-} from "@/components/pins/pin-plugin-detail-actions";
+import { countPinPluginDetailActions } from "@/components/pins/pin-plugin-detail-action-helpers";
+import { PinPluginDetailActions } from "@/components/pins/pin-plugin-detail-actions";
 import { PinSequenceNavSection } from "@/components/pins/pin-sequence-nav-section";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMaxSm } from "@/hooks/use-max-sm";

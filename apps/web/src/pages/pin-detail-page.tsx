@@ -1,10 +1,8 @@
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
 import { PinDetailInsetMapView } from "@/components/pins/pin-detail-inset-map";
 import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger";
-import {
-  hasPinPluginDetailActions,
-  PinPluginDetailActions,
-} from "@/components/pins/pin-plugin-detail-actions";
+import { hasPinPluginDetailActions } from "@/components/pins/pin-plugin-detail-action-helpers";
+import { PinPluginDetailActions } from "@/components/pins/pin-plugin-detail-actions";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
