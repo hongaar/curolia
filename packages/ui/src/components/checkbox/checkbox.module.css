@@ -44,8 +44,9 @@
   color: var(--primary-foreground);
 }
 
-:global(.dark) .root {
-  background: color-mix(in oklch, var(--input) 30%, transparent);
+:global(.dark) .root:not(:global([data-checked])) {
+  border-color: color-mix(in oklch, var(--foreground) 40%, transparent);
+  background: color-mix(in oklch, var(--input) 50%, transparent);
 }
 
 .indicator {

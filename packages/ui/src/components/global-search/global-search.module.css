@@ -32,13 +32,20 @@
   min-width: 0;
   flex: 1;
   border: 0;
+  border-radius: 0;
   background: transparent;
   padding: 0;
   font-size: var(--text-body);
   box-shadow: none;
 }
 
+/* Beat Input `.root` dark fill — field owns the toolbar chrome. */
+:global(.dark) .searchToolbarField .searchToolbarInput {
+  background: transparent;
+}
+
 .searchToolbarInput:focus-visible {
+  border-color: transparent;
   box-shadow: none;
 }
 
