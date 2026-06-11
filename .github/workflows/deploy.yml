@@ -48,6 +48,10 @@ jobs:
     outputs:
       app_version: ${{ steps.version.outputs.app_version }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_REF }}
+
       - id: version
         uses: ./.github/actions/app-version
 
