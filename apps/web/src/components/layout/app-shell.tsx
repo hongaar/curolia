@@ -13,7 +13,6 @@ import {
 import { isStackRoute } from "@/lib/stack-routes";
 import { useAuth } from "@/providers/auth-provider";
 import { NavigationShellProvider } from "@/providers/navigation-shell-provider";
-import { OnboardingPlacementProvider } from "@/providers/onboarding-placement-provider";
 import { AppShellLayout } from "@curolia/ui/app-shell";
 import { ErrorBoundary } from "@curolia/ui/error-boundary";
 import { useEffect, useLayoutEffect } from "react";
@@ -61,11 +60,9 @@ function AppShellInner() {
 export function AppShell() {
   return (
     <NavigationShellProvider>
-      <OnboardingPlacementProvider>
-        <FrozenBaseLocationProvider>
-          <AppShellInner />
-        </FrozenBaseLocationProvider>
-      </OnboardingPlacementProvider>
+      <FrozenBaseLocationProvider>
+        <AppShellInner />
+      </FrozenBaseLocationProvider>
     </NavigationShellProvider>
   );
 }

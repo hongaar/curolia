@@ -55,6 +55,8 @@ import {
   PageMuted,
   PagePanel,
   PageSideNav,
+  PageSideNavGroup,
+  PageSideNavGroupTitle,
   PageSideNavItem,
   PageSideNavLayout,
   PageSideNavLink,
@@ -153,22 +155,31 @@ export function MapSettingsPage() {
     queryEnabled: isOwner,
   });
 
-  const sectionNavItems = useMemo(() => {
-    const items: { id: string; label: string }[] = [
+  const coreNavItems = useMemo(
+    () => [
       { id: MAP_SETTINGS_SECTION.general, label: "General" },
       { id: MAP_SETTINGS_SECTION.sharing, label: "Sharing" },
-    ];
-    if (isOwner) {
-      for (const plugin of enabledPlugins) {
-        if (!plugin.MapSettingsPanel) continue;
-        items.push({
-          id: MAP_SETTINGS_SECTION.plugin(plugin.id),
-          label: plugin.contributions?.mapSettings?.title ?? plugin.displayName,
-        });
-      }
+    ],
+    [],
+  );
+
+  const pluginNavItems = useMemo(() => {
+    if (!isOwner) return [];
+    const items: { id: string; label: string }[] = [];
+    for (const plugin of enabledPlugins) {
+      if (!plugin.MapSettingsPanel) continue;
+      items.push({
+        id: MAP_SETTINGS_SECTION.plugin(plugin.id),
+        label: plugin.contributions?.mapSettings?.title ?? plugin.displayName,
+      });
     }
     return items;
   }, [enabledPlugins, isOwner]);
+
+  const sectionNavItems = useMemo(
+    () => [...coreNavItems, ...pluginNavItems],
+    [coreNavItems, pluginNavItems],
+  );
 
   const showSideNav = isWideEnough && sectionNavItems.length > 1;
   const sectionIds = useMemo(
@@ -305,7 +316,7 @@ export function MapSettingsPage() {
   const sideNav = showSideNav ? (
     <PageSideNav aria-label="Map settings sections">
       <PageSideNavList>
-        {sectionNavItems.map((item) => (
+        {coreNavItems.map((item) => (
           <PageSideNavItem key={item.id}>
             <PageSideNavLink
               active={activeSection === item.id}
@@ -316,6 +327,23 @@ export function MapSettingsPage() {
           </PageSideNavItem>
         ))}
       </PageSideNavList>
+      {pluginNavItems.length > 0 ? (
+        <PageSideNavGroup>
+          <PageSideNavGroupTitle>Plugins</PageSideNavGroupTitle>
+          <PageSideNavList>
+            {pluginNavItems.map((item) => (
+              <PageSideNavItem key={item.id}>
+                <PageSideNavLink
+                  active={activeSection === item.id}
+                  onClick={() => scrollToSection(item.id)}
+                >
+                  {item.label}
+                </PageSideNavLink>
+              </PageSideNavItem>
+            ))}
+          </PageSideNavList>
+        </PageSideNavGroup>
+      ) : null}
     </PageSideNav>
   ) : undefined;
 

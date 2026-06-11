@@ -103,12 +103,9 @@ export const FullTour: Story = {
                 <OnboardingEyebrow>Your first pin</OnboardingEyebrow>
                 <OnboardingTitle>Drop your first pin</OnboardingTitle>
                 <OnboardingDescription>
-                  Enter placement mode, then click the map to drop a pin.
+                  Search for a place in the toolbar, pick it from the list, then
+                  tap Add pin.
                 </OnboardingDescription>
-                <Button size="lg">
-                  <MapPin aria-hidden />
-                  Drop my first pin
-                </Button>
               </>
             ) : null}
             {step === 3 ? (

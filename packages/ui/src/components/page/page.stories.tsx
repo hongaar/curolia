@@ -56,6 +56,8 @@ import {
   PageSharingRoot,
   PageSharingSection,
   PageSideNav,
+  PageSideNavGroup,
+  PageSideNavGroupTitle,
   PageSideNavItem,
   PageSideNavLayout,
   PageSideNavLink,
@@ -390,12 +392,17 @@ export const SideNavLayout: Story = {
                     Sharing
                   </PageSideNavLink>
                 </PageSideNavItem>
-                <PageSideNavItem>
-                  <PageSideNavLink onClick={() => undefined}>
-                    Calendar
-                  </PageSideNavLink>
-                </PageSideNavItem>
               </PageSideNavList>
+              <PageSideNavGroup>
+                <PageSideNavGroupTitle>Plugins</PageSideNavGroupTitle>
+                <PageSideNavList>
+                  <PageSideNavItem>
+                    <PageSideNavLink onClick={() => undefined}>
+                      Calendar
+                    </PageSideNavLink>
+                  </PageSideNavItem>
+                </PageSideNavList>
+              </PageSideNavGroup>
             </PageSideNav>
           }
         >

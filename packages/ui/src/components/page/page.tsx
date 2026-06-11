@@ -524,6 +524,18 @@ export function PageSideNav({
   );
 }
 
+export function PageSideNavGroup({ children }: { children: React.ReactNode }) {
+  return <div className={styles.sideNavGroup}>{children}</div>;
+}
+
+export function PageSideNavGroupTitle({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.sideNavGroupTitle}>{children}</p>;
+}
+
 export function PageSideNavList({ children }: { children: React.ReactNode }) {
   return <ul className={styles.sideNavList}>{children}</ul>;
 }

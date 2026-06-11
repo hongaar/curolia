@@ -63,7 +63,6 @@ import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
-import { useOnboardingPlacement } from "@/providers/onboarding-placement-provider";
 import type { Pin, Tag } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import {
@@ -158,8 +157,6 @@ export function MapPage() {
   usePublicMapCrawlerBlockMeta(activeMap, publicView);
   const ownerProfileQuery = usePublicMapOwnerProfile(activeMapId, publicView);
   const ownerProfile = ownerProfileQuery.data;
-  const { awaitingPinPlacement, completePinPlacement } =
-    useOnboardingPlacement();
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
     [activeMap],
@@ -639,10 +636,6 @@ export function MapPage() {
       try {
         const row = await createPinAtCoords(lng, lat, { zoom });
         if (!row) return;
-        if (awaitingPinPlacement) {
-          completePinPlacement();
-          return;
-        }
         openQuickAddForPin(row, lng, lat);
       } catch (e) {
         toast.error(
@@ -652,9 +645,7 @@ export function MapPage() {
     },
     [
       activeMapId,
-      awaitingPinPlacement,
       canEdit,
-      completePinPlacement,
       createPinAtCoords,
       openQuickAddForPin,
       setSearchParams,
@@ -742,14 +733,6 @@ export function MapPage() {
       if (!canEdit) return;
       void (async () => {
         try {
-          if (awaitingPinPlacement) {
-            await createPinAtCoords(place.lng, place.lat, {
-              searchPlace: place,
-            });
-            completePinPlacement();
-            clearSelectedPlace();
-            return;
-          }
           await createPinAndOpenQuickAdd(place.lng, place.lat, {
             searchPlace: place,
             preserveCamera: true,
@@ -764,12 +747,9 @@ export function MapPage() {
     });
     return () => registerAddPinFromPlaceHandler(null);
   }, [
-    awaitingPinPlacement,
     canEdit,
     clearSelectedPlace,
-    completePinPlacement,
     createPinAndOpenQuickAdd,
-    createPinAtCoords,
     registerAddPinFromPlaceHandler,
   ]);
 

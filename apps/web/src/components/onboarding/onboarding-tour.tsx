@@ -1,5 +1,3 @@
-import { mapViewHref } from "@/lib/app-paths";
-import { mapRouteForMap } from "@/lib/map-route";
 import {
   getOnboardingCompleted,
   setOnboardingCompleted,
@@ -7,7 +5,6 @@ import {
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
-import { useOnboardingPlacement } from "@/providers/onboarding-placement-provider";
 import { Button } from "@curolia/ui/button";
 import {
   OnboardingBody,
@@ -35,7 +32,7 @@ import {
   Sparkles,
   Tags,
 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 type StepId = "welcome" | "maps" | "first-pin" | "features" | "plugins";
@@ -64,20 +61,11 @@ const STEP_ICON: Record<StepId, ReactNode> = {
   plugins: <Puzzle aria-hidden />,
 };
 
-const FEATURES_STEP_INDEX = STEP_ORDER.indexOf("features");
-
 export function OnboardingTour() {
   const { user } = useAuth();
   const { activeMap, maps, loading } = useMap();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const {
-    awaitingPinPlacement,
-    pinPlacedDuringOnboarding,
-    beginPinPlacement,
-    acknowledgePinPlaced,
-    cancelPinPlacement,
-  } = useOnboardingPlacement();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [dismissed, setDismissed] = useState(false);
@@ -93,12 +81,10 @@ export function OnboardingTour() {
     !loading &&
     onboardingQuery.isSuccess &&
     !onboardingQuery.data;
-  const placementInProgress = awaitingPinPlacement || pinPlacedDuringOnboarding;
-  const open = eligible && !dismissed && !placementInProgress;
+  const open = eligible && !dismissed;
 
   const complete = () => {
     if (!user) return;
-    cancelPinPlacement();
     setDismissed(true);
     queryClient.setQueryData(["onboarding-completed", user.id], true);
     void setOnboardingCompleted(user.id).catch((error: unknown) => {
@@ -107,31 +93,15 @@ export function OnboardingTour() {
     });
   };
 
-  useEffect(() => {
-    if (!pinPlacedDuringOnboarding) return;
-    const timer = window.setTimeout(() => {
-      setStepIndex(FEATURES_STEP_INDEX);
-      acknowledgePinPlaced();
-    }, 1000);
-    return () => window.clearTimeout(timer);
-  }, [pinPlacedDuringOnboarding, acknowledgePinPlaced]);
-
   const stepId = STEP_ORDER[stepIndex];
   const isLast = stepIndex === STEP_ORDER.length - 1;
   const mapName = activeMap?.name ?? maps[0]?.name ?? "your first map";
-  const placementMap = activeMap ?? maps[0] ?? null;
 
   const goNext = () => {
     setStepIndex((i) => Math.min(i + 1, STEP_ORDER.length - 1));
   };
   const goBack = () => {
     setStepIndex((i) => Math.max(i - 1, 0));
-  };
-
-  const dropFirstPin = () => {
-    if (!placementMap?.slug || !placementMap.owner_profile_slug) return;
-    beginPinPlacement();
-    navigate(mapViewHref("map", mapRouteForMap(placementMap)));
   };
 
   const explorePlugins = () => {
@@ -145,7 +115,7 @@ export function OnboardingTour() {
     <OnboardingDialog
       open={open}
       onOpenChange={(next) => {
-        if (!next && !placementInProgress) complete();
+        if (!next) complete();
       }}
       tone={STEP_TONE[stepId]}
       aria-label="Welcome to Curolia"
@@ -190,14 +160,9 @@ export function OnboardingTour() {
             <OnboardingDescription>
               Pins are the heart of Curolia. Search for a place in the toolbar,
               pick it from the list, then tap Add pin &mdash; Curolia fills in
-              the title and address automatically. Give it a try!
+              the title and address automatically. You can also right-click the
+              map or paste a link with a location.
             </OnboardingDescription>
-            {placementMap?.slug ? (
-              <Button size="lg" onClick={dropFirstPin}>
-                <MapPin aria-hidden />
-                Drop my first pin
-              </Button>
-            ) : null}
           </>
         ) : null}
 
