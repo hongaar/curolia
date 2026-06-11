@@ -140,6 +140,14 @@ type PinMapProps = {
   contextDraftPin?: PinMapDraftPinLocation | null;
   placementMode?: boolean;
   onPlacementClick?: (lng: number, lat: number, zoom: number) => void;
+  /** Pin being relocated — click the map to set a new position. */
+  relocatePinId?: string | null;
+  onRelocateClick?: (
+    pinId: string,
+    lng: number,
+    lat: number,
+    zoom: number,
+  ) => void;
   /** When set (from URL or localStorage fallback), map uses this view. */
   initialCamera?: MapCamera | null;
   /** When set (from URL), map fits this extent with padding instead of center/zoom fly. */
@@ -304,6 +312,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     contextDraftPin = null,
     placementMode = false,
     onPlacementClick,
+    relocatePinId = null,
+    onRelocateClick,
     initialCamera = null,
     initialBbox = null,
     cameraSyncKey = "",
@@ -366,6 +376,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const placementDraftMountRef = useRef<MapMarkerMount | null>(null);
   const geolocateControlRef = useRef<maplibregl.GeolocateControl | null>(null);
   const onPlacementClickRef = useRef(onPlacementClick);
+  const onRelocateClickRef = useRef(onRelocateClick);
   const onSelectPinRef = useRef(onSelectPin);
   const onCameraIdleRef = useRef(onCameraIdle);
   const onMapBackgroundClickRef = useRef(onMapBackgroundClick);
@@ -407,9 +418,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const selectedPinIdRef = useRef(selectedPinId);
   const latestPinHoverIdRef = useRef<string | null>(null);
   const placementModeRef = useRef(placementMode);
+  const relocatePinIdRef = useRef(relocatePinId);
 
   useLayoutEffect(() => {
     onPlacementClickRef.current = onPlacementClick;
+    onRelocateClickRef.current = onRelocateClick;
     onSelectPinRef.current = onSelectPin;
     onCameraIdleRef.current = onCameraIdle;
     onMapBackgroundClickRef.current = onMapBackgroundClick;
@@ -420,8 +433,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     selectedPinIdRef.current = selectedPinId;
     latestPinHoverIdRef.current = pinHover?.pin.id ?? null;
     placementModeRef.current = placementMode;
+    relocatePinIdRef.current = relocatePinId;
   }, [
     onPlacementClick,
+    onRelocateClick,
     onSelectPin,
     onCameraIdle,
     onMapBackgroundClick,
@@ -431,6 +446,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     selectedPinId,
     pinHover,
     placementMode,
+    relocatePinId,
   ]);
 
   const setMarkersCameraMoving = useCallback((moving: boolean) => {
@@ -553,7 +569,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         onContextMenu: (e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (placementModeRef.current) return;
+          if (placementModeRef.current || relocatePinIdRef.current) return;
           onPinContextMenuRef.current?.(t.id, e.clientX, e.clientY);
         },
         onMouseEnter: () => {
@@ -675,9 +691,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }
     const selectedId = selectedPinIdRef.current;
     const hoveredId = latestPinHoverIdRef.current;
+    const relocatingId = relocatePinIdRef.current;
     const shouldMount = new Set<string>();
 
     for (const pin of filteredRef.current) {
+      if (pin.id === relocatingId) continue;
       if (
         bounds === null ||
         shouldMountPinMarker(pin, bounds, selectedId, hoveredId)
@@ -1278,15 +1296,27 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       placementDraftMountRef.current = null;
     };
 
+    const pickLocationMode = placementMode || Boolean(relocatePinId);
+
+    const draftPinVisual = (): PinMarkerVisual => {
+      const relocating = relocatePinIdRef.current;
+      if (relocating) {
+        const pin = filteredByIdRef.current.get(relocating);
+        if (pin) return pinMarkerVisual(pin);
+      }
+      return { emoji: DEFAULT_DRAFT_PIN.icon, fill: DEFAULT_DRAFT_PIN.color };
+    };
+
     const placeOrMoveDraft = (lngLat: maplibregl.LngLatLike) => {
       if (!map.isStyleLoaded()) return;
       if (placementDraftMarkerRef.current) {
         placementDraftMarkerRef.current.setLngLat(lngLat);
         return;
       }
+      const { emoji, fill } = draftPinVisual();
       const mount = createMapMarkerMount({
-        emoji: DEFAULT_DRAFT_PIN.icon,
-        fill: DEFAULT_DRAFT_PIN.color,
+        emoji,
+        fill,
         selected: false,
         interactive: false,
         draft: true,
@@ -1340,13 +1370,19 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         if (fn) fn(e.lngLat.lng, e.lngLat.lat, map.getZoom());
         return;
       }
+      const relocatingId = relocatePinIdRef.current;
+      if (relocatingId) {
+        const fn = onRelocateClickRef.current;
+        if (fn) fn(relocatingId, e.lngLat.lng, e.lngLat.lat, map.getZoom());
+        return;
+      }
       if (clickHitPinMarker(e)) return;
       onMapBackgroundClickRef.current?.();
     };
 
     const onContextMenu = (e: maplibregl.MapMouseEvent) => {
       e.preventDefault();
-      if (placementMode) return;
+      if (pickLocationMode) return;
       const point = contextMenuClientPoint(e.originalEvent);
       if (!point) return;
 
@@ -1376,7 +1412,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     };
 
     const onCanvasTouchStart = (e: TouchEvent) => {
-      if (placementModeRef.current) return;
+      if (placementModeRef.current || relocatePinIdRef.current) return;
       if (e.touches.length !== 1) {
         clearMapLongPress();
         return;
@@ -1403,7 +1439,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         mapLongPressTimer = null;
         const pending = mapLongPressTouch;
         mapLongPressTouch = null;
-        if (!pending || placementModeRef.current) return;
+        if (!pending || placementModeRef.current || relocatePinIdRef.current) {
+          return;
+        }
         suppressNextMapClickRef.current = true;
         openMapContextMenuAt(
           pending.lng,
@@ -1444,7 +1482,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     canvas.addEventListener("touchcancel", clearMapLongPress);
 
     let attachPlacementMove: (() => void) | null = null;
-    if (placementMode && !previewPin) {
+    if (pickLocationMode && !previewPin) {
       attachPlacementMove = () => {
         map.on("mousemove", onPlacementMouseMove);
         canvas.addEventListener("mouseleave", onPlacementMouseLeave);
@@ -1458,7 +1496,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       removePlacementDraft();
     }
 
-    if (placementMode) {
+    if (pickLocationMode) {
       canvas.style.cursor = "crosshair";
     } else {
       canvas.style.cursor = "";
@@ -1479,7 +1517,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       canvas.style.cursor = "";
       removePlacementDraft();
     };
-  }, [placementMode, previewPin]);
+  }, [placementMode, relocatePinId, previewPin]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -1581,7 +1619,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       mapHasIdledRef.current = false;
     }
     scheduleSyncVisibleMarkers();
-  }, [selectedPinId, pinHover?.pin.id, scheduleSyncVisibleMarkers]);
+  }, [
+    selectedPinId,
+    relocatePinId,
+    pinHover?.pin.id,
+    scheduleSyncVisibleMarkers,
+  ]);
 
   useLayoutEffect(() => {
     showPinRouteRef.current = showPinRoute;
@@ -1688,7 +1731,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   return (
     <>
-      <MapCanvas placementMode={placementMode} containerRef={containerRef} />
+      <MapCanvas
+        placementMode={placementMode || Boolean(relocatePinId)}
+        containerRef={containerRef}
+      />
       {pinHover ? (
         <Tooltip hostRef={hoverFloatingRef}>
           <TooltipContent>

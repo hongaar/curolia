@@ -58,6 +58,7 @@ import { hasPinTravelSequence } from "@/lib/pin-sequence";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
+import { relocatePinAtLocation } from "@/lib/relocate-pin-at-location";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
@@ -82,6 +83,7 @@ import {
   MapHost,
   MapLayer,
   MapPageRoot,
+  MapPlacementHint,
   MapSidePanel,
   MapVignette,
 } from "@curolia/ui/map";
@@ -201,6 +203,7 @@ export function MapPage() {
   const [fullEditPin, setFullEditPin] = useState<Pin | null>(null);
   const [pointerContextMenu, setPointerContextMenu] =
     useState<MapPointerContextMenuTarget | null>(null);
+  const [relocatePinId, setRelocatePinId] = useState<string | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
@@ -626,6 +629,25 @@ export function MapPage() {
     [createPinAtCoords, openQuickAddForPin],
   );
 
+  const onRelocatePinAt = useCallback(
+    async (pinId: string, lng: number, lat: number) => {
+      if (!activeMapId || !canEdit) return;
+      try {
+        await relocatePinAtLocation({ pinId, lat, lng });
+        await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+        await qc.invalidateQueries({ queryKey: ["pin", pinId] });
+        await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pinId] });
+        setRelocatePinId(null);
+        toast.success("Pin moved");
+      } catch (e) {
+        toast.error(
+          e instanceof Error ? e.message : "Could not move this pin.",
+        );
+      }
+    },
+    [activeMapId, canEdit, qc],
+  );
+
   const onPlacementClick = useCallback(
     async (lng: number, lat: number, zoom: number) => {
       if (!activeMapId || !canEdit) return;
@@ -763,6 +785,22 @@ export function MapPage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [sidebarPinToken, onClosePinMapPopover]);
+
+  useEffect(() => {
+    if (!relocatePinId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRelocatePinId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [relocatePinId]);
+
+  useEffect(() => {
+    if (!relocatePinId) return;
+    if (!pins.some((p) => p.id === relocatePinId)) {
+      setRelocatePinId(null);
+    }
+  }, [pins, relocatePinId]);
 
   // Redirect ?pin= → pin detail on screens too narrow for the side panel
   useEffect(() => {
@@ -950,6 +988,10 @@ export function MapPage() {
             }
             onMapContextMenu={onMapContextMenu}
             onPinContextMenu={onPinContextMenu}
+            relocatePinId={canEdit ? relocatePinId : null}
+            onRelocateClick={(pinId, lng, lat) => {
+              void onRelocatePinAt(pinId, lng, lat);
+            }}
           />
         </MapHost>
         <MapControlsLayer>
@@ -963,6 +1005,11 @@ export function MapPage() {
             </MapControlsTopLeft>
           ) : null}
           <MapControlsBottomCenter>
+            {relocatePinId ? (
+              <MapPlacementHint>
+                Click the map to move this pin · Esc to cancel
+              </MapPlacementHint>
+            ) : null}
             <MapViewSwitcher />
           </MapControlsBottomCenter>
           <MapControlsBottomStack>
@@ -1012,6 +1059,9 @@ export function MapPage() {
             return;
           }
           setFullEditPin(row);
+        }}
+        onMoveMarker={(pinId) => {
+          setRelocatePinId(pinId);
         }}
         onRemovePin={onRemovePinFromMap}
       />

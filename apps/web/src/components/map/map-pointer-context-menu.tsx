@@ -47,6 +47,7 @@ type MapPointerContextMenuProps = {
   onAddPinAt: (lng: number, lat: number, zoom: number) => void;
   onOpenPin: (pinId: string) => void;
   onEditPin: (pinId: string) => void;
+  onMoveMarker: (pinId: string) => void;
   onRemovePin: (pinId: string) => void | Promise<void>;
 };
 
@@ -60,6 +61,7 @@ export function MapPointerContextMenu({
   onAddPinAt,
   onOpenPin,
   onEditPin,
+  onMoveMarker,
   onRemovePin,
 }: MapPointerContextMenuProps) {
   const [deletePinId, setDeletePinId] = useState<string | null>(null);
@@ -154,6 +156,14 @@ export function MapPointerContextMenu({
                     }}
                   >
                     Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      onMoveMarker(target.pinId);
+                      onTargetChange(null);
+                    }}
+                  >
+                    Move marker
                   </DropdownMenuItem>
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>Set tags</DropdownMenuSubTrigger>
