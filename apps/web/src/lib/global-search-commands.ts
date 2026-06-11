@@ -1,9 +1,16 @@
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
-import { mapSettingsHref } from "@/lib/app-paths";
+import { mapSettingsHref, mapViewSwitchHref } from "@/lib/app-paths";
 import type { GlobalSearchSelectedPin } from "@/lib/global-search-selected-pin";
 import type { ShortcutBinding } from "@/lib/keyboard-shortcut";
-import { mapRouteForMap } from "@/lib/map-route";
+import {
+  mapRouteForMap,
+  parseMapViewPathname,
+  type MapRoute,
+} from "@/lib/map-route";
+import { isPinDetailPagePathname } from "@/lib/pin-detail-back";
 import type { NavigateFunction } from "react-router-dom";
+
+export type GlobalSearchMapViewContext = "map" | "blog" | "pin-detail";
 
 export type GlobalSearchCommandSection = "actions" | "pages";
 
@@ -12,11 +19,43 @@ export type GlobalSearchCommandContext = {
   activeMap: MapWithOwnerSlug | null;
   selectedPin: GlobalSearchSelectedPin | null;
   canEditSelectedPin: boolean;
+  canMoveSelectedPin: boolean;
+  mapViewRoute: MapRoute | null;
+  mapViewContext: GlobalSearchMapViewContext | null;
+  locationSearch: string;
   openNewMapDialog: () => void;
   openAboutDialog: () => void;
   editSelectedPin: () => void;
+  moveSelectedPin: () => void;
+  deleteSelectedPin: () => void;
   signOut: () => Promise<void>;
 };
+
+export function resolveGlobalSearchMapViewContext(
+  pathname: string,
+): GlobalSearchMapViewContext | null {
+  if (isPinDetailPagePathname(pathname)) return "pin-detail";
+  const mapView = parseMapViewPathname(pathname);
+  if (mapView?.view === "blog") return "blog";
+  if (mapView?.view === "map" || pathname === "/") return "map";
+  return null;
+}
+
+export function canShowViewMapAction(ctx: GlobalSearchCommandContext): boolean {
+  return Boolean(
+    ctx.mapViewRoute &&
+    (ctx.mapViewContext === "blog" || ctx.mapViewContext === "pin-detail"),
+  );
+}
+
+export function canShowViewBlogAction(
+  ctx: GlobalSearchCommandContext,
+): boolean {
+  return Boolean(
+    ctx.mapViewRoute &&
+    (ctx.mapViewContext === "map" || ctx.mapViewContext === "pin-detail"),
+  );
+}
 
 export type GlobalSearchCommandDef = {
   id: string;
@@ -29,6 +68,20 @@ export type GlobalSearchCommandDef = {
 };
 
 export const GLOBAL_SEARCH_COMMANDS: readonly GlobalSearchCommandDef[] = [
+  {
+    id: "view-map",
+    section: "actions",
+    title: "View map",
+    keywords: ["map", "switch", "view"],
+    isAvailable: canShowViewMapAction,
+  },
+  {
+    id: "view-blog",
+    section: "actions",
+    title: "View blog",
+    keywords: ["blog", "list", "switch", "view"],
+    isAvailable: canShowViewBlogAction,
+  },
   {
     id: "new-map",
     section: "actions",
@@ -50,6 +103,22 @@ export const GLOBAL_SEARCH_COMMANDS: readonly GlobalSearchCommandDef[] = [
     title: "Edit pin",
     keywords: ["pin", "update", "modify"],
     shortcut: { key: "e" },
+    isAvailable: (ctx) => Boolean(ctx.selectedPin && ctx.canEditSelectedPin),
+  },
+  {
+    id: "move-pin",
+    section: "actions",
+    title: "Move pin to another map",
+    keywords: ["pin", "move", "transfer", "map"],
+    shortcut: { key: "m", alt: true },
+    isAvailable: (ctx) => ctx.canMoveSelectedPin,
+  },
+  {
+    id: "delete-pin",
+    section: "actions",
+    title: "Delete pin",
+    keywords: ["pin", "remove", "destroy", "delete"],
+    shortcut: { key: "Backspace", shift: true },
     isAvailable: (ctx) => Boolean(ctx.selectedPin && ctx.canEditSelectedPin),
   },
   {
@@ -129,7 +198,11 @@ export const GLOBAL_SEARCH_COMMANDS: readonly GlobalSearchCommandDef[] = [
 const DEFAULT_EMPTY_ACTION_IDS = new Set([
   "new-map",
   "map-settings",
+  "view-map",
+  "view-blog",
   "edit-pin",
+  "move-pin",
+  "delete-pin",
   "profile",
   "settings",
   "plugins",
@@ -188,6 +261,20 @@ export function runGlobalSearchCommand(
       ctx.navigate(mapSettingsHref(mapRouteForMap(map)));
       return;
     }
+    case "view-map": {
+      if (!canShowViewMapAction(ctx) || !ctx.mapViewRoute) return;
+      ctx.navigate(
+        mapViewSwitchHref("map", ctx.mapViewRoute, ctx.locationSearch),
+      );
+      return;
+    }
+    case "view-blog": {
+      if (!canShowViewBlogAction(ctx) || !ctx.mapViewRoute) return;
+      ctx.navigate(
+        mapViewSwitchHref("blog", ctx.mapViewRoute, ctx.locationSearch),
+      );
+      return;
+    }
     case "profile":
       ctx.navigate("/profile");
       return;
@@ -203,6 +290,14 @@ export function runGlobalSearchCommand(
     case "edit-pin":
       if (!ctx.selectedPin) return;
       ctx.editSelectedPin();
+      return;
+    case "move-pin":
+      if (!ctx.canMoveSelectedPin) return;
+      ctx.moveSelectedPin();
+      return;
+    case "delete-pin":
+      if (!ctx.selectedPin || !ctx.canEditSelectedPin) return;
+      ctx.deleteSelectedPin();
       return;
     case "about":
       ctx.openAboutDialog();

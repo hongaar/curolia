@@ -10,6 +10,7 @@ import {
   filterGlobalSearchCommands,
   GLOBAL_SEARCH_COMMANDS,
   globalSearchCommandsWithShortcuts,
+  resolveGlobalSearchMapViewContext,
   runGlobalSearchCommand,
   type GlobalSearchCommandDef,
 } from "@/lib/global-search-commands";
@@ -23,7 +24,7 @@ import {
   isEditableKeyboardTarget,
   matchesShortcut,
 } from "@/lib/keyboard-shortcut";
-import { mapRouteForMap } from "@/lib/map-route";
+import { mapRouteForMap, parseMapRoutePathname } from "@/lib/map-route";
 import {
   applyMapBboxToSearchParams,
   applyMapCameraToSearchParams,
@@ -75,7 +76,9 @@ import {
 import { Popover } from "@curolia/ui/popover";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowRightLeft,
   Bell,
+  BookOpen,
   FileText,
   Info,
   Loader2,
@@ -90,6 +93,7 @@ import {
   Search,
   Settings,
   Settings2,
+  Trash2,
   User,
 } from "lucide-react";
 import {
@@ -115,10 +119,16 @@ const PinFormDialog = lazy(() =>
   })),
 );
 
+type PinDialogAction = "edit" | "move" | "delete";
+
 const COMMAND_ICONS: Record<string, ReactNode> = {
   "new-map": <MapPlus />,
   "map-settings": <Settings />,
+  "view-map": <MapIcon />,
+  "view-blog": <BookOpen />,
   "edit-pin": <Pencil />,
+  "move-pin": <ArrowRightLeft />,
+  "delete-pin": <Trash2 />,
   profile: <User />,
   settings: <Settings2 />,
   plugins: <Plug />,
@@ -205,7 +215,8 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
   const [focused, setFocused] = useState(false);
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [editPinDialogOpen, setEditPinDialogOpen] = useState(false);
+  const [pinDialogAction, setPinDialogAction] =
+    useState<PinDialogAction | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedPinLookup = useMemo(
@@ -234,6 +245,11 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     selectedPinLookup?.mapId ?? selectedPin?.mapId,
   );
   const canEditSelectedPin = !publicView && memberCanEditSelectedPin;
+  const canMoveSelectedPin = Boolean(
+    selectedPin &&
+    canEditSelectedPin &&
+    maps.some((map) => map.id !== selectedPin.pin.map_id),
+  );
 
   const editSelectedPin = useCallback(() => {
     if (!selectedPin) return;
@@ -242,9 +258,33 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       mapRoute: selectedPin.mapRoute,
       isMobile,
       navigate,
-      onOpenDialog: () => setEditPinDialogOpen(true),
+      onOpenDialog: () => setPinDialogAction("edit"),
     });
   }, [isMobile, navigate, selectedPin]);
+
+  const moveSelectedPin = useCallback(() => {
+    if (!canMoveSelectedPin) return;
+    setPinDialogAction("move");
+  }, [canMoveSelectedPin]);
+
+  const deleteSelectedPin = useCallback(() => {
+    if (!selectedPin || !canEditSelectedPin) return;
+    setPinDialogAction("delete");
+  }, [canEditSelectedPin, selectedPin]);
+
+  const mapViewContext = useMemo(
+    () => resolveGlobalSearchMapViewContext(location.pathname),
+    [location.pathname],
+  );
+
+  const mapViewRoute = useMemo(() => {
+    const fromPath = parseMapRoutePathname(location.pathname);
+    if (fromPath) return fromPath;
+    if (activeMap?.owner_profile_slug?.trim() && activeMap.slug?.trim()) {
+      return mapRouteForMap(activeMap);
+    }
+    return null;
+  }, [activeMap, location.pathname]);
 
   const commandContext = useMemo(
     () => ({
@@ -252,9 +292,15 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       activeMap,
       selectedPin,
       canEditSelectedPin,
+      canMoveSelectedPin,
+      mapViewRoute,
+      mapViewContext,
+      locationSearch: location.search,
       openNewMapDialog,
       openAboutDialog,
       editSelectedPin,
+      moveSelectedPin,
+      deleteSelectedPin,
       signOut,
     }),
     [
@@ -262,9 +308,15 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       activeMap,
       selectedPin,
       canEditSelectedPin,
+      canMoveSelectedPin,
+      mapViewRoute,
+      mapViewContext,
+      location.search,
       openNewMapDialog,
       openAboutDialog,
       editSelectedPin,
+      moveSelectedPin,
+      deleteSelectedPin,
       signOut,
     ],
   );
@@ -718,13 +770,20 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
 
   return (
     <>
-      {editPinDialogOpen && selectedPin ? (
+      {pinDialogAction && selectedPin ? (
         <Suspense fallback={null}>
           <PinFormDialog
-            open={editPinDialogOpen}
-            onOpenChange={setEditPinDialogOpen}
+            open
+            onOpenChange={(next) => {
+              if (!next) setPinDialogAction(null);
+            }}
             mapId={selectedPin.pin.map_id}
             pin={selectedPin.pin}
+            focusAction={
+              pinDialogAction === "move" || pinDialogAction === "delete"
+                ? pinDialogAction
+                : undefined
+            }
           />
         </Suspense>
       ) : null}

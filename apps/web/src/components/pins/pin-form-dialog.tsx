@@ -144,6 +144,8 @@ type PinFormDialogProps = {
   anchorScreen?: { x: number; y: number } | null;
   /** Fires while creating a pin when tag selection changes (for map preview). */
   onNewPinTagIdsChange?: (tagIds: string[]) => void;
+  /** Skip the edit form and open move/delete confirmation directly. */
+  focusAction?: "move" | "delete";
 };
 
 export function PinFormDialog({
@@ -156,6 +158,7 @@ export function PinFormDialog({
   layout = "dialog",
   anchorScreen = null,
   onNewPinTagIdsChange,
+  focusAction,
 }: PinFormDialogProps) {
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
@@ -461,6 +464,16 @@ export function PinFormDialog({
     if (!open || pin) return;
     onNewPinTagIdsChange?.([...selectedTags]);
   }, [open, pin, selectedTags, onNewPinTagIdsChange]);
+
+  useEffect(() => {
+    if (!open || !pin || !focusAction) return;
+    if (focusAction === "move") {
+      setMoveTargetMapId("");
+      setMoveOpen(true);
+      return;
+    }
+    setDeleteOpen(true);
+  }, [focusAction, open, pin]);
 
   useEffect(() => {
     if (!open) {
@@ -1168,11 +1181,18 @@ export function PinFormDialog({
     />
   ) : null;
 
+  const closeFocusedAction = (next: boolean) => {
+    if (focusAction) onOpenChange(next);
+  };
+
   const movePinDialog = pin ? (
     <Dialog
       open={moveOpen}
       onOpenChange={(next) => {
-        if (!moving) setMoveOpen(next);
+        if (!moving) {
+          setMoveOpen(next);
+          if (!next) closeFocusedAction(false);
+        }
       }}
     >
       <DialogContent>
@@ -1294,6 +1314,7 @@ export function PinFormDialog({
       onOpenChange={(next) => {
         if (!next && deleting) return;
         setDeleteOpen(next);
+        if (!next) closeFocusedAction(false);
       }}
     >
       <DialogContent>
@@ -1363,9 +1384,11 @@ export function PinFormDialog({
     );
   }
 
+  const showEditDialog = open && !focusAction;
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={showEditDialog} onOpenChange={onOpenChange}>
         <DialogContent size={pin ? "wide" : "default"}>
           <DialogHeader>
             <DialogTitle>{dialogTitle}</DialogTitle>
