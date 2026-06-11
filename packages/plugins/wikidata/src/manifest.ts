@@ -1,4 +1,5 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
+import { WikidataAccountSettingsPanel } from "./account-settings-panel";
 import { WikidataIcon } from "./icon";
 import { WikidataPinDetailSection } from "./pin-detail-section";
 import { WikidataPinDraftEnrichmentSlot } from "./pin-draft-enrichment-slot";
@@ -10,9 +11,10 @@ export const wikidataPluginManifest: PluginPackageManifest = {
   id: wikidataPluginMeta.typeId,
   displayName: wikidataPluginMeta.displayName,
   description:
-    "Show a short Wikipedia extract for the nearest notable place at each pin’s coordinates.",
+    "Show a short Wikipedia extract for the nearest notable place at each pin’s coordinates, in your preferred language when available.",
   icon: WikidataIcon,
   implemented: wikidataPluginMeta.implemented,
+  AccountSettingsPanel: WikidataAccountSettingsPanel,
   PinDetailSection: WikidataPinDetailSection,
   PinFormSection: WikidataPinFormSection,
   PinSuggestionSlot: WikidataPinSuggestionSlot,

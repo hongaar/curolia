@@ -37,14 +37,21 @@ import {
   wikidataSearchArticles,
   wikidataSetPinEnrichment,
 } from "./wikidata-edge";
+import { wikidataLangInvokeFields } from "./wikidata-lang-context";
 import {
   formatWikidataDistanceM,
   parseWikidataPinPayload,
   wikidataCandidateMeta,
+  wikidataCandidateTitle,
+  wikidataDisplayLabel,
   wikidataSearchHitKey,
   type WikidataNearbyCandidate,
   type WikidataSearchHit,
 } from "./wikidata-pin-data";
+import {
+  shouldShowWikipediaLanguageBadge,
+  wikipediaLanguageBadge,
+} from "./wikipedia-lang";
 
 type WikidataPinFormEditorProps = {
   supabase: SupabaseClient;
@@ -81,6 +88,7 @@ export function WikidataPinFormEditor({
 
   const payload = parseWikidataPinPayload(rowQuery.data?.data);
   const showPicker = !payload;
+  const langFields = useMemo(() => wikidataLangInvokeFields(), []);
 
   const [search, setSearch] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -95,11 +103,16 @@ export function WikidataPinFormEditor({
 
   const setMutation = useMutation({
     mutationFn: async (candidate: WikidataNearbyCandidate) => {
-      const res = await wikidataSetPinEnrichment(supabase, {
-        pinId,
-        wikidataId: candidate.wikidataId,
-        wikipediaTitle: candidate.wikipediaTitle,
-      });
+      const res = await wikidataSetPinEnrichment(
+        supabase,
+        {
+          pinId,
+          wikidataId: candidate.wikidataId,
+          wikipediaTitle: candidate.wikipediaTitle,
+          wikipediaLang: candidate.wikipediaLang,
+        },
+        langFields,
+      );
       if ("error" in res) throw new Error(res.error);
       return res.payload;
     },
@@ -111,9 +124,13 @@ export function WikidataPinFormEditor({
   const searchQuery = useQuery({
     queryKey: wikidataSearchQueryKey(debouncedQuery),
     queryFn: async () => {
-      const res = await wikidataSearchArticles(supabase, debouncedQuery);
+      const res = await wikidataSearchArticles(
+        supabase,
+        debouncedQuery,
+        langFields,
+      );
       if ("error" in res) throw new Error(res.error);
-      return res.results;
+      return res.groups;
     },
     enabled:
       showPicker &&
@@ -124,14 +141,12 @@ export function WikidataPinFormEditor({
 
   const searchGroups = useMemo((): SearchComboboxGroup<WikidataSearchHit>[] => {
     if (!searchQuery.data) return [];
-    return [
-      {
-        id: "wikipedia",
-        label: "Wikipedia",
-        items: searchQuery.data,
-        emptyMessage: "No matching articles",
-      },
-    ];
+    return searchQuery.data.map((group) => ({
+      id: group.lang,
+      label: group.label,
+      items: group.results,
+      emptyMessage: "No matching articles",
+    }));
   }, [searchQuery.data]);
 
   const searchError =
@@ -142,7 +157,11 @@ export function WikidataPinFormEditor({
   const candidatesQuery = useQuery({
     queryKey: candidatesQueryKey,
     queryFn: async () => {
-      const res = await wikidataListNearbyCandidates(supabase, pinId);
+      const res = await wikidataListNearbyCandidates(
+        supabase,
+        pinId,
+        langFields,
+      );
       if ("error" in res) throw new Error(res.error);
       return res.candidates;
     },
@@ -160,6 +179,7 @@ export function WikidataPinFormEditor({
       wikidataId: hit.wikidataId,
       label: hit.label,
       wikipediaTitle: hit.wikipediaTitle,
+      wikipediaLang: hit.wikipediaLang,
       distanceM: 0,
       placeType: null,
       thumbnailUrl: hit.thumbnailUrl,
@@ -209,11 +229,17 @@ export function WikidataPinFormEditor({
                   icon={<ExternalLink aria-hidden />}
                 >
                   <span>
-                    {payload.label}
+                    {wikidataDisplayLabel(payload)}
                     {payload.distanceM > 0 ? (
                       <PluginPinLinkMeta>
                         {" "}
                         · {formatWikidataDistanceM(payload.distanceM)}
+                      </PluginPinLinkMeta>
+                    ) : null}
+                    {shouldShowWikipediaLanguageBadge(payload.wikipediaLang) ? (
+                      <PluginPinLinkMeta>
+                        {" "}
+                        · {wikipediaLanguageBadge(payload.wikipediaLang)}
                       </PluginPinLinkMeta>
                     ) : null}
                   </span>
@@ -251,7 +277,7 @@ export function WikidataPinFormEditor({
                 {candidatesQuery.data.map((candidate) => (
                   <PluginPinSearchHit
                     key={candidate.wikidataId}
-                    title={candidate.label}
+                    title={wikidataCandidateTitle(candidate)}
                     meta={wikidataCandidateMeta(candidate)}
                     imageUrl={candidate.thumbnailUrl}
                     disabled={setMutation.isPending}

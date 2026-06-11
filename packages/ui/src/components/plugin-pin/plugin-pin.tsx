@@ -261,6 +261,14 @@ export function PluginPinEmbed({
   );
 }
 
+export function PluginPinLangBadge({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <span className={styles.langBadge}>{children}</span>;
+}
+
 export function PluginPinArticlePreview({
   title,
   extract,
@@ -268,6 +276,7 @@ export function PluginPinArticlePreview({
   readMoreHref,
   readMoreLabel = "Read more on Wikipedia",
   readMoreIcon,
+  langBadge,
   actions,
 }: {
   title: string;
@@ -276,10 +285,15 @@ export function PluginPinArticlePreview({
   readMoreHref: string;
   readMoreLabel?: string;
   readMoreIcon: React.ReactNode;
+  langBadge?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
   return (
-    <article className={styles.article}>
+    <article
+      className={styles.article}
+      data-has-lang-badge={langBadge ? "" : undefined}
+    >
+      {langBadge}
       <div className={styles.articleMediaRow}>
         {thumbnailUrl ? (
           <img src={thumbnailUrl} alt="" className={styles.articleThumb} />

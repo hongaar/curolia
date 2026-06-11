@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { WikidataLangInvokeFields } from "./wikidata-lang-context";
 import type {
   WikidataNearbyCandidate,
   WikidataPinPayload,
-  WikidataSearchHit,
+  WikidataSearchGroup,
 } from "./wikidata-pin-data";
 
 export type WikidataSyncResponse =
@@ -60,19 +61,33 @@ export type WikidataClearEnrichmentResponse =
 
 export type WikidataSearchResponse =
   | {
-      results: WikidataSearchHit[];
+      groups: WikidataSearchGroup[];
     }
   | {
       error: string;
     };
 
+function wikidataInvokeBody(
+  action: string,
+  fields: Record<string, unknown>,
+  lang?: WikidataLangInvokeFields,
+): Record<string, unknown> {
+  return {
+    action,
+    ...fields,
+    ...(lang?.browserLang ? { browserLang: lang.browserLang } : {}),
+    ...(lang?.country ? { country: lang.country } : {}),
+  };
+}
+
 export async function wikidataSyncPinEnrichment(
   supabase: SupabaseClient,
   pinId: string,
+  lang?: WikidataLangInvokeFields,
 ): Promise<WikidataSyncResponse> {
   const { data, error } = await supabase.functions.invoke<WikidataSyncResponse>(
     "wikidata",
-    { body: { action: "sync_pin_enrichment", pinId } },
+    { body: wikidataInvokeBody("sync_pin_enrichment", { pinId }, lang) },
   );
   if (error) {
     return { error: error.message || "wikidata_sync_failed" };
@@ -86,15 +101,19 @@ export async function wikidataSyncPinEnrichment(
 export async function wikidataLookupNearby(
   supabase: SupabaseClient,
   args: { mapId: string; lat: number; lng: number },
+  lang?: WikidataLangInvokeFields,
 ): Promise<WikidataNearbyLookupResponse> {
   const { data, error } =
     await supabase.functions.invoke<WikidataNearbyLookupResponse>("wikidata", {
-      body: {
-        action: "lookup_nearby",
-        mapId: args.mapId,
-        lat: args.lat,
-        lng: args.lng,
-      },
+      body: wikidataInvokeBody(
+        "lookup_nearby",
+        {
+          mapId: args.mapId,
+          lat: args.lat,
+          lng: args.lng,
+        },
+        lang,
+      ),
     });
   if (error) {
     return { error: error.message || "wikidata_lookup_failed" };
@@ -108,12 +127,13 @@ export async function wikidataLookupNearby(
 export async function wikidataListNearbyCandidates(
   supabase: SupabaseClient,
   pinId: string,
+  lang?: WikidataLangInvokeFields,
 ): Promise<WikidataListCandidatesResponse> {
   const { data, error } =
     await supabase.functions.invoke<WikidataListCandidatesResponse>(
       "wikidata",
       {
-        body: { action: "list_nearby_candidates", pinId },
+        body: wikidataInvokeBody("list_nearby_candidates", { pinId }, lang),
       },
     );
   if (error) {
@@ -131,16 +151,22 @@ export async function wikidataSetPinEnrichment(
     pinId: string;
     wikidataId: string;
     wikipediaTitle: string;
+    wikipediaLang: string;
   },
+  lang?: WikidataLangInvokeFields,
 ): Promise<WikidataSetEnrichmentResponse> {
   const { data, error } =
     await supabase.functions.invoke<WikidataSetEnrichmentResponse>("wikidata", {
-      body: {
-        action: "set_pin_enrichment",
-        pinId: args.pinId,
-        wikidataId: args.wikidataId,
-        wikipediaTitle: args.wikipediaTitle,
-      },
+      body: wikidataInvokeBody(
+        "set_pin_enrichment",
+        {
+          pinId: args.pinId,
+          wikidataId: args.wikidataId,
+          wikipediaTitle: args.wikipediaTitle,
+          wikipediaLang: args.wikipediaLang,
+        },
+        lang,
+      ),
     });
   if (error) {
     return { error: error.message || "wikidata_set_enrichment_failed" };
@@ -172,10 +198,11 @@ export async function wikidataClearPinEnrichment(
 export async function wikidataSearchArticles(
   supabase: SupabaseClient,
   query: string,
+  lang?: WikidataLangInvokeFields,
 ): Promise<WikidataSearchResponse> {
   const { data, error } =
     await supabase.functions.invoke<WikidataSearchResponse>("wikidata", {
-      body: { action: "search", query },
+      body: wikidataInvokeBody("search", { query }, lang),
     });
   if (error) {
     return { error: error.message || "wikidata_search_failed" };

@@ -24,6 +24,8 @@ export type SuggestionCardProps = {
   description?: React.ReactNode;
   /** Optional single-line meta (e.g. "120 m away"). */
   meta?: React.ReactNode;
+  /** Optional badge in the top-right (e.g. language code). */
+  badge?: React.ReactNode;
   /** Optional thumbnail rendered to the left of the text. */
   thumbnailUrl?: string | null;
   /** Action buttons (e.g. an "Attach" button). Rendered in the footer. */
@@ -46,6 +48,7 @@ export function SuggestionCard({
   title,
   description,
   meta,
+  badge,
   thumbnailUrl,
   actions,
   onDismiss,
@@ -72,18 +75,23 @@ export function SuggestionCard({
           </div>
         </CardHeader>
       ) : null}
-      {onDismiss ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          className={styles.dismiss}
-          aria-label={dismissLabel}
-          disabled={busy}
-          onClick={onDismiss}
-        >
-          <X aria-hidden />
-        </Button>
+      {badge || onDismiss ? (
+        <div className={styles.headerCorner}>
+          {badge ? <span className={styles.badge}>{badge}</span> : null}
+          {onDismiss ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className={styles.dismiss}
+              aria-label={dismissLabel}
+              disabled={busy}
+              onClick={onDismiss}
+            >
+              <X aria-hidden />
+            </Button>
+          ) : null}
+        </div>
       ) : null}
       <CardContent className={styles.content}>
         <div className={styles.body}>

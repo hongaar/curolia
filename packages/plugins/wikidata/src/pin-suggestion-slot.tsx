@@ -17,10 +17,12 @@ import {
   wikidataListNearbyCandidates,
   wikidataSetPinEnrichment,
 } from "./wikidata-edge";
+import { wikidataLangInvokeFields } from "./wikidata-lang-context";
 import {
   parseWikidataDeclinedPayload,
   parseWikidataPinPayload,
   wikidataCandidateMeta,
+  wikidataCandidateTitle,
   wikidataDeclinedPayload,
   type WikidataNearbyCandidate,
 } from "./wikidata-pin-data";
@@ -28,6 +30,10 @@ import {
   selectWikidataSuggestionCandidate,
   wikidataPinSuggestionSuppressed,
 } from "./wikidata-suggestion";
+import {
+  shouldShowWikipediaLanguageBadge,
+  wikipediaLanguageBadge,
+} from "./wikipedia-lang";
 
 /**
  * Suggests attaching a very-close notable Wikipedia article to a pin when none
@@ -91,7 +97,11 @@ export function WikidataPinSuggestionSlot({
   const candidatesQuery = useQuery({
     queryKey: wikidataNearbyCandidatesQueryKey(pinId, lat ?? 0, lng ?? 0),
     queryFn: async () => {
-      const res = await wikidataListNearbyCandidates(supabase, pinId);
+      const res = await wikidataListNearbyCandidates(
+        supabase,
+        pinId,
+        wikidataLangInvokeFields(),
+      );
       if ("error" in res) throw new Error(res.error);
       return res.candidates;
     },
@@ -127,11 +137,16 @@ export function WikidataPinSuggestionSlot({
 
   const attachMutation = useMutation({
     mutationFn: async (candidate: WikidataNearbyCandidate) => {
-      const res = await wikidataSetPinEnrichment(supabase, {
-        pinId,
-        wikidataId: candidate.wikidataId,
-        wikipediaTitle: candidate.wikipediaTitle,
-      });
+      const res = await wikidataSetPinEnrichment(
+        supabase,
+        {
+          pinId,
+          wikidataId: candidate.wikidataId,
+          wikipediaTitle: candidate.wikipediaTitle,
+          wikipediaLang: candidate.wikipediaLang,
+        },
+        wikidataLangInvokeFields(),
+      );
       if ("error" in res) throw new Error(res.error);
       return res.payload;
     },
@@ -162,7 +177,12 @@ export function WikidataPinSuggestionSlot({
       <SuggestionCard
         icon={<WikidataIcon />}
         eyebrow={`Suggested · ${wikidataPluginMeta.displayName}`}
-        title={suggestion.label}
+        title={wikidataCandidateTitle(suggestion)}
+        badge={
+          shouldShowWikipediaLanguageBadge(suggestion.wikipediaLang)
+            ? wikipediaLanguageBadge(suggestion.wikipediaLang)
+            : undefined
+        }
         meta={errorMessage ?? wikidataCandidateMeta(suggestion)}
         thumbnailUrl={suggestion.thumbnailUrl}
         busy={attachMutation.isPending || dismissMutation.isPending}

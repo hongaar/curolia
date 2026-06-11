@@ -2,11 +2,19 @@ import { Button } from "@curolia/ui/button";
 import {
   PluginPinArticlePreview,
   PluginPinError,
+  PluginPinLangBadge,
   PluginPinMuted,
   PluginPinSpinner,
 } from "@curolia/ui/plugin-pin";
 import { ExternalLink } from "lucide-react";
-import type { WikidataPinPayload } from "./wikidata-pin-data";
+import {
+  wikidataDisplayLabel,
+  type WikidataPinPayload,
+} from "./wikidata-pin-data";
+import {
+  shouldShowWikipediaLanguageBadge,
+  wikipediaLanguageBadge,
+} from "./wikipedia-lang";
 
 export function WikidataEnrichmentBody({
   payload,
@@ -43,11 +51,18 @@ export function WikidataEnrichmentBody({
       ) : null}
       {payload ? (
         <PluginPinArticlePreview
-          title={payload.label}
+          title={wikidataDisplayLabel(payload)}
           extract={payload.extract}
           thumbnailUrl={payload.thumbnailUrl}
           readMoreHref={payload.wikipediaUrl}
           readMoreIcon={<ExternalLink aria-hidden />}
+          langBadge={
+            shouldShowWikipediaLanguageBadge(payload.wikipediaLang) ? (
+              <PluginPinLangBadge>
+                {wikipediaLanguageBadge(payload.wikipediaLang)}
+              </PluginPinLangBadge>
+            ) : undefined
+          }
           actions={
             showApplyActions ? (
               <>
@@ -57,7 +72,9 @@ export function WikidataEnrichmentBody({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      onApplyPinSuggestion?.({ title: payload.label })
+                      onApplyPinSuggestion?.({
+                        title: wikidataDisplayLabel(payload),
+                      })
                     }
                   >
                     Use as title

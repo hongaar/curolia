@@ -1,9 +1,10 @@
 import type { PinDraftEnrichmentSlotProps } from "@curolia/plugin-contract";
 import { useQuery } from "@tanstack/react-query";
-import { WikidataEnrichmentBody } from "./wikidata-enrichment-body";
+import { wikidataNearbyLookupQueryKey } from "./query-keys";
 import { useWikidataPluginReady } from "./use-wikidata-plugin-ready";
 import { wikidataLookupNearby } from "./wikidata-edge";
-import { wikidataNearbyLookupQueryKey } from "./query-keys";
+import { WikidataEnrichmentBody } from "./wikidata-enrichment-body";
+import { wikidataLangInvokeFields } from "./wikidata-lang-context";
 
 export function WikidataPinDraftEnrichmentSlot({
   supabase,
@@ -19,7 +20,12 @@ export function WikidataPinDraftEnrichmentSlot({
 
   const lookupQuery = useQuery({
     queryKey: wikidataNearbyLookupQueryKey(lat, lng),
-    queryFn: () => wikidataLookupNearby(supabase, { mapId, lat, lng }),
+    queryFn: () =>
+      wikidataLookupNearby(
+        supabase,
+        { mapId, lat, lng },
+        wikidataLangInvokeFields(),
+      ),
     enabled: pluginReady,
     staleTime: 60_000,
     retry: false,

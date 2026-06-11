@@ -1,6 +1,23 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { AsyncLruCache } from "./lib/_services/lru-cache.ts";
+import {
+  looksLikeWikidataId,
+  pickArticlesForWikidataIds,
+  resolveWikidataIdsForTitles,
+} from "./lib/wikidata-sitelinks.ts";
+import {
+  enrichCandidatesWithThumbnails,
+  fetchWikipediaSummary,
+  searchWikipediaArticles,
+  type SearchGroup,
+} from "./lib/wikipedia-api.ts";
+import {
+  readCountryFromGeocode,
+  readWikipediaLanguageSetting,
+  resolveLangPrefs,
+  wikipediaSearchGroupLabel,
+} from "./lib/wikipedia-lang.ts";
 
 /** Keep in sync with `packages/plugins/wikidata/src/constants.ts`. */
 const SEARCH_RADIUS_KM = 0.5;
@@ -8,24 +25,20 @@ const COORD_EPSILON = 0.0001;
 const NEARBY_CANDIDATES_LIMIT = 15;
 const SPARQL_ROW_LIMIT = 100;
 const AUTO_SYNC_CANDIDATES_LIMIT = 5;
-
-const WIKIDATA_SPARQL = "https://query.wikidata.org/sparql";
-const WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php";
-const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
-const WIKIPEDIA_SUMMARY = "https://en.wikipedia.org/api/rest_v1/page/summary/";
-const USER_AGENT =
-  "Curolia/1.0 (https://github.com/curolia/curolia; plugin-wikidata)";
-
-/** Keep in sync with `packages/plugins/wikidata/src/constants.ts`. */
 const SEARCH_MIN_CHARS = 2;
 const SEARCH_RESULTS_LIMIT = 10;
 
+const WIKIDATA_SPARQL = "https://query.wikidata.org/sparql";
+const USER_AGENT =
+  "Curolia/1.0 (https://github.com/curolia/curolia; plugin-wikidata)";
+
 type WikidataPinPayload = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   lat: number;
   lng: number;
   fetchedAt: string;
   wikidataId: string;
+  wikipediaLang: string;
   wikipediaTitle: string;
   wikipediaUrl: string;
   label: string;
@@ -48,6 +61,32 @@ type PinRow = {
   map_id: string;
   lat: number | null;
   lng: number | null;
+  geocode: unknown;
+};
+
+type SparqlCandidate = {
+  wikidataId: string;
+  label: string;
+  wikipediaTitle: string;
+  wikipediaLang: string;
+  distanceM: number;
+  placeType: string | null;
+  thumbnailUrl: string | null;
+};
+
+type RequestBody = {
+  action?: string;
+  pinId?: string;
+  mapId?: string;
+  lat?: number;
+  lng?: number;
+  wikidataId?: string;
+  wikipediaTitle?: string;
+  wikipediaLang?: string;
+  query?: string;
+  langPrefs?: string[];
+  browserLang?: string;
+  country?: string;
 };
 
 function cors(): HeadersInit {
@@ -73,10 +112,44 @@ function payloadMatches(
 function parsePayload(raw: unknown): WikidataPinPayload | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  if (o.schemaVersion !== 1) return null;
+  const version = o.schemaVersion;
+  if (version !== 1 && version !== 2) return null;
   if (typeof o.lat !== "number" || typeof o.lng !== "number") return null;
   if (typeof o.wikipediaTitle !== "string") return null;
-  return raw as WikidataPinPayload;
+  if (typeof o.wikipediaUrl !== "string" || typeof o.label !== "string") {
+    return null;
+  }
+  if (typeof o.extract !== "string" || typeof o.distanceM !== "number") {
+    return null;
+  }
+  if (typeof o.wikidataId !== "string" || typeof o.fetchedAt !== "string") {
+    return null;
+  }
+  if (o.thumbnailUrl !== null && typeof o.thumbnailUrl !== "string") {
+    return null;
+  }
+  if (o.placeType !== null && typeof o.placeType !== "string") return null;
+
+  const wikipediaLang =
+    version === 2 && typeof o.wikipediaLang === "string"
+      ? o.wikipediaLang
+      : "en";
+
+  return {
+    schemaVersion: 2,
+    lat: o.lat,
+    lng: o.lng,
+    fetchedAt: o.fetchedAt,
+    wikidataId: o.wikidataId,
+    wikipediaLang,
+    wikipediaTitle: o.wikipediaTitle,
+    wikipediaUrl: o.wikipediaUrl,
+    label: o.label,
+    extract: o.extract,
+    thumbnailUrl: o.thumbnailUrl as string | null,
+    distanceM: o.distanceM,
+    placeType: o.placeType as string | null,
+  };
 }
 
 function parseDeclinedPayload(raw: unknown): WikidataDeclinedPayload | null {
@@ -105,35 +178,16 @@ function wikidataItemId(uri: string): string | null {
   return m?.[1] ?? null;
 }
 
-function wikipediaTitleFromArticleUri(uri: string): string | null {
-  const marker = "en.wikipedia.org/wiki/";
-  const idx = uri.indexOf(marker);
-  if (idx === -1) return null;
-  const encoded = uri
-    .slice(idx + marker.length)
-    .split("#")[0]
-    ?.split("?")[0];
-  if (!encoded) return null;
-  try {
-    return decodeURIComponent(encoded.replace(/_/g, " "));
-  } catch {
-    return encoded.replace(/_/g, " ");
-  }
-}
-
 function buildNearbySparql(lat: number, lng: number, limit: number): string {
   const point = `Point(${lng} ${lat})`;
   return `
-SELECT ?place ?placeLabel ?article ?dist (SAMPLE(?typeLabel) AS ?typeLabel) WHERE {
+SELECT ?place ?placeLabel ?dist (SAMPLE(?typeLabel) AS ?typeLabel) WHERE {
   SERVICE wikibase:around {
     ?place wdt:P625 ?location .
     bd:serviceParam wikibase:center "${point}"^^geo:wktLiteral .
     bd:serviceParam wikibase:radius "${SEARCH_RADIUS_KM}" .
     bd:serviceParam wikibase:distance ?dist .
   }
-  ?article schema:about ?place ;
-            schema:inLanguage "en" ;
-            schema:isPartOf <https://en.wikipedia.org/> .
   ?place wdt:P31/wdt:P279* ?type .
   VALUES ?type {
     wd:Q41176 wd:Q570116 wd:Q838948 wd:Q22698 wd:Q811979 wd:Q4989906
@@ -144,17 +198,10 @@ SELECT ?place ?placeLabel ?article ?dist (SAMPLE(?typeLabel) AS ?typeLabel) WHER
   OPTIONAL { ?place wdt:P31 ?directType . ?directType rdfs:label ?typeLabel . FILTER(LANG(?typeLabel) = "en") }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
 }
-GROUP BY ?place ?placeLabel ?article ?dist
+GROUP BY ?place ?placeLabel ?dist
 ORDER BY ASC(?dist)
 LIMIT ${limit}
 `.trim();
-}
-
-function finalizeCandidates(
-  candidates: SparqlCandidate[],
-  maxResults: number,
-): SparqlCandidate[] {
-  return dedupeCandidates(candidates).slice(0, maxResults);
 }
 
 function dedupeCandidates(candidates: SparqlCandidate[]): SparqlCandidate[] {
@@ -168,71 +215,62 @@ function dedupeCandidates(candidates: SparqlCandidate[]): SparqlCandidate[] {
   return [...byId.values()].sort((a, b) => a.distanceM - b.distanceM);
 }
 
+function finalizeCandidates(
+  candidates: SparqlCandidate[],
+  maxResults: number,
+): SparqlCandidate[] {
+  return dedupeCandidates(candidates).slice(0, maxResults);
+}
+
 type SparqlBinding = Record<string, { type: string; value: string }>;
 
-type SparqlCandidate = {
-  wikidataId: string;
-  label: string;
-  wikipediaTitle: string;
-  distanceM: number;
-  placeType: string | null;
-  thumbnailUrl: string | null;
-};
-
-type WikiSummary = {
-  title: string;
-  extract: string;
-  thumbnailUrl: string | null;
-  wikipediaUrl: string;
-};
-
-type SearchHit = {
-  wikidataId: string;
-  label: string;
-  wikipediaTitle: string;
-  thumbnailUrl: string | null;
-  snippet: string | null;
-};
-
 const SPARQL_CANDIDATES_CACHE_SIZE = 128;
-const WIKIPEDIA_SUMMARY_CACHE_SIZE = 256;
-const WIKIPEDIA_SEARCH_CACHE_SIZE = 64;
 
-const sparqlCandidatesCache = new AsyncLruCache<string, SparqlCandidate[]>({
+const sparqlCandidatesCache = new AsyncLruCache<
+  string,
+  Array<{
+    wikidataId: string;
+    label: string;
+    distanceM: number;
+    placeType: string | null;
+  }>
+>({
   maxSize: SPARQL_CANDIDATES_CACHE_SIZE,
-});
-const wikipediaSummaryCache = new AsyncLruCache<string, WikiSummary | null>({
-  maxSize: WIKIPEDIA_SUMMARY_CACHE_SIZE,
-});
-const wikipediaSearchCache = new AsyncLruCache<string, SearchHit[]>({
-  maxSize: WIKIPEDIA_SEARCH_CACHE_SIZE,
 });
 
 function wikidataCoordCacheKey(lat: number, lng: number): string {
   return `${lat.toFixed(4)},${lng.toFixed(4)}`;
 }
 
-function wikipediaTitleCacheKey(title: string): string {
-  return title.trim().replace(/\s+/g, "_").toLowerCase();
+function normalizeLangPrefs(body: RequestBody, userConfig: unknown): string[] {
+  if (Array.isArray(body.langPrefs) && body.langPrefs.length > 0) {
+    const prefs: string[] = [];
+    for (const lang of body.langPrefs) {
+      if (typeof lang !== "string") continue;
+      const trimmed = lang.trim().toLowerCase();
+      if (trimmed && !prefs.includes(trimmed)) prefs.push(trimmed);
+    }
+    if (prefs.length > 0) return prefs;
+  }
+
+  const setting = readWikipediaLanguageSetting(userConfig);
+  return resolveLangPrefs(setting, {
+    browserLang: body.browserLang,
+    country: body.country,
+  });
 }
 
-async function queryNearbyCandidates(
+async function fetchSparqlPlacesUncached(
   lat: number,
   lng: number,
-  maxResults: number,
-): Promise<SparqlCandidate[]> {
-  const deduped = await sparqlCandidatesCache.getOrFetch(
-    `sparql:v1:${wikidataCoordCacheKey(lat, lng)}`,
-    () => fetchSparqlCandidatesUncached(lat, lng),
-  );
-  const sliced = finalizeCandidates(deduped, maxResults);
-  return enrichCandidatesWithThumbnails(sliced);
-}
-
-async function fetchSparqlCandidatesUncached(
-  lat: number,
-  lng: number,
-): Promise<SparqlCandidate[]> {
+): Promise<
+  Array<{
+    wikidataId: string;
+    label: string;
+    distanceM: number;
+    placeType: string | null;
+  }>
+> {
   const query = buildNearbySparql(lat, lng, SPARQL_ROW_LIMIT);
   const url = `${WIKIDATA_SPARQL}?format=json&query=${encodeURIComponent(query)}`;
   const res = await fetch(url, {
@@ -248,249 +286,77 @@ async function fetchSparqlCandidatesUncached(
     results?: { bindings?: SparqlBinding[] };
   };
   const bindings = json.results?.bindings ?? [];
-  const out: SparqlCandidate[] = [];
+  const out: Array<{
+    wikidataId: string;
+    label: string;
+    distanceM: number;
+    placeType: string | null;
+  }> = [];
 
   for (const row of bindings) {
     const placeUri = row.place?.value;
-    const articleUri = row.article?.value;
     const distKm = Number(row.dist?.value);
-    if (!placeUri || !articleUri || !Number.isFinite(distKm)) continue;
+    if (!placeUri || !Number.isFinite(distKm)) continue;
 
     const wikidataId = wikidataItemId(placeUri);
-    const wikipediaTitle = wikipediaTitleFromArticleUri(articleUri);
     const label = row.placeLabel?.value?.trim();
-    if (!wikidataId || !wikipediaTitle || !label) continue;
+    if (!wikidataId || !label) continue;
 
     out.push({
       wikidataId,
       label,
-      wikipediaTitle,
       distanceM: Math.round(distKm * 1000),
       placeType: row.typeLabel?.value?.trim() ?? null,
-      thumbnailUrl: null,
     });
   }
 
-  return dedupeCandidates(out);
-}
-
-async function fetchWikipediaSummary(
-  title: string,
-): Promise<WikiSummary | null> {
-  return wikipediaSummaryCache.getOrFetch(
-    `wiki:summary:en:${wikipediaTitleCacheKey(title)}`,
-    () => fetchWikipediaSummaryUncached(title),
-  );
-}
-
-async function fetchWikipediaSummaryUncached(
-  title: string,
-): Promise<WikiSummary | null> {
-  const encoded = encodeURIComponent(title.replace(/ /g, "_"));
-  const res = await fetch(`${WIKIPEDIA_SUMMARY}${encoded}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": USER_AGENT,
-    },
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`wikipedia_summary_${res.status}`);
-  }
-  const json = (await res.json()) as Record<string, unknown>;
-  const extract = typeof json.extract === "string" ? json.extract.trim() : "";
-  const resolvedTitle =
-    typeof json.title === "string" ? json.title.trim() : title;
-  const thumb = json.thumbnail as { source?: string } | undefined;
-  const urls = json.content_urls as { desktop?: { page?: string } } | undefined;
-  const pageUrl = urls?.desktop?.page?.trim();
-  if (!extract || !pageUrl) return null;
-
-  return {
-    title: resolvedTitle,
-    extract,
-    thumbnailUrl: typeof thumb?.source === "string" ? thumb.source : null,
-    wikipediaUrl: pageUrl,
-  };
-}
-
-async function fetchWikipediaThumbnail(title: string): Promise<string | null> {
-  const summary = await fetchWikipediaSummary(title);
-  return summary?.thumbnailUrl ?? null;
-}
-
-function stripHtmlSnippet(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-async function resolveWikidataIdsForTitles(
-  titles: string[],
-): Promise<Map<string, string>> {
-  if (titles.length === 0) return new Map();
-
-  const params = new URLSearchParams({
-    action: "wbgetentities",
-    sites: "enwiki",
-    titles: titles.join("|"),
-    props: "sitelinks",
-    format: "json",
-    origin: "*",
-  });
-  const res = await fetch(`${WIKIDATA_API}?${params}`, {
-    headers: { "User-Agent": USER_AGENT },
-  });
-  if (!res.ok) {
-    throw new Error(`wikidata_resolve_${res.status}`);
-  }
-
-  const json = (await res.json()) as {
-    entities?: Record<
-      string,
-      { id?: string; sitelinks?: { enwiki?: { title?: string } } }
-    >;
-  };
-
-  const byTitle = new Map<string, string>();
-  for (const [key, entity] of Object.entries(json.entities ?? {})) {
-    if (key.startsWith("-") || !entity?.id) continue;
-    const enTitle = entity.sitelinks?.enwiki?.title?.trim();
-    if (enTitle) byTitle.set(enTitle, entity.id);
-  }
-  return byTitle;
-}
-
-async function searchWikipediaArticlesUncached(
-  query: string,
-): Promise<SearchHit[]> {
-  const params = new URLSearchParams({
-    action: "query",
-    list: "search",
-    srsearch: query,
-    srlimit: String(SEARCH_RESULTS_LIMIT),
-    format: "json",
-    origin: "*",
-  });
-  const res = await fetch(`${WIKIPEDIA_API}?${params}`, {
-    headers: { "User-Agent": USER_AGENT },
-  });
-  if (!res.ok) {
-    throw new Error(`wikipedia_search_${res.status}`);
-  }
-
-  const json = (await res.json()) as {
-    query?: {
-      search?: Array<{ title?: string; snippet?: string }>;
-    };
-  };
-  const rows = json.query?.search ?? [];
-  const titles = rows
-    .map((row) => row.title?.trim())
-    .filter((title): title is string => Boolean(title));
-  if (titles.length === 0) return [];
-
-  const wikidataByTitle = await resolveWikidataIdsForTitles(titles);
-  const hits: SearchHit[] = [];
-
-  for (const row of rows) {
-    const title = row.title?.trim();
-    if (!title) continue;
-    const wikidataId = wikidataByTitle.get(title);
-    if (!wikidataId) continue;
-    hits.push({
-      wikidataId,
-      label: title,
-      wikipediaTitle: title,
-      thumbnailUrl: null,
-      snippet: row.snippet ? stripHtmlSnippet(row.snippet) : null,
-    });
-  }
-
-  return enrichSearchHitsWithThumbnails(hits);
-}
-
-async function searchWikipediaArticles(query: string): Promise<SearchHit[]> {
-  const key = `wiki:search:en:${query.trim().toLowerCase()}`;
-  return wikipediaSearchCache.getOrFetch(key, () =>
-    searchWikipediaArticlesUncached(query),
-  );
-}
-
-async function enrichSearchHitsWithThumbnails(
-  hits: SearchHit[],
-): Promise<SearchHit[]> {
-  return Promise.all(
-    hits.map(async (hit) => {
-      try {
-        const thumbnailUrl = await fetchWikipediaThumbnail(hit.wikipediaTitle);
-        return { ...hit, thumbnailUrl };
-      } catch (e) {
-        console.error("wikipedia thumbnail failed", hit.wikipediaTitle, e);
-        return hit;
-      }
-    }),
-  );
-}
-
-async function enrichCandidatesWithThumbnails(
-  candidates: SparqlCandidate[],
-): Promise<SparqlCandidate[]> {
-  return Promise.all(
-    candidates.map(async (candidate) => {
-      try {
-        const thumbnailUrl = await fetchWikipediaThumbnail(
-          candidate.wikipediaTitle,
-        );
-        return {
-          ...candidate,
-          thumbnailUrl,
-        };
-      } catch (e) {
-        console.error(
-          "wikipedia thumbnail failed",
-          candidate.wikipediaTitle,
-          e,
-        );
-        return candidate;
-      }
-    }),
-  );
-}
-
-async function resolveNearbyEnrichment(
-  lat: number,
-  lng: number,
-): Promise<WikidataPinPayload | null> {
-  const candidates = await queryNearbyCandidates(
-    lat,
-    lng,
-    AUTO_SYNC_CANDIDATES_LIMIT,
-  );
-  for (const candidate of candidates) {
-    try {
-      const summary = await fetchWikipediaSummary(candidate.wikipediaTitle);
-      if (!summary) continue;
-      return {
-        schemaVersion: 1,
-        lat,
-        lng,
-        fetchedAt: new Date().toISOString(),
-        wikidataId: candidate.wikidataId,
-        wikipediaTitle: summary.title,
-        wikipediaUrl: summary.wikipediaUrl,
-        label: candidate.label,
-        extract: summary.extract,
-        thumbnailUrl: summary.thumbnailUrl,
-        distanceM: candidate.distanceM,
-        placeType: candidate.placeType,
-      };
-    } catch (e) {
-      console.error("wikipedia summary failed", candidate.wikipediaTitle, e);
+  const byId = new Map<string, (typeof out)[number]>();
+  for (const place of out) {
+    const prev = byId.get(place.wikidataId);
+    if (!prev || place.distanceM < prev.distanceM) {
+      byId.set(place.wikidataId, place);
     }
   }
-  return null;
+  return [...byId.values()].sort((a, b) => a.distanceM - b.distanceM);
+}
+
+async function queryNearbyCandidates(
+  lat: number,
+  lng: number,
+  maxResults: number,
+  langPrefs: string[],
+): Promise<SparqlCandidate[]> {
+  const places = await sparqlCandidatesCache.getOrFetch(
+    `sparql:v2:${wikidataCoordCacheKey(lat, lng)}`,
+    () => fetchSparqlPlacesUncached(lat, lng),
+  );
+  const sliced = places.slice(0, SPARQL_ROW_LIMIT);
+  const sparqlLabels = new Map(
+    sliced.map((place) => [place.wikidataId, place.label]),
+  );
+  const articles = await pickArticlesForWikidataIds(
+    sliced.map((place) => place.wikidataId),
+    langPrefs,
+    sparqlLabels,
+  );
+
+  const candidates: SparqlCandidate[] = [];
+  for (const place of sliced) {
+    const article = articles.get(place.wikidataId);
+    if (!article) continue;
+    candidates.push({
+      wikidataId: place.wikidataId,
+      label: article.label,
+      wikipediaTitle: article.title,
+      wikipediaLang: article.lang,
+      distanceM: place.distanceM,
+      placeType: place.placeType,
+      thumbnailUrl: null,
+    });
+  }
+
+  const finalized = finalizeCandidates(candidates, maxResults);
+  return enrichCandidatesWithThumbnails(finalized);
 }
 
 async function buildPayloadForCandidate(
@@ -498,22 +364,56 @@ async function buildPayloadForCandidate(
   lng: number,
   candidate: SparqlCandidate,
 ): Promise<WikidataPinPayload | null> {
-  const summary = await fetchWikipediaSummary(candidate.wikipediaTitle);
+  const summary = await fetchWikipediaSummary(
+    candidate.wikipediaLang,
+    candidate.wikipediaTitle,
+  );
   if (!summary) return null;
+  const label = looksLikeWikidataId(candidate.label)
+    ? summary.title
+    : candidate.label;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     lat,
     lng,
     fetchedAt: new Date().toISOString(),
     wikidataId: candidate.wikidataId,
+    wikipediaLang: summary.lang,
     wikipediaTitle: summary.title,
     wikipediaUrl: summary.wikipediaUrl,
-    label: candidate.label,
+    label,
     extract: summary.extract,
     thumbnailUrl: summary.thumbnailUrl,
     distanceM: candidate.distanceM,
     placeType: candidate.placeType,
   };
+}
+
+async function resolveNearbyEnrichment(
+  lat: number,
+  lng: number,
+  langPrefs: string[],
+): Promise<WikidataPinPayload | null> {
+  const candidates = await queryNearbyCandidates(
+    lat,
+    lng,
+    AUTO_SYNC_CANDIDATES_LIMIT,
+    langPrefs,
+  );
+  for (const candidate of candidates) {
+    try {
+      const payload = await buildPayloadForCandidate(lat, lng, candidate);
+      if (payload) return payload;
+    } catch (e) {
+      console.error(
+        "wikipedia summary failed",
+        candidate.wikipediaLang,
+        candidate.wikipediaTitle,
+        e,
+      );
+    }
+  }
+  return null;
 }
 
 async function loadPinForUser(
@@ -526,7 +426,7 @@ async function loadPinForUser(
 > {
   const { data: pin, error: pinErr } = await admin
     .from("pins")
-    .select("id, map_id, lat, lng")
+    .select("id, map_id, lat, lng, geocode")
     .eq("id", pinId)
     .maybeSingle();
 
@@ -584,6 +484,18 @@ async function assertMapMember(
   return Boolean(data);
 }
 
+function langPrefsForPin(
+  body: RequestBody,
+  userConfig: unknown,
+  pin?: PinRow,
+): string[] {
+  const country =
+    body.country ??
+    (pin ? readCountryFromGeocode(pin.geocode) : null) ??
+    undefined;
+  return normalizeLangPrefs({ ...body, country }, userConfig);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors() });
   if (req.method !== "POST") {
@@ -619,18 +531,9 @@ Deno.serve(async (req: Request) => {
   const userId = userData.user.id;
   const admin = createClient(supabaseUrl, serviceKey);
 
-  let body: {
-    action?: string;
-    pinId?: string;
-    mapId?: string;
-    lat?: number;
-    lng?: number;
-    wikidataId?: string;
-    wikipediaTitle?: string;
-    query?: string;
-  };
+  let body: RequestBody;
   try {
-    body = (await req.json()) as typeof body;
+    body = (await req.json()) as RequestBody;
   } catch {
     return new Response(JSON.stringify({ error: "bad_json" }), {
       status: 400,
@@ -640,7 +543,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: userPlugin } = await admin
     .from("user_plugins")
-    .select("enabled")
+    .select("enabled, config")
     .eq("user_id", userId)
     .eq("plugin_type_id", "wikidata")
     .maybeSingle();
@@ -652,6 +555,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  const userConfig = userPlugin.config;
+
   if (body.action === "search") {
     const query = typeof body.query === "string" ? body.query.trim() : "";
     if (query.length < SEARCH_MIN_CHARS) {
@@ -661,9 +566,17 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const langPrefs = normalizeLangPrefs(body, userConfig);
+
     try {
-      const results = await searchWikipediaArticles(query);
-      return new Response(JSON.stringify({ results }), {
+      const groups: SearchGroup[] = await searchWikipediaArticles(
+        query,
+        langPrefs,
+        SEARCH_RESULTS_LIMIT,
+        resolveWikidataIdsForTitles,
+        wikipediaSearchGroupLabel,
+      );
+      return new Response(JSON.stringify({ groups }), {
         status: 200,
         headers: { ...cors(), "Content-Type": "application/json" },
       });
@@ -700,8 +613,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const langPrefs = normalizeLangPrefs(body, userConfig);
+
     try {
-      const result = await resolveNearbyEnrichment(lat, lng);
+      const result = await resolveNearbyEnrichment(lat, lng, langPrefs);
       if (!result) {
         return new Response(JSON.stringify({ reason: "nothing_nearby" }), {
           status: 200,
@@ -753,11 +668,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const langPrefs = langPrefsForPin(body, userConfig, pin);
+
     try {
       const candidates = await queryNearbyCandidates(
         lat,
         lng,
         NEARBY_CANDIDATES_LIMIT,
+        langPrefs,
       );
       return new Response(JSON.stringify({ candidates }), {
         status: 200,
@@ -779,6 +697,7 @@ Deno.serve(async (req: Request) => {
     const pinId = body.pinId?.trim();
     const wikidataId = body.wikidataId?.trim();
     const wikipediaTitle = body.wikipediaTitle?.trim();
+    const wikipediaLang = body.wikipediaLang?.trim().toLowerCase();
     if (!pinId || !wikidataId || !wikipediaTitle) {
       return new Response(JSON.stringify({ error: "invalid_body" }), {
         status: 400,
@@ -809,16 +728,21 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const langPrefs = langPrefsForPin(body, userConfig, pin);
+
     try {
       const candidates = await queryNearbyCandidates(
         lat,
         lng,
         NEARBY_CANDIDATES_LIMIT,
+        langPrefs,
       );
-      const candidate = candidates.find((c) => c.wikidataId === wikidataId) ?? {
+      const nearby = candidates.find((c) => c.wikidataId === wikidataId);
+      const candidate: SparqlCandidate = nearby ?? {
         wikidataId,
         label: wikipediaTitle,
         wikipediaTitle,
+        wikipediaLang: wikipediaLang || langPrefs[0] || "en",
         distanceM: 0,
         placeType: null,
         thumbnailUrl: null,
@@ -923,6 +847,8 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  const langPrefs = langPrefsForPin(body, userConfig, t);
+
   const { data: cachedRow } = await admin
     .from("plugin_entity_data")
     .select("data")
@@ -954,7 +880,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const payload = await resolveNearbyEnrichment(lat, lng);
+    const payload = await resolveNearbyEnrichment(lat, lng, langPrefs);
     if (!payload) {
       await admin
         .from("plugin_entity_data")

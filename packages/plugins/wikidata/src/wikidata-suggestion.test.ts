@@ -17,6 +17,7 @@ function candidate(
     wikidataId: "Q1",
     label: "Rijksmuseum",
     wikipediaTitle: "Rijksmuseum",
+    wikipediaLang: "en",
     distanceM: 80,
     placeType: "museum",
     thumbnailUrl: null,
@@ -25,11 +26,12 @@ function candidate(
 }
 
 const attachedPayload: WikidataPinPayload = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   lat: 52.1,
   lng: 5.1,
   fetchedAt: new Date().toISOString(),
   wikidataId: "Q42",
+  wikipediaLang: "en",
   wikipediaTitle: "Linked",
   wikipediaUrl: "https://en.wikipedia.org/wiki/Linked",
   label: "Linked",

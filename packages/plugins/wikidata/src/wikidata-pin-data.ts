@@ -9,11 +9,12 @@ export type WikidataDeclinedPayload = {
 
 /** Shape stored in `plugin_entity_data.data` for `plugin_type_id = wikidata`. */
 export type WikidataPinPayload = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   lat: number;
   lng: number;
   fetchedAt: string;
   wikidataId: string;
+  wikipediaLang: string;
   wikipediaTitle: string;
   wikipediaUrl: string;
   label: string;
@@ -28,6 +29,7 @@ export type WikidataNearbyCandidate = {
   wikidataId: string;
   label: string;
   wikipediaTitle: string;
+  wikipediaLang: string;
   distanceM: number;
   placeType: string | null;
   thumbnailUrl: string | null;
@@ -38,12 +40,19 @@ export type WikidataSearchHit = {
   wikidataId: string;
   label: string;
   wikipediaTitle: string;
+  wikipediaLang: string;
   thumbnailUrl: string | null;
   snippet: string | null;
 };
 
+export type WikidataSearchGroup = {
+  lang: string;
+  label: string;
+  results: WikidataSearchHit[];
+};
+
 export function wikidataSearchHitKey(hit: WikidataSearchHit): string {
-  return hit.wikidataId;
+  return `${hit.wikipediaLang}:${hit.wikidataId}`;
 }
 
 export function formatWikidataDistanceM(distanceM: number): string {
@@ -51,12 +60,33 @@ export function formatWikidataDistanceM(distanceM: number): string {
   return `${(distanceM / 1000).toFixed(distanceM < 10_000 ? 1 : 0)} km`;
 }
 
+export function looksLikeWikidataId(value: string): boolean {
+  return /^Q\d+$/i.test(value.trim());
+}
+
+export function wikidataDisplayLabel(
+  payload: Pick<WikidataPinPayload, "label" | "wikipediaTitle">,
+): string {
+  if (looksLikeWikidataId(payload.label)) return payload.wikipediaTitle;
+  return payload.label;
+}
+
 export function wikidataCandidateMeta(
   candidate: WikidataNearbyCandidate,
 ): string {
-  const parts = [formatWikidataDistanceM(candidate.distanceM)];
+  const parts: string[] = [];
+  if (candidate.distanceM > 0) {
+    parts.push(formatWikidataDistanceM(candidate.distanceM));
+  }
   if (candidate.placeType) parts.push(candidate.placeType);
   return parts.join(" · ");
+}
+
+export function wikidataCandidateTitle(
+  candidate: WikidataNearbyCandidate,
+): string {
+  if (looksLikeWikidataId(candidate.label)) return candidate.wikipediaTitle;
+  return candidate.label;
 }
 
 export function parseWikidataPinPayload(
@@ -64,7 +94,8 @@ export function parseWikidataPinPayload(
 ): WikidataPinPayload | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  if (o.schemaVersion !== 1) return null;
+  const version = o.schemaVersion;
+  if (version !== 1 && version !== 2) return null;
   if (typeof o.lat !== "number" || typeof o.lng !== "number") return null;
   if (typeof o.fetchedAt !== "string") return null;
   if (
@@ -82,7 +113,27 @@ export function parseWikidataPinPayload(
   if (o.thumbnailUrl !== null && typeof o.thumbnailUrl !== "string")
     return null;
   if (o.placeType !== null && typeof o.placeType !== "string") return null;
-  return raw as WikidataPinPayload;
+
+  const wikipediaLang =
+    version === 2 && typeof o.wikipediaLang === "string"
+      ? o.wikipediaLang
+      : "en";
+
+  return {
+    schemaVersion: 2,
+    lat: o.lat,
+    lng: o.lng,
+    fetchedAt: o.fetchedAt,
+    wikidataId: o.wikidataId,
+    wikipediaLang,
+    wikipediaTitle: o.wikipediaTitle,
+    wikipediaUrl: o.wikipediaUrl,
+    label: o.label,
+    extract: o.extract,
+    thumbnailUrl: o.thumbnailUrl as string | null,
+    distanceM: o.distanceM,
+    placeType: o.placeType as string | null,
+  };
 }
 
 const COORD_EPSILON = 0.0001;
