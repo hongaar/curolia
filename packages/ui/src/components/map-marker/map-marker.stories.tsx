@@ -27,6 +27,13 @@ export const Default: Story = {
   parameters: storyDocs("Default ring with tag color fill."),
 };
 
+export const Small: Story = {
+  parameters: storyDocs(
+    '`size="sm"` for compact rows (e.g. search result trailing preview).',
+  ),
+  args: { size: "sm", interactive: false },
+};
+
 export const Selected: Story = {
   parameters: storyDocs("Selected pin on the main map."),
   args: { selected: true },

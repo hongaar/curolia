@@ -29,6 +29,8 @@ export type PlaceSearchResult = {
   bbox?: MapBbox;
   /** e.g. City, Province, Landmark — from Photon/OSM type metadata. */
   categoryLabel?: string;
+  /** Raw provider fields when available (Photon / OSM). */
+  properties?: GeocodeProperties;
 };
 
 export type ReverseGeocodeDetails = {

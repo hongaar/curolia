@@ -12,7 +12,21 @@ export type PinSearchRow = {
   lat: number;
   lng: number;
   date: string | null;
+  pin_tags?: Array<{
+    tags: { color: string; icon_emoji: string } | null;
+  }> | null;
 };
+
+export function pinSearchMarkerVisual(pin: PinSearchRow): {
+  emoji: string;
+  fill: string | null;
+} {
+  const tag = pin.pin_tags?.[0]?.tags;
+  return {
+    emoji: tag?.icon_emoji ?? "📍",
+    fill: tag?.color ?? null,
+  };
+}
 
 /** Strip characters that break PostgREST `or()` / `ilike` patterns or add noise. */
 export function sanitizeSearchFragment(raw: string): string {
@@ -51,7 +65,7 @@ export async function searchPinsInMaps(
   const { data, error } = await supabase
     .from("pins")
     .select(
-      "id, map_id, slug, title, description, geocode, location_label_detail, lat, lng, date",
+      "id, map_id, slug, title, description, geocode, location_label_detail, lat, lng, date, pin_tags ( tags ( color, icon_emoji ) )",
     )
     .in("map_id", mapIds)
     .or(

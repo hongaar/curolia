@@ -10,6 +10,8 @@ import styles from "./map-marker.module.css";
 export type MapMarkerProps = {
   emoji: string;
   fill: string | null;
+  /** `sm` fits compact rows (e.g. search results). */
+  size?: "md" | "sm";
   selected?: boolean;
   hovered?: boolean;
   /** De-emphasize when another marker is selected. */
@@ -26,6 +28,7 @@ export type MapMarkerProps = {
 
 export function mapMarkerFaceClassName(opts: {
   fill: string | null;
+  size: "md" | "sm";
   selected: boolean;
   hovered: boolean;
   dimmed: boolean;
@@ -34,6 +37,7 @@ export function mapMarkerFaceClassName(opts: {
 }) {
   return cn(
     styles.face,
+    opts.size === "sm" && styles.faceSm,
     opts.interactive && styles.interactive,
     opts.dimmed && styles.dimmed,
     !opts.fill && styles.defaultFill,
@@ -65,6 +69,7 @@ export function applyMapMarkerFace(el: HTMLElement, props: MapMarkerProps) {
   const dimmed = Boolean(props.dimmed);
   el.className = mapMarkerFaceClassName({
     fill: props.fill,
+    size: props.size ?? "md",
     selected: Boolean(props.selected),
     hovered: Boolean(props.hovered),
     dimmed,
@@ -84,6 +89,7 @@ export function applyMapMarkerFace(el: HTMLElement, props: MapMarkerProps) {
 export function MapMarker({
   emoji,
   fill,
+  size = "md",
   selected = false,
   hovered = false,
   dimmed = false,
@@ -97,6 +103,7 @@ export function MapMarker({
 }: MapMarkerProps) {
   const className = mapMarkerFaceClassName({
     fill,
+    size,
     selected,
     hovered,
     dimmed,

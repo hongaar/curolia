@@ -33,6 +33,13 @@ export {
 } from "./place-category.ts";
 
 export {
+  formatPlaceCoordinates,
+  placeSearchPanelDetails,
+  placeSearchPanelSubtitle,
+} from "./place-search-panel.ts";
+export type { PlaceSearchPanelDetail } from "./place-search-panel.ts";
+
+export {
   DEFAULT_LOCATION_LABEL_DETAIL,
   LOCATION_LABEL_DETAILS,
   availableLocationLabelPatterns,

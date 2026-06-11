@@ -14,6 +14,13 @@
   contain: layout style paint;
 }
 
+.faceSm {
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  border-width: 1.5px;
+  font-size: var(--font-size-sm);
+}
+
 /* Cheaper paint while MapLibre repositions markers every frame. */
 .cameraMoving .face {
   transition: none;

@@ -31,26 +31,44 @@ import {
   applySelectedPinToSearchParams,
   normalizeCameraForUrl,
   PIN_FOCUS_ZOOM,
+  stripMapBboxFromSearchParams,
 } from "@/lib/map-view-params";
 import { openPinEditor } from "@/lib/open-pin-editor";
 import { placeHighlightFitBbox } from "@/lib/pin-map-place-highlight";
 import {
+  pinSearchMarkerVisual,
   searchPinsInMaps,
   sortPinsByPreferredMap,
   type PinSearchRow,
 } from "@/lib/pin-text-search";
+import { placeCategorySearchIcon } from "@/lib/place-category-search-icon";
 import { useAuth } from "@/providers/auth-provider";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import {
   pinLocationLabel,
+  placeSearchPanelDetails,
+  placeSearchPanelSubtitle,
   searchPlaces,
   type PlaceSearchResult,
 } from "@curolia/services/geocoding";
 import { Button } from "@curolia/ui/button";
+import { MapMarker } from "@curolia/ui/map-marker";
+import { PageBackButton } from "@curolia/ui/page-back-button";
 import { Popover } from "@curolia/ui/popover";
 import {
+  SearchActivePanel,
+  SearchActivePanelActions,
+  SearchActivePanelBody,
+  SearchActivePanelDetail,
+  SearchActivePanelDetails,
+  SearchActivePanelHeader,
+  SearchActivePanelIcon,
+  SearchActivePanelNav,
+  SearchActivePanelSubtitle,
+  SearchActivePanelTitle,
+  SearchActivePanelTitleRow,
   SearchEmptyHint,
   SearchIcon as SearchFieldIcon,
   SearchInput,
@@ -58,6 +76,7 @@ import {
   SearchPopoverTitle,
   SearchResultBody,
   SearchResultCategory,
+  SearchResultEnd,
   SearchResultIcon,
   SearchResultRow,
   SearchResults,
@@ -65,6 +84,7 @@ import {
   SearchResultSubtitle,
   SearchResultTitle,
   SearchResultTitleRow,
+  SearchResultTrailing,
   SearchSectionLabel,
   SearchSpinner,
   SearchStatusText,
@@ -86,7 +106,6 @@ import {
   LogOut,
   Mail,
   Map as MapIcon,
-  MapPin,
   MapPlus,
   Notebook,
   Pencil,
@@ -159,10 +178,11 @@ function pinPrimaryLabel(t: PinSearchRow): string {
 }
 
 type ResultButtonProps = {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   subtitle?: string;
   categoryLabel?: string;
+  trailing?: ReactNode;
   shortcutKeys?: string[];
   onPick: () => void;
   id?: string;
@@ -176,6 +196,7 @@ function ResultRow({
   title,
   subtitle,
   categoryLabel,
+  trailing,
   shortcutKeys,
   onPick,
   id,
@@ -183,6 +204,16 @@ function ResultRow({
   selected = false,
   onMouseMove,
 }: ResultButtonProps) {
+  const end =
+    trailing || shortcutKeys ? (
+      <SearchResultEnd>
+        {trailing ? (
+          <SearchResultTrailing>{trailing}</SearchResultTrailing>
+        ) : null}
+        {shortcutKeys ? <SearchResultShortcut keys={shortcutKeys} /> : null}
+      </SearchResultEnd>
+    ) : null;
+
   return (
     <SearchResultRow
       id={id}
@@ -191,7 +222,7 @@ function ResultRow({
       onMouseMove={onMouseMove}
       onClick={onPick}
     >
-      <SearchResultIcon>{icon}</SearchResultIcon>
+      {icon ? <SearchResultIcon>{icon}</SearchResultIcon> : null}
       <SearchResultBody>
         <SearchResultTitleRow>
           <SearchResultTitle>{title}</SearchResultTitle>
@@ -203,7 +234,7 @@ function ResultRow({
           <SearchResultSubtitle>{subtitle}</SearchResultSubtitle>
         ) : null}
       </SearchResultBody>
-      {shortcutKeys ? <SearchResultShortcut keys={shortcutKeys} /> : null}
+      {end}
     </SearchResultRow>
   );
 }
@@ -234,6 +265,8 @@ export function Search() {
   const [pinDialogAction, setPinDialogAction] =
     useState<PinDialogAction | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  /** Debounced query to restore when dismissing the active place panel. */
+  const queryBeforePlacePickRef = useRef<string | null>(null);
 
   const selectedPinLookup = useMemo(
     () =>
@@ -351,12 +384,45 @@ export function Search() {
     setFocused(false);
   }, []);
 
+  const stripPlaceHighlightFromUrl = useCallback(() => {
+    if (!isMapRoute) return;
+    const map = maps.find((j) => j.id === activeMapId) ?? maps[0] ?? null;
+    if (!map?.owner_profile_slug || !map.slug?.trim()) return;
+    const route = mapRouteForMap(map);
+    const params = stripMapBboxFromSearchParams(
+      new URLSearchParams(location.search),
+    );
+    const q = params.toString();
+    navigate(mapHrefWithSearch(route, q ? `?${q}` : ""), { replace: true });
+  }, [activeMapId, isMapRoute, location.search, maps, navigate]);
+
+  const dismissActivePlacePanel = useCallback(() => {
+    clearSelectedPlace();
+    stripPlaceHighlightFromUrl();
+    const q = queryBeforePlacePickRef.current;
+    queryBeforePlacePickRef.current = null;
+    if (q != null) {
+      setInput(q);
+      setDebounced(q);
+    }
+    setOpen(true);
+  }, [clearSelectedPlace, stripPlaceHighlightFromUrl]);
+
   const clearSearch = useCallback(() => {
     dismissPopover();
     setInput("");
     setDebounced("");
+    queryBeforePlacePickRef.current = null;
     clearSelectedPlace();
-  }, [clearSelectedPlace, dismissPopover]);
+    if (selectedPlace) {
+      stripPlaceHighlightFromUrl();
+    }
+  }, [
+    clearSelectedPlace,
+    dismissPopover,
+    selectedPlace,
+    stripPlaceHighlightFromUrl,
+  ]);
 
   useEffect(() => {
     if (open) return;
@@ -427,7 +493,8 @@ export function Search() {
   const pinsQuery = useQuery({
     queryKey: ["global-search-pins", debounced, mapIdsKey],
     queryFn: () => searchPinsInMaps(mapIds, debounced),
-    enabled: open && debounced.length >= 2 && mapIds.length > 0,
+    enabled:
+      open && !selectedPlace && debounced.length >= 2 && mapIds.length > 0,
   });
 
   const placesQuery = useQuery({
@@ -496,7 +563,7 @@ export function Search() {
         return;
       }
       const route = mapRouteForMap(map);
-      let params = new URLSearchParams();
+      let params = new URLSearchParams(location.search);
       const fitBbox = placeHighlightFitBbox({
         lng: p.lng,
         lat: p.lat,
@@ -511,13 +578,22 @@ export function Search() {
           zoom: 12,
         }),
       );
+      queryBeforePlacePickRef.current = debounced;
       selectPlace(p);
       setInput(p.primaryName);
       setDebounced(p.primaryName);
-      dismissPopover();
+      setOpen(true);
       navigate(mapHrefWithSearch(route, `?${params.toString()}`));
     },
-    [activeMapId, clearSearch, dismissPopover, maps, navigate, selectPlace],
+    [
+      activeMapId,
+      clearSearch,
+      debounced,
+      location.search,
+      maps,
+      navigate,
+      selectPlace,
+    ],
   );
 
   const commandMatches = useMemo(
@@ -547,7 +623,7 @@ export function Search() {
     (showPlaces && placesQuery.isFetching);
   const showToolbarShortcutHint =
     input.length === 0 && !busy && selectedPlace == null;
-  const showToolbarPlaceActions = selectedPlace != null;
+  const showToolbarClearButton = selectedPlace != null;
 
   const selectableItems = useMemo((): SearchListKeyboardItem[] => {
     const items: SearchListKeyboardItem[] = [];
@@ -618,7 +694,7 @@ export function Search() {
   } = useSearchListKeyboard({
     listboxId: SEARCH_LISTBOX_ID,
     items: selectableItems,
-    enabled: open,
+    enabled: open && selectedPlace == null,
   });
 
   const itemIndexById = useMemo(() => {
@@ -638,9 +714,8 @@ export function Search() {
       <SearchResults id={SEARCH_LISTBOX_ID}>
         {debounced.length === 0 ? (
           <SearchEmptyHint>
-            Jump to actions and pages, or search maps by name. Type two or more
-            characters to find pins
-            {isMapRoute ? " and map places" : ""}.
+            Search {isMapRoute ? "for places on the map" : ""} and across all
+            your pins
           </SearchEmptyHint>
         ) : null}
 
@@ -733,12 +808,19 @@ export function Search() {
               pinsSorted.map((t) => {
                 const itemId = `pin-${t.id}`;
                 const rowProps = resultRowProps(itemId);
+                const marker = pinSearchMarkerVisual(t);
                 return (
                   <ResultRow
                     key={t.id}
-                    icon={<MapPin />}
                     title={pinPrimaryLabel(t)}
                     subtitle={mapTitle(t, mapById)}
+                    trailing={
+                      <MapMarker
+                        size="sm"
+                        emoji={marker.emoji}
+                        fill={marker.fill}
+                      />
+                    }
                     onPick={() => onPickPin(t)}
                     {...rowProps}
                   />
@@ -768,10 +850,10 @@ export function Search() {
                 return (
                   <ResultRow
                     key={p.id}
-                    icon={<MapIcon />}
                     title={primary || full || "Place"}
                     subtitle={subtitle}
                     categoryLabel={p.categoryLabel}
+                    trailing={placeCategorySearchIcon(p.categoryLabel)}
                     onPick={() => onPickPlace(p)}
                     {...rowProps}
                   />
@@ -783,6 +865,74 @@ export function Search() {
       </SearchResults>
     </>
   );
+
+  const activePlacePanel = selectedPlace ? (
+    <SearchActivePanel>
+      <SearchActivePanelNav>
+        <span onMouseDown={(e) => e.preventDefault()}>
+          <PageBackButton
+            label="Back"
+            onClick={() => dismissActivePlacePanel()}
+          />
+        </span>
+      </SearchActivePanelNav>
+      <SearchActivePanelHeader>
+        <SearchActivePanelTitleRow>
+          <SearchActivePanelTitle>
+            {selectedPlace.primaryName.trim() || "Place"}
+          </SearchActivePanelTitle>
+          {selectedPlace.categoryLabel ? (
+            <SearchResultCategory>
+              {selectedPlace.categoryLabel}
+            </SearchResultCategory>
+          ) : null}
+        </SearchActivePanelTitleRow>
+        <SearchActivePanelIcon>
+          {placeCategorySearchIcon(selectedPlace.categoryLabel)}
+        </SearchActivePanelIcon>
+      </SearchActivePanelHeader>
+      {(() => {
+        const subtitle = placeSearchPanelSubtitle(selectedPlace);
+        const details = placeSearchPanelDetails(selectedPlace);
+        if (!subtitle && details.length === 0) return null;
+        return (
+          <SearchActivePanelBody>
+            {subtitle ? (
+              <SearchActivePanelSubtitle>{subtitle}</SearchActivePanelSubtitle>
+            ) : null}
+            {details.length > 0 ? (
+              <SearchActivePanelDetails>
+                {details.map((detail) => (
+                  <SearchActivePanelDetail
+                    key={detail.label}
+                    label={detail.label}
+                  >
+                    {detail.value}
+                  </SearchActivePanelDetail>
+                ))}
+              </SearchActivePanelDetails>
+            ) : null}
+          </SearchActivePanelBody>
+        );
+      })()}
+      {canEditMap && isMapRoute ? (
+        <SearchActivePanelActions>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.stopPropagation();
+              requestAddPinFromSelectedPlace();
+            }}
+          >
+            Add pin
+          </Button>
+        </SearchActivePanelActions>
+      ) : null}
+    </SearchActivePanel>
+  ) : null;
 
   return (
     <>
@@ -843,6 +993,8 @@ export function Search() {
                 const value = e.target.value;
                 if (selectedPlace && value !== selectedPlace.primaryName) {
                   clearSelectedPlace();
+                  stripPlaceHighlightFromUrl();
+                  queryBeforePlacePickRef.current = null;
                 }
                 setInput(value);
                 setOpen(true);
@@ -874,28 +1026,13 @@ export function Search() {
               <SearchSpinner>
                 <Loader2 aria-hidden />
               </SearchSpinner>
-            ) : showToolbarPlaceActions ? (
+            ) : showToolbarClearButton ? (
               <SearchToolbarActions>
-                {canEditMap && isMapRoute ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      requestAddPinFromSelectedPlace();
-                      dismissPopover();
-                    }}
-                  >
-                    Add pin
-                  </Button>
-                ) : null}
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="Clear place search"
+                  aria-label="Clear search"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -914,7 +1051,7 @@ export function Search() {
           <SearchPopoverTitle>
             Search maps, actions, and pages
           </SearchPopoverTitle>
-          <div>{searchResults}</div>
+          <div>{selectedPlace ? activePlacePanel : searchResults}</div>
         </SearchPopoverContent>
       </Popover>
     </>

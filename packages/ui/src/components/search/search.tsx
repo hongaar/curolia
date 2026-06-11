@@ -126,9 +126,12 @@ export function SearchResultRow({
 }: {
   children: React.ReactNode;
   onClick: () => void;
-  /** Confirmed selection in the list (e.g. picked place). */
+  /**
+   * Confirmed selection still shown in the list (e.g. picked place).
+   * Apps may instead persist selection in the toolbar input and omit this.
+   */
   selected?: boolean;
-  /** Keyboard or pointer highlight while navigating results. */
+  /** Keyboard or pointer highlight while navigating results (`useSearchListKeyboard`). */
   active?: boolean;
   id?: string;
   onMouseMove?: () => void;
@@ -238,4 +241,112 @@ export function SearchToolbarShortcutHint({ keys }: { keys: string[] }) {
 /** Trailing shortcut label on a search result row. */
 export function SearchResultShortcut({ keys }: { keys: string[] }) {
   return <SearchShortcutKeys keys={keys} variant="result" />;
+}
+
+/** Right-aligned cluster: trailing preview/icon and/or shortcut keys. */
+export function SearchResultEnd({ children }: { children: React.ReactNode }) {
+  return <span className={styles.resultEnd}>{children}</span>;
+}
+
+/** Trailing slot inside `SearchResultEnd` (map marker preview, place type icon, …). */
+export function SearchResultTrailing({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <span className={styles.resultTrailing}>{children}</span>;
+}
+
+/** Detail panel shown instead of `SearchResults` when a pick is active. */
+export function SearchActivePanel({ children }: { children: React.ReactNode }) {
+  return <div className={styles.activePanel}>{children}</div>;
+}
+
+/** Leading nav row (e.g. back to results). */
+export function SearchActivePanelNav({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.activePanelNav}>{children}</div>;
+}
+
+export function SearchActivePanelHeader({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.activePanelHeader}>{children}</div>;
+}
+
+export function SearchActivePanelTitle({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.activePanelTitle}>{children}</div>;
+}
+
+export function SearchActivePanelTitleRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.activePanelTitleRow}>{children}</div>;
+}
+
+export function SearchActivePanelBody({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.activePanelBody}>{children}</div>;
+}
+
+export function SearchActivePanelSubtitle({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.activePanelSubtitle}>{children}</p>;
+}
+
+/** Larger trailing icon for the active place header. */
+export function SearchActivePanelIcon({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <span className={styles.activePanelIcon}>{children}</span>;
+}
+
+export function SearchActivePanelDetails({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <dl className={styles.activePanelDetails}>{children}</dl>;
+}
+
+export function SearchActivePanelDetail({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={styles.activePanelDetail}>
+      <dt className={styles.activePanelDetailLabel}>{label}</dt>
+      <dd className={styles.activePanelDetailValue}>{children}</dd>
+    </div>
+  );
+}
+
+export function SearchActivePanelActions({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.activePanelActions}>{children}</div>;
 }

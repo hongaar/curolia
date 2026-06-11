@@ -1,7 +1,7 @@
 import { isValidMapBbox, type MapBbox } from "../coords.ts";
 import { AsyncLruCache } from "../lru-cache.ts";
-import { placeCategoryLabel } from "./place-category.ts";
 import type { PinGeocode } from "./pin-geocode.ts";
+import { placeCategoryLabel } from "./place-category.ts";
 import type { GeocodeProperties } from "./types.ts";
 
 /** @internal Photon provider — use {@link searchPlaces} etc. from `./client.ts`. */
@@ -18,6 +18,7 @@ export type PhotonPlace = {
   /** Photon/OSM extent when present — used to fit the map more tightly than a point zoom. */
   bbox?: MapBbox;
   categoryLabel?: string;
+  properties?: GeocodeProperties;
 };
 
 type PhotonResponse = {
@@ -275,6 +276,7 @@ async function fetchPhotonSearchPlaces(q: string): Promise<PhotonPlace[]> {
     const primaryName = photonPrimaryTitle(q, f.properties, fullLabel);
     const bbox = photonFeatureToBbox(f);
     const category = placeCategoryLabel(f.properties);
+    const properties = f.properties ? { ...f.properties } : undefined;
     out.push({
       id: `photon-${i}-${lng.toFixed(4)},${lat.toFixed(4)}`,
       primaryName,
@@ -283,6 +285,7 @@ async function fetchPhotonSearchPlaces(q: string): Promise<PhotonPlace[]> {
       lng,
       ...(bbox ? { bbox } : {}),
       ...(category ? { categoryLabel: category } : {}),
+      ...(properties ? { properties } : {}),
     });
   }
 
