@@ -1,5 +1,6 @@
 package com.curolia.app;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -8,8 +9,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
+import org.json.JSONObject;
 
 public class MainActivity extends BridgeActivity {
+
+    private String pendingShareText = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +24,66 @@ public class MainActivity extends BridgeActivity {
 
         super.onCreate(savedInstanceState);
         installSafeAreaInsetsBridge();
+        handleShareIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleShareIntent(intent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        flushPendingShare();
+    }
+
+    private void handleShareIntent(Intent intent) {
+        if (intent == null) return;
+        if (!Intent.ACTION_SEND.equals(intent.getAction())) return;
+
+        String type = intent.getType();
+        if (type == null || !type.startsWith("text/")) return;
+
+        String sharedText = extractShareText(intent);
+        if (sharedText == null || sharedText.isEmpty()) return;
+
+        intent.setAction(null);
+        deliverShareToWebView(sharedText);
+    }
+
+    private String extractShareText(Intent intent) {
+        CharSequence extra = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+        if (extra == null) return null;
+        return extra.toString().trim();
+    }
+
+    private void deliverShareToWebView(String text) {
+        if (getBridge() == null || getBridge().getWebView() == null) {
+            pendingShareText = text;
+            return;
+        }
+
+        String script =
+            "try {"
+                + "window.dispatchEvent(new CustomEvent('curolia:native-share', { detail: { text: "
+                + JSONObject.quote(text)
+                + " } }));"
+                + "} catch (e) {}";
+
+        getBridge()
+            .getWebView()
+            .post(() -> getBridge().getWebView().evaluateJavascript(script, null));
+    }
+
+    private void flushPendingShare() {
+        if (pendingShareText == null) return;
+        if (getBridge() == null || getBridge().getWebView() == null) return;
+        String text = pendingShareText;
+        pendingShareText = null;
+        deliverShareToWebView(text);
     }
 
     private void installSafeAreaInsetsBridge() {

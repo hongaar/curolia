@@ -52,3 +52,17 @@ export function urlFromClipboardText(text: string): string | null {
 export function urlFromClipboardData(data: DataTransfer): string | null {
   return urlFromClipboardText(data.getData("text/plain"));
 }
+
+/** Best-effort URL from share sheet text (plain URL or URL embedded in prose). */
+export function extractUrlFromSharedText(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  const direct = urlFromClipboardText(trimmed);
+  if (direct) return direct;
+
+  const httpMatch = trimmed.match(/https?:\/\/[^\s<>"']+/i);
+  if (httpMatch) return normalizeUrlInput(httpMatch[0]);
+
+  return null;
+}

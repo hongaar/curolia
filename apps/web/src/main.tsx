@@ -5,6 +5,7 @@ import {
 } from "@/lib/bugsink";
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import "@/lib/maplibre-worker";
+import { installNativeShareReceiver } from "@/lib/native-share";
 import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { initUmami } from "@/lib/umami";
 import { AuthProvider } from "@/providers/auth-provider";
@@ -22,6 +23,7 @@ import App from "./App.tsx";
 
 if (Capacitor.isNativePlatform()) {
   document.documentElement.classList.add("native-app");
+  installNativeShareReceiver();
 }
 
 syncMapRouteDocumentClass();

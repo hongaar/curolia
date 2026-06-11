@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  extractUrlFromSharedText,
   fileFromClipboardData,
   isPinFormTextEntryPasteTarget,
   urlFromClipboardText,
@@ -94,5 +95,23 @@ describe("urlFromClipboardText", () => {
     expect(urlFromClipboardText("see https://example.com for info")).toBeNull();
     expect(urlFromClipboardText("not a url")).toBeNull();
     expect(urlFromClipboardText("https://a.co\nmore")).toBeNull();
+  });
+});
+
+describe("extractUrlFromSharedText", () => {
+  it("accepts a lone URL", () => {
+    expect(extractUrlFromSharedText("https://maps.app.goo.gl/abc123")).toBe(
+      "https://maps.app.goo.gl/abc123",
+    );
+  });
+
+  it("extracts a URL embedded in share text", () => {
+    expect(
+      extractUrlFromSharedText(
+        "Check out this place https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z",
+      ),
+    ).toBe(
+      "https://www.google.com/maps/place/Eiffel+Tower/@48.8584,2.2945,17z",
+    );
   });
 });

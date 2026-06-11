@@ -16,6 +16,7 @@ import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
+import { useNativeShareLink } from "@/hooks/use-native-share-link";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref, pinEditHref } from "@/lib/app-paths";
@@ -214,15 +215,9 @@ export function MapPage() {
     return () => clearTimeout(cameraIdleTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    const onPaste = (e: ClipboardEvent) => {
-      const data = e.clipboardData;
-      if (!data) return;
-      if (isPinFormTextEntryPasteTarget(e.target)) return;
-      if (fileFromClipboardData(data)) return;
-      const url = urlFromClipboardData(data);
-      if (!url || !activeMapId || !canEdit || linkPasteBusyRef.current) return;
-      e.preventDefault();
+  const createPinFromSharedLink = useCallback(
+    (url: string) => {
+      if (!activeMapId || !canEdit || linkPasteBusyRef.current) return;
       linkPasteBusyRef.current = true;
       void (async () => {
         try {
@@ -257,10 +252,26 @@ export function MapPage() {
           linkPasteBusyRef.current = false;
         }
       })();
+    },
+    [activeMapId, canEdit, qc, setSearchParams],
+  );
+
+  useNativeShareLink(createPinFromSharedLink);
+
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const data = e.clipboardData;
+      if (!data) return;
+      if (isPinFormTextEntryPasteTarget(e.target)) return;
+      if (fileFromClipboardData(data)) return;
+      const url = urlFromClipboardData(data);
+      if (!url) return;
+      e.preventDefault();
+      createPinFromSharedLink(url);
     };
     window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
-  }, [activeMapId, canEdit, qc, setSearchParams]);
+  }, [createPinFromSharedLink]);
 
   const onCameraIdle = useCallback(
     (c: MapCamera) => {
