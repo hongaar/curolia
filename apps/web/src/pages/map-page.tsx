@@ -22,6 +22,7 @@ import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
+import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref, pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
@@ -164,6 +165,7 @@ export function MapPage() {
   );
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
+  usePublicMapCrawlerBlockMeta(activeMap, publicView);
   const ownerProfileQuery = usePublicMapOwnerProfile(activeMapId, publicView);
   const ownerProfile = ownerProfileQuery.data;
   const { awaitingPinPlacement, completePinPlacement, cancelPinPlacement } =

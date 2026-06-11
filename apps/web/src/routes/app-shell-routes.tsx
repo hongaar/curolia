@@ -8,11 +8,16 @@ import { PinDetailPage } from "@/pages/pin-detail-page";
 import { PinEditPage } from "@/pages/pin-edit-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
+import { PublicMapShortcutRedirect } from "@/routes/public-map-shortcut-redirect";
 import { Navigate, Route } from "react-router-dom";
 
 /** Child routes rendered inside AppShell (shared by App and the mobile stack layout). */
 export const appShellRouteElements = (
   <>
+    <Route
+      path=":profileSlug/:mapSlug"
+      element={<PublicMapShortcutRedirect />}
+    />
     <Route path=":profileSlug/:mapSlug/map" element={<MapPage />} />
     <Route path=":profileSlug/:mapSlug/blog" element={<BlogPage />} />
     <Route

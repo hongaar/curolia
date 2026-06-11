@@ -81,6 +81,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
@@ -106,6 +107,7 @@ export function BlogPage() {
   } = useMap();
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
+  usePublicMapCrawlerBlockMeta(activeMap, publicView);
   const {
     order: blogListOrder,
     direction: blogListDirection,

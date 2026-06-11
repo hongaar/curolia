@@ -1,5 +1,5 @@
 import { UserAvatar } from "@/components/user-avatar";
-import { mapViewHref } from "@/lib/app-paths";
+import { mapViewHref, publicMapLinkHref } from "@/lib/app-paths";
 import {
   inviteRoleSelectLabel,
   mapRoleLabel,
@@ -32,6 +32,7 @@ import {
   FormSelectTriggerInvite,
 } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
+import { Label } from "@curolia/ui/label";
 import {
   BorderedList,
   ListEmptyItem,
@@ -54,6 +55,8 @@ import {
   PageSectionSubheading,
   PageSharingRoot,
   PageSharingSection,
+  PageSwitchRow,
+  PageSwitchStack,
 } from "@curolia/ui/page";
 import {
   Select,
@@ -80,6 +83,7 @@ export function MapSharingSection({
   ownerProfileSlug,
   mapSlug,
   isPublic,
+  blockPublicCrawlers,
   isOwner,
 }: {
   mapId: string;
@@ -87,6 +91,7 @@ export function MapSharingSection({
   ownerProfileSlug: string;
   mapSlug: string;
   isPublic: boolean;
+  blockPublicCrawlers: boolean;
   isOwner: boolean;
 }) {
   const { user } = useAuth();
@@ -105,6 +110,7 @@ export function MapSharingSection({
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteErr, setDeleteErr] = useState(null as string | null);
   const [publicBusy, setPublicBusy] = useState(false);
+  const [crawlerBlockBusy, setCrawlerBlockBusy] = useState(false);
 
   const membersQuery = useQuery({
     queryKey: ["map_members_detail", mapId],
@@ -152,7 +158,7 @@ export function MapSharingSection({
   const trimmedSlug = mapSlug.trim();
   const publicMapUrl =
     trimmedProfileSlug && trimmedSlug && typeof window !== "undefined"
-      ? `${window.location.origin}${mapViewHref("map", {
+      ? `${window.location.origin}${publicMapLinkHref({
           profileSlug: trimmedProfileSlug,
           mapSlug: trimmedSlug,
         })}`
@@ -264,6 +270,29 @@ export function MapSharingSection({
       return;
     }
     toast.success(next ? "Map is now public" : "Map is now private");
+    void qc.invalidateQueries({ queryKey: ["maps", user?.id] });
+    if (trimmedSlug) {
+      void qc.invalidateQueries({ queryKey: ["public_map", trimmedSlug] });
+    }
+  }
+
+  async function toggleBlockPublicCrawlers(next: boolean) {
+    setCrawlerBlockBusy(true);
+    setInviteErr(null);
+    const { error } = await supabase.rpc("set_map_block_public_crawlers", {
+      p_map_id: mapId,
+      p_block: next,
+    });
+    setCrawlerBlockBusy(false);
+    if (error) {
+      setInviteErr(error.message);
+      return;
+    }
+    toast.success(
+      next
+        ? "Crawlers are blocked from this public map"
+        : "Crawler blocking turned off",
+    );
     void qc.invalidateQueries({ queryKey: ["maps", user?.id] });
     if (trimmedSlug) {
       void qc.invalidateQueries({ queryKey: ["public_map", trimmedSlug] });
@@ -446,17 +475,44 @@ export function MapSharingSection({
 
             <PageSharingSection>
               <PageSectionSubheading>Public access</PageSectionSubheading>
-              <Field>
-                <FieldLabel htmlFor="map-public-toggle">
-                  Anyone with the link can view this map (read-only)
-                </FieldLabel>
-                <Switch
-                  id="map-public-toggle"
-                  checked={isPublic}
-                  disabled={publicBusy}
-                  onCheckedChange={(checked) => void togglePublic(checked)}
+              <PageSwitchStack>
+                <PageSwitchRow
+                  label={
+                    <Label htmlFor="map-public-toggle">
+                      Anyone with the link can view this map
+                    </Label>
+                  }
+                  hint="Public viewers can browse pins without signing in. Editing still requires an invite."
+                  control={
+                    <Switch
+                      id="map-public-toggle"
+                      checked={isPublic}
+                      disabled={publicBusy}
+                      onCheckedChange={(checked) => void togglePublic(checked)}
+                    />
+                  }
                 />
-              </Field>
+                {isPublic ? (
+                  <PageSwitchRow
+                    label={
+                      <Label htmlFor="map-block-crawlers-toggle">
+                        Block search engines and crawlers
+                      </Label>
+                    }
+                    hint="We'll try to prevent indexing by search engines and crawlers. This might also affect preview cards in messaging apps. People with the link can still open the map in a normal browser."
+                    control={
+                      <Switch
+                        id="map-block-crawlers-toggle"
+                        checked={blockPublicCrawlers}
+                        disabled={crawlerBlockBusy}
+                        onCheckedChange={(checked) =>
+                          void toggleBlockPublicCrawlers(checked)
+                        }
+                      />
+                    }
+                  />
+                ) : null}
+              </PageSwitchStack>
               {isPublic && publicMapUrl ? (
                 <PageInviteRow>
                   <PageInviteEmailField>
@@ -483,10 +539,6 @@ export function MapSharingSection({
                   </Button>
                 </PageInviteRow>
               ) : null}
-              <PageSectionHint>
-                Public viewers can browse pins without signing in. Editing still
-                requires an invite.
-              </PageSectionHint>
             </PageSharingSection>
 
             {pendingInvites.length > 0 ? (

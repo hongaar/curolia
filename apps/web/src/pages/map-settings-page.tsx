@@ -390,6 +390,7 @@ export function MapSettingsPage() {
         ownerProfileSlug={mapRouteForMap(map).profileSlug}
         mapSlug={map.slug}
         isPublic={map.is_public}
+        blockPublicCrawlers={map.block_public_crawlers}
         isOwner={isOwner}
       />
 

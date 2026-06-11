@@ -15,6 +15,25 @@ export type ParsedPinRoutePath = MapRoute & {
 
 const MAP_VIEW_PATH_RE = /^\/([^/]+)\/([^/]+)\/(map|blog|settings)\/?$/;
 const PIN_PATH_RE = /^\/([^/]+)\/([^/]+)\/pin\/([^/]+)\/?$/;
+const PUBLIC_MAP_SHORTCUT_PATH_RE = /^\/([^/]+)\/([^/]+)\/?$/;
+
+/** App routes that share `/:a/:b` shape but are not public map shortcuts. */
+const PUBLIC_MAP_SHORTCUT_SKIP_FIRST_SEGMENTS = new Set([
+  "profile",
+  "settings",
+  "plugins",
+  "notifications",
+  "invitations",
+  "map",
+  "pins",
+]);
+
+function normalizePathname(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+}
 
 export function parseMapViewPathname(
   pathname: string,
@@ -41,6 +60,20 @@ export function parsePinRoutePathname(
   };
 }
 
+export function parsePublicMapShortcutPathname(
+  pathname: string,
+): MapRoute | null {
+  const match = PUBLIC_MAP_SHORTCUT_PATH_RE.exec(normalizePathname(pathname));
+  if (!match?.[1] || !match?.[2]) return null;
+  const profileSlug = decodeURIComponent(match[1]).trim();
+  const mapSlug = decodeURIComponent(match[2]).trim();
+  if (!profileSlug || !mapSlug) return null;
+  if (PUBLIC_MAP_SHORTCUT_SKIP_FIRST_SEGMENTS.has(profileSlug.toLowerCase())) {
+    return null;
+  }
+  return { profileSlug, mapSlug };
+}
+
 export function parseMapRoutePathname(pathname: string): MapRoute | null {
   const mapView = parseMapViewPathname(pathname);
   if (mapView) {
@@ -56,13 +89,14 @@ export function parseMapRoutePathname(pathname: string): MapRoute | null {
       mapSlug: pinRoute.mapSlug,
     };
   }
-  return null;
+  return parsePublicMapShortcutPathname(pathname);
 }
 
 export function isPublicMapViewPathname(pathname: string): boolean {
   const parsed = parseMapViewPathname(pathname);
   if (parsed && (parsed.view === "map" || parsed.view === "blog")) return true;
-  return parsePinRoutePathname(pathname) !== null;
+  if (parsePinRoutePathname(pathname)) return true;
+  return parsePublicMapShortcutPathname(pathname) !== null;
 }
 
 export function mapRouteFromParts(

@@ -8,7 +8,9 @@ import {
   assembleHtml,
   matchSpaPageMeta,
   render,
+  resolvePublicMapShortcutRedirect,
   setSsrTemplate,
+  spaPublicMapGuard,
 } from "./_ssr/entry-server.js";
 
 type SsrRenderResult = {
@@ -46,10 +48,46 @@ export default async function handler(
   const url = new URL(requestUrl, `https://${host}`);
   const origin = `${url.protocol}//${url.host}`;
 
-  const result = (await render(url.pathname, origin)) as SsrRenderResult | null;
+  const userAgent =
+    typeof req.headers["user-agent"] === "string"
+      ? req.headers["user-agent"]
+      : null;
+
+  const shortcutRedirect = resolvePublicMapShortcutRedirect(url.pathname);
+  if (shortcutRedirect) {
+    const location = `${shortcutRedirect}${url.search}`;
+    res.statusCode = 301;
+    res.setHeader("Location", location);
+    res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    res.end("");
+    return;
+  }
+
+  const result = (await render(url.pathname, origin, {
+    userAgent,
+  })) as SsrRenderResult | null;
 
   if (!result) {
-    const spaMeta = matchSpaPageMeta(url.pathname);
+    const publicMapGuard = await spaPublicMapGuard(
+      url.pathname,
+      origin,
+      spaTemplate(),
+      userAgent,
+    );
+    if (publicMapGuard?.blocked) {
+      for (const [key, value] of Object.entries(
+        publicMapGuard.blocked.headers,
+      )) {
+        res.setHeader(key, value);
+      }
+      res.statusCode = publicMapGuard.blocked.status;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "private, no-store");
+      res.end(publicMapGuard.blocked.html);
+      return;
+    }
+
+    const spaMeta = publicMapGuard?.spaMeta ?? matchSpaPageMeta(url.pathname);
     const html = spaMeta
       ? assembleHtml(
           spaTemplate(),

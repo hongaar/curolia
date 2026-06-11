@@ -7,6 +7,11 @@ import { mapRouteFromParts } from "@/lib/map-route";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { renderBlogPageHtml } from "@/ssr/blog-page";
 import { renderPinPageHtml } from "@/ssr/pin-page";
+import {
+  maybeBlockCrawlerRequest,
+  publicMapCrawlerBlockHeaders,
+  publicMapCrawlerBlockMeta,
+} from "@/ssr/crawler-block";
 import { assembleHtml, type PageMeta } from "@/ssr/render-document";
 import type { SsrRouteMatch } from "@/ssr/routes";
 import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/ssr/seo";
@@ -30,6 +35,7 @@ export async function renderSsrRoute(
   pathname: string,
   origin: string,
   template: string,
+  userAgent?: string | null,
 ): Promise<SsrRenderResult | null> {
   const canonicalUrl = joinOriginPath(origin, pathname);
 
@@ -81,6 +87,14 @@ export async function renderSsrRoute(
       };
     }
 
+    const crawlerBlocked = maybeBlockCrawlerRequest(
+      map,
+      userAgent,
+      template,
+      canonicalUrl,
+    );
+    if (crawlerBlocked) return crawlerBlocked;
+
     const [owner, pinsResult] = await Promise.all([
       fetchPublicMapOwnerProfile(map.id, client),
       client
@@ -100,6 +114,7 @@ export async function renderSsrRoute(
         : `Explore ${mapName}, a public travel map on ${SITE_NAME}.`,
       imageUrl: DEFAULT_OG_IMAGE,
       imageAlt: `${mapName} travel map on ${SITE_NAME}`,
+      ...publicMapCrawlerBlockMeta(map),
     };
 
     const bodyHtml = renderBlogPageHtml({
@@ -114,6 +129,7 @@ export async function renderSsrRoute(
 
     return {
       status: 200,
+      headers: publicMapCrawlerBlockHeaders(map) ?? undefined,
       html: assembleHtml(template, { ...meta, canonicalUrl }, bodyHtml),
     };
   }
@@ -135,6 +151,14 @@ export async function renderSsrRoute(
       ),
     };
   }
+
+  const crawlerBlocked = maybeBlockCrawlerRequest(
+    map,
+    userAgent,
+    template,
+    canonicalUrl,
+  );
+  if (crawlerBlocked) return crawlerBlocked;
 
   const resolvedPin = await resolvePinByMapSlug(map.id, pinSlug, client);
   if (!resolvedPin) {
@@ -195,11 +219,13 @@ export async function renderSsrRoute(
       `${pinTitle} on ${mapName}, a public map on ${SITE_NAME}.`,
     imageUrl: DEFAULT_OG_IMAGE,
     imageAlt: pinTitle,
+    ...publicMapCrawlerBlockMeta(map),
   };
 
   const bodyHtml = renderPinPageHtml({ mapName, pin });
   return {
     status: 200,
+    headers: publicMapCrawlerBlockHeaders(map) ?? undefined,
     html: assembleHtml(template, { ...meta, canonicalUrl }, bodyHtml),
   };
 }

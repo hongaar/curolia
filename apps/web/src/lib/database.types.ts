@@ -179,6 +179,7 @@ export type Database = {
       };
       maps: {
         Row: {
+          block_public_crawlers: boolean;
           created_at: string;
           created_by_user_id: string;
           icon_emoji: string | null;
@@ -194,6 +195,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          block_public_crawlers?: boolean;
           created_at?: string;
           created_by_user_id: string;
           icon_emoji?: string | null;
@@ -209,6 +211,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          block_public_crawlers?: boolean;
           created_at?: string;
           created_by_user_id?: string;
           icon_emoji?: string | null;
@@ -1047,6 +1050,10 @@ export type Database = {
       };
       remove_map_member: {
         Args: { p_map_id: string; p_user_id: string };
+        Returns: undefined;
+      };
+      set_map_block_public_crawlers: {
+        Args: { p_block: boolean; p_map_id: string };
         Returns: undefined;
       };
       set_map_public: {

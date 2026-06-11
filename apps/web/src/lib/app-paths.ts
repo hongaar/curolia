@@ -1,4 +1,4 @@
-import type { MapRoute } from "@/lib/map-route";
+import { parsePublicMapShortcutPathname, type MapRoute } from "@/lib/map-route";
 import {
   applyAddPinToSearchParams,
   applySelectedPinToSearchParams,
@@ -13,6 +13,23 @@ export type MapWithOwnerSlug = CuroliaMap & { owner_profile_slug: string };
 
 export function mapViewHref(view: MapViewSegment, route: MapRoute): string {
   return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}/${view}`;
+}
+
+/** Shareable public map URL (`/:profileSlug/:mapSlug`); redirects to `/map`. */
+export function publicMapLinkHref(route: MapRoute): string {
+  return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}`;
+}
+
+export function publicMapShortcutRedirectHref(route: MapRoute): string {
+  return mapViewHref("map", route);
+}
+
+export function resolvePublicMapShortcutRedirect(
+  pathname: string,
+): string | null {
+  const route = parsePublicMapShortcutPathname(pathname);
+  if (!route) return null;
+  return publicMapShortcutRedirectHref(route);
 }
 
 /** Map settings stack route: `/:profileSlug/:mapSlug/settings`. */

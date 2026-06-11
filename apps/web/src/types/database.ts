@@ -32,6 +32,8 @@ export type CuroliaMap = {
   name: string;
   slug: string;
   is_public: boolean;
+  /** When true with is_public, discourage crawlers from indexing public URLs. */
+  block_public_crawlers: boolean;
   /** When null, UI uses defaultMapIcon(). */
   icon_emoji: string | null;
   /** Basemap preset; `auto` follows app light/dark theme. */
