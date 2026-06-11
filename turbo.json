@@ -11,7 +11,7 @@
     "@curolia/web#build": {
       "dependsOn": ["codegen"],
       "outputs": ["dist/**", "dist-ssr/**"],
-      "env": ["VERCEL"]
+      "env": ["APP_VERSION", "VERCEL"]
     },
     "@curolia/web#lint": {
       "dependsOn": ["codegen"]
