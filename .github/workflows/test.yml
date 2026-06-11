@@ -92,6 +92,9 @@ jobs:
       - name: Prepare native project
         run: npx turbo run sync --filter=@curolia/mobile
 
+      - name: Sync app version to iOS project
+        run: node scripts/sync-native-version.mjs
+
       - name: Install CocoaPods
         working-directory: apps/mobile/ios/App
         run: pod install

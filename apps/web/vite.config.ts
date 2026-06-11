@@ -9,9 +9,12 @@ import { buildSsrNavigateFallbackDenylist } from "./src/ssr/ssr-route-paths";
 const SSR_NAVIGATE_FALLBACK_DENYLIST = buildSsrNavigateFallbackDenylist();
 
 const repoRoot = path.resolve(__dirname, "../..");
-const webPackage = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "package.json"), "utf8"),
-) as { version: string };
+const appVersionFile = path.resolve(repoRoot, "app.version");
+const appVersion =
+  process.env.APP_VERSION?.trim() ??
+  (fs.existsSync(appVersionFile)
+    ? fs.readFileSync(appVersionFile, "utf8").trim()
+    : "0");
 const appAssetsConfig = JSON.parse(
   fs.readFileSync(
     path.resolve(repoRoot, "packages", "brand", "app-assets.config.json"),
@@ -21,7 +24,7 @@ const appAssetsConfig = JSON.parse(
 
 export default defineConfig({
   define: {
-    "import.meta.env.VITE_APP_VERSION": JSON.stringify(webPackage.version),
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
   },
   plugins: [
     react(),

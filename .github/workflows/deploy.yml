@@ -40,6 +40,17 @@ jobs:
           echo "Manual deploy for ref: ${{ inputs.ref }}"
           echo "Play Store deploy: ${{ inputs.enable_play_store_deploy }}"
 
+  resolve-version:
+    name: Release version
+    needs: [eligible, manual]
+    if: always() && (needs.eligible.result == 'success' || needs.manual.result == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+    steps:
+      - id: version
+        uses: ./.github/actions/app-version
+
   supabase:
     name: Supabase
     needs: [eligible, manual]
@@ -89,11 +100,12 @@ jobs:
 
   vercel:
     name: Vercel
-    needs: supabase
-    if: always() && needs.supabase.result == 'success'
+    needs: [supabase, resolve-version]
+    if: always() && needs.supabase.result == 'success' && needs.resolve-version.result == 'success'
     runs-on: ubuntu-latest
     environment: production
     env:
+      APP_VERSION: ${{ needs.resolve-version.outputs.app_version }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -135,15 +147,17 @@ jobs:
     if: >
       always() &&
       needs.supabase.result == 'success' &&
+      needs.resolve-version.result == 'success' &&
       (vars.ENABLE_PLAY_STORE_DEPLOY == 'true' ||
       (github.event_name == 'workflow_dispatch' && inputs.enable_play_store_deploy))
-    needs: supabase
+    needs: [supabase, resolve-version]
     runs-on: ubuntu-latest
     environment: production
     concurrency:
       group: play-store-beta
       cancel-in-progress: false
     env:
+      APP_VERSION: ${{ needs.resolve-version.outputs.app_version }}
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_UMAMI_WEBSITE_ID: ${{ secrets.VITE_UMAMI_WEBSITE_ID }}
@@ -190,29 +204,24 @@ jobs:
       - name: Prepare native project
         run: npx turbo run sync --filter=@curolia/mobile
 
+      - name: Sync release version to native projects
+        run: node scripts/sync-native-version.mjs
+
       - name: Build signed Android App Bundle
         working-directory: apps/mobile/android
         run: |
           set -euo pipefail
-          version_code="${{ github.run_number }}"
-          if [ -n "${{ vars.ANDROID_VERSION_CODE_OFFSET }}" ]; then
-            version_code=$((version_code + ${{ vars.ANDROID_VERSION_CODE_OFFSET }}))
-          fi
           ./gradlew bundleRelease \
-            -PversionCode="$version_code" \
-            -PversionName="1.0.${{ github.run_number }}"
+            -PversionCode="${{ needs.resolve-version.outputs.app_version }}" \
+            -PversionName="${{ needs.resolve-version.outputs.app_version }}"
 
       - name: Write Play Store changelog
         run: |
           set -euo pipefail
-          version_code="${{ github.run_number }}"
-          if [ -n "${{ vars.ANDROID_VERSION_CODE_OFFSET }}" ]; then
-            version_code=$((version_code + ${{ vars.ANDROID_VERSION_CODE_OFFSET }}))
-          fi
           changelog_dir="apps/mobile/android/fastlane/metadata/android/en-US/changelogs"
           mkdir -p "$changelog_dir"
           printf 'Automated build from main (%s)\n' \
-            "${{ env.DEPLOY_REF }}" > "$changelog_dir/${version_code}.txt"
+            "${{ env.DEPLOY_REF }}" > "$changelog_dir/${{ needs.resolve-version.outputs.app_version }}.txt"
 
       - name: Publish to Google Play
         uses: r0adkll/upload-google-play@v1.1.3

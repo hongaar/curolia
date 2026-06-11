@@ -1,0 +1,16 @@
+name: App version
+description: Resolve monotonic integer app version for production deploys
+outputs:
+  app_version:
+    description: Release version shared by web, Android, and iOS
+    value: ${{ steps.resolve.outputs.app_version }}
+runs:
+  using: composite
+  steps:
+    - id: resolve
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="${{ github.run_number }}"
+        echo "app_version=$version" >> "$GITHUB_OUTPUT"
+        echo "APP_VERSION=$version" >> "$GITHUB_ENV"

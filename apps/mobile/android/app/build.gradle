@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+def appVersionFile = rootProject.file("../../../app.version")
+def localAppVersion = appVersionFile.exists() ? appVersionFile.text.trim() : "0"
 def ciVersionCode = project.findProperty('versionCode')?.toString()?.toInteger()
 def ciVersionName = project.findProperty('versionName')?.toString()
 def keystorePath = System.getenv('ANDROID_KEYSTORE_FILE')
@@ -12,8 +14,8 @@ android {
         applicationId = "com.curolia.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode ciVersionCode ?: 1
-        versionName ciVersionName ?: "1.0"
+        versionCode ciVersionCode ?: localAppVersion.toInteger()
+        versionName ciVersionName ?: localAppVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

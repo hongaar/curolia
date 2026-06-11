@@ -56,6 +56,30 @@ npm run dev:android -w @curolia/mobile   # or dev:ios — terminal 2
 
 Save a file in the editor and the WebView reloads automatically.
 
+### Release versioning
+
+Curolia uses a **single monotonic integer** for every surface (web, Android, iOS) — not semver. The same commit deployed to production gets the same number everywhere.
+
+| Context                              | Version source                               |
+| ------------------------------------ | -------------------------------------------- |
+| **Production deploy** (`deploy.yml`) | `github.run_number` of that workflow run     |
+| **Local / PR builds**                | `app.version` at the repo root (default `0`) |
+
+Flow on deploy:
+
+1. `resolve-version` job (`.github/actions/app-version`) computes `APP_VERSION` once per deploy.
+2. **Vercel** sets `APP_VERSION` during `vercel build` → baked into `VITE_APP_VERSION` (About dialog, Bugsink `release`).
+3. **Google Play** passes the same integer as `versionCode` and `versionName`, and runs `scripts/sync-native-version.mjs` so the iOS Xcode project matches for future TestFlight/App Store jobs.
+
+Helpers:
+
+```bash
+npm run version:resolve        # print resolved version (respects APP_VERSION env)
+npm run version:sync-native    # write app.version into iOS MARKETING_VERSION / CURRENT_PROJECT_VERSION
+```
+
+Android reads `app.version` locally via `apps/mobile/android/app/build.gradle`; CI overrides with `-PversionCode` / `-PversionName`.
+
 ### Mobile CI/CD offload
 
 Native builds are integrated into `.github/workflows/test.yml`:
@@ -71,7 +95,7 @@ Both jobs depend on the main `ci` job, then run `**npx turbo run sync --filter=@
 
 After `[.github/workflows/test.yml](.github/workflows/test.yml)` passes on a push to `main`, `[.github/workflows/deploy.yml](.github/workflows/deploy.yml)` can build a signed **Android App Bundle** and publish it to Google Play when repository variable `**ENABLE_PLAY_STORE_DEPLOY`** is `**true**`(unset or any other value skips the job). By default the track is`**internal**` (Play Console → **Testing → Internal testing**). Set `**PLAY_STORE_TRACK`** to `alpha`, `beta`, or `production` to change the target.
 
-The job runs after Supabase deploy (alongside Vercel). Each deploy uses `**versionCode = github.run_number**` (plus optional `**ANDROID_VERSION_CODE_OFFSET**` if you already shipped higher version codes manually). `**versionName**` is `1.0.<run_number>`.
+The job runs after Supabase deploy (alongside Vercel). See [Release versioning](#release-versioning) below for how web, Android, and iOS share the same version number per deploy.
 
 #### One-time Play Console setup
 
@@ -105,11 +129,10 @@ Add these alongside the existing deploy secrets:
 
 Optional repository **variables**:
 
-| Variable                      | Default    | Purpose                                                                            |
-| ----------------------------- | ---------- | ---------------------------------------------------------------------------------- |
-| `ENABLE_PLAY_STORE_DEPLOY`    | _(off)_    | Set to `true` to run the Play Store job on deploy; otherwise skipped               |
-| `PLAY_STORE_TRACK`            | `internal` | Play track: `internal`, `alpha`, `beta`, or `production`                           |
-| `ANDROID_VERSION_CODE_OFFSET` | _(none)_   | Added to `github.run_number` when manual uploads already used higher version codes |
+| Variable                   | Default    | Purpose                                                              |
+| -------------------------- | ---------- | -------------------------------------------------------------------- |
+| `ENABLE_PLAY_STORE_DEPLOY` | _(off)_    | Set to `true` to run the Play Store job on deploy; otherwise skipped |
+| `PLAY_STORE_TRACK`         | `internal` | Play track: `internal`, `alpha`, `beta`, or `production`             |
 
 Promote a tested build to production from Play Console, or set `PLAY_STORE_TRACK=production` when you are ready for CI to ship production releases.
 

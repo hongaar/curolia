@@ -16,6 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate": "npm run format:check && npx turbo run lint typecheck test build",
+    "version:resolve": "node scripts/resolve-app-version.mjs",
+    "version:sync-native": "node scripts/sync-native-version.mjs",
     "prepare": "husky"
   },
   "devDependencies": {
