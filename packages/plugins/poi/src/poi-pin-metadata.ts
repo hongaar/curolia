@@ -89,14 +89,6 @@ export function pinMetadataFromOsmTags(
 ): PinMetadataUpsert[] {
   const fields: PinMetadataUpsert[] = [];
 
-  const placeName = tags.name?.trim();
-  if (placeName) {
-    fields.push({
-      fieldKey: "place_name",
-      value: { label: placeName },
-    });
-  }
-
   const placeType = primaryPoiLabel(tags);
   if (placeType) {
     fields.push({
@@ -134,22 +126,6 @@ export function pinMetadataFromOsmTags(
     fields.push({
       fieldKey: "dog_policy",
       value: { level: dog },
-    });
-  }
-
-  const brand = tags.brand?.trim();
-  if (brand) {
-    fields.push({
-      fieldKey: "brand",
-      value: { label: brand },
-    });
-  }
-
-  const operator = tags.operator?.trim();
-  if (operator) {
-    fields.push({
-      fieldKey: "operator",
-      value: { label: operator },
     });
   }
 

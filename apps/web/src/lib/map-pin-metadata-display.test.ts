@@ -5,21 +5,7 @@ import {
 } from "@curolia/plugin-contract";
 import { describe, expect, it } from "vitest";
 
-const ITEMS = {
-  ...pinMetadataShowSelectItems(),
-  place_name: "Name",
-  place_type: "Type",
-  cuisine: "Cuisine",
-  dietary_options: "Dietary",
-  wheelchair_access: "Accessibility",
-  dog_policy: "Dogs",
-  brand: "Brand",
-  operator: "Operator",
-  opening_hours: "Hours",
-  phone: "Phone",
-  website: "Website",
-  email: "Email",
-};
+const ITEMS = pinMetadataShowSelectItems();
 
 describe("pinMetadataShowSelectSummary", () => {
   it("summarizes a single field by label", () => {
@@ -35,24 +21,24 @@ describe("pinMetadataShowSelectSummary", () => {
   it("shows the first three labels plus a more count for four or more", () => {
     expect(
       pinMetadataShowSelectSummary(
-        ["place_name", "place_type", "cuisine", "phone"],
+        ["place_type", "cuisine", "dietary_options", "phone"],
         ITEMS,
       ),
-    ).toBe("Name, Type, Cuisine, 1 more field selected");
+    ).toBe("Type, Cuisine, Dietary, 1 more field selected");
 
     expect(
       pinMetadataShowSelectSummary(
         [
-          "place_name",
           "place_type",
           "cuisine",
           "dietary_options",
           "wheelchair_access",
+          "dog_policy",
           "phone",
         ],
         ITEMS,
       ),
-    ).toBe("Name, Type, Cuisine, 3 more fields selected");
+    ).toBe("Type, Cuisine, Dietary, 3 more fields selected");
   });
 
   it("returns All fields when every toggleable field is selected", () => {

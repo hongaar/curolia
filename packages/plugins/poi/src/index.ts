@@ -12,11 +12,6 @@ export { PoiMapSettingsPanel } from "./map-settings-panel";
 export { PoiPinFormSection } from "./pin-form-section";
 export { PoiPinSuggestionSlot } from "./pin-suggestion-slot";
 export {
-  poiPinHasAttachedPoi,
-  selectPoiSuggestionCandidate,
-  type PoiSuggestionInput,
-} from "./poi-suggestion";
-export {
   isMapPoiAutoLookupEnabled,
   poiMapPluginQueryKey,
   resolvePoiMetadataLoading,
@@ -39,6 +34,7 @@ export {
   formatPoiSubtitle,
   isFoodPoi,
   isOutdoorPoi,
+  isUsefulPoiCandidate,
   primaryPoiLabel,
 } from "./poi-format";
 export {
@@ -64,6 +60,11 @@ export {
   osmTagFamiliesForMetadata,
   pinMetadataFromOsmTags,
 } from "./poi-pin-metadata";
+export {
+  poiPinHasAttachedPoi,
+  selectPoiSuggestionCandidate,
+  type PoiSuggestionInput,
+} from "./poi-suggestion";
 export {
   pinMetadataQueryKey,
   poiEntityDataQueryKey,

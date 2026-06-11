@@ -19,10 +19,6 @@ describe("pinMetadataFromOsmTags", () => {
     expect(fields).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          fieldKey: "place_name",
-          value: { label: "Corner Café" },
-        }),
-        expect.objectContaining({
           fieldKey: "place_type",
           value: { label: "Café" },
         }),

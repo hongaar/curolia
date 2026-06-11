@@ -1,4 +1,5 @@
 import { POI_SUGGESTION_MAX_DISTANCE_M } from "./constants";
+import { isUsefulPoiCandidate } from "./poi-format";
 import {
   poiPayloadCoordsMatch,
   type PoiNearbyCandidate,
@@ -63,7 +64,11 @@ export function selectPoiSuggestionCandidate(
   }
 
   const within = input.candidates
-    .filter((c) => c.distanceM <= POI_SUGGESTION_MAX_DISTANCE_M)
+    .filter(
+      (c) =>
+        c.distanceM <= POI_SUGGESTION_MAX_DISTANCE_M &&
+        isUsefulPoiCandidate(c.tags ?? {}),
+    )
     .sort((a, b) => a.distanceM - b.distanceM);
 
   return within[0] ?? null;

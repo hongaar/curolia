@@ -141,4 +141,25 @@ describe("selectPoiSuggestionCandidate", () => {
       }),
     ).toBeNull();
   });
+
+  it("skips noisy candidates and suggests the nearest useful place", () => {
+    const result = selectPoiSuggestionCandidate({
+      ...baseInput,
+      candidates: [
+        candidate({
+          osmId: 10,
+          distanceM: 5,
+          placeType: "Park",
+          tags: { leisure: "park", name: "City Park" },
+        }),
+        candidate({
+          osmId: 11,
+          distanceM: 12,
+          placeType: "Restaurant",
+          tags: { amenity: "restaurant", name: "Bistro" },
+        }),
+      ],
+    });
+    expect(result?.osmId).toBe(11);
+  });
 });

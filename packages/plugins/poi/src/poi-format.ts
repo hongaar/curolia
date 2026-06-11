@@ -60,6 +60,71 @@ const OUTDOOR_LEISURE = new Set([
   "pitch",
   "track",
   "slipway",
+  "garden",
+  "common",
+  "recreation_ground",
+  "dog_park",
+  "beach_resort",
+]);
+
+/** Amenity values that are infrastructure, not destinations worth suggesting. */
+const NOISE_AMENITIES = new Set([
+  "charging_station",
+  "bicycle_parking",
+  "parking",
+  "parking_space",
+  "waste_disposal",
+  "waste_basket",
+  "toilets",
+  "drinking_water",
+  "bench",
+  "shelter",
+  "grit_bin",
+  "recycling",
+  "vending_machine",
+  "clock",
+  "fountain",
+  "give_box",
+  "letter_box",
+  "post_box",
+  "bus_stop",
+  "taxi",
+  "car_sharing",
+  "motorcycle_parking",
+  "bicycle_repair_station",
+  "sanitary_dump_station",
+  "bicycle_rental",
+]);
+
+/** Tourism values that are outdoor landmarks, not visitable businesses. */
+const NOISE_TOURISM = new Set([
+  "picnic_site",
+  "viewpoint",
+  "wilderness_hut",
+  "alpine_hut",
+  "guest_hut",
+  "information",
+  "yes",
+]);
+
+/** Leisure venues worth keeping in suggestions (excludes parks and reserves). */
+const USEFUL_LEISURE = new Set([
+  "swimming_pool",
+  "fitness_centre",
+  "sports_centre",
+  "stadium",
+  "water_park",
+  "bowling_alley",
+  "ice_rink",
+  "sauna",
+  "spa",
+  "hackerspace",
+  "arts_centre",
+  "dance",
+  "miniature_golf",
+  "amusement_arcade",
+  "escape_game",
+  "trampoline_park",
 ]);
 
 const AMENITY_LABELS: Record<string, string> = {
@@ -128,6 +193,46 @@ export function isOutdoorPoi(tags: Record<string, string>): boolean {
   if (amenity && OUTDOOR_AMENITIES.has(amenity)) return true;
   const leisure = tags.leisure;
   if (leisure && OUTDOOR_LEISURE.has(leisure)) return true;
+  return false;
+}
+
+/**
+ * Whether a place is worth suggesting or auto-attaching (shops, services,
+ * restaurants, attractions). Excludes natural features, parks, charging stations,
+ * and similar map noise.
+ */
+export function isUsefulPoiCandidate(tags: Record<string, string>): boolean {
+  if (tags.natural) return false;
+  if (tags.man_made) return false;
+  if (tags.aerialway || tags.aeroway) return false;
+  if (tags.boundary === "national_park") return false;
+
+  const amenity = tags.amenity?.trim();
+  if (amenity) {
+    if (NOISE_AMENITIES.has(amenity)) return false;
+    return true;
+  }
+
+  if (tags.shop?.trim()) return true;
+
+  const tourism = tags.tourism?.trim();
+  if (tourism) {
+    if (NOISE_TOURISM.has(tourism)) return false;
+    return true;
+  }
+
+  const leisure = tags.leisure?.trim();
+  if (leisure) {
+    if (OUTDOOR_LEISURE.has(leisure)) return false;
+    if (USEFUL_LEISURE.has(leisure)) return true;
+    return false;
+  }
+
+  if (tags.historic?.trim()) return true;
+  if (tags.healthcare?.trim()) return true;
+  if (tags.craft?.trim()) return true;
+  if (tags.office?.trim()) return true;
+
   return false;
 }
 

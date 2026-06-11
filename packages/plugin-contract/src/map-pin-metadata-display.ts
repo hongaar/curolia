@@ -6,8 +6,21 @@ import {
   type PinMetadataFieldKey,
 } from "./pin-metadata";
 
+/** Metadata fields that are never shown on pins (redundant with the pin title). */
+export const PIN_METADATA_ALWAYS_HIDDEN_FIELD_KEYS = [
+  "place_name",
+  "brand",
+  "operator",
+] as const satisfies readonly PinMetadataFieldKey[];
+
+export type PinMetadataAlwaysHiddenFieldKey =
+  (typeof PIN_METADATA_ALWAYS_HIDDEN_FIELD_KEYS)[number];
+
 /** Metadata fields owners can toggle for pin display (`place_categories` is internal). */
-export const PIN_METADATA_SHOW_FIELD_KEYS = PIN_METADATA_DISPLAY_ORDER;
+export const PIN_METADATA_SHOW_FIELD_KEYS = PIN_METADATA_DISPLAY_ORDER.filter(
+  (key) =>
+    !(PIN_METADATA_ALWAYS_HIDDEN_FIELD_KEYS as readonly string[]).includes(key),
+) as Exclude<PinMetadataFieldKey, PinMetadataAlwaysHiddenFieldKey>[];
 
 export type PinMetadataShowFieldKey =
   (typeof PIN_METADATA_SHOW_FIELD_KEYS)[number];
@@ -33,14 +46,7 @@ export type PinMetadataSubtitleFieldKey =
 export const PIN_METADATA_SHOW_GROUPS: readonly PinMetadataShowGroup[] = [
   {
     label: "Place",
-    keys: [
-      "place_name",
-      "place_type",
-      "brand",
-      "operator",
-      "cuisine",
-      "dietary_options",
-    ],
+    keys: ["place_type", "cuisine", "dietary_options"],
   },
   {
     label: "Accessibility",
@@ -113,11 +119,22 @@ export function defaultPinMetadataShowSettings(): PinMetadataShowSettings {
   return [...DEFAULT_SHOW_SETTINGS];
 }
 
+function isAlwaysHiddenPinMetadataField(
+  fieldKey: string,
+): fieldKey is PinMetadataAlwaysHiddenFieldKey {
+  return (PIN_METADATA_ALWAYS_HIDDEN_FIELD_KEYS as readonly string[]).includes(
+    fieldKey,
+  );
+}
+
 function normalizeFieldList(raw: unknown): PinMetadataShowSettings {
   if (!Array.isArray(raw)) return [];
   const enabled = new Set<PinMetadataShowFieldKey>();
   for (const entry of raw) {
-    if (typeof entry === "string" && isPinMetadataShowFieldKey(entry)) {
+    if (typeof entry !== "string" || isAlwaysHiddenPinMetadataField(entry)) {
+      continue;
+    }
+    if (isPinMetadataShowFieldKey(entry)) {
       enabled.add(entry);
     }
   }
@@ -183,6 +200,7 @@ export function isPinMetadataFieldShown(
   settings: PinMetadataShowSettings,
 ): boolean {
   if (fieldKey === "place_categories") return false;
+  if (isAlwaysHiddenPinMetadataField(fieldKey)) return false;
   if (!isPinMetadataFieldKey(fieldKey)) return false;
   return settings.includes(fieldKey);
 }
