@@ -12,25 +12,38 @@ import {
   PluginPinSearchResults,
   PluginPinSpinner,
 } from "@curolia/ui/plugin-pin";
+import {
+  SearchCombobox,
+  type SearchComboboxGroup,
+} from "@curolia/ui/search-combobox";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Trash2 } from "lucide-react";
-import { WIKIDATA_SEARCH_RADIUS_KM } from "./constants";
+import { useEffect, useMemo, useState } from "react";
+import {
+  WIKIDATA_SEARCH_DEBOUNCE_MS,
+  WIKIDATA_SEARCH_MIN_CHARS,
+  WIKIDATA_SEARCH_RADIUS_KM,
+} from "./constants";
 import { wikidataPluginMeta } from "./plugin-meta";
 import {
   pluginEntityDataRowQueryKey,
   wikidataNearbyCandidatesQueryKey,
+  wikidataSearchQueryKey,
 } from "./query-keys";
 import {
   wikidataClearPinEnrichment,
   wikidataListNearbyCandidates,
+  wikidataSearchArticles,
   wikidataSetPinEnrichment,
 } from "./wikidata-edge";
 import {
   formatWikidataDistanceM,
   parseWikidataPinPayload,
   wikidataCandidateMeta,
+  wikidataSearchHitKey,
   type WikidataNearbyCandidate,
+  type WikidataSearchHit,
 } from "./wikidata-pin-data";
 
 type WikidataPinFormEditorProps = {
@@ -69,17 +82,16 @@ export function WikidataPinFormEditor({
   const payload = parseWikidataPinPayload(rowQuery.data?.data);
   const showPicker = !payload;
 
-  const candidatesQuery = useQuery({
-    queryKey: candidatesQueryKey,
-    queryFn: async () => {
-      const res = await wikidataListNearbyCandidates(supabase, pinId);
-      if ("error" in res) throw new Error(res.error);
-      return res.candidates;
-    },
-    enabled: showPicker && rowQuery.isSuccess,
-    staleTime: 60_000,
-    retry: false,
-  });
+  const [search, setSearch] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  useEffect(() => {
+    const t = window.setTimeout(
+      () => setDebouncedQuery(search.trim()),
+      WIKIDATA_SEARCH_DEBOUNCE_MS,
+    );
+    return () => window.clearTimeout(t);
+  }, [search]);
 
   const setMutation = useMutation({
     mutationFn: async (candidate: WikidataNearbyCandidate) => {
@@ -95,6 +107,64 @@ export function WikidataPinFormEditor({
       await qc.invalidateQueries({ queryKey: [...dataRowQueryKey] });
     },
   });
+
+  const searchQuery = useQuery({
+    queryKey: wikidataSearchQueryKey(debouncedQuery),
+    queryFn: async () => {
+      const res = await wikidataSearchArticles(supabase, debouncedQuery);
+      if ("error" in res) throw new Error(res.error);
+      return res.results;
+    },
+    enabled:
+      showPicker &&
+      debouncedQuery.length >= WIKIDATA_SEARCH_MIN_CHARS &&
+      !setMutation.isPending,
+    staleTime: 30_000,
+  });
+
+  const searchGroups = useMemo((): SearchComboboxGroup<WikidataSearchHit>[] => {
+    if (!searchQuery.data) return [];
+    return [
+      {
+        id: "wikipedia",
+        label: "Wikipedia",
+        items: searchQuery.data,
+        emptyMessage: "No matching articles",
+      },
+    ];
+  }, [searchQuery.data]);
+
+  const searchError =
+    searchQuery.isError && searchQuery.error instanceof Error
+      ? searchQuery.error.message
+      : null;
+
+  const candidatesQuery = useQuery({
+    queryKey: candidatesQueryKey,
+    queryFn: async () => {
+      const res = await wikidataListNearbyCandidates(supabase, pinId);
+      if ("error" in res) throw new Error(res.error);
+      return res.candidates;
+    },
+    enabled: showPicker && rowQuery.isSuccess,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const selectCandidate = (candidate: WikidataNearbyCandidate) => {
+    setMutation.mutate(candidate);
+  };
+
+  const selectSearchHit = (hit: WikidataSearchHit) => {
+    setMutation.mutate({
+      wikidataId: hit.wikidataId,
+      label: hit.label,
+      wikipediaTitle: hit.wikipediaTitle,
+      distanceM: 0,
+      placeType: null,
+      thumbnailUrl: hit.thumbnailUrl,
+    });
+  };
 
   const clearMutation = useMutation({
     mutationFn: async () => {
@@ -140,10 +210,12 @@ export function WikidataPinFormEditor({
                 >
                   <span>
                     {payload.label}
-                    <PluginPinLinkMeta>
-                      {" "}
-                      · {formatWikidataDistanceM(payload.distanceM)}
-                    </PluginPinLinkMeta>
+                    {payload.distanceM > 0 ? (
+                      <PluginPinLinkMeta>
+                        {" "}
+                        · {formatWikidataDistanceM(payload.distanceM)}
+                      </PluginPinLinkMeta>
+                    ) : null}
                   </span>
                 </PluginPinInlineLink>
               </PluginPinItemMain>
@@ -160,31 +232,34 @@ export function WikidataPinFormEditor({
             </PluginPinItemRow>
           </PluginPinList>
           <PluginPinMutedXs>
-            Remove to pick another from nearby Wikipedia articles.
+            Remove to pick another nearby landmark or search Wikipedia.
           </PluginPinMutedXs>
         </>
       ) : (
         <>
           <PluginPinMuted>
-            Pick a nearby landmark from Wikipedia (sorted by distance).
+            Pick a nearby landmark or search Wikipedia for any article.
           </PluginPinMuted>
           {showPickerSpinner ? <PluginPinSpinner /> : null}
           {candidatesErr ? (
             <PluginPinError>{candidatesErr}</PluginPinError>
           ) : null}
           {candidatesQuery.data?.length ? (
-            <PluginPinSearchResults>
-              {candidatesQuery.data.map((candidate) => (
-                <PluginPinSearchHit
-                  key={candidate.wikidataId}
-                  title={candidate.label}
-                  meta={wikidataCandidateMeta(candidate)}
-                  imageUrl={candidate.thumbnailUrl}
-                  disabled={setMutation.isPending}
-                  onClick={() => setMutation.mutate(candidate)}
-                />
-              ))}
-            </PluginPinSearchResults>
+            <>
+              <PluginPinMutedXs>Nearby</PluginPinMutedXs>
+              <PluginPinSearchResults>
+                {candidatesQuery.data.map((candidate) => (
+                  <PluginPinSearchHit
+                    key={candidate.wikidataId}
+                    title={candidate.label}
+                    meta={wikidataCandidateMeta(candidate)}
+                    imageUrl={candidate.thumbnailUrl}
+                    disabled={setMutation.isPending}
+                    onClick={() => selectCandidate(candidate)}
+                  />
+                ))}
+              </PluginPinSearchResults>
+            </>
           ) : null}
           {!candidatesQuery.isFetching &&
           !candidatesErr &&
@@ -195,6 +270,25 @@ export function WikidataPinFormEditor({
               {Math.round(WIKIDATA_SEARCH_RADIUS_KM * 1000)} m of this pin.
             </PluginPinMuted>
           ) : null}
+          <SearchCombobox
+            query={search}
+            onQueryChange={setSearch}
+            placeholder="Search Wikipedia articles…"
+            disabled={setMutation.isPending}
+            loading={searchQuery.isFetching}
+            minChars={WIKIDATA_SEARCH_MIN_CHARS}
+            groups={searchGroups}
+            getItemKey={wikidataSearchHitKey}
+            onSelect={selectSearchHit}
+            renderItem={(hit) => ({
+              title: hit.label,
+              meta: hit.snippet,
+              imageUrl: hit.thumbnailUrl,
+            })}
+            loadingMessage="Searching…"
+            emptyMessage="No matching Wikipedia articles"
+            errorMessage={searchError}
+          />
         </>
       )}
     </>

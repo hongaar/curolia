@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   WikidataNearbyCandidate,
   WikidataPinPayload,
+  WikidataSearchHit,
 } from "./wikidata-pin-data";
 
 export type WikidataSyncResponse =
@@ -52,6 +53,14 @@ export type WikidataSetEnrichmentResponse =
 export type WikidataClearEnrichmentResponse =
   | {
       cleared: true;
+    }
+  | {
+      error: string;
+    };
+
+export type WikidataSearchResponse =
+  | {
+      results: WikidataSearchHit[];
     }
   | {
       error: string;
@@ -156,6 +165,23 @@ export async function wikidataClearPinEnrichment(
   }
   if (!data || typeof data !== "object") {
     return { error: "wikidata_clear_enrichment_invalid_response" };
+  }
+  return data;
+}
+
+export async function wikidataSearchArticles(
+  supabase: SupabaseClient,
+  query: string,
+): Promise<WikidataSearchResponse> {
+  const { data, error } =
+    await supabase.functions.invoke<WikidataSearchResponse>("wikidata", {
+      body: { action: "search", query },
+    });
+  if (error) {
+    return { error: error.message || "wikidata_search_failed" };
+  }
+  if (!data || typeof data !== "object") {
+    return { error: "wikidata_search_invalid_response" };
   }
   return data;
 }

@@ -22,3 +22,12 @@ export const WIKIDATA_SPARQL_ROW_LIMIT = 100;
 
 /** Keep in sync with `packages/plugins/wikidata/supabase/functions/wikidata/index.ts`. */
 export const WIKIDATA_AUTO_SYNC_CANDIDATES_LIMIT = 5;
+
+/** Minimum characters before calling Wikipedia search. */
+export const WIKIDATA_SEARCH_MIN_CHARS = 2;
+
+/** Debounce delay for search input (ms). */
+export const WIKIDATA_SEARCH_DEBOUNCE_MS = 300;
+
+/** Max articles returned for manual Wikipedia search. */
+export const WIKIDATA_SEARCH_RESULTS_LIMIT = 10;

@@ -33,6 +33,19 @@ export type WikidataNearbyCandidate = {
   thumbnailUrl: string | null;
 };
 
+/** Wikipedia search row for the pin editor combobox. */
+export type WikidataSearchHit = {
+  wikidataId: string;
+  label: string;
+  wikipediaTitle: string;
+  thumbnailUrl: string | null;
+  snippet: string | null;
+};
+
+export function wikidataSearchHitKey(hit: WikidataSearchHit): string {
+  return hit.wikidataId;
+}
+
 export function formatWikidataDistanceM(distanceM: number): string {
   if (distanceM < 1000) return `${distanceM} m`;
   return `${(distanceM / 1000).toFixed(distanceM < 10_000 ? 1 : 0)} km`;

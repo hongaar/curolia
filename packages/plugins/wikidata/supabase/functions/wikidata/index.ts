@@ -10,9 +10,15 @@ const SPARQL_ROW_LIMIT = 100;
 const AUTO_SYNC_CANDIDATES_LIMIT = 5;
 
 const WIKIDATA_SPARQL = "https://query.wikidata.org/sparql";
+const WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php";
+const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
 const WIKIPEDIA_SUMMARY = "https://en.wikipedia.org/api/rest_v1/page/summary/";
 const USER_AGENT =
   "Curolia/1.0 (https://github.com/curolia/curolia; plugin-wikidata)";
+
+/** Keep in sync with `packages/plugins/wikidata/src/constants.ts`. */
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_RESULTS_LIMIT = 10;
 
 type WikidataPinPayload = {
   schemaVersion: 1;
@@ -180,14 +186,26 @@ type WikiSummary = {
   wikipediaUrl: string;
 };
 
+type SearchHit = {
+  wikidataId: string;
+  label: string;
+  wikipediaTitle: string;
+  thumbnailUrl: string | null;
+  snippet: string | null;
+};
+
 const SPARQL_CANDIDATES_CACHE_SIZE = 128;
 const WIKIPEDIA_SUMMARY_CACHE_SIZE = 256;
+const WIKIPEDIA_SEARCH_CACHE_SIZE = 64;
 
 const sparqlCandidatesCache = new AsyncLruCache<string, SparqlCandidate[]>({
   maxSize: SPARQL_CANDIDATES_CACHE_SIZE,
 });
 const wikipediaSummaryCache = new AsyncLruCache<string, WikiSummary | null>({
   maxSize: WIKIPEDIA_SUMMARY_CACHE_SIZE,
+});
+const wikipediaSearchCache = new AsyncLruCache<string, SearchHit[]>({
+  maxSize: WIKIPEDIA_SEARCH_CACHE_SIZE,
 });
 
 function wikidataCoordCacheKey(lat: number, lng: number): string {
@@ -299,6 +317,121 @@ async function fetchWikipediaSummaryUncached(
 async function fetchWikipediaThumbnail(title: string): Promise<string | null> {
   const summary = await fetchWikipediaSummary(title);
   return summary?.thumbnailUrl ?? null;
+}
+
+function stripHtmlSnippet(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function resolveWikidataIdsForTitles(
+  titles: string[],
+): Promise<Map<string, string>> {
+  if (titles.length === 0) return new Map();
+
+  const params = new URLSearchParams({
+    action: "wbgetentities",
+    sites: "enwiki",
+    titles: titles.join("|"),
+    props: "sitelinks",
+    format: "json",
+    origin: "*",
+  });
+  const res = await fetch(`${WIKIDATA_API}?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) {
+    throw new Error(`wikidata_resolve_${res.status}`);
+  }
+
+  const json = (await res.json()) as {
+    entities?: Record<
+      string,
+      { id?: string; sitelinks?: { enwiki?: { title?: string } } }
+    >;
+  };
+
+  const byTitle = new Map<string, string>();
+  for (const [key, entity] of Object.entries(json.entities ?? {})) {
+    if (key.startsWith("-") || !entity?.id) continue;
+    const enTitle = entity.sitelinks?.enwiki?.title?.trim();
+    if (enTitle) byTitle.set(enTitle, entity.id);
+  }
+  return byTitle;
+}
+
+async function searchWikipediaArticlesUncached(
+  query: string,
+): Promise<SearchHit[]> {
+  const params = new URLSearchParams({
+    action: "query",
+    list: "search",
+    srsearch: query,
+    srlimit: String(SEARCH_RESULTS_LIMIT),
+    format: "json",
+    origin: "*",
+  });
+  const res = await fetch(`${WIKIPEDIA_API}?${params}`, {
+    headers: { "User-Agent": USER_AGENT },
+  });
+  if (!res.ok) {
+    throw new Error(`wikipedia_search_${res.status}`);
+  }
+
+  const json = (await res.json()) as {
+    query?: {
+      search?: Array<{ title?: string; snippet?: string }>;
+    };
+  };
+  const rows = json.query?.search ?? [];
+  const titles = rows
+    .map((row) => row.title?.trim())
+    .filter((title): title is string => Boolean(title));
+  if (titles.length === 0) return [];
+
+  const wikidataByTitle = await resolveWikidataIdsForTitles(titles);
+  const hits: SearchHit[] = [];
+
+  for (const row of rows) {
+    const title = row.title?.trim();
+    if (!title) continue;
+    const wikidataId = wikidataByTitle.get(title);
+    if (!wikidataId) continue;
+    hits.push({
+      wikidataId,
+      label: title,
+      wikipediaTitle: title,
+      thumbnailUrl: null,
+      snippet: row.snippet ? stripHtmlSnippet(row.snippet) : null,
+    });
+  }
+
+  return enrichSearchHitsWithThumbnails(hits);
+}
+
+async function searchWikipediaArticles(query: string): Promise<SearchHit[]> {
+  const key = `wiki:search:en:${query.trim().toLowerCase()}`;
+  return wikipediaSearchCache.getOrFetch(key, () =>
+    searchWikipediaArticlesUncached(query),
+  );
+}
+
+async function enrichSearchHitsWithThumbnails(
+  hits: SearchHit[],
+): Promise<SearchHit[]> {
+  return Promise.all(
+    hits.map(async (hit) => {
+      try {
+        const thumbnailUrl = await fetchWikipediaThumbnail(hit.wikipediaTitle);
+        return { ...hit, thumbnailUrl };
+      } catch (e) {
+        console.error("wikipedia thumbnail failed", hit.wikipediaTitle, e);
+        return hit;
+      }
+    }),
+  );
 }
 
 async function enrichCandidatesWithThumbnails(
@@ -494,6 +627,7 @@ Deno.serve(async (req: Request) => {
     lng?: number;
     wikidataId?: string;
     wikipediaTitle?: string;
+    query?: string;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -516,6 +650,30 @@ Deno.serve(async (req: Request) => {
       status: 403,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
+  }
+
+  if (body.action === "search") {
+    const query = typeof body.query === "string" ? body.query.trim() : "";
+    if (query.length < SEARCH_MIN_CHARS) {
+      return new Response(JSON.stringify({ error: "query_too_short" }), {
+        status: 400,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const results = await searchWikipediaArticles(query);
+      return new Response(JSON.stringify({ results }), {
+        status: 200,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.error("wikidata search failed", e);
+      return new Response(JSON.stringify({ error: "wikidata_search_failed" }), {
+        status: 502,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
   }
 
   if (body.action === "lookup_nearby") {

@@ -37,6 +37,10 @@ export function wikidataNearbyCandidatesQueryKey(
   ] as const;
 }
 
+export function wikidataSearchQueryKey(query: string) {
+  return ["wikidata_search", wikidataPluginMeta.typeId, query] as const;
+}
+
 export function pluginEntityDataRowQueryKey(
   pluginTypeId: string,
   entityType: string,
