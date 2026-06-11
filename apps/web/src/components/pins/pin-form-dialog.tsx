@@ -1181,20 +1181,25 @@ export function PinFormDialog({
     />
   ) : null;
 
-  const closeFocusedAction = (next: boolean) => {
-    if (focusAction) onOpenChange(next);
+  const closeFocusedAction = () => {
+    if (focusAction) onOpenChange(false);
+  };
+
+  const setMoveDialogOpen = (next: boolean) => {
+    if (!moving) {
+      setMoveOpen(next);
+      if (!next) closeFocusedAction();
+    }
+  };
+
+  const setDeleteDialogOpen = (next: boolean) => {
+    if (!next && deleting) return;
+    setDeleteOpen(next);
+    if (!next) closeFocusedAction();
   };
 
   const movePinDialog = pin ? (
-    <Dialog
-      open={moveOpen}
-      onOpenChange={(next) => {
-        if (!moving) {
-          setMoveOpen(next);
-          if (!next) closeFocusedAction(false);
-        }
-      }}
-    >
+    <Dialog open={moveOpen} onOpenChange={setMoveDialogOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Move pin to another map</DialogTitle>
@@ -1244,7 +1249,7 @@ export function PinFormDialog({
             type="button"
             variant="outline"
             disabled={moving}
-            onClick={() => setMoveOpen(false)}
+            onClick={() => setMoveDialogOpen(false)}
           >
             Cancel
           </Button>
@@ -1309,14 +1314,7 @@ export function PinFormDialog({
   );
 
   const deletePinDialog = pin ? (
-    <Dialog
-      open={deleteOpen}
-      onOpenChange={(next) => {
-        if (!next && deleting) return;
-        setDeleteOpen(next);
-        if (!next) closeFocusedAction(false);
-      }}
-    >
+    <Dialog open={deleteOpen} onOpenChange={setDeleteDialogOpen}>
       <DialogContent>
         <DialogHeader showCloseButton={!deleting}>
           <DialogTitle>Delete pin?</DialogTitle>
@@ -1331,7 +1329,7 @@ export function PinFormDialog({
             type="button"
             variant="outline"
             disabled={deleting}
-            onClick={() => setDeleteOpen(false)}
+            onClick={() => setDeleteDialogOpen(false)}
           >
             Cancel
           </Button>

@@ -272,6 +272,15 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
     setPinDialogAction("delete");
   }, [canEditSelectedPin, selectedPin]);
 
+  const selectedPinId = selectedPin?.pin.id ?? null;
+
+  useEffect(() => {
+    setPinDialogAction((current) => {
+      if (current === "move" || current === "delete") return null;
+      return current;
+    });
+  }, [selectedPinId]);
+
   const mapViewContext = useMemo(
     () => resolveGlobalSearchMapViewContext(location.pathname),
     [location.pathname],
@@ -773,6 +782,7 @@ export function GlobalSearch({ toolbarEmbed = false }: GlobalSearchProps) {
       {pinDialogAction && selectedPin ? (
         <Suspense fallback={null}>
           <PinFormDialog
+            key={`${selectedPin.pin.id}:${pinDialogAction}`}
             open
             onOpenChange={(next) => {
               if (!next) setPinDialogAction(null);
