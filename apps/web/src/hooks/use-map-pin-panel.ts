@@ -232,6 +232,7 @@ export function useMapPinPanel({
   /* eslint-enable react-hooks/set-state-in-effect */
 
   /** Bottom sheet is portaled above stack layers — hide it when a stack screen opens. */
+  /* eslint-disable react-hooks/set-state-in-effect -- close overlay when pathname is a stack route */
   useLayoutEffect(() => {
     if (!usesBottomSheet) return;
     if (typeof window === "undefined") return;
@@ -241,6 +242,7 @@ export function useMapPinPanel({
     setBottomSheetPinId(null);
     sheetLeadsUrlPinIdRef.current = null;
   }, [usesBottomSheet, bottomSheetOpen, bottomSheetPinId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const beginPanelDismiss = useCallback(() => {
     userDismissedRef.current = true;
