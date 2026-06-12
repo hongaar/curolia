@@ -421,15 +421,18 @@ export function Search() {
     stripPlaceHighlightFromUrl();
   }, [clearSelectedPlace, stripPlaceHighlightFromUrl]);
 
+  const restoreQueryBeforePlacePick = useCallback(() => {
+    if (queryBeforePlacePick == null) return;
+    setInput(queryBeforePlacePick);
+    setDebounced(queryBeforePlacePick);
+    setQueryBeforePlacePick(null);
+  }, [queryBeforePlacePick]);
+
   const dismissActivePlacePanel = useCallback(() => {
     clearSelectedPlaceHighlight();
-    if (queryBeforePlacePick != null) {
-      setInput(queryBeforePlacePick);
-      setDebounced(queryBeforePlacePick);
-      setQueryBeforePlacePick(null);
-    }
+    restoreQueryBeforePlacePick();
     setOpen(true);
-  }, [clearSelectedPlaceHighlight, queryBeforePlacePick]);
+  }, [clearSelectedPlaceHighlight, restoreQueryBeforePlacePick]);
 
   const selectedPlaceRef = useRef(selectedPlace);
   useLayoutEffect(() => {
@@ -469,9 +472,13 @@ export function Search() {
 
   const dismissPlaceSearchFromMap = useCallback(() => {
     clearSelectedPlaceHighlight();
-    setQueryBeforePlacePick(null);
+    restoreQueryBeforePlacePick();
     dismissPopover();
-  }, [clearSelectedPlaceHighlight, dismissPopover]);
+  }, [
+    clearSelectedPlaceHighlight,
+    dismissPopover,
+    restoreQueryBeforePlacePick,
+  ]);
 
   useEffect(() => {
     if (open) return;
