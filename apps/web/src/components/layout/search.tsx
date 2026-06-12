@@ -124,6 +124,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -430,16 +431,26 @@ export function Search() {
     setOpen(true);
   }, [clearSelectedPlaceHighlight, queryBeforePlacePick]);
 
-  const prevLocationSearchRef = useRef(location.search);
+  const selectedPlaceRef = useRef(selectedPlace);
+  useLayoutEffect(() => {
+    selectedPlaceRef.current = selectedPlace;
+  }, [selectedPlace]);
+
+  // Camera idle sync uses replaceState — only browser back/forward fires popstate.
   useEffect(() => {
-    const prevSearch = prevLocationSearchRef.current;
-    prevLocationSearchRef.current = location.search;
-    if (location.search === prevSearch) return;
-    if (!isMapRoute || selectedPlace == null) return;
-    if (!placeSearchMatchesMapUrl(selectedPlace, location.search)) {
-      clearSelectedPlace();
-    }
-  }, [clearSelectedPlace, isMapRoute, location.search, selectedPlace]);
+    if (!isMapRoute) return;
+
+    const onPopState = () => {
+      const place = selectedPlaceRef.current;
+      if (!place) return;
+      if (!placeSearchMatchesMapUrl(place, window.location.search)) {
+        clearSelectedPlace();
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [clearSelectedPlace, isMapRoute]);
 
   const dismissSearchAfterPick = useCallback(() => {
     dismissPopover();
