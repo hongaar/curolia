@@ -19,6 +19,7 @@ import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
+import { usePinInteractionPlugins } from "@/lib/use-pin-interaction-plugins";
 import { usePinMetadataSubtitle } from "@/lib/use-pin-metadata-subtitle";
 import {
   useMapPluginOutputVisible,
@@ -109,6 +110,7 @@ export function PinDetailBody({
     pin.id,
     pin.map_id,
   );
+  const { interactionPlugins } = usePinInteractionPlugins(pin.map_id);
   const openMeteoOutputVisible = useMapPluginOutputVisible(
     pin.map_id,
     OPEN_METEO_PLUGIN_ID,
@@ -327,6 +329,22 @@ export function PinDetailBody({
           return (
             <Section
               key={`detail-viewer-${p.id}`}
+              supabase={supabase}
+              userId={user?.id}
+              pinId={pin.id}
+              mapId={pin.map_id}
+              pinDate={pin.date}
+              pinEndDate={pin.end_date}
+              pinSurface="display"
+            />
+          );
+        })}
+        {interactionPlugins.map((p) => {
+          const Section = p.PinInteractionSection;
+          if (!Section) return null;
+          return (
+            <Section
+              key={`interaction-${p.id}`}
               supabase={supabase}
               userId={user?.id}
               pinId={pin.id}

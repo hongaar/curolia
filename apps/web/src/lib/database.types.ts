@@ -324,6 +324,57 @@ export type Database = {
           },
         ];
       };
+      pin_comments: {
+        Row: {
+          author_display_name: string;
+          author_guest_id: string | null;
+          author_user_id: string | null;
+          body: string;
+          created_at: string;
+          id: string;
+          map_id: string;
+          pin_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          author_display_name: string;
+          author_guest_id?: string | null;
+          author_user_id?: string | null;
+          body: string;
+          created_at?: string;
+          id?: string;
+          map_id: string;
+          pin_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_display_name?: string;
+          author_guest_id?: string | null;
+          author_user_id?: string | null;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          map_id?: string;
+          pin_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pin_comments_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pin_comments_pin_id_fkey";
+            columns: ["pin_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pin_links: {
         Row: {
           created_at: string;
@@ -422,6 +473,51 @@ export type Database = {
           },
           {
             foreignKeyName: "pin_metadata_pin_id_fkey";
+            columns: ["pin_id"];
+            isOneToOne: false;
+            referencedRelation: "pins";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pin_reactions: {
+        Row: {
+          created_at: string;
+          emoji: string;
+          guest_id: string | null;
+          id: string;
+          map_id: string;
+          pin_id: string;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          emoji: string;
+          guest_id?: string | null;
+          id?: string;
+          map_id: string;
+          pin_id: string;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          emoji?: string;
+          guest_id?: string | null;
+          id?: string;
+          map_id?: string;
+          pin_id?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pin_reactions_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pin_reactions_pin_id_fkey";
             columns: ["pin_id"];
             isOneToOne: false;
             referencedRelation: "pins";
@@ -1015,11 +1111,19 @@ export type Database = {
         Args: { p_map_id: string };
         Returns: boolean;
       };
+      is_pin_interaction_plugin_enabled: {
+        Args: { p_map_id: string; p_plugin_type_id: string };
+        Returns: boolean;
+      };
       map_claim_slug: {
         Args: { p_desired: string; p_map_id: string; p_owner_id: string };
         Returns: string;
       };
       map_member_can_edit: { Args: { p_map_id: string }; Returns: boolean };
+      map_plugin_config_bool: {
+        Args: { p_key: string; p_map_id: string; p_plugin_type_id: string };
+        Returns: boolean;
+      };
       map_settings_path: { Args: { p_map_id: string }; Returns: string };
       map_view_path: {
         Args: { p_map_id: string; p_view?: string };

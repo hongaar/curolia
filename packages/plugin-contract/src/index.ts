@@ -21,6 +21,8 @@ export type {
   PinDetailActionProps,
   PinDraftEnrichmentSlotProps,
   PinEditorFieldSuggestion,
+  PinInteractionComposerProps,
+  PinInteractionSectionProps,
   PinPhotoImportSlotProps,
   PinSuggestionSlotProps,
   PinSurface,
@@ -30,6 +32,9 @@ export type {
   PluginRegistry,
 } from "./definition";
 export {
+  MAP_PLUGIN_CONFIG_ALLOW_ANONYMOUS_COMMENTS,
+  MAP_PLUGIN_CONFIG_ALLOW_ANONYMOUS_REACTIONS,
+  mapPluginConfigBool,
   mapPluginConfigRecord,
   mergeMapPluginConfig,
   type MapPluginLike,

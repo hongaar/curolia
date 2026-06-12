@@ -3,6 +3,8 @@
  */
 
 export type MapPluginLike = {
+  /** Per-map plugin toggle (`map_plugins.enabled`). Omitted when no row exists yet. */
+  enabled?: boolean;
   config?: unknown;
 };
 
@@ -13,6 +15,21 @@ export function mapPluginConfigRecord(
   if (c && typeof c === "object" && !Array.isArray(c))
     return { ...(c as Record<string, unknown>) };
   return {};
+}
+
+/** Map plugin config: allow signed-out visitors to comment on public maps. */
+export const MAP_PLUGIN_CONFIG_ALLOW_ANONYMOUS_COMMENTS =
+  "allowAnonymousComments" as const;
+
+/** Map plugin config: allow signed-out visitors to react on public maps. */
+export const MAP_PLUGIN_CONFIG_ALLOW_ANONYMOUS_REACTIONS =
+  "allowAnonymousReactions" as const;
+
+export function mapPluginConfigBool(
+  config: Record<string, unknown>,
+  key: string,
+): boolean {
+  return config[key] === true;
 }
 
 /** Shallow merge for `map_plugins.config` updates. */

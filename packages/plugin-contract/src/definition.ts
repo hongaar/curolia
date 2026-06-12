@@ -89,6 +89,18 @@ export type PinDetailActionProps = PinContextProps & {
   surface: "header" | "popover";
 };
 
+/**
+ * Props for read-only pin interaction surfaces (comments, reactions, …).
+ * Mounted for all viewers when the plugin is active on the map.
+ */
+export type PinInteractionSectionProps = PinContextProps;
+
+/**
+ * Props for pin interaction composers (comment form, reaction picker, …).
+ * Gated on map role / interaction policy, not on account `user_plugins`.
+ */
+export type PinInteractionComposerProps = PinContextProps;
+
 /** Props for per-map plugin settings panels rendered in the map settings dialog. */
 export type MapSettingsPanelProps = {
   supabase: SupabaseClient;
@@ -158,6 +170,26 @@ export type PluginDefinition = {
    * Replaces the hard-coded switch in the app shell.
    */
   MapSettingsPanel?: ComponentType<MapSettingsPanelProps>;
+  /**
+   * Read-only interaction block on the pin detail page (comments list, reaction
+   * counts, …). Map-scoped; mounted for all viewers when the plugin is active.
+   */
+  PinInteractionSection?: ComponentType<PinInteractionSectionProps>;
+  /**
+   * Composer for pin interactions (comment form, reaction picker). Shown when the
+   * viewer may interact per map policy; not gated on account plugin enablement.
+   * Prefer a single {@link PinInteractionSection} when list and composer share one
+   * surface.
+   */
+  PinInteractionComposer?: ComponentType<PinInteractionComposerProps>;
+  /**
+   * Sort order on pin detail (lower first). Reactions typically precede comments.
+   */
+  pinInteractionOrder?: number;
+  /**
+   * When true, {@link PinInteractionSection} renders without plugin card chrome.
+   */
+  pinInteractionPlain?: boolean;
   /**
    * When true, {@link PinDetailSection} is rendered without the default plugin
    * card chrome (icon, title, bordered card). Use for embed-first surfaces.

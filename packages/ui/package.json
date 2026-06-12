@@ -88,6 +88,7 @@
     "./pin-links": "./src/components/pin-links/index.ts",
     "./pin-metadata-footer": "./src/components/pin-metadata-footer/index.ts",
     "./pin-metadata-subtitle": "./src/components/pin-metadata-subtitle/index.ts",
+    "./pin-reactions": "./src/components/pin-reactions/index.ts",
     "./pin-place-metadata": "./src/components/pin-place-metadata/index.ts",
     "./pin-photo-lightbox": "./src/components/pin-photo-lightbox/index.ts",
     "./pin-photo-gallery": "./src/components/pin-photo-gallery/index.ts",

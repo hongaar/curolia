@@ -22,12 +22,16 @@ export function isViewerScopedPinOutput(
   return resolvePinOutputScope(plugin) === "viewer";
 }
 
-/** Map-scoped readable output (detail section or subtitle-only plugins). */
+/** Map-scoped readable output (detail section, interaction section, or subtitle-only). */
 export function hasMapScopedReadableOutput(
-  plugin: Pick<PluginDefinition, "pinOutputScope" | "PinDetailSection">,
+  plugin: Pick<
+    PluginDefinition,
+    "pinOutputScope" | "PinDetailSection" | "PinInteractionSection"
+  >,
 ): boolean {
   if (plugin.pinOutputScope === "viewer") return false;
   if (plugin.PinDetailSection) return true;
+  if (plugin.PinInteractionSection) return true;
   return plugin.pinOutputScope === "map";
 }
 
@@ -35,7 +39,10 @@ export function hasMapScopedReadableOutput(
 export function isMapOutputToggleablePlugin(
   plugin: Pick<
     PluginDefinition,
-    "implemented" | "pinOutputScope" | "PinDetailSection"
+    | "implemented"
+    | "pinOutputScope"
+    | "PinDetailSection"
+    | "PinInteractionSection"
   >,
 ): boolean {
   return plugin.implemented && hasMapScopedReadableOutput(plugin);

@@ -37,6 +37,14 @@ describe("pin output scope", () => {
     expect(isMapScopedPinOutput(plugin)).toBe(false);
   });
 
+  it("lists toggleable map interaction plugins", () => {
+    const plugin = stubPlugin({
+      id: "comments",
+      PinInteractionSection: () => null,
+    });
+    expect(isMapOutputToggleablePlugin(plugin)).toBe(true);
+  });
+
   it("lists toggleable map output plugins", () => {
     const plugin = stubPlugin({
       id: "spotify",

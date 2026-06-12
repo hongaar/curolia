@@ -1,0 +1,154 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: var(--control-h-sm);
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+  background: color-mix(in oklch, var(--muted) 35%, transparent);
+  font: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1;
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.chip:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--muted) 55%, transparent);
+  border-color: color-mix(in oklch, var(--foreground) 18%, var(--border));
+}
+
+.chip:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.chipActive {
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+  background: color-mix(in oklch, var(--primary) 14%, var(--muted));
+}
+
+.chipActive:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--primary) 20%, var(--muted));
+}
+
+.chip:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.chipReadOnly {
+  cursor: default;
+}
+
+.emoji {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--muted-foreground);
+  min-width: 0.75rem;
+  text-align: center;
+}
+
+.chipActive .count {
+  color: color-mix(in oklch, var(--primary) 70%, var(--foreground));
+}
+
+.addChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in oklch, var(--border) 90%, transparent);
+  background: transparent;
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.addChip:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--muted) 40%, transparent);
+  border-color: color-mix(in oklch, var(--foreground) 20%, var(--border));
+  border-style: solid;
+}
+
+.addChip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.customAdd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  padding: 0;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in oklch, var(--border) 90%, transparent);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-base);
+  line-height: 1;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.customAdd:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--muted) 40%, transparent);
+  border-color: color-mix(in oklch, var(--foreground) 20%, var(--border));
+  border-style: solid;
+  color: var(--foreground);
+}
+
+.customAdd:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.popoverEmoji {
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0;
+  overflow: hidden;
+}
+
+.emojiPickerRoot {
+  display: flex;
+  width: 100%;
+  height: min(18rem, 50vh);
+  flex-direction: column;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.emojiPickerContent {
+  flex: 1;
+  min-height: 0;
+}
