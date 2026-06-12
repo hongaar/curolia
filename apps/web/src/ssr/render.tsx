@@ -6,12 +6,12 @@ import {
 import { mapRouteFromParts } from "@/lib/map-route";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { renderBlogPageHtml } from "@/ssr/blog-page";
-import { renderPinPageHtml } from "@/ssr/pin-page";
 import {
   maybeBlockCrawlerRequest,
   publicMapCrawlerBlockHeaders,
   publicMapCrawlerBlockMeta,
 } from "@/ssr/crawler-block";
+import { renderPinPageHtml } from "@/ssr/pin-page";
 import { assembleHtml, type PageMeta } from "@/ssr/render-document";
 import type { SsrRouteMatch } from "@/ssr/routes";
 import { DEFAULT_OG_IMAGE, SITE_NAME } from "@/ssr/seo";
@@ -72,20 +72,8 @@ export async function renderSsrRoute(
     const { profileSlug, mapSlug } = match;
 
     const map = await fetchPublicMapByRoute(profileSlug, mapSlug, client);
-    if (!map) {
-      return {
-        status: 404,
-        html: assembleHtml(
-          template,
-          {
-            title: "Map not available — Curolia",
-            description: "This map is private or does not exist.",
-            robots: "noindex",
-          },
-          "<main><h1>Map not available</h1><p>This map is private or does not exist.</p></main>",
-        ),
-      };
-    }
+    // Private or member-only maps are resolved client-side after auth; serve the SPA shell.
+    if (!map) return null;
 
     const crawlerBlocked = maybeBlockCrawlerRequest(
       map,
@@ -137,20 +125,8 @@ export async function renderSsrRoute(
   const { profileSlug, mapSlug, pinSlug } = match;
 
   const map = await fetchPublicMapByRoute(profileSlug, mapSlug, client);
-  if (!map) {
-    return {
-      status: 404,
-      html: assembleHtml(
-        template,
-        {
-          title: "Pin not available — Curolia",
-          description: "This pin is on a private map or does not exist.",
-          robots: "noindex",
-        },
-        "<main><h1>Pin not available</h1><p>This pin is on a private map or does not exist.</p></main>",
-      ),
-    };
-  }
+  // Private or member-only maps are resolved client-side after auth; serve the SPA shell.
+  if (!map) return null;
 
   const crawlerBlocked = maybeBlockCrawlerRequest(
     map,
