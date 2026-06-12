@@ -44,6 +44,7 @@
     "./segmented-switcher": "./src/components/segmented-switcher/index.ts",
     "./map-floating": "./src/components/map-floating/index.ts",
     "./map-marker": "./src/components/map-marker/index.ts",
+    "./map-marker-collision-panel": "./src/components/map-marker-collision-panel/index.ts",
     "./map-marker-popover": "./src/components/map-marker-popover/index.ts",
     "./map-toolbar": "./src/components/map-toolbar/index.ts",
     "./markdown-content": "./src/components/markdown-content/index.ts",

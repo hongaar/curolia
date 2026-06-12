@@ -1,4 +1,12 @@
-.panel {
+.floatingHost {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fill {
   display: flex;
   min-height: 0;
   flex: 1;
@@ -12,6 +20,10 @@
   flex: 1;
   flex-direction: column;
   overflow: hidden;
+}
+
+.sheet {
+  max-height: min(85dvh, 36rem);
 }
 
 .header {
@@ -52,12 +64,4 @@
   justify-content: center;
   width: var(--control-h-sm);
   height: var(--control-h-sm);
-}
-
-.sheetBody {
-  display: flex;
-  max-height: min(85dvh, 36rem);
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0;
 }

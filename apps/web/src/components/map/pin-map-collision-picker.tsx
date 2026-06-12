@@ -1,36 +1,27 @@
-import { FloatingPanel } from "@/components/layout/floating-panel";
 import type { PinMapHandle } from "@/components/map/pin-map";
-import styles from "@/components/map/pin-map-collision-picker.module.css";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { formatPinDateRange } from "@/lib/pin-dates";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { pinLocationLabel } from "@curolia/services/geocoding";
-import { Button } from "@curolia/ui/button";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
-import { MapMarker } from "@curolia/ui/map-marker";
+import {
+  MapMarkerCollisionFloatingPanel,
+  MapMarkerCollisionPanel,
+  type MapMarkerCollisionItem,
+} from "@curolia/ui/map-marker-collision-panel";
 import {
   MapMarkerPopoverSheetContent,
   MapMarkerPopoverSheetTitle,
 } from "@curolia/ui/map-marker-popover";
-import {
-  SearchResultBody,
-  SearchResultRow,
-  SearchResultSubtitle,
-  SearchResultTitle,
-  SearchResultTitleRow,
-} from "@curolia/ui/search";
 import { Sheet } from "@curolia/ui/sheet";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
-import { X } from "lucide-react";
 import {
-  useCallback,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type RefObject,
-  type WheelEvent,
 } from "react";
 
 export type PinMapCollisionPickerState = {
@@ -80,6 +71,19 @@ function orderCollisionPins(
     .filter((pin): pin is PinWithTags => Boolean(pin));
 }
 
+function toCollisionItems(pins: PinWithTags[]): MapMarkerCollisionItem[] {
+  return pins.map((pin) => {
+    const { emoji, fill } = pinMarkerVisual(pin);
+    return {
+      id: pin.id,
+      emoji,
+      fill,
+      title: pinDisplayTitle(pin),
+      subtitle: pinPickerSubtitle(pin),
+    };
+  });
+}
+
 export function PinMapCollisionPicker({
   state,
   pins,
@@ -99,6 +103,8 @@ export function PinMapCollisionPicker({
 
   const title =
     orderedPins.length === 1 ? "1 pin here" : `${orderedPins.length} pins here`;
+
+  const items = useMemo(() => toCollisionItems(orderedPins), [orderedPins]);
 
   const virtualReference = useMemo(
     () => ({
@@ -200,60 +206,12 @@ export function PinMapCollisionPicker({
     };
   }, [isMobile, state.lng, state.lat, virtualReference, mapRef]);
 
-  const onListWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-    const list = event.currentTarget;
-    const { scrollTop, scrollHeight, clientHeight } = list;
-    const delta = event.deltaY;
-    const canScrollUp = scrollTop > 0;
-    const canScrollDown = scrollTop + clientHeight < scrollHeight - 1;
-    if ((delta < 0 && canScrollUp) || (delta > 0 && canScrollDown)) {
-      event.preventDefault();
-    }
-  }, []);
-
-  const content = (
-    <div className={styles.root}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{title}</h2>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          <X />
-        </Button>
-      </div>
-      <div
-        className={styles.list}
-        role="listbox"
-        aria-label={title}
-        onWheel={onListWheel}
-      >
-        {orderedPins.map((pin) => {
-          const { emoji, fill } = pinMarkerVisual(pin);
-          const subtitle = pinPickerSubtitle(pin);
-          return (
-            <SearchResultRow key={pin.id} onClick={() => onSelectPin(pin.id)}>
-              <span className={styles.rowMarker}>
-                <MapMarker emoji={emoji} fill={fill} size="sm" />
-              </span>
-              <SearchResultBody>
-                <SearchResultTitleRow>
-                  <SearchResultTitle>{pinDisplayTitle(pin)}</SearchResultTitle>
-                </SearchResultTitleRow>
-                {subtitle ? (
-                  <SearchResultSubtitle>{subtitle}</SearchResultSubtitle>
-                ) : null}
-              </SearchResultBody>
-            </SearchResultRow>
-          );
-        })}
-      </div>
-    </div>
-  );
+  const panelProps = {
+    title,
+    items,
+    onSelectItem: onSelectPin,
+    onClose,
+  };
 
   if (isMobile) {
     return (
@@ -267,7 +225,7 @@ export function PinMapCollisionPicker({
       >
         <MapMarkerPopoverSheetContent>
           <MapMarkerPopoverSheetTitle>{title}</MapMarkerPopoverSheetTitle>
-          <div className={styles.sheetBody}>{content}</div>
+          <MapMarkerCollisionPanel {...panelProps} sheet />
         </MapMarkerPopoverSheetContent>
       </Sheet>
     );
@@ -276,9 +234,7 @@ export function PinMapCollisionPicker({
   return (
     <MapFloatingAnchor ready={placementReady} hostRef={floatingRef}>
       <MapFloatingPanel anchored>
-        <FloatingPanel padding="none" className={styles.panel}>
-          {content}
-        </FloatingPanel>
+        <MapMarkerCollisionFloatingPanel {...panelProps} />
       </MapFloatingPanel>
     </MapFloatingAnchor>
   );

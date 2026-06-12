@@ -49,6 +49,18 @@ export const Dimmed: Story = {
   args: { dimmed: true },
 };
 
+export const StackedBadge: Story = {
+  parameters: storyDocs(
+    "Count badge when several pins share the same map point.",
+  ),
+  args: { badge: 4, interactive: true },
+};
+
+export const StackedBadgeLarge: Story = {
+  parameters: storyDocs("Caps display at 99+ for very large groups."),
+  args: { badge: 120, interactive: true },
+};
+
 export const Draft: Story = {
   parameters: storyDocs("Placement preview while creating a pin."),
   args: { draft: true, interactive: false, fill: null },
@@ -68,6 +80,7 @@ export const States: Story = {
         <MapMarker emoji="🏔️" fill="#22c55e" selected interactive />
         <MapMarker emoji="🏔️" fill="#22c55e" hovered interactive />
         <MapMarker emoji="🏔️" fill="#22c55e" dimmed interactive />
+        <MapMarker emoji="🍽️" fill="#16a34a" badge={15} interactive />
         <MapMarker emoji="📍" fill={null} draft interactive={false} />
       </div>
     </StoryFrame>
