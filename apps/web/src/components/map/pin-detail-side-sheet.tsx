@@ -21,12 +21,6 @@ interface PinDetailSideSheetProps {
   bottomSheet?: boolean;
 }
 
-export function pinDetailSideSheetTitle(
-  pin: Pick<PinWithTags, "title"> | null | undefined,
-): string {
-  return pin?.title?.trim() || "Pin details";
-}
-
 export function PinDetailSideSheet({
   pinId,
   mapRoute,

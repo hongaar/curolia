@@ -21,7 +21,13 @@ export function useBottomSheetHistory(
 
     const stateBeforePush = window.history.state;
     if (!isBottomSheetHistoryState(window.history.state)) {
-      window.history.pushState(BOTTOM_SHEET_HISTORY_STATE, "");
+      const mergedState =
+        stateBeforePush &&
+        typeof stateBeforePush === "object" &&
+        !Array.isArray(stateBeforePush)
+          ? { ...stateBeforePush, ...BOTTOM_SHEET_HISTORY_STATE }
+          : BOTTOM_SHEET_HISTORY_STATE;
+      window.history.pushState(mergedState, "");
     }
     let pushed = true;
 

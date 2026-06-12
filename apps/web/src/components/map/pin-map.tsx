@@ -1139,7 +1139,6 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       ) {
         const map = mapRef.current;
         if (!map) return;
-        map.stop();
         invalidateMarkerViewportCullingRef.current();
         map.easeTo({
           center: [lng, lat],
