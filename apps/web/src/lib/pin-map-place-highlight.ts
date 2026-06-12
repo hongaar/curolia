@@ -171,18 +171,21 @@ function upsertPlaceHighlightLayers(
   }
 }
 
+export type PlaceHighlightReader = () => PlaceMapHighlight | null;
+
+/** Always read highlight via `readHighlight` so delayed style-ready retries see the latest value. */
 export function syncPlaceHighlightLayer(
   map: MaplibreMap,
-  highlight: PlaceMapHighlight | null,
+  readHighlight: PlaceHighlightReader,
 ): void {
-  if (!highlight) {
-    if (isMapStyleReady(map)) removePlaceHighlightLayers(map);
-    return;
-  }
-
   scheduleWhenMapStyleReady(map, () => {
     if (!isMapStyleReady(map)) return false;
-    upsertPlaceHighlightLayers(map, highlight);
+    const highlight = readHighlight();
+    if (!highlight) {
+      removePlaceHighlightLayers(map);
+    } else {
+      upsertPlaceHighlightLayers(map, highlight);
+    }
     return true;
   });
 }

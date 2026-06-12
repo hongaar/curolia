@@ -918,7 +918,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         animationPhase: routeAnimationPhaseRef.current,
         darkBasemap: darkBasemapRef.current,
       });
-      syncPlaceHighlightLayer(map, placeHighlightRef.current);
+      syncPlaceHighlightLayer(map, () => placeHighlightRef.current);
       return true;
     });
   }, [syncVisibleMarkers]);

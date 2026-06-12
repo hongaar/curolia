@@ -30,6 +30,8 @@ import {
   applyMapCameraToSearchParams,
   applySelectedPinToSearchParams,
   normalizeCameraForUrl,
+  parseMapBboxFromSearchParams,
+  parseMapCameraFromSearchParams,
   PIN_FOCUS_ZOOM,
   stripMapBboxFromSearchParams,
 } from "@/lib/map-view-params";
@@ -133,6 +135,21 @@ const DEBOUNCE_MS = 320;
 const SEARCH_SHORTCUT_KEYS = formatShortcutKeys({ key: "k" });
 const SEARCH_SHORTCUT_LABEL = formatShortcutLabel({ key: "k" });
 const SEARCH_LISTBOX_ID = "curolia-search-listbox";
+const PLACE_URL_COORD_EPSILON = 1e-4;
+
+function placeSearchMatchesMapUrl(
+  place: PlaceSearchResult,
+  search: string,
+): boolean {
+  const params = new URLSearchParams(search);
+  if (parseMapBboxFromSearchParams(params) != null) return true;
+  const camera = parseMapCameraFromSearchParams(params);
+  if (!camera) return false;
+  return (
+    Math.abs(camera.lat - place.lat) < PLACE_URL_COORD_EPSILON &&
+    Math.abs(camera.lng - place.lng) < PLACE_URL_COORD_EPSILON
+  );
+}
 
 const PinFormDialog = lazy(() =>
   import("@/components/pins/pin-form-dialog").then((m) => ({
@@ -398,16 +415,31 @@ export function Search() {
     navigate(mapHrefWithSearch(route, q ? `?${q}` : ""), { replace: true });
   }, [activeMapId, isMapRoute, location.search, maps, navigate]);
 
-  const dismissActivePlacePanel = useCallback(() => {
+  const clearSelectedPlaceHighlight = useCallback(() => {
     clearSelectedPlace();
     stripPlaceHighlightFromUrl();
+  }, [clearSelectedPlace, stripPlaceHighlightFromUrl]);
+
+  const dismissActivePlacePanel = useCallback(() => {
+    clearSelectedPlaceHighlight();
     if (queryBeforePlacePick != null) {
       setInput(queryBeforePlacePick);
       setDebounced(queryBeforePlacePick);
       setQueryBeforePlacePick(null);
     }
     setOpen(true);
-  }, [clearSelectedPlace, queryBeforePlacePick, stripPlaceHighlightFromUrl]);
+  }, [clearSelectedPlaceHighlight, queryBeforePlacePick]);
+
+  const prevLocationSearchRef = useRef(location.search);
+  useEffect(() => {
+    const prevSearch = prevLocationSearchRef.current;
+    prevLocationSearchRef.current = location.search;
+    if (location.search === prevSearch) return;
+    if (!isMapRoute || selectedPlace == null) return;
+    if (!placeSearchMatchesMapUrl(selectedPlace, location.search)) {
+      clearSelectedPlace();
+    }
+  }, [clearSelectedPlace, isMapRoute, location.search, selectedPlace]);
 
   const dismissSearchAfterPick = useCallback(() => {
     dismissPopover();
@@ -423,6 +455,12 @@ export function Search() {
       stripPlaceHighlightFromUrl();
     }
   }, [dismissSearchAfterPick, selectedPlace, stripPlaceHighlightFromUrl]);
+
+  const dismissPlaceSearchFromMap = useCallback(() => {
+    clearSelectedPlaceHighlight();
+    setQueryBeforePlacePick(null);
+    dismissPopover();
+  }, [clearSelectedPlaceHighlight, dismissPopover]);
 
   useEffect(() => {
     if (open) return;
@@ -972,7 +1010,7 @@ export function Search() {
           }
           if (!next) {
             if (selectedPlace) {
-              dismissPopover();
+              dismissPlaceSearchFromMap();
               return;
             }
             clearSearch();
@@ -998,8 +1036,7 @@ export function Search() {
               onChange={(e) => {
                 const value = e.target.value;
                 if (selectedPlace && value !== selectedPlace.primaryName) {
-                  clearSelectedPlace();
-                  stripPlaceHighlightFromUrl();
+                  clearSelectedPlaceHighlight();
                   setQueryBeforePlacePick(null);
                 }
                 setInput(value);
