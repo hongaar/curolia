@@ -1105,6 +1105,7 @@ export type Database = {
         };
         Returns: string;
       };
+      is_map_editor: { Args: { p_map_id: string }; Returns: boolean };
       is_map_member: { Args: { p_map_id: string }; Returns: boolean };
       is_map_owner: { Args: { p_map_id: string }; Returns: boolean };
       is_map_publicly_readable: {
@@ -1120,6 +1121,7 @@ export type Database = {
         Returns: string;
       };
       map_member_can_edit: { Args: { p_map_id: string }; Returns: boolean };
+      map_owner_user_id: { Args: { p_map_id: string }; Returns: string };
       map_plugin_config_bool: {
         Args: { p_key: string; p_map_id: string; p_plugin_type_id: string };
         Returns: boolean;
@@ -1141,6 +1143,7 @@ export type Database = {
         Args: { p_desired: string; p_map_id: string; p_pin_id: string };
         Returns: string;
       };
+      pin_detail_path: { Args: { p_pin_id: string }; Returns: string };
       pin_map_id: { Args: { p_pin_id: string }; Returns: string };
       profile_claim_slug: {
         Args: { p_desired: string; p_profile_id: string };
@@ -1196,7 +1199,9 @@ export type Database = {
       notification_type:
         | "map_invitation"
         | "map_invitation_accepted"
-        | "map_ownership_received";
+        | "map_ownership_received"
+        | "pin_comment"
+        | "pin_reaction";
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
       plugin_sync_job_status: "pending" | "processing" | "completed" | "failed";
       push_delivery_status: "pending" | "sent" | "failed";
@@ -1340,6 +1345,8 @@ export const Constants = {
         "map_invitation",
         "map_invitation_accepted",
         "map_ownership_received",
+        "pin_comment",
+        "pin_reaction",
       ],
       plugin_link_status: ["disabled", "pending", "error", "connected"],
       plugin_sync_job_status: ["pending", "processing", "completed", "failed"],
