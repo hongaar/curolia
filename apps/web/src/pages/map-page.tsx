@@ -198,11 +198,19 @@ export function MapPage() {
   const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
   useLayoutEffect(() => {
     const prev = prevMapIdRef.current;
-    if (prev !== null && activeMapId !== null && prev !== activeMapId) {
+    const switchedMap =
+      prev !== null && activeMapId !== null && prev !== activeMapId;
+    const firstLoadWithoutCamera =
+      prev === null &&
+      activeMapId !== null &&
+      !cameraFromUrl &&
+      !bboxFromUrl &&
+      !readStoredMapCamera(activeMapId);
+    if (switchedMap || firstLoadWithoutCamera) {
       setMapFitGeneration((g) => g + 1);
     }
     prevMapIdRef.current = activeMapId;
-  }, [activeMapId]);
+  }, [activeMapId, cameraFromUrl, bboxFromUrl]);
 
   const cameraIdleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
