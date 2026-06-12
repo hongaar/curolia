@@ -25,6 +25,7 @@ describe("isPublicMapViewPathname", () => {
     expect(isPublicMapViewPathname("/settings/plugins")).toBe(false);
     expect(isPublicMapViewPathname("/map/trip")).toBe(false);
     expect(isPublicMapViewPathname("/pins/trip/cafe")).toBe(false);
+    expect(isPublicMapViewPathname("/for/geocaching")).toBe(false);
   });
 });
 
@@ -49,6 +50,11 @@ describe("parsePublicMapShortcutPathname", () => {
     expect(parsePublicMapShortcutPathname("/settings/plugins")).toBeNull();
     expect(parsePublicMapShortcutPathname("/joram/trip/pin/cafe")).toBeNull();
   });
+
+  it("ignores campaign landing pages", () => {
+    expect(parsePublicMapShortcutPathname("/for/geocaching")).toBeNull();
+    expect(parsePublicMapShortcutPathname("/for/travel/")).toBeNull();
+  });
 });
 
 describe("resolvePublicMapShortcutRedirect", () => {
@@ -57,6 +63,10 @@ describe("resolvePublicMapShortcutRedirect", () => {
       resolvePublicMapShortcutRedirect("/hongaar/lekker-zonder-wekker"),
     ).toBe("/hongaar/lekker-zonder-wekker/map");
     expect(resolvePublicMapShortcutRedirect("/joram/trip/map")).toBeNull();
+  });
+
+  it("does not redirect campaign landing pages", () => {
+    expect(resolvePublicMapShortcutRedirect("/for/geocaching")).toBeNull();
   });
 });
 

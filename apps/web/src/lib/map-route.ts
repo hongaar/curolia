@@ -19,6 +19,7 @@ const PUBLIC_MAP_SHORTCUT_PATH_RE = /^\/([^/]+)\/([^/]+)\/?$/;
 
 /** App routes that share `/:a/:b` shape but are not public map shortcuts. */
 const PUBLIC_MAP_SHORTCUT_SKIP_FIRST_SEGMENTS = new Set([
+  "for",
   "profile",
   "settings",
   "plugins",
