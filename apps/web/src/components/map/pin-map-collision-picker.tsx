@@ -4,17 +4,13 @@ import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { formatPinDateRange } from "@/lib/pin-dates";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { pinLocationLabel } from "@curolia/services/geocoding";
+import { BottomSheet } from "@curolia/ui/bottom-sheet";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
 import {
   MapMarkerCollisionFloatingPanel,
   MapMarkerCollisionPanel,
   type MapMarkerCollisionItem,
 } from "@curolia/ui/map-marker-collision-panel";
-import {
-  MapMarkerPopoverSheetContent,
-  MapMarkerPopoverSheetTitle,
-} from "@curolia/ui/map-marker-popover";
-import { Sheet } from "@curolia/ui/sheet";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import {
   useLayoutEffect,
@@ -36,6 +32,10 @@ type PinMapCollisionPickerProps = {
   mapRef: RefObject<PinMapHandle | null>;
   onSelectPin: (id: string) => void;
   onClose: () => void;
+  /** Mobile bottom sheet popup — for map inset measurement. */
+  popupRef?: RefObject<HTMLDivElement | null>;
+  /** Mobile bottom sheet dismiss slide-down start. */
+  onDismissStart?: () => void;
 };
 
 function pinMarkerVisual(pin: PinWithTags) {
@@ -90,6 +90,8 @@ export function PinMapCollisionPicker({
   mapRef,
   onSelectPin,
   onClose,
+  popupRef,
+  onDismissStart,
 }: PinMapCollisionPickerProps) {
   const isMobile = useMaxSm();
   const floatingRef = useRef<HTMLDivElement>(null);
@@ -215,19 +217,21 @@ export function PinMapCollisionPicker({
 
   if (isMobile) {
     return (
-      <Sheet
+      <BottomSheet
         open
+        title={title}
+        overlay="none"
         modal={false}
-        disablePointerDismissal
+        containBody
+        syncHistoryBack={false}
+        popupRef={popupRef}
+        onDismissStart={onDismissStart}
         onOpenChange={(open) => {
           if (!open) onClose();
         }}
       >
-        <MapMarkerPopoverSheetContent>
-          <MapMarkerPopoverSheetTitle>{title}</MapMarkerPopoverSheetTitle>
-          <MapMarkerCollisionPanel {...panelProps} sheet />
-        </MapMarkerPopoverSheetContent>
-      </Sheet>
+        <MapMarkerCollisionPanel {...panelProps} sheet />
+      </BottomSheet>
     );
   }
 

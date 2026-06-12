@@ -1,11 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
+import { BottomSheet } from "../bottom-sheet";
 import { MapFloatingPanel } from "../map-floating";
-import {
-  MapMarkerPopoverSheetContent,
-  MapMarkerPopoverSheetTitle,
-} from "../map-marker-popover";
-import { Sheet } from "../sheet";
 import {
   MapMarkerCollisionFloatingPanel,
   MapMarkerCollisionPanel,
@@ -96,18 +92,21 @@ export const ManyPins: Story = {
 
 export const MobileSheet: Story = {
   parameters: storyDocs(
-    "Bottom sheet wrapper for small viewports (`sheet` layout).",
+    "Bottom sheet with header close button — focus the control to verify ring inset.",
   ),
   args: {
     title: "4 pins here",
     items: sampleItems,
   },
   render: (args) => (
-    <Sheet defaultOpen>
-      <MapMarkerPopoverSheetContent>
-        <MapMarkerPopoverSheetTitle>{args.title}</MapMarkerPopoverSheetTitle>
-        <MapMarkerCollisionPanel {...args} sheet />
-      </MapMarkerPopoverSheetContent>
-    </Sheet>
+    <BottomSheet
+      open
+      title={args.title ?? "Pins"}
+      overlay="none"
+      containBody
+      partialHeight="min(85dvh, 40rem)"
+    >
+      <MapMarkerCollisionPanel {...args} sheet />
+    </BottomSheet>
   ),
 };

@@ -90,13 +90,13 @@ export type PinMapHandle = {
   /** Return the current map center + zoom (normalized for URL/storage). */
   getCurrentCamera: () => MapCamera | null;
   /**
-   * Ease to keep `lng/lat` visible in the left portion of the map,
-   * accounting for a right-side panel of `panelWidthPx` pixels.
+   * Ease to keep `lng/lat` in the visible map area, inset by panel/sheet padding
+   * (e.g. `{ right }` for a side sheet, `{ bottom }` for a bottom sheet).
    */
   panForPanel: (
     lng: number,
     lat: number,
-    panelWidthPx: number,
+    inset: { top?: number; right?: number; bottom?: number; left?: number },
     onSettled?: () => void,
   ) => void;
   /** Restore a previously saved camera and reset panel padding to 0. */
@@ -193,6 +193,8 @@ type PinMapProps = {
 };
 
 const CAMERA_DURATION_MS = 850;
+/** Side/bottom sheet pan + restore — aligned with `@curolia/ui` bottom sheet dismiss. */
+const PANEL_CAMERA_DURATION_MS = 320;
 /** Fit-bounds inset per side as a fraction of map container width. */
 const CAMERA_FIT_PADDING_WIDTH_FRACTION = 0.1;
 const CAMERA_FIT_PADDING_MIN_PX = 48;
@@ -1127,16 +1129,27 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       panForPanel(
         lng: number,
         lat: number,
-        panelWidthPx: number,
+        inset: {
+          top?: number;
+          right?: number;
+          bottom?: number;
+          left?: number;
+        },
         onSettled?: () => void,
       ) {
         const map = mapRef.current;
         if (!map) return;
+        map.stop();
         invalidateMarkerViewportCullingRef.current();
         map.easeTo({
           center: [lng, lat],
-          padding: { right: panelWidthPx, left: 0, top: 0, bottom: 0 },
-          duration: 280,
+          padding: {
+            top: inset.top ?? 0,
+            right: inset.right ?? 0,
+            bottom: inset.bottom ?? 0,
+            left: inset.left ?? 0,
+          },
+          duration: PANEL_CAMERA_DURATION_MS,
           essential: true,
         });
         map.once("moveend", () => {
@@ -1205,7 +1218,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           center: [camera.lng, camera.lat],
           zoom: camera.zoom,
           padding: { right: 0, left: 0, top: 0, bottom: 0 },
-          duration: 280,
+          duration: PANEL_CAMERA_DURATION_MS,
           essential: true,
         });
         map.once("moveend", () => {
@@ -1222,7 +1235,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           center: [c.lng, c.lat],
           zoom: map.getZoom(),
           padding: { right: 0, left: 0, top: 0, bottom: 0 },
-          duration: 280,
+          duration: PANEL_CAMERA_DURATION_MS,
           essential: true,
         });
         map.once("moveend", () => {

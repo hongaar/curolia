@@ -16,6 +16,7 @@
     "./app-shell": "./src/components/app-shell/index.ts",
     "./badge": "./src/components/badge/index.ts",
     "./blog": "./src/components/blog/index.ts",
+    "./bottom-sheet": "./src/components/bottom-sheet/index.ts",
     "./box": "./src/components/box/index.ts",
     "./button": "./src/components/button/index.ts",
     "./card": "./src/components/card/index.ts",

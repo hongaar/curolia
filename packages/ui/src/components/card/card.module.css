@@ -130,9 +130,13 @@
 
 .action {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   align-self: start;
   justify-self: end;
+}
+
+.header:has([data-slot="card-description"]) .action {
+  grid-row: 1 / span 2;
 }
 
 .content {

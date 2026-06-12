@@ -19,6 +19,7 @@ import {
 } from "@curolia/plugin-open-meteo";
 import { pinLocationLabel } from "@curolia/services/geocoding";
 import { contrastingForeground } from "@curolia/ui";
+import { BottomSheet } from "@curolia/ui/bottom-sheet";
 import { Button } from "@curolia/ui/button";
 import { MapFloatingAnchor, MapFloatingPanel } from "@curolia/ui/map-floating";
 import {
@@ -30,8 +31,6 @@ import {
   MapMarkerPopoverPhotoSkeleton,
   MapMarkerPopoverPhotoStrip,
   MapMarkerPopoverSheetBody,
-  MapMarkerPopoverSheetContent,
-  MapMarkerPopoverSheetTitle,
   MapMarkerPopoverStatus,
   MapMarkerPopoverStatusStack,
   MapMarkerPopoverTagRow,
@@ -41,7 +40,6 @@ import {
   PinPhotoLightbox,
   PinPhotoThumb,
 } from "@curolia/ui/pin-photo-lightbox";
-import { Sheet } from "@curolia/ui/sheet";
 import { TagBadge } from "@curolia/ui/tag-badge";
 import { autoUpdate, computePosition } from "@floating-ui/dom";
 import { useQuery } from "@tanstack/react-query";
@@ -410,17 +408,17 @@ export function PinMapMarkerPopover({
 
   if (isMobile) {
     return (
-      <Sheet
+      <BottomSheet
         open
+        title={titleText}
+        overlay="none"
         modal={false}
-        disablePointerDismissal
-        onOpenChange={(o) => !o && onClose()}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
       >
-        <MapMarkerPopoverSheetContent>
-          <MapMarkerPopoverSheetTitle>{titleText}</MapMarkerPopoverSheetTitle>
-          <MapMarkerPopoverSheetBody>{body}</MapMarkerPopoverSheetBody>
-        </MapMarkerPopoverSheetContent>
-      </Sheet>
+        <MapMarkerPopoverSheetBody>{body}</MapMarkerPopoverSheetBody>
+      </BottomSheet>
     );
   }
 

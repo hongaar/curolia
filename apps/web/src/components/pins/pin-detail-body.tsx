@@ -83,6 +83,8 @@ interface PinDetailBodyProps {
   onNavigateSequencePin?: (pin: PinWithTags) => void;
   /** Map side sheet: move extra pin actions below the title when more than one. */
   sideSheet?: boolean;
+  /** Map bottom sheet: show toolbar actions on narrow viewports. */
+  bottomSheet?: boolean;
 }
 
 export function PinDetailBody({
@@ -95,6 +97,7 @@ export function PinDetailBody({
   mapPins,
   onNavigateSequencePin,
   sideSheet = false,
+  bottomSheet = false,
 }: PinDetailBodyProps) {
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
@@ -151,8 +154,9 @@ export function PinDetailBody({
   });
 
   const pluginActionCount = countPinPluginDetailActions(enabledPlugins);
-  const showPluginActions = !isMaxSm && pluginActionCount > 0;
-  const showEditInToolbar = canEdit && !isMaxSm;
+  const showToolbarActions = !isMaxSm || bottomSheet;
+  const showPluginActions = showToolbarActions && pluginActionCount > 0;
+  const showEditInToolbar = canEdit && showToolbarActions;
   const pinToolbarActionCount =
     (showPluginActions ? pluginActionCount : 0) + (showEditInToolbar ? 1 : 0);
   const overflowPinActions = sideSheet && pinToolbarActionCount > 1;

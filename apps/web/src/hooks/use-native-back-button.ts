@@ -6,6 +6,7 @@ import {
 import { isStackRoute } from "@/lib/stack-routes";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { isBottomSheetHistoryState } from "@curolia/ui/bottom-sheet";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -21,6 +22,10 @@ export function useNativeBackButton() {
     let remove: (() => void) | undefined;
 
     void App.addListener("backButton", () => {
+      if (isBottomSheetHistoryState(window.history.state)) {
+        window.history.back();
+        return;
+      }
       if (isPinDetailPagePathname(pathname)) {
         const target = pinDetailBackTarget(frozenBase);
         if (target) {

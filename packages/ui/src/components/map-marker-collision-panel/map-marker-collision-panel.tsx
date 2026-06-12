@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useCallback, type WheelEvent } from "react";
+import { useEffect, useRef } from "react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
@@ -41,21 +41,33 @@ export function MapMarkerCollisionPanel({
   fill = false,
   sheet = false,
 }: MapMarkerCollisionPanelProps) {
-  const onListWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-    const list = event.currentTarget;
-    const { scrollTop, scrollHeight, clientHeight } = list;
-    const delta = event.deltaY;
-    const canScrollUp = scrollTop > 0;
-    const canScrollDown = scrollTop + clientHeight < scrollHeight - 1;
-    if ((delta < 0 && canScrollUp) || (delta > 0 && canScrollDown)) {
-      event.preventDefault();
-    }
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    const onWheel = (event: WheelEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = list;
+      const delta = event.deltaY;
+      const canScrollUp = scrollTop > 0;
+      const canScrollDown = scrollTop + clientHeight < scrollHeight - 1;
+      if ((delta < 0 && canScrollUp) || (delta > 0 && canScrollDown)) {
+        event.stopPropagation();
+      }
+    };
+
+    list.addEventListener("wheel", onWheel, { passive: true });
+    return () => list.removeEventListener("wheel", onWheel);
   }, []);
 
   return (
     <div
-      className={cn(styles.root, fill && styles.fill, sheet && styles.sheet)}
+      className={cn(
+        styles.root,
+        (fill || sheet) && styles.fill,
+        sheet && styles.sheet,
+      )}
     >
       <div className={styles.header}>
         <h2 className={styles.title}>{title}</h2>
@@ -70,10 +82,10 @@ export function MapMarkerCollisionPanel({
         </Button>
       </div>
       <div
+        ref={listRef}
         className={styles.list}
         role="listbox"
         aria-label={title}
-        onWheel={onListWheel}
       >
         {items.map((item) => (
           <SearchResultRow key={item.id} onClick={() => onSelectItem(item.id)}>

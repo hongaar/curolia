@@ -7,7 +7,10 @@ import {
 } from "@/components/map/map-pointer-context-menu";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
-import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
+import {
+  PinDetailSideSheet,
+  pinDetailSideSheetTitle,
+} from "@/components/map/pin-detail-side-sheet";
 import {
   PinMap,
   type PinCollisionClickPayload,
@@ -27,7 +30,7 @@ import { useMinMd } from "@/hooks/use-min-md";
 import { useNativeShareLink } from "@/hooks/use-native-share-link";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
-import { pinDetailHref, pinEditHref } from "@/lib/app-paths";
+import { pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
   readStoredMapCamera,
@@ -74,6 +77,7 @@ import { supabase } from "@/lib/supabase";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
+import { BottomSheet } from "@curolia/ui/bottom-sheet";
 import { Button } from "@curolia/ui/button";
 import {
   Dialog,
@@ -106,6 +110,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type RefObject,
   type SetStateAction,
 } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -123,6 +128,11 @@ const PinFormDialog = lazy(() =>
  */
 const PANEL_RIGHT_WIDTH_CSS = "clamp(24rem, 35%, 40rem)";
 
+/** Matches mobile pin `BottomSheet` `partialHeight="min(85dvh, 40rem)"`. */
+function estimatedMobilePinSheetHeightPx(): number {
+  return Math.min(window.innerHeight * 0.85, 40 * 16);
+}
+
 export function MapPage() {
   const qc = useQueryClient();
   const isWideEnough = useMinMd();
@@ -134,6 +144,9 @@ export function MapPage() {
   }>();
   useMapSlugRouteSync(profileSlug, mapSlug);
   const mapRef = useRef<PinMapHandle>(null);
+  const mobilePinSheetDismissRef = useRef<(() => void) | null>(null);
+  const mobilePinSheetPopupRef = useRef<HTMLDivElement>(null);
+  const collisionSheetPopupRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   /** Camera captured just before the side panel opened — restored on close. */
   const prevCameraBeforeSheetRef = useRef<MapCamera | null>(null);
@@ -141,6 +154,14 @@ export function MapPage() {
   const postPanCameraBeforeSheetRef = useRef<MapCamera | null>(null);
   /** Track previous sidebarPinId to detect open/close transitions. */
   const prevSidebarPinIdRef = useRef<string | null>(null);
+  const prevMobileSheetPinIdRef = useRef<string | null>(null);
+  const pinSheetCameraRestoredRef = useRef(false);
+  const prevCollisionPickerRef = useRef<PinMapCollisionPickerState | null>(
+    null,
+  );
+  const collisionPinPickRef = useRef(false);
+  /** Blocks URL-driven pin sheet reopen until the user selects a pin again. */
+  const mobilePinSheetUserClosedRef = useRef(false);
   /** True only when the side panel opens from a map marker click (not URL restore). */
   const [sidePanelAnimateIn, setSidePanelAnimateIn] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -215,6 +236,8 @@ export function MapPage() {
   const [relocatePinId, setRelocatePinId] = useState<string | null>(null);
   const [pinCollisionPicker, setPinCollisionPicker] =
     useState<PinMapCollisionPickerState | null>(null);
+  const [mobilePinSheetOpen, setMobilePinSheetOpen] = useState(false);
+  const [mobileSheetPinId, setMobileSheetPinId] = useState<string | null>(null);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
@@ -311,7 +334,9 @@ export function MapPage() {
             const parsed = parseMapCameraFromSearchParams(prevNoBbox);
             const withPin = applySelectedPinToSearchParams(
               prevNoBbox,
-              sidebarPinTokenRef.current,
+              mobilePinSheetUserClosedRef.current
+                ? null
+                : parseSelectedPinTokenFromSearchParams(prevNoBbox),
             );
             const sameCamera =
               parsed && cameraToSyncKey(parsed) === cameraToSyncKey(normalized);
@@ -480,15 +505,121 @@ export function MapPage() {
     cameraFromUrlRef.current = cameraFromUrl;
   }, [cameraFromUrl]);
 
+  useEffect(() => {
+    if (!isWideEnough && sidebarPinToken) {
+      if (mobilePinSheetUserClosedRef.current) return;
+      if (sidebarPinId && sidebarPinId !== mobileSheetPinId) {
+        setMobileSheetPinId(sidebarPinId);
+      }
+      if (!mobilePinSheetOpen) {
+        setMobilePinSheetOpen(true);
+      }
+      return;
+    }
+    if (
+      !sidebarPinToken &&
+      !mobilePinSheetUserClosedRef.current &&
+      !mobileSheetPinId
+    ) {
+      setMobilePinSheetOpen(false);
+      setMobileSheetPinId(null);
+    }
+  }, [
+    sidebarPinToken,
+    sidebarPinId,
+    mobileSheetPinId,
+    mobilePinSheetOpen,
+    isWideEnough,
+  ]);
+
+  const restoreCameraAfterPinSheetClose = useCallback(
+    (options?: { respectUrlPin?: boolean }) => {
+      if (pinSheetCameraRestoredRef.current) return;
+      if (options?.respectUrlPin && sidebarPinTokenRef.current) return;
+
+      const prevCamera = prevCameraBeforeSheetRef.current;
+      const postPanCamera = postPanCameraBeforeSheetRef.current;
+      const currentCamera = mapRef.current?.getCurrentCamera() ?? null;
+      const userAdjustedCamera =
+        postPanCamera != null &&
+        currentCamera != null &&
+        !camerasCloseEnough(currentCamera, postPanCamera);
+
+      if (userAdjustedCamera) {
+        mapRef.current?.clearPanelPadding();
+      } else if (prevCamera) {
+        mapRef.current?.restoreCameraAfterPanel(prevCamera);
+      }
+      pinSheetCameraRestoredRef.current = true;
+      prevCameraBeforeSheetRef.current = null;
+      postPanCameraBeforeSheetRef.current = null;
+    },
+    [],
+  );
+
+  const mobilePanCommittedPinIdRef = useRef<string | null>(null);
+  const collisionPanCommittedRef = useRef(false);
+
+  const runMobilePinPan = useCallback(
+    (
+      lng: number,
+      lat: number,
+      popupRef: RefObject<HTMLDivElement | null>,
+      onSettled?: () => void,
+    ) => {
+      const measured = popupRef.current?.getBoundingClientRect().height ?? 0;
+      const height =
+        measured >= 48 ? measured : estimatedMobilePinSheetHeightPx();
+      mapRef.current?.panForPanel(lng, lat, { bottom: height }, onSettled);
+    },
+    [],
+  );
+
+  const beginMobileMapPanForSheet = useCallback(
+    (
+      lng: number,
+      lat: number,
+      popupRef: RefObject<HTMLDivElement | null>,
+      options?: { captureCamera?: boolean },
+    ) => {
+      if (options?.captureCamera !== false) {
+        pinSheetCameraRestoredRef.current = false;
+        prevCameraBeforeSheetRef.current =
+          mapRef.current?.getCurrentCamera() ?? null;
+        postPanCameraBeforeSheetRef.current = null;
+      }
+      runMobilePinPan(lng, lat, popupRef, () => {
+        postPanCameraBeforeSheetRef.current =
+          mapRef.current?.getCurrentCamera() ?? null;
+      });
+    },
+    [runMobilePinPan],
+  );
+
+  const onCollisionSheetDismissStart = useCallback(() => {
+    restoreCameraAfterPinSheetClose();
+  }, [restoreCameraAfterPinSheetClose]);
+
   const onClosePinCollisionPicker = useCallback(() => {
+    if (!isWideEnough && pinCollisionPicker) {
+      restoreCameraAfterPinSheetClose();
+    }
     setPinCollisionPicker(null);
     mapRef.current?.invalidatePendingMarkerSelection();
-  }, []);
+  }, [isWideEnough, pinCollisionPicker, restoreCameraAfterPinSheetClose]);
 
   const onPinCollisionClick = useCallback(
     (payload: PinCollisionClickPayload) => {
       setQuickAddPin(null);
       setQuickAddAnchorScreen(null);
+      if (!isWideEnough) {
+        collisionPanCommittedRef.current = true;
+        beginMobileMapPanForSheet(
+          payload.lng,
+          payload.lat,
+          collisionSheetPopupRef,
+        );
+      }
       setPinCollisionPicker({
         pinIds: payload.pinIds,
         lng: payload.lng,
@@ -503,7 +634,7 @@ export function MapPage() {
         replace: true,
       });
     },
-    [setSearchParams],
+    [setSearchParams, isWideEnough, beginMobileMapPanForSheet],
   );
 
   const onSelectPin = useCallback(
@@ -514,40 +645,74 @@ export function MapPage() {
       const row = pins.find((x) => x.id === id);
       const token = row?.slug ?? id;
 
-      if (!isWideEnough) {
-        // On narrow screens navigate directly to pin detail page
-        if (activeMapRoute && row?.slug) {
-          navigate(pinDetailHref(activeMapRoute, row.slug));
-          return;
-        }
-      }
-
       setSidePanelAnimateIn(true);
+      if (!isWideEnough) {
+        mobilePinSheetUserClosedRef.current = false;
+        if (row && typeof row.lat === "number" && typeof row.lng === "number") {
+          const openingFreshPinSheet =
+            !mobilePinSheetOpen || mobileSheetPinId === null;
+          mobilePanCommittedPinIdRef.current = id;
+          beginMobileMapPanForSheet(row.lng, row.lat, mobilePinSheetPopupRef, {
+            captureCamera: !collisionPinPickRef.current && openingFreshPinSheet,
+          });
+        }
+        setMobileSheetPinId(id);
+        setMobilePinSheetOpen(true);
+      }
       setSearchParams((prev) => applySelectedPinToSearchParams(prev, token), {
         replace: true,
       });
     },
-    [setSearchParams, pins, isWideEnough, activeMapRoute, navigate],
+    [
+      setSearchParams,
+      pins,
+      isWideEnough,
+      mobilePinSheetOpen,
+      mobileSheetPinId,
+      beginMobileMapPanForSheet,
+    ],
   );
 
   const onPickCollisionPin = useCallback(
     (id: string) => {
-      setPinCollisionPicker(null);
+      collisionPinPickRef.current = true;
       onSelectPin(id);
     },
     [onSelectPin],
   );
 
+  const beginMobilePinSheetClose = useCallback(() => {
+    mobilePinSheetUserClosedRef.current = true;
+    clearTimeout(cameraIdleTimerRef.current);
+    sidebarPinTokenRef.current = null;
+    setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+      replace: true,
+    });
+    restoreCameraAfterPinSheetClose();
+  }, [restoreCameraAfterPinSheetClose, setSearchParams]);
+
+  const onMobilePinSheetDismissStart = useCallback(() => {
+    beginMobilePinSheetClose();
+  }, [beginMobilePinSheetClose]);
+
   const onClosePinMapPopover = useCallback(() => {
+    if (!isWideEnough) {
+      beginMobilePinSheetClose();
+    } else {
+      clearTimeout(cameraIdleTimerRef.current);
+      sidebarPinTokenRef.current = null;
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+        replace: true,
+      });
+    }
+    setMobilePinSheetOpen(false);
+    setMobileSheetPinId(null);
     setSidePanelAnimateIn(false);
     mapRef.current?.invalidatePendingMarkerSelection();
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-    setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
-      replace: true,
-    });
-  }, [setSearchParams]);
+  }, [isWideEnough, beginMobilePinSheetClose, setSearchParams]);
 
   const onMapContextMenu = useCallback(
     (
@@ -866,16 +1031,6 @@ export function MapPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [activeRelocatePinId]);
 
-  // Redirect ?pin= → pin detail on screens too narrow for the side panel
-  useEffect(() => {
-    if (isWideEnough || !sidebarPinId) return;
-    const pin = pins.find((p) => p.id === sidebarPinId);
-    if (!pin?.slug) return;
-    if (!activeMapRoute) return;
-    // Replace map?pin= with pin detail (frozen base strips ?pin= on stack open).
-    navigate(pinDetailHref(activeMapRoute, pin.slug), { replace: true });
-  }, [isWideEnough, sidebarPinId, pins, activeMapRoute, navigate]);
-
   // Camera management: pan map when side panel opens; restore when it closes
   const pinsRef = useRef(pins);
   useLayoutEffect(() => {
@@ -884,18 +1039,55 @@ export function MapPage() {
 
   useLayoutEffect(() => {
     prevSidebarPinIdRef.current = null;
+    prevMobileSheetPinIdRef.current = null;
+    prevCollisionPickerRef.current = null;
+    collisionPinPickRef.current = false;
+    mobilePinSheetUserClosedRef.current = false;
+    pinSheetCameraRestoredRef.current = false;
+    mobilePanCommittedPinIdRef.current = null;
+    collisionPanCommittedRef.current = false;
     prevCameraBeforeSheetRef.current = null;
     postPanCameraBeforeSheetRef.current = null;
-  }, [activeMapId]);
+  }, [activeMapId, isWideEnough]);
 
-  useEffect(() => {
-    const prevId = prevSidebarPinIdRef.current;
-    const currId = sidebarPinId ?? null;
-
-    if (!isWideEnough) {
-      prevSidebarPinIdRef.current = currId;
+  useLayoutEffect(() => {
+    if (isWideEnough) {
+      prevCollisionPickerRef.current = pinCollisionPicker;
       return;
     }
+
+    const prev = prevCollisionPickerRef.current;
+    const curr = pinCollisionPicker;
+
+    if (curr && !prev) {
+      if (!collisionPanCommittedRef.current) {
+        beginMobileMapPanForSheet(curr.lng, curr.lat, collisionSheetPopupRef);
+      } else {
+        collisionPanCommittedRef.current = false;
+      }
+    } else if (!curr && prev) {
+      if (collisionPinPickRef.current) {
+        collisionPinPickRef.current = false;
+      } else if (!pinSheetCameraRestoredRef.current) {
+        restoreCameraAfterPinSheetClose({ respectUrlPin: true });
+      }
+    }
+
+    prevCollisionPickerRef.current = curr;
+  }, [
+    pinCollisionPicker,
+    isWideEnough,
+    beginMobileMapPanForSheet,
+    restoreCameraAfterPinSheetClose,
+  ]);
+
+  useLayoutEffect(() => {
+    const prevId = isWideEnough
+      ? prevSidebarPinIdRef.current
+      : prevMobileSheetPinIdRef.current;
+    const currId = isWideEnough
+      ? (sidebarPinId ?? null)
+      : (mobileSheetPinId ?? null);
 
     // ?pin= is set but the target map's pins are still loading (e.g. cross-map search).
     if (
@@ -911,58 +1103,69 @@ export function MapPage() {
       return;
     }
 
-    prevSidebarPinIdRef.current = currId;
+    if (isWideEnough) {
+      prevSidebarPinIdRef.current = currId;
+    } else {
+      prevMobileSheetPinIdRef.current = currId;
+    }
 
     const panOpenPin = (pinId: string) => {
+      if (!isWideEnough && mobilePanCommittedPinIdRef.current === pinId) {
+        mobilePanCommittedPinIdRef.current = null;
+        return;
+      }
+
       const pin = pinsRef.current.find((p) => p.id === pinId);
       if (pin && typeof pin.lat === "number" && typeof pin.lng === "number") {
-        const panelWidthPx = panelRef.current?.offsetWidth ?? 384;
-        mapRef.current?.panForPanel(pin.lng, pin.lat, panelWidthPx, () => {
-          postPanCameraBeforeSheetRef.current =
-            mapRef.current?.getCurrentCamera() ?? null;
-        });
+        if (isWideEnough) {
+          mapRef.current?.panForPanel(
+            pin.lng,
+            pin.lat,
+            { right: panelRef.current?.offsetWidth ?? 384 },
+            () => {
+              postPanCameraBeforeSheetRef.current =
+                mapRef.current?.getCurrentCamera() ?? null;
+            },
+          );
+        } else {
+          beginMobileMapPanForSheet(pin.lng, pin.lat, mobilePinSheetPopupRef, {
+            captureCamera: false,
+          });
+        }
       } else {
         postPanCameraBeforeSheetRef.current = prevCameraBeforeSheetRef.current;
       }
     };
 
     if (currId && !prevId) {
-      // Panel opening — capture camera, then pan so pin sits in visible left area
-      prevCameraBeforeSheetRef.current =
-        mapRef.current?.getCurrentCamera() ?? null;
+      if (collisionPinPickRef.current) {
+        collisionPinPickRef.current = false;
+        pinSheetCameraRestoredRef.current = false;
+      } else if (!mobilePanCommittedPinIdRef.current) {
+        pinSheetCameraRestoredRef.current = false;
+        prevCameraBeforeSheetRef.current =
+          mapRef.current?.getCurrentCamera() ?? null;
+      }
       postPanCameraBeforeSheetRef.current = null;
       panOpenPin(currId);
     } else if (currId && prevId && currId !== prevId) {
-      // Switching pins (e.g. search result on another map) — pan to the new pin.
       panOpenPin(currId);
     } else if (!currId && prevId) {
-      // Pin id not resolved yet while ?pin= is still in the URL — not a real close.
-      if (sidebarPinTokenRef.current) {
-        return;
+      if (pinSheetCameraRestoredRef.current) {
+        pinSheetCameraRestoredRef.current = false;
+      } else {
+        restoreCameraAfterPinSheetClose({ respectUrlPin: true });
       }
-      const prevCamera = prevCameraBeforeSheetRef.current;
-      const postPanCamera = postPanCameraBeforeSheetRef.current;
-      const currentCamera = mapRef.current?.getCurrentCamera() ?? null;
-      const userAdjustedCamera =
-        postPanCamera != null &&
-        currentCamera != null &&
-        !camerasCloseEnough(currentCamera, postPanCamera);
-
-      if (userAdjustedCamera) {
-        // User panned/zoomed while the sheet was open — keep their view.
-        mapRef.current?.clearPanelPadding();
-      } else if (prevCamera) {
-        mapRef.current?.restoreCameraAfterPanel(prevCamera);
-      }
-      prevCameraBeforeSheetRef.current = null;
-      postPanCameraBeforeSheetRef.current = null;
     }
   }, [
     sidebarPinId,
     sidebarPinToken,
+    mobileSheetPinId,
     pinsQuery.isPending,
     pinsQuery.isFetching,
     isWideEnough,
+    beginMobileMapPanForSheet,
+    restoreCameraAfterPinSheetClose,
   ]);
 
   async function saveTag() {
@@ -1006,6 +1209,11 @@ export function MapPage() {
 
   const showSidePanel = Boolean(sidebarPinId && isWideEnough);
 
+  const mobileSheetPin = mobileSheetPinId
+    ? (pins.find((pin) => pin.id === mobileSheetPinId) ?? null)
+    : null;
+  const mobilePinSheetTitle = pinDetailSideSheetTitle(mobileSheetPin);
+
   if (mapLoading) {
     return <MapViewInitialLoader />;
   }
@@ -1029,7 +1237,11 @@ export function MapPage() {
             ref={mapRef}
             pins={pins}
             selectedTagIds={filterTagIds}
-            selectedPinId={sidebarPinId}
+            selectedPinId={
+              !isWideEnough && mobileSheetPinId
+                ? mobileSheetPinId
+                : sidebarPinId
+            }
             contextDraftPin={
               pointerContextMenu?.type === "map"
                 ? {
@@ -1051,6 +1263,10 @@ export function MapPage() {
             onMapBackgroundClick={() => {
               if (pinCollisionPicker) {
                 onClosePinCollisionPicker();
+                return;
+              }
+              if (sidebarPinId && !isWideEnough) {
+                mobilePinSheetDismissRef.current?.();
                 return;
               }
               if (sidebarPinId) onClosePinMapPopover();
@@ -1111,6 +1327,38 @@ export function MapPage() {
         ) : null}
       </MapLayer>
 
+      {!isWideEnough ? (
+        <BottomSheet
+          open={mobilePinSheetOpen}
+          popupRef={mobilePinSheetPopupRef}
+          dismissRef={mobilePinSheetDismissRef}
+          title={mobilePinSheetTitle}
+          overlay="none"
+          modal={false}
+          partialHeight="min(85dvh, 40rem)"
+          onDismissStart={onMobilePinSheetDismissStart}
+          onOpenChange={(open) => {
+            if (!open) {
+              setMobilePinSheetOpen(false);
+              onClosePinMapPopover();
+            }
+          }}
+        >
+          {mobileSheetPinId ? (
+            <PinDetailSideSheet
+              key={mobileSheetPinId}
+              pinId={mobileSheetPinId}
+              mapId={activeMapId!}
+              mapRoute={activeMapRoute}
+              mapPins={pins}
+              onNavigatePin={onSelectPin}
+              onClose={onClosePinMapPopover}
+              bottomSheet
+            />
+          ) : null}
+        </BottomSheet>
+      ) : null}
+
       {pinCollisionPicker ? (
         <PinMapCollisionPicker
           state={pinCollisionPicker}
@@ -1118,6 +1366,8 @@ export function MapPage() {
           mapRef={mapRef}
           onSelectPin={onPickCollisionPin}
           onClose={onClosePinCollisionPicker}
+          popupRef={collisionSheetPopupRef}
+          onDismissStart={onCollisionSheetDismissStart}
         />
       ) : null}
 

@@ -66,6 +66,29 @@ export const Small: Story = {
   ),
 };
 
+export const TitleWithAction: Story = {
+  parameters: storyDocs(
+    "Title and trailing action only — no extra header grid row.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <Card>
+        <CardHeader>
+          <CardTitle>Pin settings</CardTitle>
+          <CardAction>
+            <Button size="icon-sm" variant="ghost" aria-label="Close">
+              ×
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <p style={{ margin: 0 }}>Card body content.</p>
+        </CardContent>
+      </Card>
+    </StoryFrame>
+  ),
+};
+
 export const ContentOnly: Story = {
   parameters: storyDocs("Content region without header or footer."),
   render: () => (

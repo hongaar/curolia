@@ -11,7 +11,6 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .root {
@@ -19,11 +18,10 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  overflow: hidden;
 }
 
-.sheet {
-  max-height: min(85dvh, 36rem);
+.fill:not(.sheet) {
+  overflow: hidden;
 }
 
 .header {
@@ -33,6 +31,11 @@
   justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+/* `BottomSheet` body supplies top inset for the close-button focus ring. */
+.sheet .header {
+  padding-top: 0;
 }
 
 .title {
