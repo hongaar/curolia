@@ -10,6 +10,22 @@
   padding: 0.625rem 0.75rem;
 }
 
+.panelPlain {
+  margin-top: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.panelPlain .heading {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--foreground);
+}
+
 .heading {
   margin: 0 0 0.5rem;
   font-size: var(--font-size-xs);

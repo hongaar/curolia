@@ -5,11 +5,21 @@ import {
   unlinkPluginOAuth,
 } from "@/lib/plugin-oauth-api";
 import { startPluginOAuth } from "@/lib/plugin-oauth-start";
+import { getPluginSetupInfo } from "@/lib/plugin-setup-status";
 import { supabase } from "@/lib/supabase";
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import type { UserPlugin } from "@/types/database";
 import type { PluginDefinition } from "@curolia/plugin-contract";
+import { Button } from "@curolia/ui/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@curolia/ui/dialog";
 import {
   AppPageLayout,
   PageHeader,
@@ -17,48 +27,132 @@ import {
   PageHeaderTitle,
   PagePanel,
 } from "@curolia/ui/page";
+import { PluginAccountPanelProvider } from "@curolia/ui/plugin-account";
 import {
-  PluginListIcon,
-  PluginListRow,
-  PluginListRowDescription,
-  PluginListRowHint,
-  PluginListRowInfo,
-  PluginListRowMain,
-  PluginListRowTitle,
-  PluginListRowToggle,
+  PluginGrid,
+  PluginGridCard,
+  PluginGridCardActions,
+  PluginGridCardConfigureButton,
+  PluginGridCardDescription,
+  PluginGridCardFooter,
+  PluginGridCardFooterRow,
+  PluginGridCardHeading,
+  PluginGridCardIcon,
+  PluginGridCardTitle,
+  PluginGridCardToggle,
+  PluginGridCardTop,
 } from "@curolia/ui/plugins";
 import { Stack } from "@curolia/ui/stack";
 import { Switch } from "@curolia/ui/switch";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 let oauthRedirectHandledSig = "";
 
-function PluginRow({
+function PluginGridItem({
   plugin,
   up,
   onToggle,
   toggleDisabled,
-  accessToken,
-  onRefreshAccountPanels,
-  userId,
+  oauthStatus,
+  oauthLoading,
+  onConfigure,
+  onLinkAccount,
 }: {
   plugin: PluginDefinition;
   up: UserPlugin | undefined;
   onToggle: (enabled: boolean) => void;
   toggleDisabled: boolean;
-  accessToken: string | null;
-  onRefreshAccountPanels: () => Promise<void>;
-  userId: string | undefined;
+  oauthStatus?: Awaited<ReturnType<typeof fetchPluginOAuthLinkStatus>>;
+  oauthLoading: boolean;
+  onConfigure: () => void;
+  onLinkAccount: () => void;
 }) {
   const Icon = plugin.icon;
   const implemented = plugin.implemented;
   const enabled = up?.enabled ?? false;
-  const Panel = plugin.AccountSettingsPanel;
+
+  const setup = getPluginSetupInfo(plugin, {
+    enabled,
+    oauthStatus,
+    oauthLoading,
+    userConfig: up?.config,
+  });
+
+  return (
+    <PluginGridCard unavailable={!implemented}>
+      <PluginGridCardTop>
+        <PluginGridCardIcon>
+          <Icon size={4} />
+        </PluginGridCardIcon>
+        <PluginGridCardHeading>
+          <PluginGridCardTitle>{plugin.displayName}</PluginGridCardTitle>
+          <PluginGridCardDescription>
+            {plugin.description ?? "Plugin integration."}
+          </PluginGridCardDescription>
+        </PluginGridCardHeading>
+        <PluginGridCardToggle>
+          <Switch
+            id={`sw-${plugin.id}`}
+            checked={enabled}
+            disabled={!implemented || toggleDisabled}
+            aria-label={`Enable ${plugin.displayName}`}
+            onCheckedChange={(checked) => {
+              if (!implemented) return;
+              onToggle(checked === true);
+            }}
+          />
+        </PluginGridCardToggle>
+      </PluginGridCardTop>
+
+      <PluginGridCardFooter>
+        <PluginGridCardFooterRow>
+          <PluginGridCardActions>
+            {implemented &&
+            enabled &&
+            setup.primaryAction === "link_account" ? (
+              <Button type="button" size="sm" onClick={() => onLinkAccount()}>
+                {setup.primaryActionLabel ?? "Link account"}
+              </Button>
+            ) : null}
+            {implemented && enabled && setup.primaryAction === "configure" ? (
+              <Button type="button" size="sm" onClick={() => onConfigure()}>
+                {setup.primaryActionLabel ?? "Configure"}
+              </Button>
+            ) : null}
+            {implemented && enabled && setup.showConfigureIcon ? (
+              <PluginGridCardConfigureButton onClick={() => onConfigure()} />
+            ) : null}
+          </PluginGridCardActions>
+        </PluginGridCardFooterRow>
+      </PluginGridCardFooter>
+    </PluginGridCard>
+  );
+}
+
+function PluginConfigureDialog({
+  plugin,
+  up,
+  open,
+  onOpenChange,
+  accessToken,
+  onRefreshAccountPanels,
+  userId,
+}: {
+  plugin: PluginDefinition | null;
+  up: UserPlugin | undefined;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  accessToken: string | null;
+  onRefreshAccountPanels: () => Promise<void>;
+  userId: string | undefined;
+}) {
+  const Panel = plugin?.AccountSettingsPanel;
 
   const oauthHandlers = useMemo(() => {
+    if (!plugin) return undefined;
     const hasOAuth = Boolean(plugin.contributions?.oauth?.length);
     if (!hasOAuth || !accessToken) return undefined;
     return {
@@ -67,7 +161,7 @@ function PluginRow({
       startOAuth: (redirectAfter: string) =>
         startPluginOAuth(plugin.id, redirectAfter),
     };
-  }, [plugin.contributions?.oauth?.length, plugin.id, accessToken]);
+  }, [plugin, accessToken]);
 
   const userSnapshot = useMemo(
     () =>
@@ -81,57 +175,33 @@ function PluginRow({
     [up],
   );
 
-  return (
-    <PluginListRow>
-      <PluginListRowMain>
-        <PluginListRowInfo>
-          <PluginListRowTitle
-            icon={
-              <PluginListIcon>
-                <Icon size={4} />
-              </PluginListIcon>
-            }
-          >
-            {plugin.displayName}
-          </PluginListRowTitle>
-          <PluginListRowDescription>
-            {plugin.description ?? "Plugin integration."}
-          </PluginListRowDescription>
-          {!implemented ? (
-            <PluginListRowHint>
-              Sync and linking are not implemented yet.
-            </PluginListRowHint>
-          ) : null}
-        </PluginListRowInfo>
-        <PluginListRowToggle
-          label="Enabled"
-          control={
-            <Switch
-              id={`sw-${plugin.id}`}
-              checked={enabled}
-              disabled={!implemented || toggleDisabled}
-              onCheckedChange={(c) => {
-                if (!implemented) return;
-                onToggle(c === true);
-              }}
-            />
-          }
-        />
-      </PluginListRowMain>
+  if (!plugin || !Panel) return null;
 
-      {Panel && implemented && enabled ? (
-        <Panel
-          pluginTypeId={plugin.id}
-          pluginEnabled={enabled}
-          userPlugin={userSnapshot}
-          accessToken={accessToken}
-          onRefresh={onRefreshAccountPanels}
-          oauth={oauthHandlers}
-          supabase={supabase}
-          userId={userId}
-        />
-      ) : null}
-    </PluginListRow>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{plugin.displayName}</DialogTitle>
+          <DialogDescription>
+            {plugin.description ?? "Plugin integration."}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          <PluginAccountPanelProvider plain>
+            <Panel
+              pluginTypeId={plugin.id}
+              pluginEnabled={up?.enabled ?? false}
+              userPlugin={userSnapshot}
+              accessToken={accessToken}
+              onRefresh={onRefreshAccountPanels}
+              oauth={oauthHandlers}
+              supabase={supabase}
+              userId={userId}
+            />
+          </PluginAccountPanelProvider>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -139,6 +209,9 @@ export function PluginsPage() {
   const { user, session } = useAuth();
   const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [configurePluginId, setConfigurePluginId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const status = searchParams.get("plugin_oauth");
@@ -195,6 +268,57 @@ export function PluginsPage() {
     enabled: Boolean(user),
   });
 
+  const oauthPluginIds = useMemo(
+    () =>
+      pluginList
+        .filter(
+          (plugin) =>
+            plugin.implemented && Boolean(plugin.contributions?.oauth?.length),
+        )
+        .map((plugin) => plugin.id),
+    [],
+  );
+
+  const oauthStatusQueries = useQueries({
+    queries: oauthPluginIds.map((pluginId) => {
+      const enabled =
+        userPluginsQuery.data?.find((up) => up.plugin_type_id === pluginId)
+          ?.enabled ?? false;
+      return {
+        queryKey: ["plugin_oauth_link_status", pluginId, session?.access_token],
+        queryFn: () => fetchPluginOAuthLinkStatus(pluginId),
+        enabled: Boolean(user && session?.access_token && enabled),
+      };
+    }),
+  });
+
+  const oauthStatusByPluginId = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        data?: Awaited<ReturnType<typeof fetchPluginOAuthLinkStatus>>;
+        isLoading: boolean;
+      }
+    >();
+    oauthPluginIds.forEach((pluginId, index) => {
+      const query = oauthStatusQueries[index];
+      map.set(pluginId, {
+        data: query?.data,
+        isLoading: query?.isLoading ?? false,
+      });
+    });
+    return map;
+  }, [oauthPluginIds, oauthStatusQueries]);
+
+  const configurePlugin = useMemo(
+    () => pluginList.find((plugin) => plugin.id === configurePluginId) ?? null,
+    [configurePluginId],
+  );
+
+  const configureUserPlugin = userPluginsQuery.data?.find(
+    (up) => up.plugin_type_id === configurePluginId,
+  );
+
   async function toggle(pluginTypeId: string, enabled: boolean) {
     if (!user) return;
     const up = userPluginsQuery.data?.find(
@@ -228,6 +352,14 @@ export function PluginsPage() {
     });
   }
 
+  async function onLinkAccount(pluginId: string) {
+    try {
+      await startPluginOAuth(pluginId, `${window.location.origin}/plugins`);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Could not start linking.");
+    }
+  }
+
   return (
     <AppPageLayout width="2xl" toolbar={<PageBackButton />}>
       <PagePanel>
@@ -235,33 +367,47 @@ export function PluginsPage() {
           <PageHeader>
             <PageHeaderTitle>Plugins</PageHeaderTitle>
             <PageHeaderLead>
-              Choose which integrations are available for your account (for
-              example signing in to Google Photos). Map-specific options—such as
-              publishing an iCalendar feed—are configured in each map&apos;s
-              settings.
+              Choose which integrations are available for your account. Enable a
+              plugin from the grid, link accounts when needed, and open
+              Configure for additional options. Map-specific settings live in
+              each map&apos;s settings.
             </PageHeaderLead>
           </PageHeader>
-          <div>
+          <PluginGrid>
             {pluginList.map((plugin) => {
               const up = userPluginsQuery.data?.find(
                 (c) => c.plugin_type_id === plugin.id,
               );
+              const oauthQuery = oauthStatusByPluginId.get(plugin.id);
               return (
-                <PluginRow
+                <PluginGridItem
                   key={plugin.id}
                   plugin={plugin}
                   up={up}
-                  onToggle={(en) => void toggle(plugin.id, en)}
+                  onToggle={(enabled) => void toggle(plugin.id, enabled)}
                   toggleDisabled={!user || userPluginsQuery.isLoading}
-                  accessToken={session?.access_token ?? null}
-                  onRefreshAccountPanels={onRefreshAccountPanels}
-                  userId={user?.id}
+                  oauthStatus={oauthQuery?.data}
+                  oauthLoading={oauthQuery?.isLoading ?? false}
+                  onConfigure={() => setConfigurePluginId(plugin.id)}
+                  onLinkAccount={() => void onLinkAccount(plugin.id)}
                 />
               );
             })}
-          </div>
+          </PluginGrid>
         </Stack>
       </PagePanel>
+
+      <PluginConfigureDialog
+        plugin={configurePlugin}
+        up={configureUserPlugin}
+        open={configurePluginId !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfigurePluginId(null);
+        }}
+        accessToken={session?.access_token ?? null}
+        onRefreshAccountPanels={onRefreshAccountPanels}
+        userId={user?.id}
+      />
     </AppPageLayout>
   );
 }

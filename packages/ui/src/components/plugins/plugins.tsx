@@ -1,6 +1,118 @@
+import { Settings2 } from "lucide-react";
 import type * as React from "react";
 
+import { Button } from "../button";
 import styles from "./plugins.module.css";
+
+export function PluginGrid({ children }: { children: React.ReactNode }) {
+  return <div className={styles.grid}>{children}</div>;
+}
+
+export function PluginGridCard({
+  children,
+  unavailable = false,
+}: {
+  children: React.ReactNode;
+  unavailable?: boolean;
+}) {
+  return (
+    <article
+      className={
+        unavailable ? `${styles.card} ${styles.cardUnavailable}` : styles.card
+      }
+    >
+      {children}
+    </article>
+  );
+}
+
+export function PluginGridCardTop({ children }: { children: React.ReactNode }) {
+  return <div className={styles.cardTop}>{children}</div>;
+}
+
+export function PluginGridCardIcon({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <span className={styles.cardIcon}>{children}</span>;
+}
+
+export function PluginGridCardHeading({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.cardHeading}>{children}</div>;
+}
+
+export function PluginGridCardTitle({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <h3 className={styles.cardTitle}>{children}</h3>;
+}
+
+export function PluginGridCardDescription({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.cardDescription}>{children}</p>;
+}
+
+export function PluginGridCardToggle({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.cardToggle}>{children}</div>;
+}
+
+export function PluginGridCardFooter({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.cardFooter}>{children}</div>;
+}
+
+export function PluginGridCardFooterRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.cardFooterRow}>{children}</div>;
+}
+
+export function PluginGridCardActions({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.cardActions}>{children}</div>;
+}
+
+export function PluginGridCardConfigureButton({
+  onClick,
+  label = "Configure",
+}: {
+  onClick: () => void;
+  label?: string;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon-sm"
+      aria-label={label}
+      onClick={onClick}
+    >
+      <Settings2 aria-hidden />
+    </Button>
+  );
+}
 
 export function PluginListRow({ children }: { children: React.ReactNode }) {
   return <div className={styles.row}>{children}</div>;

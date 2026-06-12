@@ -10,6 +10,7 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import type { PinWithTags } from "@/lib/pin-with-tags";
+import { isStackRoute } from "@/lib/stack-routes";
 import {
   useCallback,
   useEffect,
@@ -37,6 +38,18 @@ export function shouldAdoptUrlPinForBottomSheet(
     return false;
   }
   return true;
+}
+
+/** Whether to hide the bottom sheet after ?pin= was cleared (not during tap-led open). */
+export function shouldCloseBottomSheetWithoutUrlPin(
+  sidebarPinToken: string | null,
+  bottomSheetOpen: boolean,
+  bottomSheetPinId: string | null,
+  sheetLeadsUrlPinId: string | null,
+): boolean {
+  if (sidebarPinToken) return false;
+  if (sheetLeadsUrlPinId !== null) return false;
+  return bottomSheetOpen || bottomSheetPinId !== null;
 }
 
 export type UseMapPinPanelOptions = {
@@ -198,7 +211,14 @@ export function useMapPinPanel({
       return;
     }
 
-    if (!sidebarPinToken && !bottomSheetPinId) {
+    if (
+      shouldCloseBottomSheetWithoutUrlPin(
+        sidebarPinToken,
+        bottomSheetOpen,
+        bottomSheetPinId,
+        sheetLeadsUrlPinIdRef.current,
+      )
+    ) {
       setBottomSheetOpen(false);
       setBottomSheetPinId(null);
     }
@@ -210,6 +230,17 @@ export function useMapPinPanel({
     bottomSheetOpen,
   ]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  /** Bottom sheet is portaled above stack layers — hide it when a stack screen opens. */
+  useLayoutEffect(() => {
+    if (!usesBottomSheet) return;
+    if (typeof window === "undefined") return;
+    if (!isStackRoute(window.location.pathname)) return;
+    if (!bottomSheetOpen && !bottomSheetPinId) return;
+    setBottomSheetOpen(false);
+    setBottomSheetPinId(null);
+    sheetLeadsUrlPinIdRef.current = null;
+  }, [usesBottomSheet, bottomSheetOpen, bottomSheetPinId]);
 
   const beginPanelDismiss = useCallback(() => {
     userDismissedRef.current = true;
@@ -226,7 +257,21 @@ export function useMapPinPanel({
     sidebarPinTokenRef,
   ]);
 
+  const hideBottomSheetOverlay = useCallback(() => {
+    setBottomSheetOpen(false);
+    setBottomSheetPinId(null);
+    sheetLeadsUrlPinIdRef.current = null;
+  }, []);
+
   const finishPanelClose = useCallback(() => {
+    if (
+      usesBottomSheet &&
+      typeof window !== "undefined" &&
+      isStackRoute(window.location.pathname)
+    ) {
+      hideBottomSheetOverlay();
+      return;
+    }
     if (usesBottomSheet) {
       beginPanelDismiss();
     } else {
@@ -248,6 +293,7 @@ export function useMapPinPanel({
     usesBottomSheet,
     beginPanelDismiss,
     clearCameraIdleTimer,
+    hideBottomSheetOverlay,
     mapRef,
     setSearchParams,
     sidebarPinTokenRef,
@@ -439,6 +485,7 @@ export function useMapPinPanel({
     userDismissedRef,
     beginPanelDismiss,
     finishPanelClose,
+    hideBottomSheetOverlay,
     onCollisionDismissStart,
     onCollisionOpen,
     onCollisionClose,

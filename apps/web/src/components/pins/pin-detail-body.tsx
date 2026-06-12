@@ -20,6 +20,10 @@ import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinMetadataSubtitle } from "@/lib/use-pin-metadata-subtitle";
+import {
+  useMapPluginOutputVisible,
+  usePinOutputPlugins,
+} from "@/lib/use-pin-output-plugins";
 import { useAuth } from "@/providers/auth-provider";
 import type { Photo, Pin } from "@/types/database";
 import {
@@ -101,6 +105,14 @@ export function PinDetailBody({
 }: PinDetailBodyProps) {
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
+  const { mapOutputPlugins, viewerOutputPlugins } = usePinOutputPlugins(
+    pin.id,
+    pin.map_id,
+  );
+  const openMeteoOutputVisible = useMapPluginOutputVisible(
+    pin.map_id,
+    OPEN_METEO_PLUGIN_ID,
+  );
   const { canEdit } = useMapMemberRole(pin.map_id);
   const isWideEnough = useMinMd();
   const isMaxSm = useMaxSm();
@@ -146,7 +158,8 @@ export function PinDetailBody({
       lng: pin.lng,
       pinDate: pin.date,
       pinEndDate: pin.end_date,
-      queryEnabled: openMeteoGloballyEnabled,
+      queryEnabled: openMeteoOutputVisible,
+      syncEnabled: openMeteoGloballyEnabled && canEdit,
     });
   const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin.id,
@@ -159,7 +172,9 @@ export function PinDetailBody({
   const showEditInToolbar = canEdit && showToolbarActions;
   const pinToolbarActionCount =
     (showPluginActions ? pluginActionCount : 0) + (showEditInToolbar ? 1 : 0);
-  const overflowPinActions = sideSheet && pinToolbarActionCount > 1;
+  const overflowPinActions =
+    sideSheet &&
+    (bottomSheet ? pinToolbarActionCount > 0 : pinToolbarActionCount > 1);
   const showPinActionsInHeader =
     (showPluginActions || showEditInToolbar) && !overflowPinActions;
   const hasHeaderPermalink = Boolean(permalinkMapRoute && isWideEnough);
@@ -290,18 +305,35 @@ export function PinDetailBody({
               );
             })
           : null}
-        {enabledPlugins.map((p) => {
+        {mapOutputPlugins.map((p) => {
           const Section = p.PinDetailSection;
           if (!Section) return null;
           return (
             <Section
-              key={`detail-${p.id}`}
+              key={`detail-map-${p.id}`}
               supabase={supabase}
               userId={user?.id}
               pinId={pin.id}
               mapId={pin.map_id}
               pinDate={pin.date}
               pinEndDate={pin.end_date}
+              pinSurface="display"
+            />
+          );
+        })}
+        {viewerOutputPlugins.map((p) => {
+          const Section = p.PinDetailSection;
+          if (!Section) return null;
+          return (
+            <Section
+              key={`detail-viewer-${p.id}`}
+              supabase={supabase}
+              userId={user?.id}
+              pinId={pin.id}
+              mapId={pin.map_id}
+              pinDate={pin.date}
+              pinEndDate={pin.end_date}
+              pinSurface="display"
             />
           );
         })}

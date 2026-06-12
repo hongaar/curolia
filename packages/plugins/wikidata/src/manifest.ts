@@ -14,6 +14,7 @@ export const wikidataPluginManifest: PluginPackageManifest = {
     "Show a short Wikipedia extract for the nearest notable place at each pin’s coordinates, in your preferred language when available.",
   icon: WikidataIcon,
   implemented: wikidataPluginMeta.implemented,
+  pinOutputScope: "map",
   AccountSettingsPanel: WikidataAccountSettingsPanel,
   PinDetailSection: WikidataPinDetailSection,
   PinFormSection: WikidataPinFormSection,

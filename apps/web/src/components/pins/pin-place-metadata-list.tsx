@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinMetadata } from "@/lib/use-pin-metadata";
+import { pluginList } from "@/plugins/registry";
 import {
   filterPinMetadataForDetailDisplay,
   hasPinMetadataDetailDisplayEnabled,
@@ -39,7 +39,6 @@ export function PinPlaceMetadataList({
   poiEnabled = false,
 }: PinPlaceMetadataListProps) {
   const metadataQuery = usePinMetadata(pinId);
-  const { plugins } = useEnabledPlugins();
   const items = metadataQuery.data ?? [];
 
   const showMetadataQuery = useQuery({
@@ -89,7 +88,7 @@ export function PinPlaceMetadataList({
   if (visibleItems.length === 0) return null;
 
   const sourceLabelByPluginId = new Map(
-    plugins.map((plugin) => [plugin.id, plugin.displayName]),
+    pluginList.map((plugin) => [plugin.id, plugin.displayName]),
   );
 
   const sourceLabels = [

@@ -10,6 +10,7 @@ import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinMetadataSubtitle } from "@/lib/use-pin-metadata-subtitle";
+import { useMapPluginOutputVisible } from "@/lib/use-pin-output-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import {
   OPEN_METEO_PLUGIN_ID,
@@ -129,22 +130,25 @@ export function PinMapMarkerPopover({
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pinId);
   const wrongMap = pin && mapId && pin.map_id !== mapId;
 
-  const openMeteoGloballyEnabled = enabledPlugins.some(
-    (p) => p.id === OPEN_METEO_PLUGIN_ID,
+  const resolvedMapId = pin?.map_id ?? mapId;
+  const openMeteoOutputVisible = useMapPluginOutputVisible(
+    resolvedMapId,
+    OPEN_METEO_PLUGIN_ID,
   );
   const { subtitle: weatherSubtitle, isPending: weatherSubtitlePending } =
     useOpenMeteoPinSubtitle({
       supabase,
       pinId: pin?.id ?? pinId,
-      mapId: pin?.map_id ?? mapId ?? "",
+      mapId: resolvedMapId ?? "",
       lat: pin?.lat ?? 0,
       lng: pin?.lng ?? 0,
       pinDate: pin?.date,
       pinEndDate: pin?.end_date,
       queryEnabled:
-        openMeteoGloballyEnabled &&
+        openMeteoOutputVisible &&
         Boolean(pin?.id ?? pinId) &&
-        Boolean(pin?.map_id ?? mapId),
+        Boolean(resolvedMapId),
+      syncEnabled: false,
     });
   const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin?.id ?? pinId,

@@ -10,6 +10,7 @@ export const openMeteoPluginManifest: PluginPackageManifest = {
     "Show current and historical weather from Open-Meteo on pins (current conditions when undated, historical averages when dates are set).",
   icon: OpenMeteoIcon,
   implemented: openMeteoPluginMeta.implemented,
+  pinOutputScope: "map",
   MapSettingsPanel: OpenMeteoMapSettingsPanel,
   contributions: {
     mapSettings: {

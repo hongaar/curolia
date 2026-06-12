@@ -12,6 +12,7 @@ export const lastfmPluginManifest: PluginPackageManifest = {
     "Show your most-scrobbled Last.fm tracks during each pin’s date range on the pin page.",
   icon: LastfmIcon,
   implemented: lastfmPluginMeta.implemented,
+  pinOutputScope: "viewer",
   AccountSettingsPanel: LastfmAccountSettingsPanel,
   MapSettingsPanel: LastfmMapSettingsPanel,
   PinDetailSection: LastfmPinDetailSection,

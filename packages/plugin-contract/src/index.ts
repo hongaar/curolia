@@ -23,8 +23,10 @@ export type {
   PinEditorFieldSuggestion,
   PinPhotoImportSlotProps,
   PinSuggestionSlotProps,
+  PinSurface,
   PluginDefinition,
   PluginPackageManifest,
+  PluginPinOutputScope,
   PluginRegistry,
 } from "./definition";
 export {
@@ -54,6 +56,13 @@ export {
   type PinMetadataShowSettings,
   type PinMetadataSubtitleFieldKey,
 } from "./map-pin-metadata-display";
+export {
+  isPluginOutputShownOnMap,
+  mapPluginOutputShowDirty,
+  mapPluginOutputShowForStorage,
+  resolveMapPluginOutputShow,
+  type MapPluginOutputShowSettings,
+} from "./map-plugin-output-display";
 export {
   PIN_METADATA_DISPLAY_ORDER,
   PIN_METADATA_FIELD_KEYS,
@@ -92,6 +101,14 @@ export {
   type PinMetadataSubtitle,
   type PinMetadataSubtitlePart,
 } from "./pin-metadata-subtitle";
+export {
+  DEFAULT_PIN_OUTPUT_SCOPE,
+  hasMapScopedReadableOutput,
+  isMapOutputToggleablePlugin,
+  isMapScopedPinOutput,
+  isViewerScopedPinOutput,
+  resolvePinOutputScope,
+} from "./pin-output";
 export {
   PLUGIN_SYNC_DISPATCH_SECRET_ENV,
   PLUGIN_SYNC_EVENT_PIN_COORDINATES_CHANGED,

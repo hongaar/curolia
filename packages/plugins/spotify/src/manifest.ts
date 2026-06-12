@@ -18,6 +18,7 @@ export const spotifyPluginManifest: PluginPackageManifest = {
     "Attach Spotify tracks and playlists to pins so each place has a soundtrack.",
   icon: SpotifyIcon,
   implemented: spotifyPluginMeta.implemented,
+  pinOutputScope: "map",
   AccountSettingsPanel: SpotifyAccountSettingsPanel,
   PinFormSection: SpotifyPinFormSection,
   PinDetailSection: SpotifyPinDetailSection,

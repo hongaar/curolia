@@ -46,6 +46,8 @@ export type CuroliaMap = {
   show_pin_route: boolean;
   /** Per-field pin metadata visibility (`{ fields: string[] }`). */
   show_pin_metadata?: import("@/lib/database.types").Json | null;
+  /** Per-plugin pin output visibility (`{ [pluginId]: boolean }`; false hides). */
+  show_plugin_outputs?: import("@/lib/database.types").Json | null;
   created_by_user_id: string;
   created_at: string;
   updated_at: string;

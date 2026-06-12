@@ -21,6 +21,16 @@ export type PinEditorFieldSuggestion = {
   description?: string;
 };
 
+/**
+ * Who pin-attached read output is for.
+ * - `map`: stored on the pin; any map viewer may see it (subject to map display prefs).
+ * - `viewer`: uses the current viewer's credentials or preferences (e.g. Last.fm scrobbles).
+ */
+export type PluginPinOutputScope = "map" | "viewer";
+
+/** Shell context for pin-scoped plugin surfaces. */
+export type PinSurface = "display" | "edit";
+
 /** Shared pin-scoped props for plugin surfaces (photo slots, pin detail panels, …). */
 export type PinContextProps = PinPhotoImportSlotProps & {
   /** Coordinates from the open pin form (edit flow); omit on read-only surfaces. */
@@ -29,6 +39,11 @@ export type PinContextProps = PinPhotoImportSlotProps & {
   hasPinTitle?: boolean;
   hasPinDescription?: boolean;
   onApplyPinSuggestion?: (fields: PinEditorFieldSuggestion) => void;
+  /**
+   * `display` on read-only pin detail; `edit` in the pin editor. Map-scoped
+   * {@link PinDetailSection} components must not require `user_plugins` when `display`.
+   */
+  pinSurface?: PinSurface;
 };
 
 /**
@@ -148,6 +163,11 @@ export type PluginDefinition = {
    * card chrome (icon, title, bordered card). Use for embed-first surfaces.
    */
   pinDetailPlain?: boolean;
+  /**
+   * Who may see pin-attached read output. Default `map` when {@link PinDetailSection}
+   * is set. `viewer` keeps output behind the viewer's account plugin toggle.
+   */
+  pinOutputScope?: PluginPinOutputScope;
 };
 
 export type PluginRegistry = Record<string, PluginDefinition>;

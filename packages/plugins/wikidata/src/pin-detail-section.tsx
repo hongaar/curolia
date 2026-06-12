@@ -19,9 +19,12 @@ export function WikidataPinDetailSection({
   userId,
   mapId,
   pinId,
+  pinSurface = "display",
 }: PinContextProps) {
   const pid = wikidataPluginMeta.typeId;
+  const isDisplay = pinSurface === "display";
   const { pluginReady } = useWikidataPluginReady(supabase, { userId, mapId });
+  const canFetch = isDisplay ? Boolean(pinId) : pluginReady;
 
   const dataRowQueryKey = useMemo(
     () => pluginEntityDataRowQueryKey(pid, "pin", pinId),
@@ -41,12 +44,12 @@ export function WikidataPinDetailSection({
       if (error) throw error;
       return data;
     },
-    enabled: pluginReady,
+    enabled: canFetch,
   });
 
   const payload = parseWikidataPinPayload(rowQuery.data?.data);
 
-  if (!pluginReady || !payload) return null;
+  if (!canFetch || !payload) return null;
 
   return (
     <PluginPinCard>

@@ -946,6 +946,9 @@ export function MapPage() {
     ? (pins.find((pin) => pin.id === bottomSheetPinId) ?? null)
     : null;
   const bottomSheetTitle = pinDetailSideSheetTitle(bottomSheetPin);
+  const stackCoversMap = isStackRoute(
+    typeof window !== "undefined" ? window.location.pathname : "",
+  );
 
   if (mapLoading) {
     return <MapViewInitialLoader />;
@@ -1058,14 +1061,17 @@ export function MapPage() {
 
       {!isWideEnough ? (
         <BottomSheet
-          open={bottomSheetOpen}
+          open={bottomSheetOpen && !stackCoversMap}
           popupRef={panelPopupRef}
           dismissRef={bottomSheetDismissRef}
           title={bottomSheetTitle}
           overlay="none"
           modal={false}
           partialHeight="min(85dvh, 40rem)"
-          onDismissStart={beginPanelDismiss}
+          syncHistoryBack={!stackCoversMap}
+          onDismissStart={() => {
+            if (!stackCoversMap) beginPanelDismiss();
+          }}
           onOpenChange={(open) => {
             if (!open) {
               setBottomSheetOpen(false);

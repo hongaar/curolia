@@ -6,6 +6,12 @@ import {
   mapShowMetadataForSave,
 } from "@/components/map-collection/map-show-metadata";
 import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
+import {
+  mapShowPluginOutputsDirty,
+  mapShowPluginOutputsForSave,
+  resolveMapShowPluginOutputs,
+} from "@/components/map-collection/map-show-plugin-outputs";
+import { MapShowPluginOutputsField } from "@/components/map-collection/map-show-plugin-outputs-section";
 import { useActivePageSection } from "@/hooks/use-active-page-section";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMinMd } from "@/hooks/use-min-md";
@@ -35,7 +41,10 @@ import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
-import { resolveMapPinMetadataShow } from "@curolia/plugin-contract";
+import {
+  resolveMapPinMetadataShow,
+  type MapPluginOutputShowSettings,
+} from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
@@ -86,6 +95,8 @@ export function MapSettingsPage() {
   const [showPinMetadata, setShowPinMetadata] = useState(
     resolveMapPinMetadataShow(null),
   );
+  const [showPluginOutputs, setShowPluginOutputs] =
+    useState<MapPluginOutputShowSettings>({});
   const [showPinRoute, setShowPinRoute] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -210,6 +221,7 @@ export function MapSettingsPage() {
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
     setShowPinMetadata(resolveMapPinMetadataShow(map.show_pin_metadata));
+    setShowPluginOutputs(resolveMapShowPluginOutputs(map));
     setShowPinRoute(normalizeShowPinRoute(map.show_pin_route));
   }, [map]);
 
@@ -229,6 +241,7 @@ export function MapSettingsPage() {
         style_hillshades: styleOptions.hillshades,
         style_satellite_labels: styleOptions.satelliteLabels,
         show_pin_metadata: mapShowMetadataForSave(showPinMetadata),
+        show_plugin_outputs: mapShowPluginOutputsForSave(showPluginOutputs),
         show_pin_route: showPinRoute,
         updated_at: new Date().toISOString(),
       })
@@ -244,6 +257,9 @@ export function MapSettingsPage() {
       await qc.invalidateQueries({ queryKey: ["maps", user.id] });
       await qc.invalidateQueries({
         queryKey: ["maps", mapId, "show_pin_metadata"],
+      });
+      await qc.invalidateQueries({
+        queryKey: ["maps", mapId, "show_plugin_outputs"],
       });
       if (nameChanged) {
         await refetchMaps();
@@ -304,13 +320,19 @@ export function MapSettingsPage() {
     styleOptions.hillshades !== savedStyleOptions.hillshades ||
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
   const metadataDirty = mapShowMetadataDirty(map, showPinMetadata);
+  const pluginOutputsDirty = mapShowPluginOutputsDirty(map, showPluginOutputs);
   const routeDirty = showPinRoute !== normalizeShowPinRoute(map.show_pin_route);
   const controlsDisabled = !isOwner || roleQuery.isLoading;
 
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
-    (nameDirty || iconDirty || styleDirty || metadataDirty || routeDirty) &&
+    (nameDirty ||
+      iconDirty ||
+      styleDirty ||
+      metadataDirty ||
+      pluginOutputsDirty ||
+      routeDirty) &&
     !saving;
 
   const sideNav = showSideNav ? (
@@ -453,6 +475,11 @@ export function MapSettingsPage() {
                 mapId={map.id}
                 settings={showPinMetadata}
                 onChange={setShowPinMetadata}
+                disabled={controlsDisabled}
+              />
+              <MapShowPluginOutputsField
+                settings={showPluginOutputs}
+                onChange={setShowPluginOutputs}
                 disabled={controlsDisabled}
               />
               {error ? <PageErrorText>{error}</PageErrorText> : null}

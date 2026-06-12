@@ -188,6 +188,7 @@ export type Database = {
           name: string;
           show_pin_metadata: Json;
           show_pin_route: boolean;
+          show_plugin_outputs: Json;
           slug: string;
           style: Database["public"]["Enums"]["map_style"];
           style_hillshades: boolean;
@@ -204,6 +205,7 @@ export type Database = {
           name: string;
           show_pin_metadata?: Json;
           show_pin_route?: boolean;
+          show_plugin_outputs?: Json;
           slug?: string;
           style?: Database["public"]["Enums"]["map_style"];
           style_hillshades?: boolean;
@@ -220,6 +222,7 @@ export type Database = {
           name?: string;
           show_pin_metadata?: Json;
           show_pin_route?: boolean;
+          show_plugin_outputs?: Json;
           slug?: string;
           style?: Database["public"]["Enums"]["map_style"];
           style_hillshades?: boolean;

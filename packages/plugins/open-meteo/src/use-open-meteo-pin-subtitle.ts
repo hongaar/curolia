@@ -31,8 +31,10 @@ export type UseOpenMeteoPinSubtitleArgs = {
   lng: number;
   pinDate?: string | null;
   pinEndDate?: string | null;
-  /** When false, skips map plugin lookup and weather fetch. */
+  /** When false, skips map plugin lookup and weather display. */
   queryEnabled?: boolean;
+  /** When false, reads cached weather only (no client sync). Default false. */
+  syncEnabled?: boolean;
 };
 
 export type UseOpenMeteoPinSubtitleResult = {
@@ -50,6 +52,7 @@ export function useOpenMeteoPinSubtitle({
   pinDate,
   pinEndDate,
   queryEnabled = true,
+  syncEnabled = false,
 }: UseOpenMeteoPinSubtitleArgs): UseOpenMeteoPinSubtitleResult {
   const qc = useQueryClient();
 
@@ -75,7 +78,7 @@ export function useOpenMeteoPinSubtitle({
   });
 
   const mapEnabled = isOpenMeteoEnabledForMap(mapPluginQuery.data);
-  const canSync =
+  const canRead =
     queryEnabled &&
     mapEnabled &&
     request != null &&
@@ -83,6 +86,7 @@ export function useOpenMeteoPinSubtitle({
     Boolean(mapId) &&
     Number.isFinite(lat) &&
     Number.isFinite(lng);
+  const canSync = canRead && syncEnabled;
 
   const entityDataKey = useMemo(
     () => openMeteoEntityDataQueryKey(OPEN_METEO_PLUGIN_ID, pinId),
@@ -102,7 +106,7 @@ export function useOpenMeteoPinSubtitle({
       if (error) throw error;
       return data;
     },
-    enabled: canSync,
+    enabled: canRead,
     placeholderData: keepPreviousData,
   });
 
@@ -147,9 +151,9 @@ export function useOpenMeteoPinSubtitle({
 
   const payload = cachedPayload ?? syncQuery.data ?? null;
   const subtitle =
-    canSync && payload ? openMeteoPinSubtitleFromPayload(payload) : null;
+    canRead && payload ? openMeteoPinSubtitleFromPayload(payload) : null;
   const isPending =
-    canSync &&
+    canRead &&
     subtitle == null &&
     !syncQuery.isError &&
     (cachedRowQuery.isFetching || syncQuery.isFetching);

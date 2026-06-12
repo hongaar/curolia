@@ -1,9 +1,26 @@
 import type * as React from "react";
+import { createContext, useContext } from "react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import { Input } from "../input";
 import styles from "./plugin-account.module.css";
+
+const PluginAccountPanelContext = createContext({ plain: false });
+
+export function PluginAccountPanelProvider({
+  plain = false,
+  children,
+}: {
+  plain?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <PluginAccountPanelContext.Provider value={{ plain }}>
+      {children}
+    </PluginAccountPanelContext.Provider>
+  );
+}
 
 export function PluginAccountPanel({
   children,
@@ -12,11 +29,14 @@ export function PluginAccountPanel({
   children: React.ReactNode;
   compact?: boolean;
 }) {
+  const { plain } = useContext(PluginAccountPanelContext);
   return (
     <div
-      className={
-        compact ? `${styles.panel} ${styles.panelCompact}` : styles.panel
-      }
+      className={cn(
+        styles.panel,
+        compact && styles.panelCompact,
+        plain && styles.panelPlain,
+      )}
     >
       {children}
     </div>
