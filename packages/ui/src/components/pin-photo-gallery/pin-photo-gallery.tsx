@@ -10,7 +10,7 @@ import {
 } from "./pin-photo-gallery-layout";
 import styles from "./pin-photo-gallery.module.css";
 
-export type PinPhotoGalleryLayout = "rows" | "columns" | "masonry";
+export type PinPhotoGalleryLayout = "rows" | "columns" | "masonry" | "strip";
 
 export type PinPhotoGalleryItem = {
   id: string;
@@ -235,6 +235,61 @@ function ColumnsGallery({
   );
 }
 
+function StripGallery({
+  items,
+  onOpen,
+  loadingPlaceholders,
+}: {
+  items: PinPhotoGalleryItem[];
+  onOpen: (photoId: string) => void;
+  loadingPlaceholders: number;
+}) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const syncScrollHint = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    syncScrollHint();
+    const ro = new ResizeObserver(syncScrollHint);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [items.length, loadingPlaceholders]);
+
+  return (
+    <div className={styles.stripWrap}>
+      <div
+        ref={scrollerRef}
+        className={styles.stripScroller}
+        onScroll={syncScrollHint}
+      >
+        <div className={styles.strip}>
+          {items.map((item) => (
+            <PinPhotoCell
+              key={item.id}
+              item={item}
+              width={104}
+              height={104}
+              onOpen={onOpen}
+            />
+          ))}
+          {loadingPlaceholders > 0 ? (
+            <LoadingPlaceholders count={loadingPlaceholders} />
+          ) : null}
+        </div>
+      </div>
+      {canScrollRight ? <div className={styles.stripFade} aria-hidden /> : null}
+    </div>
+  );
+}
+
 function MasonryGallery({
   items,
   onOpen,
@@ -270,7 +325,13 @@ export function PinPhotoGallery({
 
   return (
     <div ref={ref} className={styles.album}>
-      {layout === "masonry" ? (
+      {layout === "strip" ? (
+        <StripGallery
+          items={items}
+          onOpen={onOpen}
+          loadingPlaceholders={loadingPlaceholders}
+        />
+      ) : layout === "masonry" ? (
         <MasonryGallery
           items={items}
           onOpen={onOpen}

@@ -10,18 +10,22 @@ export function HoverTooltip({
   content,
   children,
   side = "top",
+  delay = 400,
+  closeDelay = 100,
   className,
 }: {
   content: React.ReactNode;
   children: React.ReactNode;
   side?: "top" | "bottom" | "left" | "right";
+  delay?: number;
+  closeDelay?: number;
   className?: string;
 }) {
   return (
     <PreviewCardPrimitive.Root>
       <PreviewCardPrimitive.Trigger
-        delay={400}
-        closeDelay={100}
+        delay={delay}
+        closeDelay={closeDelay}
         className={cn(styles.trigger, className)}
         render={<span tabIndex={0} />}
       >

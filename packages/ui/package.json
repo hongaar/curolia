@@ -93,6 +93,7 @@
     "./pin-photo-lightbox": "./src/components/pin-photo-lightbox/index.ts",
     "./pin-photo-gallery": "./src/components/pin-photo-gallery/index.ts",
     "./pin-sequence-nav": "./src/components/pin-sequence-nav/index.ts",
+    "./trip-timeline": "./src/components/trip-timeline/index.ts",
     "./progress-dots": "./src/components/progress-dots/index.ts",
     "./user-avatar": "./src/components/user-avatar/index.ts",
     "./wizard-steps": {

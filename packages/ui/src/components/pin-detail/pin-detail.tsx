@@ -2,9 +2,10 @@ import type * as React from "react";
 import { Link } from "react-router-dom";
 
 import { CardContent, CardHeader, CardTitle } from "../card";
-import { MarkdownContent } from "../markdown-content";
 import { PagePanel } from "../page";
 import styles from "./pin-detail.module.css";
+
+export { PinDetailDescription } from "./pin-detail-description";
 
 /** @deprecated Use `PagePanel` — same component, shared page shell. */
 export const PinDetailCard = PagePanel;
@@ -72,8 +73,25 @@ export function PinDetailContent({ children }: { children: React.ReactNode }) {
   return <CardContent className={styles.detailContent}>{children}</CardContent>;
 }
 
-export function PinDetailDescription({ markdown }: { markdown: string }) {
-  return <MarkdownContent markdown={markdown} />;
+/** Subtitle row with optional trailing controls (e.g. compact trip nav). */
+export function PinDetailSubtitleNavRow({
+  children,
+  trailing,
+}: {
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+}) {
+  if (!children && !trailing) return null;
+  return (
+    <div className={styles.subtitleNavRow}>
+      {children ? (
+        <div className={styles.subtitleNavRowMain}>{children}</div>
+      ) : null}
+      {trailing ? (
+        <div className={styles.subtitleNavRowTrailing}>{trailing}</div>
+      ) : null}
+    </div>
+  );
 }
 
 export function PinDetailPhotoRow({ children }: { children: React.ReactNode }) {

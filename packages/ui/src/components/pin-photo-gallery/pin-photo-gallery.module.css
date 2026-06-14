@@ -184,3 +184,53 @@
   color: var(--muted-foreground);
   background: color-mix(in oklch, var(--muted) 40%, transparent);
 }
+
+.stripWrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.stripScroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stripScroller::-webkit-scrollbar {
+  display: none;
+}
+
+.strip {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+  width: max-content;
+  min-width: 100%;
+}
+
+.strip .itemWrap {
+  width: 6.5rem;
+  height: 6.5rem;
+}
+
+.strip .placeholder {
+  width: 6.5rem;
+  min-height: 6.5rem;
+  height: 6.5rem;
+}
+
+.stripFade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2.5rem;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklch, var(--background) 55%, var(--card))
+  );
+}

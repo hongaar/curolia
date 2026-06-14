@@ -6,25 +6,24 @@ import {
   pinSequenceDisplayTitle,
   pinSequenceNeighbors,
   toPinSequenceNavItems,
+  toTripTimelineItems,
 } from "@/lib/pin-sequence";
 import type { PinWithTags } from "@/lib/pin-with-tags";
-import { PinSequenceNav } from "@curolia/ui/pin-sequence-nav";
+import { PinSequenceNavCompact } from "@curolia/ui/pin-sequence-nav";
+import { TripTimeline } from "@curolia/ui/trip-timeline";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-export function PinSequenceNavSection({
+function usePinSequenceNavigation({
   pinId,
   mapPins,
   mapRoute,
   onNavigatePin,
-  showDots = true,
 }: {
   pinId: string;
   mapPins: PinWithTags[];
   mapRoute: MapRoute | null;
-  /** Map side sheet: select another pin in place. */
   onNavigatePin?: (pin: PinWithTags) => void;
-  showDots?: boolean;
 }) {
   const navigate = useNavigate();
   const sequence = useMemo(() => orderedPinTravelSequence(mapPins), [mapPins]);
@@ -33,8 +32,10 @@ export function PinSequenceNavSection({
     [sequence, pinId],
   );
   const items = useMemo(() => toPinSequenceNavItems(sequence), [sequence]);
-
-  if (!hasPinTravelSequence(mapPins) || !neighbors) return null;
+  const timelineItems = useMemo(
+    () => toTripTimelineItems(sequence),
+    [sequence],
+  );
 
   const goToPin = (pin: PinWithTags) => {
     if (onNavigatePin) {
@@ -59,17 +60,102 @@ export function PinSequenceNavSection({
     };
   };
 
+  return {
+    sequence,
+    neighbors,
+    items,
+    timelineItems,
+    previous: neighbors ? buildEndpoint(neighbors.previous) : null,
+    next: neighbors ? buildEndpoint(neighbors.next) : null,
+    goToPin,
+    visible: hasPinTravelSequence(mapPins) && neighbors != null,
+  };
+}
+
+export function PinSequenceCompactNavSection({
+  pinId,
+  mapPins,
+  mapRoute,
+  onNavigatePin,
+}: {
+  pinId: string;
+  mapPins: PinWithTags[];
+  mapRoute: MapRoute | null;
+  onNavigatePin?: (pin: PinWithTags) => void;
+}) {
+  const { previous, next, visible } = usePinSequenceNavigation({
+    pinId,
+    mapPins,
+    mapRoute,
+    onNavigatePin,
+  });
+
+  if (!visible) return null;
+
+  return <PinSequenceNavCompact previous={previous} next={next} />;
+}
+
+export function PinTripTimelineSection({
+  pinId,
+  mapPins,
+  mapRoute,
+  onNavigatePin,
+}: {
+  pinId: string;
+  mapPins: PinWithTags[];
+  mapRoute: MapRoute | null;
+  onNavigatePin?: (pin: PinWithTags) => void;
+}) {
+  const { timelineItems, sequence, visible, goToPin } =
+    usePinSequenceNavigation({
+      pinId,
+      mapPins,
+      mapRoute,
+      onNavigatePin,
+    });
+
+  if (!visible) return null;
+
   return (
-    <PinSequenceNav
-      items={items}
-      currentIndex={neighbors.index}
-      showDots={showDots}
-      onSelectIndex={(index) => {
-        const target = sequence[index];
+    <TripTimeline
+      items={timelineItems}
+      currentId={pinId}
+      onSelect={(id) => {
+        const target = sequence.find((pin) => pin.id === id);
         if (target) goToPin(target);
       }}
-      previous={buildEndpoint(neighbors.previous)}
-      next={buildEndpoint(neighbors.next)}
     />
+  );
+}
+
+/** @deprecated Use `PinSequenceCompactNavSection` and `PinTripTimelineSection`. */
+export function PinSequenceNavSection({
+  pinId,
+  mapPins,
+  mapRoute,
+  onNavigatePin,
+  showDots: _showDots = true,
+}: {
+  pinId: string;
+  mapPins: PinWithTags[];
+  mapRoute: MapRoute | null;
+  onNavigatePin?: (pin: PinWithTags) => void;
+  showDots?: boolean;
+}) {
+  return (
+    <>
+      <PinSequenceCompactNavSection
+        pinId={pinId}
+        mapPins={mapPins}
+        mapRoute={mapRoute}
+        onNavigatePin={onNavigatePin}
+      />
+      <PinTripTimelineSection
+        pinId={pinId}
+        mapPins={mapPins}
+        mapRoute={mapRoute}
+        onNavigatePin={onNavigatePin}
+      />
+    </>
   );
 }

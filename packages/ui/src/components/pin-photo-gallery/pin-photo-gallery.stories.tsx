@@ -152,3 +152,10 @@ export const Masonry: Story = {
     "CSS column masonry with natural image heights (previous default).",
   ),
 };
+
+export const Strip: Story = {
+  args: { layout: "strip" },
+  parameters: storyDocs(
+    "Single horizontal row with scroll and a right-edge fade when more photos are off-screen.",
+  ),
+};

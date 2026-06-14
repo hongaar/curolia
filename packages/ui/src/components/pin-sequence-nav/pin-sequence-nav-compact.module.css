@@ -1,0 +1,15 @@
+.root {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.roundButton {
+  border-radius: 999px;
+}
+
+.tooltipTrigger {
+  cursor: inherit;
+  text-decoration: none;
+}

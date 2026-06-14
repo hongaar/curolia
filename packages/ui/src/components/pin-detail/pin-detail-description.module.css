@@ -1,0 +1,61 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.contentCollapsed {
+  --pin-detail-description-collapsed-lines: 5;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--pin-detail-description-collapsed-lines);
+  overflow: hidden;
+}
+
+.contentCollapsed::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1.75em;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in oklch, var(--card) 55%, var(--background))
+  );
+}
+
+.contentExpanded {
+  width: 100%;
+  min-width: 0;
+}
+
+.toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.toggle:hover {
+  color: color-mix(in oklch, var(--primary) 80%, var(--foreground));
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

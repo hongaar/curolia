@@ -1,5 +1,6 @@
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import type { PinSequenceNavItem } from "@curolia/ui/pin-sequence-nav";
+import type { TripTimelineItem } from "@curolia/ui/trip-timeline";
 
 export function pinsWithDates(pins: PinWithTags[]): PinWithTags[] {
   return pins.filter((pin) => Boolean(pin.date?.trim()));
@@ -58,5 +59,16 @@ export function toPinSequenceNavItems(
     id: pin.id,
     title: pinSequenceDisplayTitle(pin),
     color: pinSequenceTagColor(pin),
+  }));
+}
+
+export function toTripTimelineItems(
+  sequence: PinWithTags[],
+): TripTimelineItem[] {
+  return sequence.map((pin) => ({
+    id: pin.id,
+    title: pinSequenceDisplayTitle(pin),
+    color: pinSequenceTagColor(pin),
+    date: pin.date!,
   }));
 }

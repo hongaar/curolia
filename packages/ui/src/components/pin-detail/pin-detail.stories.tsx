@@ -70,6 +70,42 @@ export const Default: Story = {
   ),
 };
 
+export const CollapsibleDescription: Story = {
+  parameters: storyDocs(
+    "Long descriptions collapse using `--pin-detail-description-collapsed-lines` with a fade and Read more toggle.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <PinDetailCard>
+        <PinDetailContent>
+          <PinDetailDescription
+            collapsible
+            markdown="We spent the morning wandering narrow streets before settling in for a long lunch. The terrace was sunny, the coffee strong, and the people-watching excellent.\n\nAfterward we walked along the Seine and picked up pastries for the train ride south."
+          />
+        </PinDetailContent>
+      </PinDetailCard>
+    </StoryFrame>
+  ),
+};
+
+export const FullDescription: Story = {
+  parameters: storyDocs(
+    "Standalone pin detail page shows the full description without collapsing.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <PinDetailCard>
+        <PinDetailContent>
+          <PinDetailDescription
+            collapsible={false}
+            markdown="We spent the morning wandering narrow streets before settling in for a long lunch. The terrace was sunny, the coffee strong, and the people-watching excellent.\n\nAfterward we walked along the Seine and picked up pastries for the train ride south."
+          />
+        </PinDetailContent>
+      </PinDetailCard>
+    </StoryFrame>
+  ),
+};
+
 export const SubtitleStack: Story = {
   parameters: storyDocs("`PinDetailSubtitleStack` for multiple subtitle rows."),
   render: () => (

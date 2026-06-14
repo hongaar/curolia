@@ -16,6 +16,11 @@
   box-shadow: 0 0 0 2px var(--ring);
 }
 
+.triggerPlain {
+  cursor: inherit;
+  text-decoration: none;
+}
+
 .positioner {
   z-index: 120;
 }

@@ -4,13 +4,16 @@ import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
 import { countPinPluginDetailActions } from "@/components/pins/pin-plugin-detail-action-helpers";
 import { PinPluginDetailActions } from "@/components/pins/pin-plugin-detail-actions";
-import { PinSequenceNavSection } from "@/components/pins/pin-sequence-nav-section";
+import {
+  PinSequenceCompactNavSection,
+  PinTripTimelineSection,
+} from "@/components/pins/pin-sequence-nav-section";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { pinDetailHref } from "@/lib/app-paths";
 import type { MapRoute } from "@/lib/map-route";
-import { buildPinSubtitleRows } from "@/lib/pin-detail-subtitle";
+import { buildCompactPinSubtitleRows } from "@/lib/pin-detail-subtitle";
 import {
   photosToGalleryItems,
   pinPhotoGalleryPlaceholderCount,
@@ -44,6 +47,7 @@ import {
   PinDetailDescription,
   PinDetailHeader,
   PinDetailHeaderMain,
+  PinDetailSubtitleNavRow,
   PinDetailSubtitleStack,
   PinDetailTagRow,
   PinDetailTitle,
@@ -200,7 +204,11 @@ export function PinDetailBody({
     </>
   );
 
-  const pinSubtitleRows = buildPinSubtitleRows({
+  const {
+    dateRow: pinDateSubtitle,
+    locationWeatherRow: pinLocationWeatherSubtitle,
+    secondaryRows: pinSecondarySubtitles,
+  } = buildCompactPinSubtitleRows({
     date: pin.date,
     endDate: pin.end_date,
     locationLabel: pinLocationLabel(pin),
@@ -213,6 +221,11 @@ export function PinDetailBody({
       <PinMetadataSubtitleContent subtitle={metadataSubtitle} />
     ) : null,
   });
+  const pinDateLocationRows = [
+    pinDateSubtitle,
+    pinLocationWeatherSubtitle,
+  ].filter((row) => row != null && row !== "" && row !== false);
+  const showTripSequence = Boolean(mapPins);
 
   return (
     <>
@@ -241,17 +254,34 @@ export function PinDetailBody({
         {overflowPinActions ? (
           <PinDetailActionRow>{pinToolbarActions}</PinDetailActionRow>
         ) : null}
-        {pinSubtitleRows.length > 0 ? (
-          <PinDetailSubtitleStack rows={pinSubtitleRows} />
+        {pinDateLocationRows.length > 0 || showTripSequence ? (
+          <PinDetailSubtitleNavRow
+            trailing={
+              showTripSequence ? (
+                <PinSequenceCompactNavSection
+                  pinId={pin.id}
+                  mapPins={mapPins!}
+                  mapRoute={permalinkMapRoute ?? null}
+                  onNavigatePin={onNavigateSequencePin}
+                />
+              ) : null
+            }
+          >
+            {pinDateLocationRows.length > 0 ? (
+              <PinDetailSubtitleStack rows={pinDateLocationRows} />
+            ) : null}
+          </PinDetailSubtitleNavRow>
         ) : null}
-        {mapPins ? (
-          <PinSequenceNavSection
+        {showTripSequence ? (
+          <PinTripTimelineSection
             pinId={pin.id}
-            mapPins={mapPins}
+            mapPins={mapPins!}
             mapRoute={permalinkMapRoute ?? null}
             onNavigatePin={onNavigateSequencePin}
-            showDots={isWideEnough && !onNavigateSequencePin}
           />
+        ) : null}
+        {pinSecondarySubtitles.length > 0 ? (
+          <PinDetailSubtitleStack rows={pinSecondarySubtitles} />
         ) : null}
         {tagBadges.length > 0 ? (
           <PinDetailTagRow>
@@ -273,12 +303,16 @@ export function PinDetailBody({
       <PinDetailContent>
         {topContent}
         {pin.description ? (
-          <PinDetailDescription markdown={pin.description} />
+          <PinDetailDescription
+            markdown={pin.description}
+            collapsible={sideSheet}
+          />
         ) : null}
         {photos.length > 0 || photoPlaceholders > 0 ? (
           <PinPhotoGallery
             items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
+            layout={sideSheet ? "strip" : "rows"}
             onOpen={(photoId) => setPhotoLightbox({ photoId })}
           />
         ) : null}
