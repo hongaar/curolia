@@ -34,16 +34,3 @@ export function hasMapScopedReadableOutput(
   if (plugin.PinInteractionSection) return true;
   return plugin.pinOutputScope === "map";
 }
-
-/** Plugins whose map-scoped output can be toggled per map (`maps.show_plugin_outputs`). */
-export function isMapOutputToggleablePlugin(
-  plugin: Pick<
-    PluginDefinition,
-    | "implemented"
-    | "pinOutputScope"
-    | "PinDetailSection"
-    | "PinInteractionSection"
-  >,
-): boolean {
-  return plugin.implemented && hasMapScopedReadableOutput(plugin);
-}

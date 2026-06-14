@@ -44,6 +44,9 @@ export function OpenMeteoMapSettingsPanel({
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["map_plugins", mapId] });
+      await qc.invalidateQueries({
+        queryKey: ["map_scoped_plugin_enabled", mapId],
+      });
     },
     onError: (e) => {
       toast.error(

@@ -60,7 +60,7 @@ export function ReactionsMapSettingsPanel({
       });
       await qc.invalidateQueries({ queryKey: ["map_plugins", mapId] });
       await qc.invalidateQueries({
-        queryKey: ["pin_interaction_plugins", mapId],
+        queryKey: ["map_scoped_plugin_enabled", mapId],
       });
     },
     onError: (e) => {

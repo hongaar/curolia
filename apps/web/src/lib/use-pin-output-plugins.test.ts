@@ -1,8 +1,6 @@
 import {
   isMapScopedPinOutput,
-  isPluginOutputShownOnMap,
   isViewerScopedPinOutput,
-  resolveMapPluginOutputShow,
 } from "@curolia/plugin-contract";
 import { describe, expect, it } from "vitest";
 import { mapScopedDetailPlugins } from "./use-pin-output-plugins";
@@ -18,12 +16,6 @@ describe("usePinOutputPlugins helpers", () => {
   it("classifies lastfm as viewer-scoped when present", () => {
     const lastfm = mapScopedDetailPlugins().find((p) => p.id === "lastfm");
     expect(lastfm).toBeUndefined();
-  });
-
-  it("filters hidden plugin outputs", () => {
-    const settings = resolveMapPluginOutputShow({ wikidata: false });
-    expect(isPluginOutputShownOnMap(settings, "wikidata")).toBe(false);
-    expect(isPluginOutputShownOnMap(settings, "spotify")).toBe(true);
   });
 
   it("viewer scope detection", () => {

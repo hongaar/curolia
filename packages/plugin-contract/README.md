@@ -71,11 +71,11 @@ This keeps plugin add/remove flow dependency-driven (no manual registry edits).
 
 Do not use **`user_plugins.enabled`** to gate read-only pin output that other map viewers should see.
 
-| Axis              | Storage / field                                      | Gates                                                                                                          |
-| ----------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Account plugin    | `user_plugins`                                       | Editor slots (`PinFormSection`, `PinSuggestionSlot`, photo import), client Edge writes, viewer-personal output |
-| Map plugin config | `map_plugins`                                        | Background sync, optional map-level display (e.g. weather, Last.fm)                                            |
-| Map display prefs | `maps.show_pin_metadata`, `maps.show_plugin_outputs` | Which normalized fields and plugin cards/subtitles render                                                      |
+| Axis              | Storage / field          | Gates                                                                                                          |
+| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Account plugin    | `user_plugins`           | Editor slots (`PinFormSection`, `PinSuggestionSlot`, photo import), client Edge writes, viewer-personal output |
+| Map plugin config | `map_plugins`            | Background sync, optional map-level display (e.g. weather, Last.fm)                                            |
+| Map display prefs | `maps.show_pin_metadata` | Which normalized pin metadata fields render on pins                                                            |
 
 Set **`pinOutputScope`** on the manifest:
 

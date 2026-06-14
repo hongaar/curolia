@@ -1,11 +1,13 @@
+import {
+  isMapScopedPluginEnabledOnMap,
+  mapScopedPluginEnabledQueryKey,
+} from "@/lib/map-scoped-plugin-enabled";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { pluginList } from "@/plugins/registry";
 import {
   isMapScopedPinOutput,
-  isPluginOutputShownOnMap,
   isViewerScopedPinOutput,
-  resolveMapPluginOutputShow,
   type PluginDefinition,
 } from "@curolia/plugin-contract";
 import { useQuery } from "@tanstack/react-query";
@@ -27,18 +29,20 @@ export function usePinOutputPlugins(pinId: string, mapId: string) {
     [mapScopedCandidates],
   );
 
-  const showOutputsQuery = useQuery({
-    queryKey: ["maps", mapId, "show_plugin_outputs"],
+  const enabledOnMapQuery = useQuery({
+    queryKey: mapScopedPluginEnabledQueryKey(mapId, pluginIds),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("maps")
-        .select("show_plugin_outputs")
-        .eq("id", mapId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const results = await Promise.all(
+        pluginIds.map(async (pluginId) => ({
+          pluginId,
+          enabled: await isMapScopedPluginEnabledOnMap(mapId, pluginId),
+        })),
+      );
+      return new Set(
+        results.filter((row) => row.enabled).map((row) => row.pluginId),
+      );
     },
-    enabled: Boolean(mapId),
+    enabled: Boolean(mapId) && pluginIds.length > 0,
   });
 
   const entityDataQuery = useQuery({
@@ -57,9 +61,7 @@ export function usePinOutputPlugins(pinId: string, mapId: string) {
     enabled: Boolean(pinId) && pluginIds.length > 0,
   });
 
-  const showSettings = resolveMapPluginOutputShow(
-    showOutputsQuery.data?.show_plugin_outputs,
-  );
+  const enabledOnMap = enabledOnMapQuery.data;
 
   const mapOutputPlugins = useMemo(() => {
     const withData = new Set(
@@ -67,10 +69,9 @@ export function usePinOutputPlugins(pinId: string, mapId: string) {
     );
     return mapScopedCandidates.filter(
       (plugin) =>
-        withData.has(plugin.id) &&
-        isPluginOutputShownOnMap(showSettings, plugin.id),
+        withData.has(plugin.id) && enabledOnMap?.has(plugin.id) === true,
     );
-  }, [mapScopedCandidates, entityDataQuery.data, showSettings]);
+  }, [mapScopedCandidates, entityDataQuery.data, enabledOnMap]);
 
   const viewerOutputPlugins = useMemo(
     () =>
@@ -83,7 +84,6 @@ export function usePinOutputPlugins(pinId: string, mapId: string) {
   return {
     mapOutputPlugins,
     viewerOutputPlugins,
-    showSettings,
   };
 }
 
@@ -91,22 +91,10 @@ export function useMapPluginOutputVisible(
   mapId: string | null | undefined,
   pluginId: string,
 ): boolean {
-  const showOutputsQuery = useQuery({
-    queryKey: ["maps", mapId, "show_plugin_outputs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("maps")
-        .select("show_plugin_outputs")
-        .eq("id", mapId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+  const enabledQuery = useQuery({
+    queryKey: mapScopedPluginEnabledQueryKey(mapId ?? "", [pluginId]),
+    queryFn: async () => isMapScopedPluginEnabledOnMap(mapId!, pluginId),
     enabled: Boolean(mapId),
   });
-
-  const showSettings = resolveMapPluginOutputShow(
-    showOutputsQuery.data?.show_plugin_outputs,
-  );
-  return isPluginOutputShownOnMap(showSettings, pluginId);
+  return enabledQuery.data === true;
 }

@@ -62,13 +62,6 @@ export {
   type PinMetadataSubtitleFieldKey,
 } from "./map-pin-metadata-display";
 export {
-  isPluginOutputShownOnMap,
-  mapPluginOutputShowDirty,
-  mapPluginOutputShowForStorage,
-  resolveMapPluginOutputShow,
-  type MapPluginOutputShowSettings,
-} from "./map-plugin-output-display";
-export {
   PIN_METADATA_DISPLAY_ORDER,
   PIN_METADATA_FIELD_KEYS,
   formatOpeningHoursDisplay,
@@ -109,7 +102,6 @@ export {
 export {
   DEFAULT_PIN_OUTPUT_SCOPE,
   hasMapScopedReadableOutput,
-  isMapOutputToggleablePlugin,
   isMapScopedPinOutput,
   isViewerScopedPinOutput,
   resolvePinOutputScope,

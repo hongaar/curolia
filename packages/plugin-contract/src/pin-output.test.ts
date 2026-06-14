@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PluginDefinition } from "./definition";
 import {
-  isMapOutputToggleablePlugin,
+  hasMapScopedReadableOutput,
   isMapScopedPinOutput,
   isViewerScopedPinOutput,
 } from "./pin-output";
@@ -37,22 +37,22 @@ describe("pin output scope", () => {
     expect(isMapScopedPinOutput(plugin)).toBe(false);
   });
 
-  it("lists toggleable map interaction plugins", () => {
+  it("detects map-scoped interaction plugins", () => {
     const plugin = stubPlugin({
       id: "comments",
       PinInteractionSection: () => null,
     });
-    expect(isMapOutputToggleablePlugin(plugin)).toBe(true);
+    expect(hasMapScopedReadableOutput(plugin)).toBe(true);
   });
 
-  it("lists toggleable map output plugins", () => {
+  it("detects map-scoped detail plugins", () => {
     const plugin = stubPlugin({
       id: "spotify",
       PinDetailSection: () => null,
     });
-    expect(isMapOutputToggleablePlugin(plugin)).toBe(true);
+    expect(hasMapScopedReadableOutput(plugin)).toBe(true);
     expect(
-      isMapOutputToggleablePlugin(
+      hasMapScopedReadableOutput(
         stubPlugin({
           id: "lastfm",
           pinOutputScope: "viewer",
