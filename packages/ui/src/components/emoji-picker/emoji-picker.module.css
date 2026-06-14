@@ -138,3 +138,35 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.clearRow {
+  width: 100%;
+  min-width: 0;
+  max-width: var(--frimousse-viewport-width, 100%);
+  border-top: 1px solid var(--border);
+}
+
+.clearButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms;
+}
+
+.clearButton:hover {
+  background: color-mix(in oklch, var(--muted) 70%, transparent);
+  color: var(--foreground);
+}
+
+.clearButton:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}

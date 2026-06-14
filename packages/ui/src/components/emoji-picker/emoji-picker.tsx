@@ -142,8 +142,31 @@ function EmojiPickerFooter({ className, ...props }: ComponentProps<"div">) {
   );
 }
 
+/** Full-width row above the footer — clears the current emoji selection. */
+function EmojiPickerClear({
+  onClear,
+  label = "No icon",
+  className,
+}: {
+  onClear: () => void;
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(styles.clearRow, className)}
+      data-slot="emoji-picker-clear"
+    >
+      <button type="button" className={styles.clearButton} onClick={onClear}>
+        {label}
+      </button>
+    </div>
+  );
+}
+
 export {
   EmojiPicker,
+  EmojiPickerClear,
   EmojiPickerContent,
   EmojiPickerFooter,
   EmojiPickerSearch,

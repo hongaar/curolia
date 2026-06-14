@@ -16,8 +16,9 @@ import styles from "./map-marker-collision-panel.module.css";
 
 export type MapMarkerCollisionItem = {
   id: string;
-  emoji: string;
+  emoji: string | null;
   fill: string | null;
+  photoUrl?: string | null;
   title: string;
   subtitle?: string;
 };
@@ -90,7 +91,12 @@ export function MapMarkerCollisionPanel({
         {items.map((item) => (
           <SearchResultRow key={item.id} onClick={() => onSelectItem(item.id)}>
             <span className={styles.rowMarker}>
-              <MapMarker emoji={item.emoji} fill={item.fill} size="sm" />
+              <MapMarker
+                emoji={item.emoji}
+                fill={item.fill}
+                photoUrl={item.photoUrl}
+                size="sm"
+              />
             </span>
             <SearchResultBody>
               <SearchResultTitleRow>

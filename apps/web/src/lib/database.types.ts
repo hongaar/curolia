@@ -976,7 +976,7 @@ export type Database = {
         Row: {
           color: string;
           created_at: string;
-          icon_emoji: string;
+          icon_emoji: string | null;
           id: string;
           map_id: string;
           name: string;
@@ -986,7 +986,7 @@ export type Database = {
         Insert: {
           color?: string;
           created_at?: string;
-          icon_emoji?: string;
+          icon_emoji?: string | null;
           id?: string;
           map_id: string;
           name: string;
@@ -996,7 +996,7 @@ export type Database = {
         Update: {
           color?: string;
           created_at?: string;
-          icon_emoji?: string;
+          icon_emoji?: string | null;
           id?: string;
           map_id?: string;
           name?: string;

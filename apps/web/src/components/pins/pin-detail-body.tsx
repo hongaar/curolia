@@ -63,7 +63,7 @@ export type PinRow = Pin & {
       id: string;
       name: string;
       color: string;
-      icon_emoji: string;
+      icon_emoji: string | null;
     } | null;
   }[];
   creator?: { display_name: string | null } | null;
@@ -128,7 +128,7 @@ export function PinDetailBody({
       id: string;
       name: string;
       color: string;
-      icon_emoji: string;
+      icon_emoji: string | null;
     }[];
   }, [pin]);
 
@@ -263,7 +263,8 @@ export function PinDetailBody({
                   color: contrastingForeground(t.color),
                 }}
               >
-                {t.icon_emoji} {t.name}
+                {t.icon_emoji ? `${t.icon_emoji} ` : ""}
+                {t.name}
               </TagBadge>
             ))}
           </PinDetailTagRow>

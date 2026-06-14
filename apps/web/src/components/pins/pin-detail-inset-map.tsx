@@ -26,8 +26,9 @@ const INSET_ZOOM = 5;
 type PinDetailInsetMapViewProps = {
   lng: number;
   lat: number;
-  markerEmoji: string;
+  markerEmoji: string | null;
   markerColor: string | null;
+  markerPhotoUrl?: string | null;
   mapHref: string;
   mapAriaLabel: string;
   mapStyle?: MapStylePreset;
@@ -39,6 +40,7 @@ export function PinDetailInsetMapView({
   lat,
   markerEmoji,
   markerColor,
+  markerPhotoUrl = null,
   mapHref,
   mapAriaLabel,
   mapStyle = "auto",
@@ -141,6 +143,7 @@ export function PinDetailInsetMapView({
     const mount = createMapMarkerMount({
       emoji: markerEmoji,
       fill: markerColor,
+      photoUrl: markerPhotoUrl,
       selected: true,
       interactive: false,
       pointerEvents: "none",
@@ -156,7 +159,7 @@ export function PinDetailInsetMapView({
       mount.unmount();
       if (markerMountRef.current === mount) markerMountRef.current = null;
     };
-  }, [lng, lat, markerEmoji, markerColor]);
+  }, [lng, lat, markerEmoji, markerColor, markerPhotoUrl]);
 
   return (
     <PinDetailInsetMapLink to={mapHref} ariaLabel={mapAriaLabel}>

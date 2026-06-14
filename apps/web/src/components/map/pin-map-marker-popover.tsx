@@ -174,7 +174,7 @@ export function PinMapMarkerPopover({
       id: string;
       name: string;
       color: string;
-      icon_emoji: string;
+      icon_emoji: string | null;
     }[];
   }, [pin]);
 
@@ -335,7 +335,8 @@ export function PinMapMarkerPopover({
                     color: contrastingForeground(t.color),
                   }}
                 >
-                  {t.icon_emoji} {t.name}
+                  {t.icon_emoji ? `${t.icon_emoji} ` : ""}
+                  {t.name}
                 </TagBadge>
               ))}
             </MapMarkerPopoverTagRow>

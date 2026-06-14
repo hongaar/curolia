@@ -95,6 +95,15 @@
   line-height: 1;
 }
 
+.noIconCircle {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-full);
+  border: 1.5px dashed var(--muted-foreground);
+  box-sizing: border-box;
+}
+
 .input {
   flex: 1;
   min-width: 0;

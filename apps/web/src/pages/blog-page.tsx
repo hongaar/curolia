@@ -126,7 +126,7 @@ export function BlogPage() {
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(DEFAULT_PIN_TAG_COLOR);
-  const [newTagEmoji, setNewTagEmoji] = useState("📍");
+  const [newTagEmoji, setNewTagEmoji] = useState("");
   const pinsQuery = useQuery({
     queryKey: ["pins", activeMapId, "blog"],
     queryFn: async () => {
@@ -183,7 +183,7 @@ export function BlogPage() {
     setTagEditTarget(tag);
     setNewTagName(tag.name);
     setNewTagColor(tag.color);
-    setNewTagEmoji(tag.icon_emoji || "📍");
+    setNewTagEmoji(tag.icon_emoji ?? "");
     setTagDialogOpen(true);
   };
 
@@ -229,7 +229,7 @@ export function BlogPage() {
         .update({
           name: newTagName.trim(),
           color: newTagColor,
-          icon_emoji: newTagEmoji || "📍",
+          icon_emoji: newTagEmoji.trim() || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", tagEditTarget.id);
@@ -247,7 +247,7 @@ export function BlogPage() {
       map_id: activeMapId,
       name: newTagName.trim(),
       color: newTagColor,
-      icon_emoji: newTagEmoji || "📍",
+      icon_emoji: newTagEmoji.trim() || null,
     });
     if (!error) {
       setNewTagName("");
@@ -409,7 +409,7 @@ export function BlogPage() {
                   id: string;
                   name: string;
                   color: string;
-                  icon_emoji: string;
+                  icon_emoji: string | null;
                 }[];
                 const pinPhotos = photosByPinId.get(t.id) ?? [];
                 const galleryItems = photosToGalleryItems(
@@ -446,7 +446,9 @@ export function BlogPage() {
                                 color: contrastingForeground(tag.color),
                               }}
                             >
-                              <span>{tag.icon_emoji}</span>
+                              {tag.icon_emoji ? (
+                                <span>{tag.icon_emoji}</span>
+                              ) : null}
                               {tag.name}
                             </TagBadge>
                           ))}
@@ -526,6 +528,7 @@ export function BlogPage() {
                 onColorChange={setNewTagColor}
                 emoji={newTagEmoji}
                 onEmojiChange={setNewTagEmoji}
+                emojiClearable
               />
             </DialogFormStack>
           </DialogBody>

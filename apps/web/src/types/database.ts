@@ -94,7 +94,8 @@ export type Tag = {
   /** URL-safe slug, unique within the map. */
   slug: string;
   color: string;
-  icon_emoji: string;
+  /** Optional emoji glyph; null markers fall back to a solid tag color. */
+  icon_emoji: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -13,17 +13,17 @@ export type PinSearchRow = {
   lng: number;
   date: string | null;
   pin_tags?: Array<{
-    tags: { color: string; icon_emoji: string } | null;
+    tags: { color: string; icon_emoji: string | null } | null;
   }> | null;
 };
 
 export function pinSearchMarkerVisual(pin: PinSearchRow): {
-  emoji: string;
+  emoji: string | null;
   fill: string | null;
 } {
   const tag = pin.pin_tags?.[0]?.tags;
   return {
-    emoji: tag?.icon_emoji ?? "📍",
+    emoji: tag?.icon_emoji?.trim() || null,
     fill: tag?.color ?? null,
   };
 }

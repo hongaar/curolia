@@ -151,6 +151,25 @@ export const NameOnly: Story = {
   },
 };
 
+export const ClearableTag: Story = {
+  parameters: storyDocs(
+    "Tags may omit an icon — empty state shows a dotted circle; picker has a No icon row.",
+  ),
+  args: {
+    label: "Tag",
+    name: "Food",
+    color: "#16a34a",
+    colors: PRESET_COLORS,
+    emoji: "",
+    emojiClearable: true,
+    placeholder: "Tag name",
+    onNameChange: () => undefined,
+    onColorChange: () => undefined,
+    onEmojiChange: () => undefined,
+  },
+  render: Tag.render,
+};
+
 export const RandomColor: Story = {
   parameters: storyDocs(
     "Create flow: start with a random preset color via `randomFromColorGrid`.",
@@ -160,23 +179,14 @@ export const RandomColor: Story = {
     name: "",
     color: randomFromColorGrid(PRESET_COLORS),
     colors: PRESET_COLORS,
-    emoji: "📍",
+    emoji: "",
+    emojiClearable: true,
     placeholder: "Tag name",
     onNameChange: () => undefined,
     onColorChange: () => undefined,
     onEmojiChange: () => undefined,
   },
-  render: function Render() {
-    const [args, updateArgs] = useStoryArgs<EntityLabelArgs>();
-    return (
-      <EntityLabelInput
-        {...args}
-        onNameChange={(name) => updateArgs({ name })}
-        onColorChange={(color) => updateArgs({ color })}
-        onEmojiChange={(emoji) => updateArgs({ emoji })}
-      />
-    );
-  },
+  render: Tag.render,
 };
 
 export const Disabled: Story = {

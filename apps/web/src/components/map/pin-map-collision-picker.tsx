@@ -1,7 +1,11 @@
 import type { PinMapHandle } from "@/components/map/pin-map";
 import { useMaxSm } from "@/hooks/use-max-sm";
-import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
+import {
+  MAP_COLLISION_PANEL_GAP_PX,
+  mapAnchorPanelMiddleware,
+} from "@/lib/map-anchor-floating-ui";
 import { formatPinDateRange } from "@/lib/pin-dates";
+import { pinMarkerVisual } from "@/lib/pin-marker-visual";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { pinLocationLabel } from "@curolia/services/geocoding";
 import { BottomSheet } from "@curolia/ui/bottom-sheet";
@@ -24,11 +28,13 @@ export type PinMapCollisionPickerState = {
   pinIds: string[];
   lng: number;
   lat: number;
+  clickedPinId: string;
 };
 
 type PinMapCollisionPickerProps = {
   state: PinMapCollisionPickerState;
   pins: PinWithTags[];
+  photoUrlByPinId?: Record<string, string>;
   mapRef: RefObject<PinMapHandle | null>;
   onSelectPin: (id: string) => void;
   onClose: () => void;
@@ -37,14 +43,6 @@ type PinMapCollisionPickerProps = {
   /** Mobile bottom sheet dismiss slide-down start. */
   onDismissStart?: () => void;
 };
-
-function pinMarkerVisual(pin: PinWithTags) {
-  const tag0 = pin.pin_tags?.[0]?.tags;
-  return {
-    emoji: tag0?.icon_emoji ?? "📍",
-    fill: tag0?.color ?? null,
-  };
-}
 
 function pinDisplayTitle(pin: PinWithTags): string {
   return pin.title?.trim() || "Untitled place";
@@ -71,13 +69,20 @@ function orderCollisionPins(
     .filter((pin): pin is PinWithTags => Boolean(pin));
 }
 
-function toCollisionItems(pins: PinWithTags[]): MapMarkerCollisionItem[] {
+function toCollisionItems(
+  pins: PinWithTags[],
+  photoUrlByPinId: Record<string, string>,
+): MapMarkerCollisionItem[] {
   return pins.map((pin) => {
-    const { emoji, fill } = pinMarkerVisual(pin);
+    const { emoji, fill, photoUrl } = pinMarkerVisual(
+      pin,
+      photoUrlByPinId[pin.id],
+    );
     return {
       id: pin.id,
       emoji,
       fill,
+      photoUrl,
       title: pinDisplayTitle(pin),
       subtitle: pinPickerSubtitle(pin),
     };
@@ -87,6 +92,7 @@ function toCollisionItems(pins: PinWithTags[]): MapMarkerCollisionItem[] {
 export function PinMapCollisionPicker({
   state,
   pins,
+  photoUrlByPinId = {},
   mapRef,
   onSelectPin,
   onClose,
@@ -106,7 +112,10 @@ export function PinMapCollisionPicker({
   const title =
     orderedPins.length === 1 ? "1 pin here" : `${orderedPins.length} pins here`;
 
-  const items = useMemo(() => toCollisionItems(orderedPins), [orderedPins]);
+  const items = useMemo(
+    () => toCollisionItems(orderedPins, photoUrlByPinId),
+    [orderedPins, photoUrlByPinId],
+  );
 
   const virtualReference = useMemo(
     () => ({
@@ -148,7 +157,7 @@ export function PinMapCollisionPicker({
       void computePosition(virtualReference, floating, {
         placement: "right",
         strategy: "fixed",
-        middleware: mapAnchorPanelMiddleware(),
+        middleware: mapAnchorPanelMiddleware(MAP_COLLISION_PANEL_GAP_PX),
       }).then((data) => {
         if (cancelled) return;
         const host = floatingRef.current;

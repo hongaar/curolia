@@ -3,16 +3,20 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
 import { MapMarker } from "./map-marker";
 
+const SAMPLE_PHOTO =
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=128&h=128&fit=crop";
+
 const meta = {
   title: "Map Marker",
   component: MapMarker,
   ...componentStoryMeta(
-    "Emoji pin used on the main map and pin detail inset map.",
+    "Circular emoji pin used on the main map and pin detail inset map.",
     "Use `createMapMarkerMount` when attaching markers via MapLibre GL.",
   ),
   args: {
     emoji: "📍",
     fill: "#3b82f6",
+    photoUrl: null,
     selected: false,
     hovered: false,
     interactive: true,
@@ -24,14 +28,36 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  parameters: storyDocs("Default ring with tag color fill."),
+  parameters: storyDocs("Tag color fill."),
 };
 
 export const Small: Story = {
   parameters: storyDocs(
-    '`size="sm"` for compact rows (e.g. search result trailing preview).',
+    '`size="sm"` for compact rows and solid markers without emoji.',
   ),
-  args: { size: "sm", interactive: false },
+  args: { size: "sm", emoji: null, interactive: false },
+};
+
+export const SolidTagNoEmoji: Story = {
+  parameters: storyDocs("Tag color only — no emoji glyph."),
+  args: { size: "sm", emoji: null, fill: "#16a34a" },
+};
+
+export const Photo: Story = {
+  parameters: storyDocs(
+    "Photo marker with tag-colored ring (`lg` by default).",
+  ),
+  args: { photoUrl: SAMPLE_PHOTO, emoji: null },
+};
+
+export const PhotoLarge: Story = {
+  parameters: storyDocs('Explicit `size="lg"` photo marker.'),
+  args: { photoUrl: SAMPLE_PHOTO, size: "lg", emoji: null },
+};
+
+export const PhotoNeutral: Story = {
+  parameters: storyDocs("Photo marker without a tag color."),
+  args: { photoUrl: SAMPLE_PHOTO, fill: null, emoji: null },
 };
 
 export const Selected: Story = {
@@ -63,7 +89,7 @@ export const StackedBadgeLarge: Story = {
 
 export const Draft: Story = {
   parameters: storyDocs("Placement preview while creating a pin."),
-  args: { draft: true, interactive: false, fill: null },
+  args: { draft: true, interactive: false, fill: null, emoji: null },
 };
 
 export const InsetSelected: Story = {
@@ -80,8 +106,26 @@ export const States: Story = {
         <MapMarker emoji="🏔️" fill="#22c55e" selected interactive />
         <MapMarker emoji="🏔️" fill="#22c55e" hovered interactive />
         <MapMarker emoji="🏔️" fill="#22c55e" dimmed interactive />
+        <MapMarker emoji={null} fill="#16a34a" interactive />
+        <MapMarker photoUrl={SAMPLE_PHOTO} fill="#3b82f6" interactive />
         <MapMarker emoji="🍽️" fill="#16a34a" badge={15} interactive />
-        <MapMarker emoji="📍" fill={null} draft interactive={false} />
+        <MapMarker emoji={null} fill={null} draft interactive={false} />
+      </div>
+    </StoryFrame>
+  ),
+};
+
+export const AutoSizes: Story = {
+  parameters: storyDocs(
+    "Auto sizes: `sm` solid/neutral, `md` emoji, `lg` photo.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+        <MapMarker fill={null} emoji={null} interactive />
+        <MapMarker fill="#ef4444" emoji={null} interactive />
+        <MapMarker emoji="☕" fill="#92400e" interactive />
+        <MapMarker photoUrl={SAMPLE_PHOTO} fill="#3b82f6" interactive />
       </div>
     </StoryFrame>
   ),

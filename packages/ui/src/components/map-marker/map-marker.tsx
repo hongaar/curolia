@@ -7,11 +7,16 @@ import {
 } from "../../lib/utils";
 import styles from "./map-marker.module.css";
 
+export type MapMarkerSize = "sm" | "md" | "lg";
+
 export type MapMarkerProps = {
-  emoji: string;
+  /** Emoji glyph; omitted or empty for solid / photo markers. */
+  emoji?: string | null;
   fill: string | null;
-  /** `sm` fits compact rows (e.g. search results). */
-  size?: "md" | "sm";
+  /** Photo preview URL; when set the marker shows a circular photo. */
+  photoUrl?: string | null;
+  /** Override auto size (`lg` photo, `md` emoji, `sm` otherwise). */
+  size?: MapMarkerSize;
   selected?: boolean;
   hovered?: boolean;
   /** De-emphasize when another marker is selected. */
@@ -28,9 +33,36 @@ export type MapMarkerProps = {
   onMouseLeave?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
+type MarkerModeInput = {
+  photoUrl: string | null;
+  emoji: string | null;
+};
+
+function normalizePhotoUrl(photoUrl?: string | null): string | null {
+  const url = photoUrl?.trim() || null;
+  return url;
+}
+
+function normalizeEmoji(emoji?: string | null): string | null {
+  const glyph = emoji?.trim() || null;
+  return glyph;
+}
+
+/** Default size from marker mode: `lg` photo, `md` emoji, `sm` otherwise. */
+export function resolveMapMarkerSize(
+  size: MapMarkerSize | undefined,
+  mode: MarkerModeInput,
+): MapMarkerSize {
+  if (size !== undefined) return size;
+  if (mode.photoUrl) return "lg";
+  if (mode.emoji) return "md";
+  return "sm";
+}
+
 export function mapMarkerFaceClassName(opts: {
   fill: string | null;
-  size: "md" | "sm";
+  size: MapMarkerSize;
+  hasPhoto: boolean;
   selected: boolean;
   hovered: boolean;
   dimmed: boolean;
@@ -40,24 +72,41 @@ export function mapMarkerFaceClassName(opts: {
   return cn(
     styles.face,
     opts.size === "sm" && styles.faceSm,
+    opts.size === "lg" && styles.faceLg,
+    opts.hasPhoto && styles.facePhoto,
+    opts.hasPhoto && opts.fill && styles.facePhotoTagRing,
     opts.interactive && styles.interactive,
     opts.dimmed && styles.dimmed,
-    !opts.fill && styles.defaultFill,
+    !opts.hasPhoto && !opts.fill && styles.defaultFill,
     opts.draft
       ? styles.draft
       : opts.selected
         ? styles.selected
         : opts.hovered
           ? styles.hovered
-          : styles.defaultRing,
+          : null,
   );
 }
 
-function mapMarkerFillStyle(
+function mapMarkerFaceStyle(
   fill: string | null,
   dimmed: boolean,
+  hasPhoto: boolean,
+  photoUrl: string | null,
 ): React.CSSProperties | undefined {
+  if (hasPhoto) {
+    return {
+      backgroundImage: `url("${photoUrl}")`,
+      ["--marker-tag-color" as string]: fill
+        ? dimmed
+          ? dimmedMapMarkerFill(fill)
+          : fill
+        : undefined,
+    } as React.CSSProperties;
+  }
+
   if (!fill) return undefined;
+
   const backgroundColor = dimmed ? dimmedMapMarkerFill(fill) : fill;
   return {
     backgroundColor,
@@ -65,26 +114,61 @@ function mapMarkerFillStyle(
   };
 }
 
+function markerModeFromProps(
+  props: Pick<MapMarkerProps, "emoji" | "photoUrl">,
+): MarkerModeInput {
+  return {
+    photoUrl: normalizePhotoUrl(props.photoUrl),
+    emoji: normalizeEmoji(props.emoji),
+  };
+}
+
 /** Imperative face update — used by MapLibre mounts to avoid React re-renders on hover/selection. */
 export function applyMapMarkerFace(el: HTMLElement, props: MapMarkerProps) {
-  el.textContent = props.emoji;
+  const mode = markerModeFromProps(props);
+  const hasPhoto = Boolean(mode.photoUrl);
   const dimmed = Boolean(props.dimmed);
+  const size = resolveMapMarkerSize(props.size, mode);
+
+  el.textContent = hasPhoto ? "" : (mode.emoji ?? "");
   el.className = mapMarkerFaceClassName({
     fill: props.fill,
-    size: props.size ?? "md",
+    size,
+    hasPhoto,
     selected: Boolean(props.selected),
     hovered: Boolean(props.hovered),
     dimmed,
     interactive: Boolean(props.interactive),
     draft: Boolean(props.draft),
   });
-  if (props.fill) {
-    const style = mapMarkerFillStyle(props.fill, dimmed);
-    el.style.backgroundColor = style?.backgroundColor ?? "";
-    el.style.color = style?.color ?? "";
+
+  const style = mapMarkerFaceStyle(props.fill, dimmed, hasPhoto, mode.photoUrl);
+  if (style) {
+    if ("backgroundColor" in style && style.backgroundColor) {
+      el.style.backgroundColor = style.backgroundColor;
+      el.style.color = style.color ?? "";
+    } else {
+      el.style.backgroundColor = "";
+      el.style.color = "";
+    }
+    if (style.backgroundImage) {
+      el.style.backgroundImage = style.backgroundImage;
+    } else {
+      el.style.backgroundImage = "";
+    }
+    const tagColor = (style as Record<string, string | undefined>)[
+      "--marker-tag-color"
+    ];
+    if (tagColor) {
+      el.style.setProperty("--marker-tag-color", tagColor);
+    } else {
+      el.style.removeProperty("--marker-tag-color");
+    }
   } else {
     el.style.backgroundColor = "";
     el.style.color = "";
+    el.style.backgroundImage = "";
+    el.style.removeProperty("--marker-tag-color");
   }
 }
 
@@ -104,7 +188,8 @@ function MapMarkerBadge({ count }: { count: number }) {
 export function MapMarker({
   emoji,
   fill,
-  size = "md",
+  photoUrl,
+  size,
   selected = false,
   hovered = false,
   dimmed = false,
@@ -117,18 +202,23 @@ export function MapMarker({
   onMouseEnter,
   onMouseLeave,
 }: MapMarkerProps) {
+  const mode = markerModeFromProps({ emoji, photoUrl });
+  const hasPhoto = Boolean(mode.photoUrl);
+  const resolvedSize = resolveMapMarkerSize(size, mode);
   const className = mapMarkerFaceClassName({
     fill,
-    size,
+    size: resolvedSize,
+    hasPhoto,
     selected,
     hovered,
     dimmed,
     interactive,
     draft,
   });
-  const inlineStyle = mapMarkerFillStyle(fill, dimmed);
+  const inlineStyle = mapMarkerFaceStyle(fill, dimmed, hasPhoto, mode.photoUrl);
   const badgeNode =
     badge != null && badge > 1 ? <MapMarkerBadge count={badge} /> : null;
+  const glyph = hasPhoto ? null : mode.emoji;
 
   if (interactive) {
     return (
@@ -143,7 +233,7 @@ export function MapMarker({
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
         >
-          {emoji}
+          {glyph}
         </button>
         {badgeNode}
       </span>
@@ -158,7 +248,7 @@ export function MapMarker({
         className={className}
         style={inlineStyle}
       >
-        {emoji}
+        {glyph}
       </div>
       {badgeNode}
     </span>
@@ -289,6 +379,8 @@ export function createMapMarkerMount(
       const visualChanged =
         next.emoji !== props.emoji ||
         next.fill !== props.fill ||
+        next.photoUrl !== props.photoUrl ||
+        next.size !== props.size ||
         next.selected !== props.selected ||
         next.hovered !== props.hovered ||
         next.dimmed !== props.dimmed ||

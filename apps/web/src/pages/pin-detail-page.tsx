@@ -118,6 +118,12 @@ export function PinDetailPage() {
   const pin = pinQuery.data?.row ?? null;
   const redirectSlug = pinQuery.data?.redirectSlug ?? null;
   const { photos, signedUrlByPhotoId } = usePinPhotosSignedUrls(pin?.id);
+  const insetMarkerPhotoUrl = useMemo(() => {
+    const first = [...photos]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .find((p) => p.storage_path);
+    return first ? (signedUrlByPhotoId[first.id] ?? null) : null;
+  }, [photos, signedUrlByPhotoId]);
 
   const mapPinsQuery = useQuery({
     queryKey: ["pins-sequence", mapForRoute?.id],
@@ -255,8 +261,9 @@ export function PinDetailPage() {
               <PinDetailInsetMapView
                 lng={pin.lng}
                 lat={pin.lat}
-                markerEmoji={insetMarkerTag?.icon_emoji ?? "📍"}
+                markerEmoji={insetMarkerTag?.icon_emoji?.trim() || null}
                 markerColor={insetMarkerTag?.color ?? null}
+                markerPhotoUrl={insetMarkerPhotoUrl}
                 mapHref={mapHref}
                 mapAriaLabel="Open this pin on the map"
                 mapStyle={normalizeMapStylePreset(mapForRoute?.style)}

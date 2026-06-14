@@ -50,6 +50,23 @@
   font-size: var(--font-size-sm);
 }
 
+.faceLg {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-width: 2.5px;
+  font-size: var(--font-size-xl);
+}
+
+.facePhoto {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.facePhotoTagRing {
+  box-shadow: 0 0 0 2px var(--marker-tag-color);
+}
+
 /* Cheaper paint while MapLibre repositions markers every frame. */
 .cameraMoving .face {
   transition: none;
@@ -89,21 +106,10 @@
   outline: 3px solid var(--map-marker-ring);
 }
 
-.defaultRing {
-  outline: 2px solid
-    color-mix(in oklch, var(--map-marker-ring) 40%, transparent);
-  outline-offset: 0;
-}
-
-.defaultRing:hover {
-  outline-color: color-mix(in oklch, var(--map-marker-ring) 55%, transparent);
-  box-shadow: var(--shadow-lg);
-}
-
 .dimmed.defaultFill {
   background: color-mix(in oklch, var(--primary) 38%, white);
 }
 
-.dimmed.defaultRing {
-  outline-color: color-mix(in oklch, var(--map-marker-ring) 24%, white);
+.dimmed.facePhotoTagRing {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--marker-tag-color) 42%, white);
 }

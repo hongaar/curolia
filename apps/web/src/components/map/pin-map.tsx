@@ -32,6 +32,7 @@ import {
   syncPinRouteLayers,
   updatePinRouteAnimation,
 } from "@/lib/pin-map-route-layers";
+import { pinMarkerVisual, type PinMarkerVisual } from "@/lib/pin-marker-visual";
 import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
 import { isValidMapBbox, type MapBbox } from "@curolia/services/coords";
 import { MapCanvas } from "@curolia/ui/map";
@@ -123,7 +124,7 @@ export type PinMapPreviewPin = {
   lat: number;
   lng: number;
   color: string | null;
-  icon: string;
+  icon: string | null;
 };
 
 export type PinMapDraftPinLocation = Pick<PinMapPreviewPin, "lat" | "lng">;
@@ -135,8 +136,16 @@ export type PinCollisionClickPayload = {
   clickedPinId: string;
 };
 
+/** While the collision picker is open, treat its stack like a map selection. */
+export type PinMapCollisionFocus = {
+  pinIds: string[];
+  clickedPinId: string;
+};
+
+const EMPTY_PHOTO_URLS: Record<string, string> = {};
+
 const DEFAULT_DRAFT_PIN: Pick<PinMapPreviewPin, "icon" | "color"> = {
-  icon: "📍",
+  icon: null,
   color: null,
 };
 
@@ -148,6 +157,8 @@ type PinMapProps = {
   onPinCollisionClick?: (payload: PinCollisionClickPayload) => void;
   /** Pin whose detail panel is open — distinct marker styling. */
   selectedPinId?: string | null;
+  /** Collision picker open — dim non-group markers like `selectedPinId`. */
+  collisionFocus?: PinMapCollisionFocus | null;
   /** Draft pin while creating a pin (e.g. New pin dialog). */
   previewPin?: PinMapPreviewPin | null;
   /** Draft pin at the map point opened by the context menu. */
@@ -190,6 +201,8 @@ type PinMapProps = {
   showPinRoute?: boolean;
   /** Circle overlay for a place picked from global search. */
   placeHighlight?: PlaceMapHighlight | null;
+  /** Signed first-photo URL per pin id, for photo markers. */
+  photoUrlByPinId?: Record<string, string>;
 };
 
 const CAMERA_DURATION_MS = 850;
@@ -203,19 +216,6 @@ const SINGLE_PIN_ZOOM = 10;
 const MARKER_ADD_BATCH_SIZE = 48;
 /** Expand visible bounds before culling so pins do not pop at the edges. */
 const VIEWPORT_BOUNDS_PADDING_RATIO = 0.35;
-
-type PinMarkerVisual = {
-  emoji: string;
-  fill: string | null;
-};
-
-function pinMarkerVisual(t: PinWithTags): PinMarkerVisual {
-  const tag0 = t.pin_tags?.[0]?.tags;
-  return {
-    emoji: tag0?.icon_emoji ?? "📍",
-    fill: tag0?.color ?? null,
-  };
-}
 
 function clampLatitude(lat: number): number {
   return Math.max(-90, Math.min(90, lat));
@@ -318,6 +318,31 @@ function lngLatAtClientPoint(
   return map.unproject([clientX - rect.left, clientY - rect.top]);
 }
 
+function collisionGroupIsFocused(
+  group: string[],
+  selectedId: string | null,
+  collisionFocus: PinMapCollisionFocus | null,
+): boolean {
+  if (selectedId !== null && group.includes(selectedId)) return true;
+  if (!collisionFocus) return false;
+  return group.some((id) => collisionFocus.pinIds.includes(id));
+}
+
+function layoutSelectedPinId(
+  selectedId: string | null,
+  collisionFocus: PinMapCollisionFocus | null,
+): string | null {
+  if (selectedId !== null) return selectedId;
+  return collisionFocus?.clickedPinId ?? null;
+}
+
+function mapHasMarkerFocus(
+  selectedId: string | null,
+  collisionFocus: PinMapCollisionFocus | null,
+): boolean {
+  return selectedId !== null || collisionFocus !== null;
+}
+
 export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   {
     pins,
@@ -325,6 +350,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onSelectPin,
     onPinCollisionClick,
     selectedPinId = null,
+    collisionFocus = null,
     previewPin = null,
     contextDraftPin = null,
     placementMode = false,
@@ -342,6 +368,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
     showPinRoute = false,
     placeHighlight = null,
+    photoUrlByPinId = EMPTY_PHOTO_URLS,
   },
   ref,
 ) {
@@ -386,6 +413,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const markerContentByPinIdRef = useRef<Map<string, PinMarkerVisual>>(
     new Map(),
   );
+  const photoUrlByPinIdRef = useRef(photoUrlByPinId);
+  photoUrlByPinIdRef.current = photoUrlByPinId;
   const filteredByIdRef = useRef<Map<string, PinWithTags>>(new Map());
   const pendingMarkerAddsRef = useRef<PinWithTags[]>([]);
   const markerAddRafRef = useRef<number | null>(null);
@@ -447,6 +476,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const filteredRef = useRef(filtered);
   const selectedPinIdRef = useRef(selectedPinId);
+  const collisionFocusRef = useRef(collisionFocus);
   const latestPinHoverIdRef = useRef<string | null>(null);
   const placementModeRef = useRef(placementMode);
   const relocatePinIdRef = useRef(relocatePinId);
@@ -463,6 +493,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     filteredRef.current = filtered;
     filteredByIdRef.current = new Map(filtered.map((p) => [p.id, p]));
     selectedPinIdRef.current = selectedPinId;
+    collisionFocusRef.current = collisionFocus;
     latestPinHoverIdRef.current = pinHover?.pin.id ?? null;
     placementModeRef.current = placementMode;
     relocatePinIdRef.current = relocatePinId;
@@ -477,6 +508,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onPinContextMenu,
     filtered,
     selectedPinId,
+    collisionFocus,
     pinHover,
     placementMode,
     relocatePinId,
@@ -544,22 +576,26 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   }, []);
 
   const applyMarkerHoverStack = useCallback((hoveredId: string | null) => {
-    const hasSelection = selectedPinIdRef.current !== null;
     const selectedId = selectedPinIdRef.current;
+    const collisionFocus = collisionFocusRef.current;
+    const hasFocus = mapHasMarkerFocus(selectedId, collisionFocus);
     for (const [pinId, mount] of markerMountByPinIdRef.current) {
       const t = filteredByIdRef.current.get(pinId);
       if (!t) continue;
       const group = collisionGroupByPinIdRef.current.get(pinId) ?? [pinId];
-      const selected = selectedId !== null && group.includes(selectedId);
+      const focused = collisionGroupIsFocused(
+        group,
+        selectedId,
+        collisionFocus,
+      );
       const hovered = hoveredId !== null && group.includes(hoveredId);
-      const dimmed =
-        hasSelection && !(selectedId !== null && group.includes(selectedId));
-      const zIndex = selected || hovered ? "3" : "1";
+      const dimmed = hasFocus && !focused;
+      const zIndex = focused || hovered ? "3" : "1";
       const badge = group.length > 1 ? group.length : null;
 
       const prev = markerVisualByPinIdRef.current.get(pinId);
       if (
-        prev?.selected === selected &&
+        prev?.selected === focused &&
         prev?.hovered === hovered &&
         prev?.dimmed === dimmed &&
         prev?.zIndex === zIndex &&
@@ -568,7 +604,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         continue;
       }
       markerVisualByPinIdRef.current.set(pinId, {
-        selected,
+        selected: focused,
         hovered,
         dimmed,
         zIndex,
@@ -576,11 +612,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       });
       mount.setZIndex(zIndex);
 
-      const { emoji, fill } = pinMarkerVisual(t);
+      const { emoji, fill, photoUrl } = pinMarkerVisual(
+        t,
+        photoUrlByPinIdRef.current[pinId],
+      );
       mount.update({
         emoji,
         fill,
-        selected,
+        photoUrl,
+        selected: focused,
         hovered,
         dimmed,
         badge,
@@ -613,6 +653,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       hoveredId: string | null,
     ) => {
       if (pin.id === selectedId || pin.id === hoveredId) return true;
+      if (collisionFocusRef.current?.pinIds.includes(pin.id)) return true;
       return pinInMapBounds(pin.lng, pin.lat, bounds);
     },
     [],
@@ -623,15 +664,26 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       const map = mapRef.current;
       if (!map || markerMountByPinIdRef.current.has(t.id)) return;
 
-      const { emoji, fill } = pinMarkerVisual(t);
-      const initialSelected = t.id === selectedPinIdRef.current;
-      const hasSelection = selectedPinIdRef.current !== null;
+      const { emoji, fill, photoUrl } = pinMarkerVisual(
+        t,
+        photoUrlByPinIdRef.current[t.id],
+      );
+      const group = collisionGroupByPinIdRef.current.get(t.id) ?? [t.id];
+      const selectedId = selectedPinIdRef.current;
+      const collisionFocus = collisionFocusRef.current;
+      const focused = collisionGroupIsFocused(
+        group,
+        selectedId,
+        collisionFocus,
+      );
+      const hasFocus = mapHasMarkerFocus(selectedId, collisionFocus);
       const mount = createMapMarkerMount({
         emoji,
         fill,
-        selected: initialSelected,
+        photoUrl,
+        selected: focused,
         hovered: false,
-        dimmed: hasSelection && !initialSelected,
+        dimmed: hasFocus && !focused,
         interactive: true,
         ariaLabel: t.title?.trim() || "Open pin",
         onPointerDown: () => {
@@ -687,12 +739,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       mount.setCameraMoving(mapCameraMovingRef.current);
       mount.element.dataset.pinId = t.id;
       markerMountByPinIdRef.current.set(t.id, mount);
-      markerContentByPinIdRef.current.set(t.id, { emoji, fill });
+      markerContentByPinIdRef.current.set(t.id, { emoji, fill, photoUrl });
       markerVisualByPinIdRef.current.set(t.id, {
-        selected: initialSelected,
+        selected: focused,
         hovered: false,
-        dimmed: hasSelection && !initialSelected,
-        zIndex: initialSelected ? "3" : "1",
+        dimmed: hasFocus && !focused,
+        zIndex: focused ? "3" : "1",
         badge: null,
       });
       const [lng, lat] = markerLngLatForPin(t.id);
@@ -727,7 +779,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         if (map) {
           updateCollisionLayout(
             map,
-            selectedPinIdRef.current,
+            layoutSelectedPinId(
+              selectedPinIdRef.current,
+              collisionFocusRef.current,
+            ),
             latestPinHoverIdRef.current,
           );
         }
@@ -747,7 +802,10 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         if (map) {
           updateCollisionLayout(
             map,
-            selectedPinIdRef.current,
+            layoutSelectedPinId(
+              selectedPinIdRef.current,
+              collisionFocusRef.current,
+            ),
             latestPinHoverIdRef.current,
           );
         }
@@ -808,15 +866,19 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     }
     const selectedId = selectedPinIdRef.current;
     const hoveredId = latestPinHoverIdRef.current;
+    const layoutSelectedId = layoutSelectedPinId(
+      selectedId,
+      collisionFocusRef.current,
+    );
 
-    const layout = updateCollisionLayout(map, selectedId, hoveredId);
+    const layout = updateCollisionLayout(map, layoutSelectedId, hoveredId);
     const uniqueGroups = [...new Set(layout.groupByPinId.values())];
     const mountRepresentatives = new Set<string>();
 
     for (const group of uniqueGroups) {
       const representativeId = collisionRepresentativePinId(
         group,
-        selectedId,
+        layoutSelectedId,
         hoveredId,
       );
       const centroid = layout.centroidByRepresentativeId.get(representativeId);
@@ -824,14 +886,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
       const groupVisible =
         bounds === null ||
-        (selectedId !== null && group.includes(selectedId)) ||
+        (layoutSelectedId !== null && group.includes(layoutSelectedId)) ||
         (hoveredId !== null && group.includes(hoveredId)) ||
         pinInMapBounds(centroid.lng, centroid.lat, bounds) ||
         group.some((pinId) => {
           const pin = filteredByIdRef.current.get(pinId);
           return (
             pin !== undefined &&
-            shouldMountPinMarker(pin, bounds, selectedId, hoveredId)
+            shouldMountPinMarker(pin, bounds, layoutSelectedId, hoveredId)
           );
         });
 
@@ -859,13 +921,21 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         toAdd.push(pin);
         continue;
       }
-      const visual = pinMarkerVisual(pin);
+      const visual = pinMarkerVisual(
+        pin,
+        photoUrlByPinIdRef.current[representativeId],
+      );
       const prev = markerContentByPinIdRef.current.get(representativeId);
-      if (prev?.emoji !== visual.emoji || prev?.fill !== visual.fill) {
+      if (
+        prev?.emoji !== visual.emoji ||
+        prev?.fill !== visual.fill ||
+        prev?.photoUrl !== visual.photoUrl
+      ) {
         markerContentByPinIdRef.current.set(representativeId, visual);
         markerMountByPinIdRef.current.get(representativeId)?.update({
           emoji: visual.emoji,
           fill: visual.fill,
+          photoUrl: visual.photoUrl,
         });
       }
       markerByPinIdRef.current.get(representativeId)?.setLngLat([lng, lat]);
@@ -984,7 +1054,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   useLayoutEffect(() => {
     scheduleSyncVisibleMarkers();
-  }, [selectedPinId, scheduleSyncVisibleMarkers]);
+  }, [selectedPinId, collisionFocus, scheduleSyncVisibleMarkers]);
+
+  // Photos load asynchronously after pins; re-sync marker faces when they arrive.
+  useLayoutEffect(() => {
+    scheduleSyncVisibleMarkers();
+  }, [photoUrlByPinId, scheduleSyncVisibleMarkers]);
 
   useLayoutEffect(() => {
     if (!pinHover) {
@@ -1450,7 +1525,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         const pin = filteredByIdRef.current.get(relocating);
         if (pin) return pinMarkerVisual(pin);
       }
-      return { emoji: DEFAULT_DRAFT_PIN.icon, fill: DEFAULT_DRAFT_PIN.color };
+      return {
+        emoji: null,
+        fill: DEFAULT_DRAFT_PIN.color,
+        photoUrl: null,
+      };
     };
 
     const placeOrMoveDraft = (lngLat: maplibregl.LngLatLike) => {
@@ -1841,7 +1920,6 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const draftPinLat = staticDraftPin?.lat;
   const draftPinLng = staticDraftPin?.lng;
-  const draftPinIcon = staticDraftPin?.icon;
   const draftPinColor = staticDraftPin?.color;
 
   useEffect(() => {
@@ -1849,12 +1927,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (!map) return;
     previewMarkerRef.current?.remove();
     previewMarkerRef.current = null;
-    if (draftPinLat == null || draftPinLng == null || draftPinIcon == null) {
+    if (draftPinLat == null || draftPinLng == null) {
       return;
     }
 
     const mount = createMapMarkerMount({
-      emoji: draftPinIcon,
+      emoji: null,
       fill: draftPinColor ?? null,
       selected: false,
       interactive: false,
@@ -1871,7 +1949,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       mount.unmount();
       previewMarkerRef.current = null;
     };
-  }, [draftPinLat, draftPinLng, draftPinIcon, draftPinColor]);
+  }, [draftPinLat, draftPinLng, draftPinColor]);
 
   const hoverTitle = pinHover?.pin.title?.trim() || "Untitled place";
 

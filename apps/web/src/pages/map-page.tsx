@@ -73,6 +73,7 @@ import { relocatePinAtLocation } from "@/lib/relocate-pin-at-location";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
+import { useMapPinsPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
@@ -221,7 +222,7 @@ export function MapPage() {
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(randomPresetTagColor);
-  const [newTagEmoji, setNewTagEmoji] = useState("📍");
+  const [newTagEmoji, setNewTagEmoji] = useState("");
   const linkPasteBusyRef = useRef(false);
   useEffect(() => {
     return () => clearTimeout(cameraIdleTimerRef.current);
@@ -342,7 +343,7 @@ export function MapPage() {
     setTagEditTarget(null);
     setNewTagName("");
     setNewTagColor(randomPresetTagColor());
-    setNewTagEmoji("📍");
+    setNewTagEmoji("");
     setTagDialogOpen(true);
   };
 
@@ -350,11 +351,32 @@ export function MapPage() {
     setTagEditTarget(tag);
     setNewTagName(tag.name);
     setNewTagColor(tag.color);
-    setNewTagEmoji(tag.icon_emoji || "📍");
+    setNewTagEmoji(tag.icon_emoji ?? "");
     setTagDialogOpen(true);
   };
 
   const pins = useMemo(() => pinsQuery.data ?? [], [pinsQuery.data]);
+
+  const pinIdsWithPhotos = useMemo(
+    () => pins.filter((p) => (p.photos?.length ?? 0) > 0).map((p) => p.id),
+    [pins],
+  );
+  const { photosByPinId, signedUrlByPhotoId } = useMapPinsPhotosSignedUrls(
+    activeMapId ?? undefined,
+    pinIdsWithPhotos,
+  );
+  const photoUrlByPinId = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const [pinId, list] of photosByPinId) {
+      const first = [...list]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .find((p) => p.storage_path);
+      const url = first ? signedUrlByPhotoId[first.id] : undefined;
+      if (url) out[pinId] = url;
+    }
+    return out;
+  }, [photosByPinId, signedUrlByPhotoId]);
+
   const activeRelocatePinId =
     relocatePinId && pins.some((p) => p.id === relocatePinId)
       ? relocatePinId
@@ -492,6 +514,7 @@ export function MapPage() {
         pinIds: payload.pinIds,
         lng: payload.lng,
         lat: payload.lat,
+        clickedPinId: payload.clickedPinId,
       });
       setSidePanelAnimateIn(false);
       mapRef.current?.invalidatePendingMarkerSelection();
@@ -911,7 +934,7 @@ export function MapPage() {
         .update({
           name: newTagName.trim(),
           color: newTagColor,
-          icon_emoji: newTagEmoji || "📍",
+          icon_emoji: newTagEmoji.trim() || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", tagEditTarget.id);
@@ -930,7 +953,7 @@ export function MapPage() {
       map_id: activeMapId,
       name: newTagName.trim(),
       color: newTagColor,
-      icon_emoji: newTagEmoji || "📍",
+      icon_emoji: newTagEmoji.trim() || null,
     });
     if (error) {
       toast.error(error.message);
@@ -972,8 +995,17 @@ export function MapPage() {
           <PinMap
             ref={mapRef}
             pins={pins}
+            photoUrlByPinId={photoUrlByPinId}
             selectedTagIds={filterTagIds}
             selectedPinId={mapSelectedPinId}
+            collisionFocus={
+              pinCollisionPicker
+                ? {
+                    pinIds: pinCollisionPicker.pinIds,
+                    clickedPinId: pinCollisionPicker.clickedPinId,
+                  }
+                : null
+            }
             contextDraftPin={
               pointerContextMenu?.type === "map"
                 ? {
@@ -1098,6 +1130,7 @@ export function MapPage() {
         <PinMapCollisionPicker
           state={pinCollisionPicker}
           pins={pins}
+          photoUrlByPinId={photoUrlByPinId}
           mapRef={mapRef}
           onSelectPin={onPickCollisionPin}
           onClose={onClosePinCollisionPicker}
@@ -1187,6 +1220,7 @@ export function MapPage() {
                 onColorChange={setNewTagColor}
                 emoji={newTagEmoji}
                 onEmojiChange={setNewTagEmoji}
+                emojiClearable
               />
             </DialogFormStack>
           </DialogBody>

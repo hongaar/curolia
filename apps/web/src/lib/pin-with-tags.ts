@@ -7,7 +7,7 @@ export type PinWithTags = Pin & {
       id: string;
       name: string;
       color: string;
-      icon_emoji: string;
+      icon_emoji: string | null;
     } | null;
   }[];
   photos?: Pick<Photo, "id" | "storage_path" | "sort_order">[] | null;

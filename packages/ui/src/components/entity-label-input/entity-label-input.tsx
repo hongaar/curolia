@@ -9,6 +9,7 @@ import {
   ColorPickerTitle,
 } from "../color-picker";
 import {
+  EmojiPickerClear,
   EmojiPickerContent,
   EmojiPickerFooter,
   EmojiPicker as EmojiPickerRoot,
@@ -33,6 +34,8 @@ type EntityLabelInputProps = {
   emoji?: string;
   onEmojiChange?: (emoji: string) => void;
   emojiFallback?: string;
+  /** Show a "No icon" clear action; empty state shows a dotted circle. */
+  emojiClearable?: boolean;
 };
 
 export function EntityLabelInput({
@@ -48,6 +51,7 @@ export function EntityLabelInput({
   emoji,
   onEmojiChange,
   emojiFallback = "📍",
+  emojiClearable = false,
 }: EntityLabelInputProps) {
   const showColor = Boolean(onColorChange && colors && color != null);
   const showEmoji = Boolean(onEmojiChange);
@@ -58,6 +62,7 @@ export function EntityLabelInput({
   );
   const emojiSearchRef = useRef<HTMLInputElement>(null);
   const normalizedColor = (color ?? "").toLowerCase();
+  const showNoIconGlyph = emojiClearable && !emoji;
   const displayEmoji = emoji || emojiFallback;
 
   useEffect(() => {
@@ -152,12 +157,18 @@ export function EntityLabelInput({
                   aria-label={
                     emoji && emojiLabel
                       ? `Icon ${emojiLabel}. Choose icon`
-                      : "Choose icon"
+                      : showNoIconGlyph
+                        ? "No icon. Choose icon"
+                        : "Choose icon"
                   }
                 >
-                  <span className={styles.emojiDisplay} aria-hidden>
-                    {displayEmoji}
-                  </span>
+                  {showNoIconGlyph ? (
+                    <span className={styles.noIconCircle} aria-hidden />
+                  ) : (
+                    <span className={styles.emojiDisplay} aria-hidden>
+                      {displayEmoji}
+                    </span>
+                  )}
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
@@ -175,6 +186,15 @@ export function EntityLabelInput({
                   >
                     <EmojiPickerSearch ref={emojiSearchRef} />
                     <EmojiPickerContent className={styles.emojiPickerContent} />
+                    {emojiClearable ? (
+                      <EmojiPickerClear
+                        onClear={() => {
+                          setEmojiLabel(undefined);
+                          onEmojiChange!("");
+                          setEmojiOpen(false);
+                        }}
+                      />
+                    ) : null}
                     <EmojiPickerFooter />
                   </EmojiPickerRoot>
                 </PopoverContent>

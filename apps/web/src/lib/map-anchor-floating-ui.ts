@@ -10,6 +10,9 @@ import {
 /** Space from map anchor (marker center) to panel — matches new-pin floating form. */
 export const MAP_ANCHOR_PANEL_GAP_PX = 14;
 
+/** Collision picker sits beside markers up to `lg` photo size (~3.25rem). */
+export const MAP_COLLISION_PANEL_GAP_PX = 30;
+
 const VIEWPORT_EDGE_PX = 12;
 
 function readRootCssLength(varName: string, fallback = 0): number {
@@ -117,11 +120,13 @@ export function mapPaddingAvoidRect(rect: DOMRect | null): {
 }
 
 /** Floating UI middleware for anchored map panels (new pin dialog, marker hover). */
-export function mapAnchorPanelMiddleware(): Middleware[] {
+export function mapAnchorPanelMiddleware(
+  gapPx: number = MAP_ANCHOR_PANEL_GAP_PX,
+): Middleware[] {
   const padding = mapFloatingViewportPadding();
 
   return [
-    offset(MAP_ANCHOR_PANEL_GAP_PX),
+    offset(gapPx),
     flip({
       fallbackPlacements: ["left", "top", "bottom"],
       padding,

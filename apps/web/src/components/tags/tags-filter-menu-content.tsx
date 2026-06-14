@@ -67,7 +67,21 @@ export function TagsFilterMenuContent({
                     });
                   }}
                 >
-                  <span aria-hidden>{tag.icon_emoji}</span>
+                  <span aria-hidden>
+                    {tag.icon_emoji ? (
+                      tag.icon_emoji
+                    ) : (
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: "0.75rem",
+                          height: "0.75rem",
+                          borderRadius: "999px",
+                          backgroundColor: tag.color,
+                        }}
+                      />
+                    )}
+                  </span>
                   <DropdownMenuItemName selected={selected}>
                     {tag.name}
                   </DropdownMenuItemName>

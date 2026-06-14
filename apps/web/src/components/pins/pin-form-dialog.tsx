@@ -190,7 +190,7 @@ export function PinFormDialog({
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(randomPresetTagColor);
-  const [newTagEmoji, setNewTagEmoji] = useState("📍");
+  const [newTagEmoji, setNewTagEmoji] = useState("");
   const [tagSaving, setTagSaving] = useState(false);
   const floatingRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<{ x: number; y: number } | null>(null);
@@ -486,7 +486,7 @@ export function PinFormDialog({
       setTagDialogOpen(false);
       setNewTagName("");
       setNewTagColor(randomPresetTagColor());
-      setNewTagEmoji("📍");
+      setNewTagEmoji("");
       setTagSaving(false);
     }
   }, [open]);
@@ -494,7 +494,7 @@ export function PinFormDialog({
   function openNewTagDialog() {
     setNewTagName("");
     setNewTagColor(randomPresetTagColor());
-    setNewTagEmoji("📍");
+    setNewTagEmoji("");
     setTagDialogOpen(true);
   }
 
@@ -508,7 +508,7 @@ export function PinFormDialog({
           map_id: mapId,
           name: newTagName.trim(),
           color: newTagColor,
-          icon_emoji: newTagEmoji || "📍",
+          icon_emoji: newTagEmoji.trim() || null,
         })
         .select("id")
         .single();
@@ -1075,7 +1075,7 @@ export function PinFormDialog({
                   });
                 }}
               />
-              <span>{tag.icon_emoji}</span>
+              {tag.icon_emoji ? <span>{tag.icon_emoji}</span> : null}
               <span>{tag.name}</span>
             </OptionListItem>
           ))}
@@ -1289,6 +1289,7 @@ export function PinFormDialog({
               onColorChange={setNewTagColor}
               emoji={newTagEmoji}
               onEmojiChange={setNewTagEmoji}
+              emojiClearable
             />
           </DialogFormStack>
         </DialogBody>
