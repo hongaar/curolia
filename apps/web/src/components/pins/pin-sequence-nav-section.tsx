@@ -127,35 +127,3 @@ export function PinTripTimelineSection({
     />
   );
 }
-
-/** @deprecated Use `PinSequenceCompactNavSection` and `PinTripTimelineSection`. */
-export function PinSequenceNavSection({
-  pinId,
-  mapPins,
-  mapRoute,
-  onNavigatePin,
-  showDots: _showDots = true,
-}: {
-  pinId: string;
-  mapPins: PinWithTags[];
-  mapRoute: MapRoute | null;
-  onNavigatePin?: (pin: PinWithTags) => void;
-  showDots?: boolean;
-}) {
-  return (
-    <>
-      <PinSequenceCompactNavSection
-        pinId={pinId}
-        mapPins={mapPins}
-        mapRoute={mapRoute}
-        onNavigatePin={onNavigatePin}
-      />
-      <PinTripTimelineSection
-        pinId={pinId}
-        mapPins={mapPins}
-        mapRoute={mapRoute}
-        onNavigatePin={onNavigatePin}
-      />
-    </>
-  );
-}
