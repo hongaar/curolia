@@ -191,11 +191,21 @@
   min-width: 0;
 }
 
+.stripWrapBleed {
+  margin-inline: calc(-1 * var(--card-pad));
+  width: calc(100% + 2 * var(--card-pad));
+}
+
 .stripScroller {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+
+.stripScrollerBleed {
+  padding-inline: var(--card-pad);
+  scroll-padding-inline: var(--card-pad);
 }
 
 .stripScroller::-webkit-scrollbar {
@@ -221,13 +231,26 @@
   height: 6.5rem;
 }
 
-.stripFade {
+.stripFadeLeft,
+.stripFadeRight {
   position: absolute;
   top: 0;
-  right: 0;
   bottom: 0;
   width: 2.5rem;
   pointer-events: none;
+}
+
+.stripFadeLeft {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in oklch, var(--background) 55%, var(--card)),
+    transparent
+  );
+}
+
+.stripFadeRight {
+  right: 0;
   background: linear-gradient(
     to right,
     transparent,

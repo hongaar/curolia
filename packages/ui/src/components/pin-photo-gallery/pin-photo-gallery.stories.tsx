@@ -156,6 +156,20 @@ export const Masonry: Story = {
 export const Strip: Story = {
   args: { layout: "strip" },
   parameters: storyDocs(
-    "Single horizontal row with scroll and a right-edge fade when more photos are off-screen.",
+    "Single horizontal row with scroll and edge fades when more photos are off-screen.",
+  ),
+};
+
+export const StripBleed: Story = {
+  args: { layout: "strip", stripBleed: true },
+  decorators: [
+    (Story) => (
+      <div style={{ paddingInline: "var(--card-pad)" }}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: storyDocs(
+    "Strip layout that bleeds to the shell edges while keeping the first and last photos aligned with card padding at the scroll extents.",
   ),
 };

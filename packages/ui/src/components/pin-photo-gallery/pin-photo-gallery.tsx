@@ -33,6 +33,11 @@ export type PinPhotoGalleryProps = {
   /** Shown while signed URLs are still loading for known photo ids. */
   loadingPlaceholders?: number;
   layout?: PinPhotoGalleryLayout;
+  /**
+   * Strip layout only: span the full width of the parent shell while keeping the
+   * first and last photos aligned with `--card-pad` at the scroll extents.
+   */
+  stripBleed?: boolean;
 };
 
 function useContainerWidth() {
@@ -239,18 +244,23 @@ function StripGallery({
   items,
   onOpen,
   loadingPlaceholders,
+  stripBleed = false,
 }: {
   items: PinPhotoGalleryItem[];
   onOpen: (photoId: string) => void;
   loadingPlaceholders: number;
+  stripBleed?: boolean;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [scrollHints, setScrollHints] = useState({ left: false, right: false });
 
   const syncScrollHint = () => {
     const el = scrollerRef.current;
     if (!el) return;
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    setScrollHints({
+      left: el.scrollLeft > 1,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+    });
   };
 
   useLayoutEffect(() => {
@@ -264,10 +274,20 @@ function StripGallery({
   }, [items.length, loadingPlaceholders]);
 
   return (
-    <div className={styles.stripWrap}>
+    <div
+      className={
+        stripBleed
+          ? `${styles.stripWrap} ${styles.stripWrapBleed}`
+          : styles.stripWrap
+      }
+    >
       <div
         ref={scrollerRef}
-        className={styles.stripScroller}
+        className={
+          stripBleed
+            ? `${styles.stripScroller} ${styles.stripScrollerBleed}`
+            : styles.stripScroller
+        }
         onScroll={syncScrollHint}
       >
         <div className={styles.strip}>
@@ -285,7 +305,12 @@ function StripGallery({
           ) : null}
         </div>
       </div>
-      {canScrollRight ? <div className={styles.stripFade} aria-hidden /> : null}
+      {scrollHints.left ? (
+        <div className={styles.stripFadeLeft} aria-hidden />
+      ) : null}
+      {scrollHints.right ? (
+        <div className={styles.stripFadeRight} aria-hidden />
+      ) : null}
     </div>
   );
 }
@@ -316,6 +341,7 @@ export function PinPhotoGallery({
   onOpen,
   loadingPlaceholders = 0,
   layout = "rows",
+  stripBleed = false,
 }: PinPhotoGalleryProps) {
   const { ref, width } = useContainerWidth();
 
@@ -330,6 +356,7 @@ export function PinPhotoGallery({
           items={items}
           onOpen={onOpen}
           loadingPlaceholders={loadingPlaceholders}
+          stripBleed={stripBleed}
         />
       ) : layout === "masonry" ? (
         <MasonryGallery

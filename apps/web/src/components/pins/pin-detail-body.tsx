@@ -83,8 +83,8 @@ interface PinDetailBodyProps {
   /** Content rendered at the top of the content section (e.g. inset map). */
   topContent?: ReactNode;
   /**
-   * When provided (e.g. in the map side sheet), renders a small permalink icon
-   * that links to the standalone pin detail page for this pin.
+   * Map route for trip-sequence navigation links. In the map side sheet, also
+   * renders a permalink icon that opens the standalone pin detail page.
    */
   permalinkMapRoute?: MapRoute;
   /** Map pins for chronological travel sequence navigation. */
@@ -183,7 +183,9 @@ export function PinDetailBody({
     (bottomSheet ? pinToolbarActionCount > 0 : pinToolbarActionCount > 1);
   const showPinActionsInHeader =
     (showPluginActions || showEditInToolbar) && !overflowPinActions;
-  const hasHeaderPermalink = Boolean(permalinkMapRoute && isWideEnough);
+  const hasHeaderPermalink = Boolean(
+    permalinkMapRoute && isWideEnough && sideSheet,
+  );
   const hasChromeActions = hasHeaderPermalink || Boolean(extraActions);
   const hasHeaderActions =
     showPinActionsInHeader || hasChromeActions || overflowPinActions;
@@ -313,6 +315,7 @@ export function PinDetailBody({
             items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
             layout={sideSheet ? "strip" : "rows"}
+            stripBleed={sideSheet}
             onOpen={(photoId) => setPhotoLightbox({ photoId })}
           />
         ) : null}
