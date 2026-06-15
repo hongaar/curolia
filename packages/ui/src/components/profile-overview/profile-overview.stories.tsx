@@ -10,6 +10,8 @@ import {
   ProfileOverviewIdentity,
   ProfileOverviewLayout,
   ProfileOverviewMain,
+  ProfileOverviewStatButton,
+  ProfileOverviewStats,
 } from "./profile-overview";
 
 const meta = {
@@ -44,6 +46,18 @@ export const OwnerView: Story = {
             name="Alex Example"
             bio="Mapping cities, coffee stops, and long walks."
           />
+          <ProfileOverviewStats>
+            <ProfileOverviewStatButton
+              label="Followers"
+              value="128"
+              aria-label="Followers: 128"
+            />
+            <ProfileOverviewStatButton
+              label="Following"
+              value="24"
+              aria-label="Following: 24"
+            />
+          </ProfileOverviewStats>
           <PageFitButton>
             <PageInlineActions spaced="none">
               <Button variant="outline">Edit profile</Button>

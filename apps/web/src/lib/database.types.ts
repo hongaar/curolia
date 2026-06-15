@@ -804,6 +804,32 @@ export type Database = {
           },
         ];
       };
+      profile_follows: {
+        Row: {
+          created_at: string;
+          follower_id: string;
+          following_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          follower_id: string;
+          following_id: string;
+        };
+        Update: {
+          created_at?: string;
+          follower_id?: string;
+          following_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_follows_following_id_fkey";
+            columns: ["following_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profile_slug_redirects: {
         Row: {
           created_at: string;
@@ -1109,6 +1135,7 @@ export type Database = {
       };
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
       delete_map: { Args: { p_map_id: string }; Returns: undefined };
+      follow_profile: { Args: { p_following_id: string }; Returns: undefined };
       invite_map_member: {
         Args: {
           p_invited_role: Database["public"]["Enums"]["map_member_role"];
@@ -1116,6 +1143,10 @@ export type Database = {
           p_map_id: string;
         };
         Returns: string;
+      };
+      is_following_profile: {
+        Args: { p_following_id: string };
+        Returns: boolean;
       };
       is_map_editor: { Args: { p_map_id: string }; Returns: boolean };
       is_map_member: { Args: { p_map_id: string }; Returns: boolean };
@@ -1128,9 +1159,31 @@ export type Database = {
         Args: { p_map_id: string; p_plugin_type_id: string };
         Returns: boolean;
       };
+      is_profile_followable: {
+        Args: { p_profile_id: string };
+        Returns: boolean;
+      };
       is_profile_publicly_readable: {
         Args: { p_profile_id: string };
         Returns: boolean;
+      };
+      list_profile_followers: {
+        Args: { p_profile_id: string };
+        Returns: {
+          avatar_url: string;
+          display_name: string;
+          profile_id: string;
+          slug: string;
+        }[];
+      };
+      list_profile_following: {
+        Args: { p_profile_id: string };
+        Returns: {
+          avatar_url: string;
+          display_name: string;
+          profile_id: string;
+          slug: string;
+        }[];
       };
       map_claim_slug: {
         Args: { p_desired: string; p_map_id: string; p_owner_id: string };
@@ -1165,6 +1218,15 @@ export type Database = {
         Args: { p_desired: string; p_profile_id: string };
         Returns: string;
       };
+      profile_follower_count: {
+        Args: { p_profile_id: string };
+        Returns: number;
+      };
+      profile_following_count: {
+        Args: { p_profile_id: string };
+        Returns: number;
+      };
+      profile_path: { Args: { p_profile_id: string }; Returns: string };
       register_push_token: {
         Args: {
           p_device_id?: string;
@@ -1207,6 +1269,10 @@ export type Database = {
         Args: { p_map_id: string; p_new_owner_email: string };
         Returns: undefined;
       };
+      unfollow_profile: {
+        Args: { p_following_id: string };
+        Returns: undefined;
+      };
       update_map_member_role: {
         Args: {
           p_map_id: string;
@@ -1225,7 +1291,8 @@ export type Database = {
         | "map_invitation_accepted"
         | "map_ownership_received"
         | "pin_comment"
-        | "pin_reaction";
+        | "pin_reaction"
+        | "profile_follow";
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
       plugin_sync_job_status: "pending" | "processing" | "completed" | "failed";
       push_delivery_status: "pending" | "sent" | "failed";
@@ -1371,6 +1438,7 @@ export const Constants = {
         "map_ownership_received",
         "pin_comment",
         "pin_reaction",
+        "profile_follow",
       ],
       plugin_link_status: ["disabled", "pending", "error", "connected"],
       plugin_sync_job_status: ["pending", "processing", "completed", "failed"],

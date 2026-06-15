@@ -20,16 +20,26 @@
 .placeholderSm {
   width: var(--control-h-sm);
   height: var(--control-h-sm);
+  align-items: center;
+  justify-content: center;
 }
 
 .placeholderMd {
   width: var(--control-h-sm);
   height: var(--control-h-sm);
+  align-items: center;
+  justify-content: center;
 }
 
 .placeholderLg {
   width: 6rem;
   height: 6rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--muted) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent);
 }
 
 .placeholderFull {
@@ -113,8 +123,8 @@
 }
 
 .iconLg {
-  width: 4rem;
-  height: 4rem;
+  width: 3.25rem;
+  height: 3.25rem;
 }
 
 .iconFull {

@@ -1,7 +1,10 @@
+import { ProfileFollowButton } from "@/components/profile/profile-follow-button";
+import { ProfileFollowStatPopover } from "@/components/profile/profile-follow-stat-popover";
 import { ProfileVisibilityMenu } from "@/components/profile/profile-visibility-controls";
 import { UserAvatar } from "@/components/user-avatar";
 import { usePublicProfileCrawlerBlockMeta } from "@/hooks/use-public-profile-crawler-block-meta";
 import { publicMapLinkHref } from "@/lib/app-paths";
+import { fetchProfileFollowStats } from "@/lib/fetch-profile-follow-stats";
 import { fetchProfileMaps } from "@/lib/fetch-profile-maps";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
 import { defaultMapIcon } from "@/lib/map-display-icon";
@@ -9,6 +12,7 @@ import { mapRouteForMap } from "@/lib/map-route";
 import { profileEditHref, publicProfileHref } from "@/lib/profile-route";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
+import { useProfileFollow } from "@/lib/use-profile-follow";
 import { useAuth } from "@/providers/auth-provider";
 import type { Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
@@ -33,6 +37,7 @@ import {
   ProfileOverviewIdentity,
   ProfileOverviewLayout,
   ProfileOverviewMain,
+  ProfileOverviewStats,
 } from "@curolia/ui/profile-overview";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -79,11 +84,18 @@ export function PublicProfilePage() {
         user?.id ?? null,
       );
 
+      const followStats = await fetchProfileFollowStats(
+        profile.id,
+        user?.id ?? null,
+        supabase,
+      );
+
       return {
         kind: "ok" as const,
         profile,
         maps,
         isOwner,
+        followStats,
         canonicalSlug: resolved.canonicalSlug,
         redirected: resolved.redirected,
       };
@@ -94,6 +106,16 @@ export function PublicProfilePage() {
   const result = profileQuery.data;
   const profile =
     result?.kind === "ok" ? (profileState ?? result.profile) : null;
+  const okResult = result?.kind === "ok" ? result : null;
+
+  const follow = useProfileFollow({
+    profileId: okResult?.profile.id ?? "",
+    profileSlug: okResult?.profile.slug ?? profileSlug,
+    viewerUserId: user?.id,
+    isOwner: okResult?.isOwner ?? false,
+    isFollowing: okResult?.followStats.isFollowing ?? false,
+    enabled: Boolean(okResult?.profile.is_public && okResult.profile.id),
+  });
 
   useEffect(() => {
     if (result?.kind === "ok") {
@@ -157,11 +179,9 @@ export function PublicProfilePage() {
     );
   }
 
-  if (!profile || !result || result.kind !== "ok") {
+  if (!profile || !okResult) {
     return null;
   }
-
-  const okResult = result;
 
   if (okResult.redirected && okResult.canonicalSlug !== profileSlug) {
     return <Navigate to={publicProfileHref(okResult.canonicalSlug)} replace />;
@@ -171,6 +191,7 @@ export function PublicProfilePage() {
     profile.display_name?.trim() || profile.slug || "Traveler";
   const maps = okResult.maps;
   const isOwner = okResult.isOwner;
+  const followStats = okResult.followStats;
 
   return (
     <AppPageLayout width="full">
@@ -191,6 +212,22 @@ export function PublicProfilePage() {
               name={displayName}
               bio={profile.bio?.trim() || undefined}
             />
+            {profile.is_public ? (
+              <ProfileOverviewStats>
+                <ProfileFollowStatPopover
+                  profileId={profile.id}
+                  kind="followers"
+                  label="Followers"
+                  value={followStats.followerCount.toLocaleString()}
+                />
+                <ProfileFollowStatPopover
+                  profileId={profile.id}
+                  kind="following"
+                  label="Following"
+                  value={followStats.followingCount.toLocaleString()}
+                />
+              </ProfileOverviewStats>
+            ) : null}
             {isOwner ? (
               <PageFitButton>
                 <PageInlineActions spaced="none">
@@ -205,6 +242,15 @@ export function PublicProfilePage() {
                     onProfileChange={setProfileState}
                   />
                 </PageInlineActions>
+              </PageFitButton>
+            ) : profile.is_public ? (
+              <PageFitButton>
+                <ProfileFollowButton
+                  isFollowing={follow.isFollowing}
+                  busy={follow.busy}
+                  canFollow={follow.canFollow}
+                  onToggle={() => void follow.toggleFollow()}
+                />
               </PageFitButton>
             ) : null}
           </PagePanel>

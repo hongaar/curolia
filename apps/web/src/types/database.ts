@@ -9,7 +9,8 @@ export type NotificationType =
   | "map_invitation_accepted"
   | "map_ownership_received"
   | "pin_comment"
-  | "pin_reaction";
+  | "pin_reaction"
+  | "profile_follow";
 export type PluginLinkStatus = "disabled" | "pending" | "error" | "connected";
 
 export type Profile = {
