@@ -79,10 +79,21 @@ export function ProfileOverviewStatButton({
 
 export function ProfileOverviewPopoverScroll({
   children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={cn(styles.popoverScroll, className)}>{children}</div>;
+}
+
+/** Bottom sheet body for followers/following lists on small viewports. */
+export function ProfileOverviewFollowSheetBody({
+  children,
 }: {
   children: React.ReactNode;
 }) {
-  return <div className={styles.popoverScroll}>{children}</div>;
+  return <div className={styles.followSheetBody}>{children}</div>;
 }
 
 export function ProfileOverviewFollowPopoverHeader({

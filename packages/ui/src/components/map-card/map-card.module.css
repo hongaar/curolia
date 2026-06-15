@@ -1,15 +1,16 @@
 .masonry {
-  column-gap: var(--space-4);
-  column-count: 1;
+  column-gap: var(--space-3);
+  column-count: 2;
 }
 
 .masonry[data-columns="4"] {
-  column-count: 1;
+  column-count: 2;
 }
 
 @media (min-width: 40rem) {
   .masonry {
     column-count: 2;
+    column-gap: var(--space-4);
   }
 
   .masonry[data-columns="4"] {

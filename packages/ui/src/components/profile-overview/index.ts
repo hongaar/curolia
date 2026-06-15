@@ -3,6 +3,7 @@ export {
   ProfileOverviewFollowList,
   ProfileOverviewFollowListItem,
   ProfileOverviewFollowPopoverHeader,
+  ProfileOverviewFollowSheetBody,
   ProfileOverviewIdentity,
   ProfileOverviewLayout,
   ProfileOverviewMain,

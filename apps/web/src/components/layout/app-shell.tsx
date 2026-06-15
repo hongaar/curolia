@@ -6,6 +6,7 @@ import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { reportAppError } from "@/lib/bugsink";
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
+import { isPublicProfileViewPathname } from "@/lib/profile-route";
 import {
   installStackChromeLayoutSync,
   syncStackChromeDocumentClass,
@@ -22,7 +23,10 @@ export function AppShellFrame({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const stackTransitions = useStackTransitions();
-  const showMainToolbar = !stackTransitions || !isStackRoute(pathname);
+  const showMainToolbar =
+    !stackTransitions ||
+    !isStackRoute(pathname) ||
+    isPublicProfileViewPathname(pathname);
 
   useLayoutEffect(() => {
     syncMapRouteDocumentClass(pathname);

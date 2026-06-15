@@ -192,6 +192,22 @@
   overflow-y: auto;
 }
 
+.followSheetBody {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  padding-inline: var(--space-4);
+  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+}
+
+.followSheetBody .popoverScroll {
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+}
+
 .popoverEmpty {
   margin: 0;
   padding: var(--space-4) var(--space-3);

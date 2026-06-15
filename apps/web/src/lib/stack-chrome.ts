@@ -1,3 +1,4 @@
+import { isPublicProfileViewPathname } from "@/lib/profile-route";
 import { isStackRoute } from "@/lib/stack-routes";
 import { Capacitor } from "@capacitor/core";
 
@@ -7,6 +8,7 @@ const STACK_TOOLBAR_HIDDEN_MQ = "(max-width: 639px)";
 /** Mobile/native stack screens: no main toolbar, compact page top inset. */
 export function isStackChromeLayout(pathname: string): boolean {
   if (!isStackRoute(pathname)) return false;
+  if (isPublicProfileViewPathname(pathname)) return false;
   if (Capacitor.isNativePlatform()) return true;
   if (typeof window === "undefined") return false;
   return window.matchMedia(STACK_TOOLBAR_HIDDEN_MQ).matches;
