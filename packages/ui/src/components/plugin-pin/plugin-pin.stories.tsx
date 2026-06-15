@@ -9,6 +9,9 @@ import {
   PluginPinContent,
   PluginPinError,
   PluginPinHeader,
+  PluginPinItemByline,
+  PluginPinItemMain,
+  PluginPinItemRow,
   PluginPinLink,
   PluginPinLinkMeta,
   PluginPinList,
@@ -81,6 +84,39 @@ export const Loading: Story = {
         <PluginPinContent>
           <PluginPinSpinner />
           <PluginPinMutedXs>Loading suggestions…</PluginPinMutedXs>
+        </PluginPinContent>
+      </PluginPinCard>
+    </StoryFrame>
+  ),
+};
+
+export const CommentByline: Story = {
+  parameters: storyDocs("Inline author and relative timestamp for list items."),
+  render: () => (
+    <StoryFrame width="md">
+      <PluginPinCard>
+        <PluginPinHeader>
+          <PluginPinTitleRow
+            icon={
+              <PluginIconFrame size={4}>
+                <span aria-hidden>💬</span>
+              </PluginIconFrame>
+            }
+            title="Comments"
+          />
+        </PluginPinHeader>
+        <PluginPinContent>
+          <PluginPinList>
+            <PluginPinItemRow>
+              <PluginPinItemMain>
+                <PluginPinItemByline
+                  title="Joram van den Boezem"
+                  meta={<time dateTime="2026-06-12T10:00:00Z">3d ago</time>}
+                />
+                <p>Looks great — thanks for sharing!</p>
+              </PluginPinItemMain>
+            </PluginPinItemRow>
+          </PluginPinList>
         </PluginPinContent>
       </PluginPinCard>
     </StoryFrame>

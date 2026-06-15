@@ -161,6 +161,33 @@ export function PluginPinItemMain({ children }: { children: React.ReactNode }) {
   return <div className={styles.itemMain}>{children}</div>;
 }
 
+export function PluginPinItemByline({
+  title,
+  meta,
+}: {
+  title: React.ReactNode;
+  meta?: React.ReactNode;
+}) {
+  if (meta == null || meta === "") {
+    return (
+      <p className={styles.itemByline}>
+        <strong className={styles.itemBylineTitle}>{title}</strong>
+      </p>
+    );
+  }
+
+  return (
+    <p className={styles.itemByline}>
+      <strong className={styles.itemBylineTitle}>{title}</strong>
+      <span className={styles.itemBylineSep} aria-hidden>
+        {" "}
+        ·{" "}
+      </span>
+      <span className={styles.itemBylineMeta}>{meta}</span>
+    </p>
+  );
+}
+
 export function PluginPinSearchResults({
   children,
 }: {

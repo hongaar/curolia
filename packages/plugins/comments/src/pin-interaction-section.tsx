@@ -6,6 +6,7 @@ import {
   PluginPinContent,
   PluginPinError,
   PluginPinHeader,
+  PluginPinItemByline,
   PluginPinItemMain,
   PluginPinItemRow,
   PluginPinList,
@@ -158,10 +159,14 @@ export function CommentsPinInteractionSection({
               return (
                 <PluginPinItemRow key={comment.id}>
                   <PluginPinItemMain>
-                    <strong>{comment.author_display_name}</strong>
-                    <PluginPinMuted>
-                      {formatCommentDate(comment.created_at)}
-                    </PluginPinMuted>
+                    <PluginPinItemByline
+                      title={comment.author_display_name}
+                      meta={
+                        <time dateTime={comment.created_at}>
+                          {formatCommentDate(comment.created_at)}
+                        </time>
+                      }
+                    />
                     <p>{comment.body}</p>
                   </PluginPinItemMain>
                   {canRemove ? (
