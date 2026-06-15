@@ -30,6 +30,10 @@ export type PoiClearPinPoiResponse =
   | { cleared: true; payload?: PoiPinPayload }
   | { error: string };
 
+export type PoiSearchResponse =
+  | { results: PoiNearbyCandidate[] }
+  | { error: string };
+
 type PoiEdgeBody = Record<string, unknown>;
 
 async function parseFunctionInvokeError(
@@ -113,6 +117,18 @@ export async function poiListNearbyCandidates(
   return invokePoiEdge<PoiListCandidatesResponse>(supabase, {
     action: "list_nearby_candidates",
     pinId,
+  });
+}
+
+export async function poiSearchPlaces(
+  supabase: SupabaseClient,
+  pinId: string,
+  query: string,
+): Promise<PoiSearchResponse> {
+  return invokePoiEdge<PoiSearchResponse>(supabase, {
+    action: "search_places",
+    pinId,
+    query,
   });
 }
 

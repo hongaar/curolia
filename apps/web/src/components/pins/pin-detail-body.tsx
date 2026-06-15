@@ -209,7 +209,7 @@ export function PinDetailBody({
   const {
     dateRow: pinDateSubtitle,
     locationWeatherRow: pinLocationWeatherSubtitle,
-    secondaryRows: pinSecondarySubtitles,
+    enrichmentRow: pinEnrichmentSubtitle,
   } = buildCompactPinSubtitleRows({
     date: pin.date,
     endDate: pin.end_date,
@@ -226,6 +226,7 @@ export function PinDetailBody({
   const pinDateLocationRows = [
     pinDateSubtitle,
     pinLocationWeatherSubtitle,
+    pinEnrichmentSubtitle,
   ].filter((row) => row != null && row !== "" && row !== false);
   const showTripSequence = Boolean(mapPins);
 
@@ -297,9 +298,6 @@ export function PinDetailBody({
               </TagBadge>
             ))}
           </PinDetailTagRow>
-        ) : null}
-        {pinSecondarySubtitles.length > 0 ? (
-          <PinDetailSubtitleStack rows={pinSecondarySubtitles} />
         ) : null}
       </PinDetailHeader>
       <PinDetailContent>

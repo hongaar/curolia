@@ -163,6 +163,10 @@ export function poiCandidateLine(candidate: PoiNearbyCandidate): string {
   return parts.join(" · ");
 }
 
+export function poiSearchHitKey(candidate: PoiNearbyCandidate): string {
+  return `${candidate.osmType}/${candidate.osmId}`;
+}
+
 export function poiElementUrl(
   osmType: "node" | "way" | "relation",
   osmId: number,

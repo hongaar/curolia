@@ -58,7 +58,7 @@ export function buildPinSubtitleRows({
   );
 }
 
-/** Compact detail: date on one row, location + weather below; enrichment after trip nav. */
+/** Compact detail: date, location + weather, then enrichment; trip nav is separate. */
 export function buildCompactPinSubtitleRows({
   date,
   endDate,
@@ -68,15 +68,13 @@ export function buildCompactPinSubtitleRows({
 }: PinSubtitleRowArgs): {
   dateRow: ReactNode | null;
   locationWeatherRow: ReactNode | null;
-  secondaryRows: ReactNode[];
+  enrichmentRow: ReactNode | null;
 } {
   const dateRow = formatPinDateRange(date, endDate) || null;
   const locationWeatherRow = composePinDetailSubtitleParts(
     locationLabel?.trim() || null,
     weather ?? null,
   );
-  const secondaryRows = [enrichment ?? null].filter(
-    (row) => row != null && row !== "" && row !== false,
-  ) as ReactNode[];
-  return { dateRow, locationWeatherRow, secondaryRows };
+  const enrichmentRow = enrichment ?? null;
+  return { dateRow, locationWeatherRow, enrichmentRow };
 }

@@ -24,6 +24,13 @@ export function poiNearbyCandidatesQueryKey(
   return ["poi", "nearby_candidates", pinId, lat, lng] as const;
 }
 
+export function poiSearchQueryKey(
+  pinId: string,
+  query: string,
+): readonly string[] {
+  return ["poi", "search", pinId, query] as const;
+}
+
 export function poiSyncJobQueryKey(pinId: string): readonly string[] {
   return ["poi", "sync_job", pinId] as const;
 }

@@ -3,7 +3,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { AsyncLruCache } from "./lib/_services/lru-cache.ts";
 
 /** Keep in sync with `packages/plugins/poi/src/constants.ts`. */
-const SEARCH_RADIUS_M = 40;
+const NEARBY_RADIUS_M = 40;
+/** Text search bias radius — wider than nearby list; see POI_TEXT_SEARCH_RADIUS_M. */
+const TEXT_SEARCH_RADIUS_M = 5000;
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_RESULTS_LIMIT = 10;
 const NEARBY_CANDIDATES_LIMIT = 15;
 const COORD_EPSILON = 0.0001;
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -48,40 +52,21 @@ const GEOAPIFY_PLACES_URL = "https://api.geoapify.com/v2/places";
 const GEOAPIFY_FETCH_TIMEOUT_MS = 15_000;
 
 /**
- * Top-level Geoapify groups that must not share a Places request with
- * `healthcare`. Pairwise API tests show the combined request returns zero
- * features when hospitals are in range (full list → 0 vs healthcare-only → N
- * at the same coordinates). See repo README TODO: Geoapify healthcare.
+ * Geoapify Places API — two requests max (see README § Geoapify Places).
+ *
+ * 1. **Destinations** — food, shops, services, etc. (no `tourism`).
+ * 2. **Tourism** — sights/artwork; merged only after destination slots fill.
+ *
+ * Do not combine everything in one `categories=` call: ranking skews toward
+ * tourism artwork in city centres, and `healthcare` zeroes out many mixes.
+ * `healthcare` stays disabled until it can get its own request without
+ * blowing the two-call budget.
  */
-const GEOAPIFY_HEALTHCARE_INCOMPATIBLE_GROUPS = [
-  "accommodation",
+const GEOAPIFY_DESTINATION_CATEGORIES = [
   "commercial",
-  "national_park",
-  "beach",
-  "tourism",
-  "sport",
-  "airport",
-  "maritime",
-] as const;
-
-/**
- * Single-request Geoapify category list.
- * Omits {@link GEOAPIFY_HEALTHCARE_INCOMPATIBLE_GROUPS} while `healthcare` is
- * disabled (see below). Re-add those groups once healthcare is fixed or fetched
- * in a separate request.
- * Full list: https://apidocs.geoapify.com/docs/places/#categories
- */
-const GEOAPIFY_CATEGORIES = [
-  // Disabled: Geoapify returns zero features when `healthcare` is combined with
-  // accommodation, commercial, national_park, beach, tourism, sport, airport,
-  // or maritime in one request (verified with hospitals in range). Unexpected-
-  // behaviour report sent to Geoapify; re-enable when fixed or batched safely.
-  // "healthcare",
-  "commercial",
-  "tourism",
+  "catering",
   "education",
   "childcare",
-  "catering",
   "camping",
   "entertainment",
   "heritage",
@@ -90,6 +75,8 @@ const GEOAPIFY_CATEGORIES = [
   "service",
   "amenity",
 ] as const;
+
+const GEOAPIFY_TOURISM_CATEGORIES = ["tourism"] as const;
 
 type GeoapifyFeature = {
   type: string;
@@ -280,7 +267,7 @@ function candidateFromGeoapifyFeature(
       : typeof fLat === "number" && typeof fLng === "number"
         ? Math.round(haversineM(lat, lng, fLat, fLng))
         : 0;
-  if (distanceM > SEARCH_RADIUS_M) return null;
+  if (distanceM > NEARBY_RADIUS_M) return null;
   return {
     osmType,
     osmId,
@@ -291,20 +278,29 @@ function candidateFromGeoapifyFeature(
   };
 }
 
-async function fetchGeoapifyPlaces(
+function geoapifyFeaturesToCandidates(
   lat: number,
   lng: number,
+  features: GeoapifyFeature[],
+  maxDistanceM: number,
+): PoiNearbyCandidate[] {
+  const candidates: PoiNearbyCandidate[] = [];
+  for (const feat of features) {
+    const c = candidateFromGeoapifyFeature(lat, lng, feat);
+    if (!c || c.distanceM > maxDistanceM) continue;
+    candidates.push(c);
+  }
+  candidates.sort((a, b) => a.distanceM - b.distanceM);
+  return filterUsefulCandidates(candidates);
+}
+
+/** One Places request; callers batch at most two category groups. */
+async function fetchGeoapifyPlacesRaw(
   apiKey: string,
-  limit = NEARBY_CANDIDATES_LIMIT,
-): Promise<PoiNearbyCandidate[]> {
-  const params = new URLSearchParams({
-    categories: GEOAPIFY_CATEGORIES.join(","),
-    filter: `circle:${lng},${lat},${SEARCH_RADIUS_M}`,
-    bias: `proximity:${lng},${lat}`,
-    limit: String(limit),
-    apiKey,
-  });
-  const res = await fetch(`${GEOAPIFY_PLACES_URL}?${params}`, {
+  params: Record<string, string>,
+): Promise<GeoapifyFeature[]> {
+  const searchParams = new URLSearchParams({ ...params, apiKey });
+  const res = await fetch(`${GEOAPIFY_PLACES_URL}?${searchParams}`, {
     headers: { "User-Agent": USER_AGENT },
     signal: AbortSignal.timeout(GEOAPIFY_FETCH_TIMEOUT_MS),
   });
@@ -312,14 +308,246 @@ async function fetchGeoapifyPlaces(
     throw new Error(`geoapify_http_${res.status}`);
   }
   const body = (await res.json()) as GeoapifyResponse;
-  const features = body.features ?? [];
+  return body.features ?? [];
+}
+
+type GeoapifyPlacesQuery = {
+  lat: number;
+  lng: number;
+  apiKey: string;
+  radiusM: number;
+  limit: number;
+  extraParams?: Record<string, string>;
+};
+
+async function fetchGeoapifyDestinationFeatures(
+  query: GeoapifyPlacesQuery,
+): Promise<GeoapifyFeature[]> {
+  return fetchGeoapifyPlacesRaw(query.apiKey, {
+    categories: GEOAPIFY_DESTINATION_CATEGORIES.join(","),
+    filter: `circle:${query.lng},${query.lat},${query.radiusM}`,
+    bias: `proximity:${query.lng},${query.lat}`,
+    limit: String(query.limit),
+    ...query.extraParams,
+  });
+}
+
+async function fetchGeoapifyTourismFeatures(
+  query: GeoapifyPlacesQuery,
+): Promise<GeoapifyFeature[]> {
+  return fetchGeoapifyPlacesRaw(query.apiKey, {
+    categories: GEOAPIFY_TOURISM_CATEGORIES.join(","),
+    filter: `circle:${query.lng},${query.lat},${query.radiusM}`,
+    bias: `proximity:${query.lng},${query.lat}`,
+    limit: String(query.limit),
+    ...query.extraParams,
+  });
+}
+
+/** Destinations first, then tourism — avoids artwork filling the nearby list. */
+function mergeGeoapifyCandidates(
+  lat: number,
+  lng: number,
+  destinationFeatures: GeoapifyFeature[],
+  tourismFeatures: GeoapifyFeature[],
+  radiusM: number,
+  limit: number,
+): PoiNearbyCandidate[] {
+  const primary = geoapifyFeaturesToCandidates(
+    lat,
+    lng,
+    destinationFeatures,
+    radiusM,
+  );
+  const out = finalizeNearbyCandidates(primary, limit);
+  if (out.length >= limit) return out;
+
+  const seen = new Set(out.map((c) => `${c.osmType}/${c.osmId}`));
+  const secondary = geoapifyFeaturesToCandidates(
+    lat,
+    lng,
+    tourismFeatures,
+    radiusM,
+  );
+  for (const candidate of secondary) {
+    const key = `${candidate.osmType}/${candidate.osmId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(candidate);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+async function fetchGeoapifyPlaces(
+  lat: number,
+  lng: number,
+  apiKey: string,
+  limit = NEARBY_CANDIDATES_LIMIT,
+): Promise<PoiNearbyCandidate[]> {
+  const query: GeoapifyPlacesQuery = {
+    lat,
+    lng,
+    apiKey,
+    radiusM: NEARBY_RADIUS_M,
+    limit,
+  };
+  const [destinations, tourism] = await Promise.all([
+    fetchGeoapifyDestinationFeatures(query),
+    fetchGeoapifyTourismFeatures(query),
+  ]);
+  return mergeGeoapifyCandidates(
+    lat,
+    lng,
+    destinations,
+    tourism,
+    NEARBY_RADIUS_M,
+    limit,
+  );
+}
+
+type NominatimSearchResult = {
+  osm_type?: string;
+  osm_id?: number;
+  lat?: string;
+  lon?: string;
+  /** Legacy `format=json` field. */
+  class?: string;
+  /** `format=jsonv2` field (same meaning as `class`). */
+  category?: string;
+  type?: string;
+  display_name?: string;
+  name?: string;
+  extratags?: Record<string, string>;
+};
+
+const NOMINATIM_SEARCH_URL = "https://nominatim.openstreetmap.org/search";
+const NOMINATIM_FETCH_TIMEOUT_MS = 15_000;
+const NOMINATIM_SEARCH_CACHE_SIZE = 64;
+const nominatimSearchCache = new AsyncLruCache<string, PoiNearbyCandidate[]>({
+  maxSize: NOMINATIM_SEARCH_CACHE_SIZE,
+});
+
+function nominatimSearchCacheKey(
+  query: string,
+  lat: number,
+  lng: number,
+): string {
+  return `nominatim:v1:${query.trim().toLowerCase()}:${lat.toFixed(3)},${lng.toFixed(3)}`;
+}
+
+function nominatimOsmType(
+  raw: string | undefined,
+): "node" | "way" | "relation" | null {
+  const t = raw?.trim().toLowerCase();
+  if (t === "node" || t === "way" || t === "relation") return t;
+  return null;
+}
+
+function tagsFromNominatimResult(
+  row: NominatimSearchResult,
+): Record<string, string> {
+  const tags: Record<string, string> = {};
+  const cls = row.class?.trim() || row.category?.trim();
+  const type = row.type?.trim();
+  if (cls && type) tags[cls] = type;
+  const name = row.name?.trim();
+  if (name) tags.name = name;
+  if (row.extratags && typeof row.extratags === "object") {
+    for (const [key, value] of Object.entries(row.extratags)) {
+      if (typeof value === "string") tags[key] = value;
+    }
+  }
+  return normalizeTags(tags);
+}
+
+function candidateFromNominatimResult(
+  pinLat: number,
+  pinLng: number,
+  row: NominatimSearchResult,
+  maxDistanceM: number,
+): PoiNearbyCandidate | null {
+  const osmType = nominatimOsmType(row.osm_type);
+  const osmId = row.osm_id;
+  if (!osmType || typeof osmId !== "number" || !Number.isFinite(osmId)) {
+    return null;
+  }
+  const lat = Number(row.lat);
+  const lng = Number(row.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const distanceM = Math.round(haversineM(pinLat, pinLng, lat, lng));
+  if (distanceM > maxDistanceM) return null;
+  const tags = tagsFromNominatimResult(row);
+  if (!hasPoiTags(tags)) return null;
+  if (!isUsefulPoiCandidate(tags)) return null;
+  return {
+    osmType,
+    osmId,
+    name: tags.name?.trim() || row.name?.trim() || null,
+    placeType: primaryPoiLabel(tags),
+    distanceM,
+    tags,
+  };
+}
+
+async function searchNominatimPlacesUncached(
+  query: string,
+  lat: number,
+  lng: number,
+  limit = SEARCH_RESULTS_LIMIT,
+): Promise<PoiNearbyCandidate[]> {
+  const url = new URL(NOMINATIM_SEARCH_URL);
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("limit", String(limit * 3));
+  url.searchParams.set("lat", String(lat));
+  url.searchParams.set("lon", String(lng));
+  url.searchParams.set("addressdetails", "0");
+  url.searchParams.set("extratags", "1");
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": USER_AGENT },
+    signal: AbortSignal.timeout(NOMINATIM_FETCH_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    throw new Error(`nominatim_http_${res.status}`);
+  }
+  const rows = (await res.json()) as NominatimSearchResult[];
+  if (!Array.isArray(rows)) {
+    throw new Error("nominatim_invalid_json");
+  }
+
   const candidates: PoiNearbyCandidate[] = [];
-  for (const feat of features) {
-    const c = candidateFromGeoapifyFeature(lat, lng, feat);
+  for (const row of rows) {
+    const c = candidateFromNominatimResult(lat, lng, row, TEXT_SEARCH_RADIUS_M);
     if (c) candidates.push(c);
   }
   candidates.sort((a, b) => a.distanceM - b.distanceM);
-  return finalizeNearbyCandidates(filterUsefulCandidates(candidates), limit);
+  return finalizeNearbyCandidates(candidates, limit);
+}
+
+async function searchNominatimPlaces(
+  query: string,
+  lat: number,
+  lng: number,
+  limit = SEARCH_RESULTS_LIMIT,
+): Promise<PoiNearbyCandidate[]> {
+  return nominatimSearchCache.getOrFetch(
+    nominatimSearchCacheKey(query, lat, lng),
+    () => searchNominatimPlacesUncached(query, lat, lng, limit),
+  );
+}
+
+async function searchPoiPlaces(
+  query: string,
+  lat: number,
+  lng: number,
+  limit = SEARCH_RESULTS_LIMIT,
+): Promise<PoiNearbyCandidate[]> {
+  // Single Nominatim request — Geoapify Places `name=` needs the same two-batch
+  // split as nearby and still fans out; Nominatim is fast and results are
+  // clipped to TEXT_SEARCH_RADIUS_M below.
+  return searchNominatimPlaces(query, lat, lng, limit);
 }
 
 function getGeoapifyApiKey(): string | null {
@@ -509,7 +737,7 @@ function overpassAroundCacheKey(
   lat: number,
   lng: number,
 ): string {
-  return `around:v1:${mode}:${overpassCoordCacheKey(lat, lng)}:r${SEARCH_RADIUS_M}`;
+  return `around:v1:${mode}:${overpassCoordCacheKey(lat, lng)}:r${NEARBY_RADIUS_M}`;
 }
 
 function overpassElementCacheKey(
@@ -571,7 +799,7 @@ async function fetchOverpassElementsUncached(
       const query = buildOverpassQuery(
         lat,
         lng,
-        SEARCH_RADIUS_M,
+        NEARBY_RADIUS_M,
         plan.tagKeys,
         plan.timeoutS,
       );
@@ -703,7 +931,7 @@ function candidateFromElement(
   const coords = elementCoords(el);
   if (!coords) return null;
   const distanceM = haversineM(lat, lng, coords.lat, coords.lng);
-  if (distanceM > SEARCH_RADIUS_M) return null;
+  if (distanceM > NEARBY_RADIUS_M) return null;
   const tags = normalizeTags(el.tags);
   if (!isUsefulPoiCandidate(tags)) return null;
   return {
@@ -752,7 +980,7 @@ async function queryNearbyPois(
     const coords = elementCoords(el);
     if (!coords) continue;
     const distanceM = haversineM(lat, lng, coords.lat, coords.lng);
-    if (distanceM > SEARCH_RADIUS_M) continue;
+    if (distanceM > NEARBY_RADIUS_M) continue;
     const tags = normalizeTags(el.tags);
     const name = tags.name?.trim() || null;
     candidates.push({
@@ -1686,6 +1914,56 @@ Deno.serve(async (req: Request) => {
       });
     } catch (e) {
       console.error("poi run_pin_auto_lookup failed", e);
+      return jsonResponse(overpassErrorBody(e), overpassErrorHttpStatus(e));
+    }
+  }
+
+  if (body.action === "search_places") {
+    const pinId = body.pinId?.trim();
+    const query = typeof body.query === "string" ? body.query.trim() : "";
+    if (!pinId || query.length < SEARCH_MIN_CHARS) {
+      return new Response(JSON.stringify({ error: "invalid_body" }), {
+        status: 400,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    const loaded = await loadPinForUser(pinId);
+    if (!loaded.ok) {
+      return new Response(JSON.stringify(loaded.body), {
+        status: loaded.status,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    const disabled = await assertUserPluginEnabled();
+    if (disabled) return disabled;
+
+    const lat = loaded.pin.lat;
+    const lng = loaded.pin.lng;
+    if (
+      lat == null ||
+      lng == null ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng)
+    ) {
+      return new Response(JSON.stringify({ error: "no_coordinates" }), {
+        status: 400,
+        headers: { ...cors(), "Content-Type": "application/json" },
+      });
+    }
+
+    try {
+      const results = await searchPoiPlaces(query, lat, lng);
+      return new Response(
+        JSON.stringify({ results: results.map(publicCandidate) }),
+        {
+          status: 200,
+          headers: { ...cors(), "Content-Type": "application/json" },
+        },
+      );
+    } catch (e) {
+      console.error("poi search_places failed", e);
       return jsonResponse(overpassErrorBody(e), overpassErrorHttpStatus(e));
     }
   }

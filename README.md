@@ -349,11 +349,27 @@ Production checklist:
 
 ## TODO
 
-### Geoapify Places: healthcare category interaction
+### Geoapify Places: multi-category requests
 
-The POI plugin’s Geoapify nearby search (`packages/plugins/poi/supabase/functions/poi/index.ts`) currently omits the `healthcare` category. Geoapify’s Places API returns **zero features** when `healthcare` is requested in the same call as `accommodation`, `commercial`, `national_park`, `beach`, `tourism`, `sport`, `airport`, or `maritime` — even when hospitals are within the search radius (verified at Zeist). A healthcare-only request at the same coordinates returns results. An unexpected-behaviour report was sent to Geoapify.
+The POI plugin queries Geoapify’s Places API from `packages/plugins/poi/supabase/functions/poi/index.ts`. **Do not pass many top-level category groups in a single `categories=` parameter.**
 
-**When addressed:** re-enable `healthcare` (split request or upstream fix), restore the omitted incompatible groups in the main category list, and confirm hospitals appear in pin nearby suggestions.
+Geoapify confirmed (Jun 2026) two related limitations when diverse categories are combined:
+
+1. **Empty responses** — some pairs return zero features when matches exist nearby (e.g. `healthcare` + `tourism` at Zeist; pairwise tests in [chat ae41d8aa](ae41d8aa-911e-4609-a0fa-d68ef4867e2e)).
+2. **Skewed ranking** — a single combined list favours some groups (e.g. Utrecht Domplein: mostly `tourism` artwork/statues while `catering`-only at the same spot returns cafés/restaurants).
+
+**Current workaround (max two Places requests for nearby):**
+
+| Request          | Categories                                                       | Notes                                         |
+| ---------------- | ---------------------------------------------------------------- | --------------------------------------------- |
+| 1 — destinations | `commercial`, `catering`, `service`, `amenity`, … (no `tourism`) | Fills the nearby list first                   |
+| 2 — tourism      | `tourism`                                                        | Merged only after destination slots are taken |
+
+`healthcare` is still omitted — it needs its own request and would exceed the two-call budget; re-enable when we accept a third call or Geoapify fixes combined search.
+
+**Text search** uses Nominatim (one request), biased to the pin and clipped to `POI_TEXT_SEARCH_RADIUS_M` (5 km) — wider than the 40 m nearby list radius.
+
+**Regression checks:** Utrecht Domplein (cafés not drowned by artwork), Zeist hospital coords (healthcare batch when re-enabled).
 
 ### Dead code / unused exports cleanup
 

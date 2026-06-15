@@ -3,9 +3,14 @@ export {
   POI_CACHE_MAX_AGE_MS,
   POI_COORD_EPSILON,
   POI_NEARBY_CANDIDATES_LIMIT,
+  POI_NEARBY_RADIUS_M,
+  POI_SEARCH_DEBOUNCE_MS,
+  POI_SEARCH_MIN_CHARS,
   POI_SEARCH_RADIUS_M,
+  POI_SEARCH_RESULTS_LIMIT,
   POI_SUGGESTION_MAX_DISTANCE_M,
   POI_SUGGESTION_STALE_TIME_MS,
+  POI_TEXT_SEARCH_RADIUS_M,
 } from "./constants";
 export { poiPluginManifest as pluginManifest } from "./manifest";
 export { PoiMapSettingsPanel } from "./map-settings-panel";
@@ -21,11 +26,13 @@ export {
   poiClearPinPoi,
   poiListNearbyCandidates,
   poiRunAutoLookup,
+  poiSearchPlaces,
   poiSetPinPoi,
   poiSyncPin,
   type PoiAutoLookupResponse,
   type PoiClearPinPoiResponse,
   type PoiListCandidatesResponse,
+  type PoiSearchResponse,
   type PoiSetPinPoiResponse,
   type PoiSyncResponse,
 } from "./poi-edge";
@@ -51,6 +58,7 @@ export {
   poiLabelFromTags,
   poiPayloadFromCandidate,
   poiPayloadMatches,
+  poiSearchHitKey,
   resolvePoiLinkedView,
   type PoiLinkedPoiView,
   type PoiNearbyCandidate,
@@ -69,6 +77,7 @@ export {
   pinMetadataQueryKey,
   poiEntityDataQueryKey,
   poiNearbyCandidatesQueryKey,
+  poiSearchQueryKey,
   poiSyncQueryKey,
 } from "./query-keys";
 export { syncPoiPin } from "./sync-poi-pin";
