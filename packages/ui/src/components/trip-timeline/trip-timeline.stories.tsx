@@ -49,3 +49,17 @@ export const FirstStop: Story = {
 export const LastStop: Story = {
   args: { currentId: "barcelona" },
 };
+
+const LIGHT_TAG_TRIP = [
+  { id: "a", title: "Nairobi", color: "#e53935", date: "2025-06-01" },
+  { id: "b", title: "Mombasa", color: "#fff176", date: "2025-06-08" },
+  { id: "c", title: "Lamu", color: "#81d4fa", date: "2025-06-15" },
+  { id: "d", title: "Kisumu", color: "#f8bbd0", date: "2025-06-22" },
+];
+
+export const LightTagColors: Story = {
+  args: { items: LIGHT_TAG_TRIP, currentId: "b" },
+  parameters: storyDocs(
+    "Inactive dots and the active ring use softened tag tints mixed with card so light colors stay distinguishable.",
+  ),
+};

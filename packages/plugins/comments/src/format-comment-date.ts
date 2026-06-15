@@ -13,8 +13,7 @@ export function formatCommentDate(iso: string, nowMs = Date.now()): string {
 
   const diffSec = Math.max(0, Math.floor((nowMs - date.getTime()) / 1000));
 
-  if (diffSec < 45) return "just now";
-  if (diffSec < MINUTE) return "1m ago";
+  if (diffSec < MINUTE) return "just now";
 
   const minutes = Math.floor(diffSec / MINUTE);
   if (minutes < 60) return `${minutes}m ago`;

@@ -34,6 +34,7 @@ import {
   useDeletePinComment,
   usePinComments,
 } from "./use-pin-comments";
+import { useRelativeTimeTick } from "./use-relative-time-tick";
 
 export function CommentsPinInteractionSection({
   supabase,
@@ -81,6 +82,8 @@ export function CommentsPinInteractionSection({
 
   const comments = commentsQuery.data ?? [];
   const policyLoading = isLoading || memberAccessQuery.isLoading;
+
+  useRelativeTimeTick(comments.length > 0, 30_000);
 
   if (policyLoading || commentsQuery.isLoading) {
     return (

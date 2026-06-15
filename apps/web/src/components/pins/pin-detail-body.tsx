@@ -274,6 +274,14 @@ export function PinDetailBody({
             ) : null}
           </PinDetailSubtitleNavRow>
         ) : null}
+        {showTripSequence ? (
+          <PinTripTimelineSection
+            pinId={pin.id}
+            mapPins={mapPins!}
+            mapRoute={permalinkMapRoute ?? null}
+            onNavigatePin={onNavigateSequencePin}
+          />
+        ) : null}
         {tagBadges.length > 0 ? (
           <PinDetailTagRow>
             {tagBadges.map((t) => (
@@ -289,14 +297,6 @@ export function PinDetailBody({
               </TagBadge>
             ))}
           </PinDetailTagRow>
-        ) : null}
-        {showTripSequence ? (
-          <PinTripTimelineSection
-            pinId={pin.id}
-            mapPins={mapPins!}
-            mapRoute={permalinkMapRoute ?? null}
-            onNavigatePin={onNavigateSequencePin}
-          />
         ) : null}
         {pinSecondarySubtitles.length > 0 ? (
           <PinDetailSubtitleStack rows={pinSecondarySubtitles} />
