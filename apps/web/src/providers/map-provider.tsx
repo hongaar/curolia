@@ -36,6 +36,8 @@ export type RouteMapStatus = "none" | "loading" | "ready" | "unavailable";
 
 type MapContextValue = {
   maps: MapWithOwnerSlug[];
+  /** Maps the signed-in user is a member of (excludes foreign maps being browsed). */
+  memberMaps: MapWithOwnerSlug[];
   activeMap: MapWithOwnerSlug | null;
   activeMapId: string | null;
   setActiveMapId: (id: string) => void;
@@ -228,7 +230,9 @@ export function MapProvider({
     if (routePath) {
       if (resolvedRouteMap) {
         setActiveMapIdState(resolvedRouteMap.id);
-        setStoredActiveMapId(resolvedRouteMap.id);
+        if (memberMaps.some((m) => m.id === resolvedRouteMap.id)) {
+          setStoredActiveMapId(resolvedRouteMap.id);
+        }
         return;
       }
       if (routeMapStatus === "unavailable") {
@@ -272,6 +276,7 @@ export function MapProvider({
     routePath,
     resolvedRouteMap,
     routeMapStatus,
+    memberMaps,
   ]);
 
   const setActiveMapId = useCallback((id: string) => {
@@ -339,6 +344,7 @@ export function MapProvider({
   const value = useMemo<MapContextValue>(
     () => ({
       maps,
+      memberMaps,
       activeMap,
       activeMapId,
       setActiveMapId,
@@ -353,6 +359,7 @@ export function MapProvider({
     }),
     [
       maps,
+      memberMaps,
       activeMap,
       activeMapId,
       setActiveMapId,

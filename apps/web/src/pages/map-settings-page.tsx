@@ -96,7 +96,13 @@ export function MapSettingsPage() {
     mapSlug: string;
   }>();
   const { user } = useAuth();
-  const { maps, activeMapId, setActiveMapId, refetch: refetchMaps } = useMap();
+  const {
+    maps,
+    memberMaps,
+    activeMapId,
+    setActiveMapId,
+    refetch: refetchMaps,
+  } = useMap();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [name, setName] = useState("");
@@ -147,6 +153,14 @@ export function MapSettingsPage() {
 
   const map = mapFromList ?? redirectMapQuery.data ?? null;
   const mapId = map?.id ?? null;
+  const isMember = Boolean(
+    mapId && memberMaps.some((memberMap) => memberMap.id === mapId),
+  );
+
+  useEffect(() => {
+    if (!map || isMember) return;
+    navigate(mapViewHref("map", mapRouteForMap(map)), { replace: true });
+  }, [map, isMember, navigate]);
 
   useEffect(() => {
     if (!map || !mapSlugParam || !profileSlugParam) return;
@@ -387,8 +401,8 @@ export function MapSettingsPage() {
               render={
                 <Link
                   to={
-                    maps[0]?.owner_profile_slug && maps[0]?.slug
-                      ? mapViewHref("map", mapRouteForMap(maps[0]))
+                    memberMaps[0]?.owner_profile_slug && memberMaps[0]?.slug
+                      ? mapViewHref("map", mapRouteForMap(memberMaps[0]))
                       : "/"
                   }
                 />
@@ -400,6 +414,10 @@ export function MapSettingsPage() {
         </PagePanel>
       </AppPageLayout>
     );
+  }
+
+  if (!isMember) {
+    return <PageCenteredLoading>Loading map…</PageCenteredLoading>;
   }
 
   const nameDirty = name.trim() !== map.name;

@@ -9,11 +9,11 @@ import { Text } from "@curolia/ui/text";
 import { Link, useLocation } from "react-router-dom";
 
 export function MapSlugAccessBlocked() {
-  const { publicView, maps } = useMap();
+  const { publicView, memberMaps } = useMap();
   const location = useLocation();
   const next = encodeURIComponent(`${location.pathname}${location.search}`);
   const segment = mapViewSegmentFromPathname(location.pathname);
-  const fallbackMap = maps[0] ?? null;
+  const fallbackMap = memberMaps[0] ?? null;
   const fallbackHref =
     fallbackMap?.owner_profile_slug && fallbackMap.slug
       ? mapViewHref(segment, mapRouteForMap(fallbackMap))

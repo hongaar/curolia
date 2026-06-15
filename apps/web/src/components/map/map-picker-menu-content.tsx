@@ -24,21 +24,36 @@ function mapEmoji(map: MapWithOwnerSlug) {
   return map.icon_emoji ?? defaultMapIcon();
 }
 
-type MapPickerMenuContentProps = {
+type MapPickerMemberMenuContentProps = {
+  variant: "member";
   maps: MapWithOwnerSlug[];
   activeMapId: string | null | undefined;
   onOpenMapSettings: (route: MapRoute) => void;
   onNewMap: () => void;
 };
 
-export function MapPickerMenuContent({
-  maps,
-  activeMapId,
-  onOpenMapSettings,
-  onNewMap,
-}: MapPickerMenuContentProps) {
+type MapPickerForeignMenuContentProps = {
+  variant: "foreign";
+  onBackToMyMaps: () => void;
+};
+
+export type MapPickerMenuContentProps =
+  | MapPickerMemberMenuContentProps
+  | MapPickerForeignMenuContentProps;
+
+export function MapPickerMenuContent(props: MapPickerMenuContentProps) {
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
+
+  if (props.variant === "foreign") {
+    return (
+      <DropdownMenuItem onClick={() => props.onBackToMyMaps()}>
+        Back to my maps
+      </DropdownMenuItem>
+    );
+  }
+
+  const { maps, activeMapId, onOpenMapSettings, onNewMap } = props;
 
   return (
     <>

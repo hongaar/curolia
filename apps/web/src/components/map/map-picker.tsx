@@ -1,17 +1,32 @@
 import { MapPickerMenuContent } from "@/components/map/map-picker-menu-content";
 import { useNavigateToMapSettings } from "@/hooks/use-navigate-to-map-settings";
 import { defaultMapIcon } from "@/lib/map-display-icon";
+import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
+import { getStoredActiveMapId } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import { DropdownMenu } from "@curolia/ui/dropdown-menu";
 import { MapPickerContent, MapPickerTrigger } from "@curolia/ui/map-picker";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function MapPicker() {
   const navigateToMapSettings = useNavigateToMapSettings();
-  const { maps, activeMap } = useMap();
+  const navigate = useNavigate();
+  const { memberMaps, activeMap } = useMap();
   const { openNewMapDialog } = useNavigationShell();
   const [open, setOpen] = useState(false);
+
+  const viewingForeignMap = useMemo(
+    () =>
+      Boolean(activeMap && !memberMaps.some((map) => map.id === activeMap.id)),
+    [activeMap, memberMaps],
+  );
+
+  const backToMyMapsHref = useMemo(
+    () => resolveMemberMapHomeHref(memberMaps, getStoredActiveMapId()),
+    [memberMaps],
+  );
 
   const mapEmoji = activeMap
     ? (activeMap.icon_emoji ?? defaultMapIcon())
@@ -22,18 +37,29 @@ export function MapPicker() {
       <MapPickerTrigger
         mapEmoji={mapEmoji}
         mapName={activeMap?.name}
-        aria-label="Select map"
+        aria-label={viewingForeignMap ? "Map menu" : "Select map"}
       />
       <MapPickerContent>
-        <MapPickerMenuContent
-          maps={maps}
-          activeMapId={activeMap?.id}
-          onOpenMapSettings={(route) => {
-            navigateToMapSettings(route);
-            setOpen(false);
-          }}
-          onNewMap={() => openNewMapDialog()}
-        />
+        {viewingForeignMap ? (
+          <MapPickerMenuContent
+            variant="foreign"
+            onBackToMyMaps={() => {
+              navigate(backToMyMapsHref);
+              setOpen(false);
+            }}
+          />
+        ) : (
+          <MapPickerMenuContent
+            variant="member"
+            maps={memberMaps}
+            activeMapId={activeMap?.id}
+            onOpenMapSettings={(route) => {
+              navigateToMapSettings(route);
+              setOpen(false);
+            }}
+            onNewMap={() => openNewMapDialog()}
+          />
+        )}
       </MapPickerContent>
     </DropdownMenu>
   );
