@@ -4,7 +4,7 @@ import { NotificationsIconTrigger } from "./notifications-popover";
 
 describe("NotificationsIconTrigger", () => {
   it("renders without crashing", () => {
-    render(<NotificationsIconTrigger count={0} />);
+    render(<NotificationsIconTrigger hasUnread aria-label="Notifications" />);
     expect(document.body).toBeTruthy();
   });
 });

@@ -6,6 +6,11 @@ import { DropdownMenu } from "../dropdown-menu";
 import { AccountMenuContent, AccountMenuTrigger } from "../floating-nav-bar";
 import { Input } from "../input";
 import { MapPickerContent, MapPickerTrigger } from "../map-picker";
+import {
+  NotificationsIconPopoverTrigger,
+  NotificationsPopoverContent,
+  NotificationsPopoverHeader,
+} from "../notifications-popover";
 import { Popover } from "../popover";
 import {
   SearchIcon,
@@ -84,6 +89,17 @@ function DemoAccountMenu() {
   );
 }
 
+function DemoNotifications() {
+  return (
+    <Popover modal={false}>
+      <NotificationsIconPopoverTrigger hasUnread aria-label="Notifications" />
+      <NotificationsPopoverContent align="end">
+        <NotificationsPopoverHeader title="Notifications" action={null} />
+      </NotificationsPopoverContent>
+    </Popover>
+  );
+}
+
 export const Default: Story = {
   parameters: storyDocs(
     "Desktop-style bar with brand, map picker, search, and account.",
@@ -94,6 +110,7 @@ export const Default: Story = {
         {...args}
         mapPicker={<DemoMapPicker />}
         search={<DemoSearch />}
+        notifications={<DemoNotifications />}
         accountMenu={<DemoAccountMenu />}
       />
     </div>

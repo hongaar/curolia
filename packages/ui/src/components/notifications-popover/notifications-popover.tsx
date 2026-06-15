@@ -1,8 +1,38 @@
+import { Bell } from "lucide-react";
 import type * as React from "react";
 
 import { buttonClassName } from "../button";
 import { PopoverContent, PopoverTrigger } from "../popover";
 import styles from "./notifications-popover.module.css";
+
+export function NotificationsBellIcon({
+  hasUnread = false,
+}: {
+  hasUnread?: boolean;
+}) {
+  return (
+    <span className={styles.iconBellWrap}>
+      <Bell className={styles.iconBell} aria-hidden />
+      {hasUnread ? <span className={styles.iconBellDot} aria-hidden /> : null}
+    </span>
+  );
+}
+
+export function NotificationsPopoverList({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <ul className={styles.list}>{children}</ul>;
+}
+
+export function NotificationsPopoverEmpty({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.empty}>{children}</p>;
+}
 
 export function NotificationsPopoverContent({
   children,
@@ -110,37 +140,39 @@ export function NotificationsPopoverItem({
 
 export function NotificationsIconPopoverTrigger({
   children,
+  hasUnread,
   ...props
-}: React.ComponentProps<typeof PopoverTrigger>) {
+}: React.ComponentProps<typeof PopoverTrigger> & { hasUnread?: boolean }) {
   return (
     <PopoverTrigger
       className={buttonClassName({
         variant: "ghost",
-        size: "icon",
+        size: "icon-lg",
         className: styles.iconTrigger,
       })}
       {...props}
     >
-      {children}
+      {children ?? <NotificationsBellIcon hasUnread={hasUnread} />}
     </PopoverTrigger>
   );
 }
 
 export function NotificationsIconTrigger({
   children,
+  hasUnread,
   ...props
-}: React.ComponentProps<"button">) {
+}: React.ComponentProps<"button"> & { hasUnread?: boolean }) {
   return (
     <button
       type="button"
       className={buttonClassName({
         variant: "ghost",
-        size: "icon",
+        size: "icon-lg",
         className: styles.iconTrigger,
       })}
       {...props}
     >
-      {children}
+      {children ?? <NotificationsBellIcon hasUnread={hasUnread} />}
     </button>
   );
 }

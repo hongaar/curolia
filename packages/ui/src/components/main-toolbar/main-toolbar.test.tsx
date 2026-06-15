@@ -4,7 +4,12 @@ import { MainToolbar } from "./main-toolbar";
 
 describe("MainToolbar", () => {
   it("renders without crashing", () => {
-    render(<MainToolbar left={<span>Left</span>} right={<span>Right</span>} />);
+    render(
+      <MainToolbar
+        accountMenu={<span>Account</span>}
+        notifications={<span>Notifications</span>}
+      />,
+    );
     expect(document.body).toBeTruthy();
   });
 });

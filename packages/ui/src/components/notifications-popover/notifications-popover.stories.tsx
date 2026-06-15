@@ -1,12 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
-import { Popover, PopoverTrigger } from "../popover";
+import { Popover } from "../popover";
 import {
+  NotificationsIconPopoverTrigger,
   NotificationsPopoverContent,
   NotificationsPopoverHeader,
   NotificationsPopoverItem,
+  NotificationsPopoverList,
   NotificationsPopoverScroll,
+  NotificationsSeeAllButton,
 } from "./notifications-popover";
 
 const meta = {
@@ -25,20 +28,18 @@ export const Default: Story = {
   parameters: storyDocs("Notifications popover list chrome."),
   render: () => (
     <Popover defaultOpen>
-      <PopoverTrigger render={<Button variant="outline" />}>
-        Notifications
-      </PopoverTrigger>
+      <NotificationsIconPopoverTrigger hasUnread aria-label="Notifications" />
       <NotificationsPopoverContent align="end">
         <NotificationsPopoverHeader
           title="Notifications"
           action={
-            <Button variant="ghost" size="sm">
-              Mark all read
-            </Button>
+            <NotificationsSeeAllButton onClick={() => undefined}>
+              See all
+            </NotificationsSeeAllButton>
           }
         />
         <NotificationsPopoverScroll>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+          <NotificationsPopoverList>
             <NotificationsPopoverItem
               unread
               title="Map invitation"
@@ -51,8 +52,27 @@ export const Default: Story = {
               body="Sam mentioned you on Café de Flore."
               onClick={() => undefined}
             />
-          </ul>
+          </NotificationsPopoverList>
         </NotificationsPopoverScroll>
+      </NotificationsPopoverContent>
+    </Popover>
+  ),
+};
+
+export const ToolbarTrigger: Story = {
+  parameters: storyDocs("Bell trigger with unread dot for the main toolbar."),
+  render: () => (
+    <Popover>
+      <NotificationsIconPopoverTrigger hasUnread aria-label="Notifications" />
+      <NotificationsPopoverContent align="end">
+        <NotificationsPopoverHeader
+          title="Notifications"
+          action={
+            <Button variant="ghost" size="sm">
+              See all
+            </Button>
+          }
+        />
       </NotificationsPopoverContent>
     </Popover>
   ),

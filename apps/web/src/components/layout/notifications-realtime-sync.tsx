@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 /** Subscribes to `notifications` for the signed-in user; keeps React Query caches fresh. */
 export function NotificationsRealtimeSync({ userId }: { userId: string }) {
@@ -21,6 +21,9 @@ export function NotificationsRealtimeSync({ userId }: { userId: string }) {
           void qc.invalidateQueries({ queryKey: ["notifications", userId] });
           void qc.invalidateQueries({
             queryKey: ["notifications", userId, "all"],
+          });
+          void qc.invalidateQueries({
+            queryKey: ["notifications", userId, "popover"],
           });
           void qc.invalidateQueries({
             queryKey: ["notifications_unread", userId],

@@ -1,5 +1,6 @@
 import { AccountMenu } from "@/components/layout/account-menu";
 import { MainToolbarBrandLink } from "@/components/layout/main-toolbar-brand-link";
+import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { PublicMapToolbarSlot } from "@/components/layout/public-map-toolbar-slot";
 import { Search } from "@/components/layout/search";
 import { MapPicker } from "@/components/map/map-picker";
@@ -27,6 +28,7 @@ export function MainToolbar() {
           </Button>
         )
       }
+      notifications={user ? <NotificationsMenu /> : null}
     />
   );
 }

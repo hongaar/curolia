@@ -7,6 +7,8 @@ export type MainToolbarProps = {
   mapPicker?: React.ReactNode;
   /** Search slot beside map picker (hidden on small viewports via CSS). */
   search?: React.ReactNode;
+  /** Notifications control shown left of the account menu. */
+  notifications?: React.ReactNode;
   accountMenu: React.ReactNode;
   /** App icon URL (defaults to `/favicon.png`). */
   logoSrc?: string;
@@ -61,6 +63,7 @@ export function MainToolbarBrandAnchor({
 export function MainToolbar({
   mapPicker,
   search,
+  notifications,
   accountMenu,
   logoSrc,
   brandLabel,
@@ -82,7 +85,10 @@ export function MainToolbar({
             </div>
           ) : null}
         </div>
-        <div className={styles.right}>{accountMenu}</div>
+        <div className={styles.right}>
+          {notifications}
+          {accountMenu}
+        </div>
       </div>
     </header>
   );

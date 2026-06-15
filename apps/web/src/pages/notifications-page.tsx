@@ -48,6 +48,9 @@ export function NotificationsPage() {
         queryKey: ["notifications", user.id, "all"],
       });
       void qc.invalidateQueries({
+        queryKey: ["notifications", user.id, "popover"],
+      });
+      void qc.invalidateQueries({
         queryKey: ["notifications_unread", user.id],
       });
     }

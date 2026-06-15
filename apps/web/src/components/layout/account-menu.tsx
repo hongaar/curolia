@@ -56,7 +56,6 @@ export function AccountMenu() {
             gravatarSize={128}
             label="Account"
             size="full"
-            showUnreadDot={hasUnread}
           />
         </AccountMenuTrigger>
         <AccountMenuContent>
