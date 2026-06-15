@@ -380,8 +380,8 @@
 }
 
 .streamItem {
-  flex: 0 0 8.5rem;
-  width: 8.5rem;
+  flex: 0 0 10rem;
+  width: 10rem;
   scroll-snap-align: start;
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   averageOpaqueRgb,
+  coverImageCrossOrigin,
   rgbToAccentCss,
   rgbToHsl,
 } from "./map-card-cover-accent";
@@ -27,6 +28,31 @@ describe("rgbToHsl", () => {
     expect(saturation).toBeGreaterThan(0.4);
     expect(hue).toBeGreaterThan(200);
     expect(hue).toBeLessThan(260);
+  });
+});
+
+describe("coverImageCrossOrigin", () => {
+  const origin = "https://app.curolia.test";
+
+  it("requests CORS for cross-origin http(s) URLs", () => {
+    expect(
+      coverImageCrossOrigin(
+        "https://cdn.example.com/map-covers/abc/cover.jpg",
+        origin,
+      ),
+    ).toBe("anonymous");
+  });
+
+  it("omits crossOrigin for same-origin, data, and blob URLs", () => {
+    expect(
+      coverImageCrossOrigin(`${origin}/covers/a.jpg`, origin),
+    ).toBeUndefined();
+    expect(
+      coverImageCrossOrigin("data:image/png;base64,abc", origin),
+    ).toBeUndefined();
+    expect(
+      coverImageCrossOrigin("blob:https://app.curolia.test/uuid", origin),
+    ).toBeUndefined();
   });
 });
 

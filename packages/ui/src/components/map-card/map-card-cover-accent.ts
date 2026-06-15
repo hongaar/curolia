@@ -2,6 +2,30 @@ const SAMPLE_SIZE = 8;
 
 type Rgb = { r: number; g: number; b: number };
 
+/**
+ * crossOrigin for cover images that must be canvas-readable. Omit for same-origin,
+ * data, and blob URLs so we do not require CORS where it is unnecessary.
+ */
+export function coverImageCrossOrigin(
+  url: string,
+  origin = "http://localhost",
+): "anonymous" | undefined {
+  if (!url || url.startsWith("data:") || url.startsWith("blob:")) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(url, origin);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return undefined;
+    }
+    if (parsed.origin === origin) return undefined;
+    return "anonymous";
+  } catch {
+    return undefined;
+  }
+}
+
 /** Average opaque pixels from canvas image data. */
 export function averageOpaqueRgb(data: Uint8ClampedArray): Rgb {
   let r = 0;
