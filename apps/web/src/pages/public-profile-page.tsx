@@ -40,7 +40,7 @@ import {
   ProfileOverviewStats,
 } from "@curolia/ui/profile-overview";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
 export function PublicProfilePage() {
@@ -48,7 +48,7 @@ export function PublicProfilePage() {
     profileSlug: string;
   }>();
   const { user } = useAuth();
-  const [profileState, setProfileState] = useState<Profile | null>(null);
+  const [profileOverride, setProfileOverride] = useState<Profile | null>(null);
 
   const profileSlug = profileSlugParam?.trim() ?? "";
 
@@ -104,8 +104,13 @@ export function PublicProfilePage() {
   });
 
   const result = profileQuery.data;
-  const profile =
-    result?.kind === "ok" ? (profileState ?? result.profile) : null;
+  const queryProfile = result?.kind === "ok" ? result.profile : null;
+  const [prevQueryProfile, setPrevQueryProfile] = useState(queryProfile);
+  if (queryProfile !== prevQueryProfile) {
+    setPrevQueryProfile(queryProfile);
+    setProfileOverride(null);
+  }
+  const profile = queryProfile ? (profileOverride ?? queryProfile) : null;
   const okResult = result?.kind === "ok" ? result : null;
 
   const follow = useProfileFollow({
@@ -116,12 +121,6 @@ export function PublicProfilePage() {
     isFollowing: okResult?.followStats.isFollowing ?? false,
     enabled: Boolean(okResult?.profile.is_public && okResult.profile.id),
   });
-
-  useEffect(() => {
-    if (result?.kind === "ok") {
-      setProfileState(result.profile);
-    }
-  }, [result]);
 
   usePublicProfileCrawlerBlockMeta(
     profile,
@@ -239,7 +238,7 @@ export function PublicProfilePage() {
                   </Button>
                   <ProfileVisibilityMenu
                     profile={profile}
-                    onProfileChange={setProfileState}
+                    onProfileChange={setProfileOverride}
                   />
                 </PageInlineActions>
               </PageFitButton>

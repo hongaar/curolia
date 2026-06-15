@@ -1,7 +1,7 @@
 import { fetchProfileFollowStats } from "@/lib/fetch-profile-follow-stats";
 import { supabase } from "@/lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function useProfileFollow(options: {
@@ -22,11 +22,17 @@ export function useProfileFollow(options: {
   } = options;
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-
-  useEffect(() => {
-    setIsFollowing(initialIsFollowing);
-  }, [initialIsFollowing]);
+  const [followingOverride, setFollowingOverride] = useState<boolean | null>(
+    null,
+  );
+  const followSyncToken = `${profileId}:${initialIsFollowing}`;
+  const [prevFollowSyncToken, setPrevFollowSyncToken] =
+    useState(followSyncToken);
+  if (followSyncToken !== prevFollowSyncToken) {
+    setPrevFollowSyncToken(followSyncToken);
+    setFollowingOverride(null);
+  }
+  const isFollowing = followingOverride ?? initialIsFollowing;
 
   async function invalidateFollowQueries() {
     await qc.invalidateQueries({
@@ -51,7 +57,7 @@ export function useProfileFollow(options: {
       toast.error(error.message);
       return false;
     }
-    setIsFollowing(true);
+    setFollowingOverride(true);
     toast.success("Following");
     await invalidateFollowQueries();
     return true;
@@ -68,7 +74,7 @@ export function useProfileFollow(options: {
       toast.error(error.message);
       return false;
     }
-    setIsFollowing(false);
+    setFollowingOverride(false);
     toast.success("Unfollowed");
     await invalidateFollowQueries();
     return true;
