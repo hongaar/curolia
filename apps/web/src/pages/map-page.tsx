@@ -28,6 +28,7 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { useNativeShareLink } from "@/hooks/use-native-share-link";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
+import { useRecordMapVisit } from "@/hooks/use-record-map-visit";
 import { pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
@@ -160,6 +161,7 @@ export function MapPage() {
   );
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
+  useRecordMapVisit(activeMapId);
   usePublicMapCrawlerBlockMeta(activeMap, publicView);
   const { profile: ownerProfile, show: showOwnerCard } = useMapOwnerCard();
   const mapStyleOptions = useMemo(

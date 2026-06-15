@@ -1,6 +1,4 @@
-import { mapViewHref } from "@/lib/app-paths";
 import { isMapChromeRoute } from "@/lib/map-chrome";
-import { mapRouteForMap } from "@/lib/map-route";
 import { normalizeMapStylePreset } from "@/lib/map-style";
 import { useMap } from "@/providers/map-provider";
 import {
@@ -11,12 +9,7 @@ import { Link, useLocation } from "react-router-dom";
 
 export function MainToolbarBrandLink() {
   const { pathname } = useLocation();
-  const { activeMap, maps } = useMap();
-  const homeMap = activeMap ?? maps[0] ?? null;
-  const to =
-    homeMap?.owner_profile_slug && homeMap.slug
-      ? mapViewHref("map", mapRouteForMap(homeMap))
-      : "/";
+  const { activeMap } = useMap();
   const overlayNameTone = isMapChromeRoute(pathname)
     ? (() => {
         const preset = normalizeMapStylePreset(activeMap?.style);
@@ -29,7 +22,7 @@ export function MainToolbarBrandLink() {
   return (
     <MainToolbarBrandAnchor>
       {(className) => (
-        <Link to={to} className={className}>
+        <Link to="/" className={className}>
           <MainToolbarBrand overlayNameTone={overlayNameTone} />
         </Link>
       )}

@@ -43,6 +43,7 @@
     "./map": "./src/components/map/index.ts",
     "./map-picker": "./src/components/map-picker/index.ts",
     "./map-card": "./src/components/map-card/index.ts",
+    "./home-feed": "./src/components/home-feed/index.ts",
     "./segmented-switcher": "./src/components/segmented-switcher/index.ts",
     "./map-floating": "./src/components/map-floating/index.ts",
     "./map-marker": "./src/components/map-marker/index.ts",

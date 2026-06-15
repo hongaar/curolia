@@ -1,14 +1,22 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
+import { withMemoryRouter } from "../../storybook/decorators";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
-import { MapCard, MapCardEmptyState, MapCardMasonryGrid } from "./map-card";
+import {
+  MapCard,
+  MapCardCompact,
+  MapCardEmptyState,
+  MapCardMasonryGrid,
+  MapCardStreamItem,
+  MapCardStreamPanel,
+} from "./map-card";
 
 const meta = {
   title: "Map card",
   component: MapCard,
   ...componentStoryMeta(
-    "Immersive masonry map cards for public profile pages.",
-    "Cover photos keep their natural aspect ratio. Emoji-only cards use a deterministic ratio from `layoutSeed`.",
+    "Masonry map cards for public profile pages.",
+    "Cover photos keep their natural aspect ratio with title and metadata below. The inset emoji badge samples a tiny region of the cover for its accent fill, falling back to a seed color when the image is not readable cross-origin.",
   ),
   args: {
     to: "/alex/europe",
@@ -21,6 +29,7 @@ const meta = {
     pinCountLabel: "42 pins",
     updatedLabel: "Updated 3d ago",
   },
+  decorators: [withMemoryRouter],
 } satisfies Meta<typeof MapCard>;
 
 export default meta;
@@ -39,7 +48,7 @@ export const WithoutCover: Story = {
     updatedLabel: "Updated 1w ago",
   },
   ...storyDocs(
-    "Blurred, saturated emoji backdrop with a sharp centered mark in a glass circle.",
+    "Blurred, saturated emoji backdrop with a sharp centered mark; title and stats sit below.",
   ),
 };
 
@@ -103,4 +112,54 @@ export const MasonryGrid: Story = {
 export const Empty: Story = {
   render: () => <MapCardEmptyState>No maps to show yet.</MapCardEmptyState>,
   ...storyDocs("Placeholder when a profile has no visible maps."),
+};
+
+export const CompactStream: Story = {
+  render: () => (
+    <MapCardStreamPanel title="Recently visited">
+      <MapCardStreamItem>
+        <MapCardCompact
+          to="/alex/europe"
+          title="California Coast Trip"
+          coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
+          iconEmoji="🗺️"
+          subtitle="12 pins"
+        />
+      </MapCardStreamItem>
+      <MapCardStreamItem>
+        <MapCardCompact
+          to="/alex/food"
+          title="Food map"
+          iconEmoji="🍜"
+          subtitle="26 pins"
+        />
+      </MapCardStreamItem>
+    </MapCardStreamPanel>
+  ),
+  ...storyDocs("Flat compact tiles inside a stream panel card."),
+};
+
+export const FourColumnGrid: Story = {
+  render: () => (
+    <MapCardMasonryGrid columns={4}>
+      <MapCard
+        to="/alex/europe"
+        title="Europe 2025"
+        coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80&auto=format&fit=crop"
+        iconEmoji="🗺️"
+        layoutSeed="map-europe"
+        pinCountLabel="42 pins"
+        updatedLabel="Updated 3d ago"
+      />
+      <MapCard
+        to="/alex/weekend-hikes"
+        title="Weekend hikes"
+        iconEmoji="🥾"
+        layoutSeed="map-hikes"
+        pinCountLabel="8 pins"
+        updatedLabel="Updated 1w ago"
+      />
+    </MapCardMasonryGrid>
+  ),
+  ...storyDocs("Denser four-column masonry for the home feed."),
 };

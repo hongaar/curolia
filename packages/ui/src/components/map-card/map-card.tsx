@@ -1,9 +1,12 @@
+import { MapPin } from "lucide-react";
 import type * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { sampleCoverAccentFromImage } from "./map-card-cover-accent";
 import {
   coverAspectRatioCss,
+  deterministicAccentColor,
   deterministicEmojiAspectRatio,
   normalizeCoverAspectRatio,
 } from "./map-card-layout";
@@ -11,10 +14,97 @@ import styles from "./map-card.module.css";
 
 export function MapCardMasonryGrid({
   children,
+  columns = 3,
 }: {
   children: React.ReactNode;
+  /** Default profile grid uses 3 columns; home feed uses 4. */
+  columns?: 3 | 4;
 }) {
-  return <div className={styles.masonry}>{children}</div>;
+  return (
+    <div
+      className={styles.masonry}
+      data-columns={columns === 4 ? "4" : undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function MapCardRowSection({
+  title,
+  children,
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={styles.rowSection}>
+      <h2 className={styles.rowTitle}>{title}</h2>
+      <div className={styles.rowScroller}>{children}</div>
+    </section>
+  );
+}
+
+export function MapCardRowItem({ children }: { children: React.ReactNode }) {
+  return <div className={styles.rowItem}>{children}</div>;
+}
+
+export type MapCardCompactProps = {
+  to: string;
+  title: React.ReactNode;
+  coverUrl?: string | null;
+  iconEmoji?: React.ReactNode;
+  subtitle?: React.ReactNode;
+};
+
+export function MapCardCompact({
+  to,
+  title,
+  coverUrl,
+  iconEmoji,
+  subtitle,
+}: MapCardCompactProps) {
+  const hasCover = Boolean(coverUrl?.trim());
+
+  return (
+    <Link to={to} className={styles.compact}>
+      <div className={styles.compactThumb}>
+        {hasCover ? (
+          <img src={coverUrl!} alt="" className={styles.compactThumbImage} />
+        ) : (
+          <div className={styles.compactEmojiArt} aria-hidden>
+            <span className={styles.compactEmojiBackdrop}>{iconEmoji}</span>
+            <span className={styles.compactEmojiMark}>{iconEmoji}</span>
+          </div>
+        )}
+      </div>
+      <div className={styles.compactText}>
+        <p className={styles.compactTitle}>{title}</p>
+        {subtitle ? <p className={styles.compactSubtitle}>{subtitle}</p> : null}
+      </div>
+    </Link>
+  );
+}
+
+export function MapCardStreamPanel({
+  title,
+  children,
+  empty,
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  empty?: React.ReactNode;
+}) {
+  return (
+    <section className={styles.streamPanel}>
+      <h2 className={styles.streamHeader}>{title}</h2>
+      {empty ? empty : <div className={styles.streamScroller}>{children}</div>}
+    </section>
+  );
+}
+
+export function MapCardStreamItem({ children }: { children: React.ReactNode }) {
+  return <div className={styles.streamItem}>{children}</div>;
 }
 
 export type MapCardProps = {
@@ -45,17 +135,23 @@ export function MapCard({
 }: MapCardProps) {
   const hasCover = Boolean(coverUrl?.trim());
   const hasMeta = Boolean(pinCountLabel || updatedLabel);
+  const showInsetIcon = hasCover && Boolean(iconEmoji);
   const [coverAspectRatio, setCoverAspectRatio] = useState<number | null>(null);
+  const [coverAccentColor, setCoverAccentColor] = useState<string | null>(null);
 
   useEffect(() => {
     setCoverAspectRatio(null);
+    setCoverAccentColor(null);
   }, [coverUrl]);
 
+  const seed = layoutSeed ?? title?.toString() ?? "map";
+
   const emojiAspectRatio = useMemo(
-    () =>
-      deterministicEmojiAspectRatio(layoutSeed ?? title?.toString() ?? "map"),
-    [layoutSeed, title],
+    () => deterministicEmojiAspectRatio(seed),
+    [seed],
   );
+
+  const insetAccentColor = coverAccentColor ?? deterministicAccentColor(seed);
 
   const coverStyle = hasCover
     ? coverAspectRatio != null
@@ -69,6 +165,7 @@ export function MapCard({
         to={to}
         className={styles.card}
         data-has-cover={hasCover ? "true" : "false"}
+        data-has-inset-icon={showInsetIcon ? "true" : "false"}
         data-aspect-ready={
           hasCover ? (coverAspectRatio != null ? "true" : "false") : "true"
         }
@@ -80,10 +177,12 @@ export function MapCard({
               alt=""
               className={styles.coverImage}
               onLoad={(event) => {
-                const { naturalWidth, naturalHeight } = event.currentTarget;
+                const image = event.currentTarget;
+                const { naturalWidth, naturalHeight } = image;
                 setCoverAspectRatio(
                   normalizeCoverAspectRatio(naturalWidth, naturalHeight),
                 );
+                setCoverAccentColor(sampleCoverAccentFromImage(image));
               }}
             />
           ) : (
@@ -94,25 +193,34 @@ export function MapCard({
               </span>
             </div>
           )}
-          <div className={styles.scrim} aria-hidden />
-          <div className={styles.overlay}>
-            <div className={styles.overlayContent}>
-              <h3 className={styles.title}>{title}</h3>
-              {description ? (
-                <p className={styles.description}>{description}</p>
+        </div>
+        <div className={styles.body}>
+          {showInsetIcon ? (
+            <div
+              className={styles.insetIcon}
+              style={{ backgroundColor: insetAccentColor }}
+              aria-hidden
+            >
+              {iconEmoji}
+            </div>
+          ) : null}
+          <h3 className={styles.title}>{title}</h3>
+          {description ? (
+            <p className={styles.description}>{description}</p>
+          ) : null}
+          {hasMeta ? (
+            <div className={styles.meta}>
+              {pinCountLabel ? (
+                <span className={styles.metaItem}>
+                  <MapPin className={styles.metaIcon} aria-hidden />
+                  {pinCountLabel}
+                </span>
               ) : null}
-              {hasMeta ? (
-                <div className={styles.meta}>
-                  {pinCountLabel ? (
-                    <span className={styles.metaItem}>{pinCountLabel}</span>
-                  ) : null}
-                  {updatedLabel ? (
-                    <span className={styles.metaItem}>{updatedLabel}</span>
-                  ) : null}
-                </div>
+              {updatedLabel ? (
+                <span className={styles.metaItem}>{updatedLabel}</span>
               ) : null}
             </div>
-          </div>
+          ) : null}
         </div>
       </Link>
     </article>

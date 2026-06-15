@@ -57,7 +57,7 @@ export function resolveMapFromSettingsParam(
 
 /** Map uses fullscreen chrome (floating toolbar, no page chrome). */
 export function isMapFullscreenPathname(pathname: string): boolean {
-  return pathname === "/" || /^\/[^/]+\/[^/]+\/map\/?$/.test(pathname);
+  return /^\/[^/]+\/[^/]+\/map\/?$/.test(pathname);
 }
 
 export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {

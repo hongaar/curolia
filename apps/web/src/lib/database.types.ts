@@ -177,6 +177,32 @@ export type Database = {
           },
         ];
       };
+      map_visits: {
+        Row: {
+          map_id: string;
+          user_id: string;
+          visited_at: string;
+        };
+        Insert: {
+          map_id: string;
+          user_id: string;
+          visited_at?: string;
+        };
+        Update: {
+          map_id?: string;
+          user_id?: string;
+          visited_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "map_visits_map_id_fkey";
+            columns: ["map_id"];
+            isOneToOne: false;
+            referencedRelation: "maps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       maps: {
         Row: {
           block_public_crawlers: boolean;
@@ -1129,6 +1155,7 @@ export type Database = {
     };
     Functions: {
       accept_map_invitation: { Args: { p_token: string }; Returns: string };
+      can_view_map: { Args: { p_map_id: string }; Returns: boolean };
       cancel_map_invitation: {
         Args: { p_invitation_id: string };
         Returns: undefined;
@@ -1136,6 +1163,7 @@ export type Database = {
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
       delete_map: { Args: { p_map_id: string }; Returns: undefined };
       follow_profile: { Args: { p_following_id: string }; Returns: undefined };
+      home_map_pin_count: { Args: { p_map_id: string }; Returns: number };
       invite_map_member: {
         Args: {
           p_invited_role: Database["public"]["Enums"]["map_member_role"];
@@ -1167,6 +1195,38 @@ export type Database = {
         Args: { p_profile_id: string };
         Returns: boolean;
       };
+      list_discover_recent_public_maps: {
+        Args: { p_limit?: number };
+        Returns: {
+          cover_url: string;
+          description: string;
+          icon_emoji: string;
+          map_id: string;
+          name: string;
+          owner_display_name: string;
+          owner_profile_slug: string;
+          pin_count: number;
+          slug: string;
+          updated_at: string;
+          visited_at: string;
+        }[];
+      };
+      list_followed_recent_public_maps: {
+        Args: { p_limit?: number };
+        Returns: {
+          cover_url: string;
+          description: string;
+          icon_emoji: string;
+          map_id: string;
+          name: string;
+          owner_display_name: string;
+          owner_profile_slug: string;
+          pin_count: number;
+          slug: string;
+          updated_at: string;
+          visited_at: string;
+        }[];
+      };
       list_profile_followers: {
         Args: { p_profile_id: string };
         Returns: {
@@ -1183,6 +1243,38 @@ export type Database = {
           display_name: string;
           profile_id: string;
           slug: string;
+        }[];
+      };
+      list_recently_edited_maps: {
+        Args: { p_limit?: number };
+        Returns: {
+          cover_url: string;
+          description: string;
+          icon_emoji: string;
+          map_id: string;
+          name: string;
+          owner_display_name: string;
+          owner_profile_slug: string;
+          pin_count: number;
+          slug: string;
+          updated_at: string;
+          visited_at: string;
+        }[];
+      };
+      list_recently_visited_maps: {
+        Args: { p_limit?: number };
+        Returns: {
+          cover_url: string;
+          description: string;
+          icon_emoji: string;
+          map_id: string;
+          name: string;
+          owner_display_name: string;
+          owner_profile_slug: string;
+          pin_count: number;
+          slug: string;
+          updated_at: string;
+          visited_at: string;
         }[];
       };
       map_claim_slug: {
@@ -1227,6 +1319,7 @@ export type Database = {
         Returns: number;
       };
       profile_path: { Args: { p_profile_id: string }; Returns: string };
+      record_map_visit: { Args: { p_map_id: string }; Returns: undefined };
       register_push_token: {
         Args: {
           p_device_id?: string;

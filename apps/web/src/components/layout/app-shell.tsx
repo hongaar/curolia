@@ -15,10 +15,10 @@ import { useAuth } from "@/providers/auth-provider";
 import { NavigationShellProvider } from "@/providers/navigation-shell-provider";
 import { AppShellLayout } from "@curolia/ui/app-shell";
 import { ErrorBoundary } from "@curolia/ui/error-boundary";
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, type ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-function AppShellInner() {
+export function AppShellFrame({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const stackTransitions = useStackTransitions();
@@ -50,19 +50,33 @@ function AppShellInner() {
           reportAppError(error, errorInfo, "Route error");
         }}
       >
-        <Outlet />
+        {children}
       </ErrorBoundary>
       {user ? <OnboardingTour key={user.id} /> : null}
     </AppShellLayout>
   );
 }
 
-export function AppShell() {
+function AppShellInner() {
+  return (
+    <AppShellFrame>
+      <Outlet />
+    </AppShellFrame>
+  );
+}
+
+export function SignedInAppProviders({ children }: { children: ReactNode }) {
   return (
     <NavigationShellProvider>
-      <FrozenBaseLocationProvider>
-        <AppShellInner />
-      </FrozenBaseLocationProvider>
+      <FrozenBaseLocationProvider>{children}</FrozenBaseLocationProvider>
     </NavigationShellProvider>
+  );
+}
+
+export function AppShell() {
+  return (
+    <SignedInAppProviders>
+      <AppShellInner />
+    </SignedInAppProviders>
   );
 }

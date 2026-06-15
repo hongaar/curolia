@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  deterministicAccentColor,
   deterministicEmojiAspectRatio,
   hashLayoutSeed,
   normalizeCoverAspectRatio,
@@ -35,5 +36,22 @@ describe("normalizeCoverAspectRatio", () => {
 describe("hashLayoutSeed", () => {
   it("is stable", () => {
     expect(hashLayoutSeed("seed")).toBe(hashLayoutSeed("seed"));
+  });
+});
+
+describe("deterministicAccentColor", () => {
+  it("returns the same color for the same seed", () => {
+    expect(deterministicAccentColor("map-123")).toBe(
+      deterministicAccentColor("map-123"),
+    );
+  });
+
+  it("can vary across different seeds", () => {
+    const colors = new Set([
+      deterministicAccentColor("alpha"),
+      deterministicAccentColor("beta"),
+      deterministicAccentColor("gamma"),
+    ]);
+    expect(colors.size).toBeGreaterThan(1);
   });
 });
