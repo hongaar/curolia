@@ -7,8 +7,8 @@ import { RootPage } from "@/pages/root-page";
 import { appShellRouteElements } from "@/routes/app-shell-routes";
 import { ProtectedLayout } from "@/routes/protected-layout";
 import { ScrollToTop } from "@/routes/scroll-to-top";
-import { UmamiNavigation } from "@/routes/umami-navigation";
 import { StackLayout } from "@/routes/stack-layout";
+import { UmamiNavigation } from "@/routes/umami-navigation";
 import {
   ContactPageContent,
   EventsLandingPage,

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ChevronDown, Globe } from "lucide-react";
 
+import { withMemoryRouter } from "../../storybook/decorators";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
 import { MapCard, MapCardMasonryGrid } from "../map-card";
@@ -21,6 +22,7 @@ const meta = {
     "Two-column public profile layout with sidebar cards and an open map grid.",
     "Use `ProfileOverviewAside` for stacked `PagePanel` cards and `ProfileOverviewMain` for uncarded map content.",
   ),
+  decorators: [withMemoryRouter],
 } satisfies Meta<typeof ProfileOverviewLayout>;
 
 export default meta;
