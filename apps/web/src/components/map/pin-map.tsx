@@ -10,18 +10,21 @@ import {
   type MapStylePreset,
 } from "@/lib/map-style";
 import {
-  cameraToSyncKey,
   camerasCloseEnough,
+  cameraToSyncKey,
   normalizeCameraForUrl,
   type MapCamera,
 } from "@/lib/map-view-params";
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
 import {
   buildCollisionLayout,
-  canZoomToReduceCollisionGroup,
+  collisionGroupLikelyZoomable,
   collisionRepresentativePinId,
-  minimumZoomToReduceCollisionGroup,
+  DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+  resolveCollisionGroupZoomTarget,
+  type CollisionGroupZoomTuning,
   type CollisionLayout,
+  type PinLngLat,
 } from "@/lib/pin-map-collisions";
 import {
   syncPlaceHighlightLayer,
@@ -225,6 +228,11 @@ const SINGLE_PIN_ZOOM = 10;
 const MARKER_ADD_BATCH_SIZE = 48;
 /** Expand visible bounds before culling so pins do not pop at the edges. */
 const VIEWPORT_BOUNDS_PADDING_RATIO = 0.35;
+
+/** Collision-click zoom tuning — edit fields or spread `DEFAULT_COLLISION_GROUP_ZOOM_TUNING`. */
+const COLLISION_GROUP_ZOOM_TUNING: CollisionGroupZoomTuning = {
+  ...DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+};
 
 function clampLatitude(lat: number): number {
   return Math.max(-90, Math.min(90, lat));
@@ -624,11 +632,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     [],
   );
 
-  const collisionPinsZoomable = useCallback((pinIds: string[]): boolean => {
-    const map = mapRef.current;
-    if (!map || pinIds.length <= 1) return false;
-
-    const pins = pinIds
+  const collisionPinsLngLat = useCallback((pinIds: string[]): PinLngLat[] => {
+    return pinIds
       .map((id) => filteredByIdRef.current.get(id))
       .filter(
         (pin): pin is PinWithTags =>
@@ -637,25 +642,15 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           typeof pin!.lng === "number",
       )
       .map((pin) => ({ pinId: pin.id, lng: pin.lng, lat: pin.lat }));
-    if (pins.length <= 1) return false;
-
-    const container = map.getContainer();
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    if (width <= 0 || height <= 0) return false;
-
-    const center = map.getCenter();
-    return canZoomToReduceCollisionGroup({
-      pins,
-      width,
-      height,
-      paddingPx: cameraFitPaddingPx(map),
-      currentCenterLng: center.lng,
-      currentCenterLat: center.lat,
-      currentZoom: map.getZoom(),
-      maxZoom: map.getMaxZoom(),
-    });
   }, []);
+
+  const collisionPinsZoomableHint = useCallback(
+    (pinIds: string[]): boolean => {
+      if (pinIds.length <= 1) return false;
+      return collisionGroupLikelyZoomable(collisionPinsLngLat(pinIds));
+    },
+    [collisionPinsLngLat],
+  );
 
   const syncHoveredCollisionTooltip = useCallback(
     (hoverId?: string | null) => {
@@ -663,7 +658,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       if (!id) return;
       const count = collisionGroupByPinIdRef.current.get(id)?.length ?? 1;
       const group = collisionGroupByPinIdRef.current.get(id) ?? [id];
-      const zoomable = group.length <= 1 ? true : collisionPinsZoomable(group);
+      const zoomable =
+        group.length <= 1 ? true : collisionPinsZoomableHint(group);
       let changed = false;
       if (count !== hoveredCollisionCountRef.current) {
         hoveredCollisionCountRef.current = count;
@@ -675,17 +671,17 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       }
       if (changed) setHoveredCollisionEpoch((epoch) => epoch + 1);
     },
-    [collisionPinsZoomable],
+    [collisionPinsZoomableHint],
   );
 
   const collisionMarkerAriaLabel = useCallback(
     (pin: PinWithTags, group: string[]) => {
       if (group.length <= 1) return pin.title?.trim() || "Open pin";
-      return collisionPinsZoomable(group)
+      return collisionPinsZoomableHint(group)
         ? `${group.length} overlapping pins. Click to zoom in.`
         : `${group.length} overlapping pins. Click to choose a pin.`;
     },
-    [collisionPinsZoomable],
+    [collisionPinsZoomableHint],
   );
 
   const applyRepresentativeMarkerPositions = useCallback(() => {
@@ -1321,8 +1317,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           currentCenterLat: center.lat,
           currentZoom: map.getZoom(),
           maxZoom: map.getMaxZoom(),
+          tuning: COLLISION_GROUP_ZOOM_TUNING,
         };
-        const target = minimumZoomToReduceCollisionGroup(cameraOptions);
+        const target = resolveCollisionGroupZoomTarget(cameraOptions);
         if (target === null) return false;
 
         invalidateMarkerViewportCullingRef.current();
@@ -1960,7 +1957,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const map = mapRef.current;
     if (!map) return;
 
-    const onMoveStart = () => setMarkersCameraMoving(true);
+    const onMoveStart = () => {
+      setMarkersCameraMoving(true);
+    };
     const onMoveEnd = () => {
       setMarkersCameraMoving(false);
       syncMapOverlaysRef.current();
@@ -2134,17 +2133,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       : baseHoverTitle;
   const hoverCollisionSeparable = useMemo(() => {
     if (!pinHover || hoverCollisionCount <= 1) return true;
-    return collisionPinsZoomable(
-      collisionGroupByPinIdRef.current.get(pinHover.pin.id) ?? [
-        pinHover.pin.id,
-      ],
-    );
-  }, [
-    pinHover,
-    hoverCollisionCount,
-    hoveredCollisionEpoch,
-    collisionPinsZoomable,
-  ]);
+    return hoveredCollisionSeparableRef.current;
+  }, [pinHover, hoverCollisionCount, hoveredCollisionEpoch]);
 
   return (
     <>

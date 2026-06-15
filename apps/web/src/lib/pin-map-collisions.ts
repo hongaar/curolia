@@ -184,6 +184,55 @@ export function maxCollisionGroupSizeForPins(
   return max;
 }
 
+/** Share of pins that are not screen-colliding with any other pin in `pins`. */
+export function singletonFractionForPins(
+  pins: ReadonlyArray<PinLngLat>,
+  camera: MapProjectionCamera,
+  radiusPx: number = PIN_MARKER_COLLISION_RADIUS_PX,
+): number {
+  if (pins.length === 0) return 1;
+  if (pins.length === 1) return 1;
+  const groups = groupPinIdsByScreenCollision(
+    pinScreenPointsAtCamera(pins, camera),
+    radiusPx,
+  );
+  let singletons = 0;
+  for (const pin of pins) {
+    const group = groups.get(pin.pinId) ?? [pin.pinId];
+    if (group.length === 1) singletons += 1;
+  }
+  return singletons / pins.length;
+}
+
+/**
+ * Tune collision-click zoom in `pin-map-collisions.ts` (passed from `PinMap`).
+ *
+ * - Raise `targetSingletonFraction` to demand more pins unpacked before stopping.
+ * - Raise `minZoomDelta` to avoid tiny zoom steps per click.
+ * - Lower `minSingletonFractionGain` to accept smaller improvements when the
+ *   target fraction is unreachable (e.g. a pair stuck on the same coordinates).
+ */
+export type CollisionGroupZoomTuning = {
+  /** Desired share of pins that end up non-colliding (0–1). */
+  targetSingletonFraction: number;
+  /** Minimum zoom increase over the current level. */
+  minZoomDelta: number;
+  /** Binary-search / scan precision for zoom levels. */
+  zoomPrecision: number;
+  /**
+   * When `targetSingletonFraction` is unreachable, minimum singleton-fraction
+   * gain (0–1) over the current centroid view to still zoom.
+   */
+  minSingletonFractionGain: number;
+};
+
+export const DEFAULT_COLLISION_GROUP_ZOOM_TUNING: CollisionGroupZoomTuning = {
+  targetSingletonFraction: 0.67,
+  minZoomDelta: 0.25,
+  zoomPrecision: 0.05,
+  minSingletonFractionGain: 0.15,
+};
+
 function geographicBounds(pins: ReadonlyArray<PinLngLat>) {
   let minLng = pins[0]!.lng;
   let maxLng = pins[0]!.lng;
@@ -295,14 +344,138 @@ export type CollisionGroupZoomOptions = {
   currentCenterLat: number;
   currentZoom: number;
   maxZoom: number;
-  zoomPrecision?: number;
+  tuning?: CollisionGroupZoomTuning;
 };
 
+export type CollisionClickCamera = {
+  centerLng: number;
+  centerLat: number;
+  zoom: number;
+};
+
+/** Above this count, skip singleton-fraction search (too slow for hover/click UI). */
+export const LARGE_COLLISION_GROUP_PIN_COUNT = 64;
+
+function resolveLargeCollisionGroupZoomTarget({
+  pins,
+  width,
+  height,
+  paddingPx,
+  currentZoom,
+  maxZoom,
+  tuning = DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+}: CollisionGroupZoomOptions): CollisionClickCamera | null {
+  const centroid = collisionGroupCentroid(pins);
+  const coarsePrecision = Math.max(tuning.zoomPrecision, 0.25);
+  const currentAtCentroid: MapProjectionCamera = {
+    centerLng: centroid.lng,
+    centerLat: centroid.lat,
+    zoom: currentZoom,
+    width,
+    height,
+  };
+  const currentMaxSize = maxCollisionGroupSizeForPins(pins, currentAtCentroid);
+
+  const separatedZoom = minimumZoomSeparatingVisiblePins(
+    pins,
+    centroid.lng,
+    centroid.lat,
+    width,
+    height,
+    paddingPx,
+    currentZoom,
+    maxZoom,
+    coarsePrecision,
+  );
+  if (separatedZoom !== null) {
+    return {
+      centerLng: centroid.lng,
+      centerLat: centroid.lat,
+      zoom: separatedZoom,
+    };
+  }
+
+  const fitZoom = maximumZoomFittingAllPins(
+    pins,
+    centroid.lng,
+    centroid.lat,
+    width,
+    height,
+    paddingPx,
+    maxZoom,
+    coarsePrecision,
+  );
+  if (fitZoom <= currentZoom + tuning.minZoomDelta) return null;
+
+  const maxSize = maxCollisionGroupSizeForPins(pins, {
+    ...currentAtCentroid,
+    zoom: fitZoom,
+  });
+  if (maxSize >= currentMaxSize) return null;
+
+  return {
+    centerLng: centroid.lng,
+    centerLat: centroid.lat,
+    zoom: fitZoom,
+  };
+}
+
+function maxZoomPassing(
+  pins: ReadonlyArray<PinLngLat>,
+  cameraBase: Omit<MapProjectionCamera, "zoom">,
+  currentZoom: number,
+  maxZoom: number,
+  paddingPx: number,
+  tuning: CollisionGroupZoomTuning,
+  predicate: (camera: MapProjectionCamera) => boolean,
+): number | null {
+  const { minZoomDelta, zoomPrecision } = tuning;
+  const minZoom = currentZoom + minZoomDelta;
+  if (minZoom > maxZoom) return null;
+
+  const passes = (zoom: number) =>
+    predicate({ ...cameraBase, zoom }) &&
+    allPinsFitInViewport(pins, { ...cameraBase, zoom }, paddingPx);
+
+  let lo = minZoom;
+  let hi = maxZoom;
+  let best: number | null = null;
+
+  while (hi - lo > zoomPrecision) {
+    const mid = (lo + hi) / 2;
+    if (passes(mid)) {
+      best = mid;
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+
+  if (best === null) {
+    for (
+      let zoom = minZoom;
+      zoom <= maxZoom + zoomPrecision / 2;
+      zoom += zoomPrecision
+    ) {
+      if (passes(zoom)) {
+        best = zoom;
+        break;
+      }
+    }
+  }
+
+  while (best !== null && best < maxZoom && passes(best + zoomPrecision)) {
+    best += zoomPrecision;
+  }
+
+  return best !== null && best > currentZoom + zoomPrecision / 2 ? best : null;
+}
+
 /**
- * Lowest zoom above `currentZoom` where the largest screen-collision subgroup
- * among `pins` shrinks while every pin stays in the viewport.
+ * Highest zoom (centered on the pin centroid) that unpacks most of the stack.
+ * Returns `null` when no useful zoom-in remains — caller should open the picker.
  */
-export function minimumZoomToReduceCollisionGroup({
+export function resolveCollisionGroupZoomTarget({
   pins,
   width,
   height,
@@ -311,62 +484,121 @@ export function minimumZoomToReduceCollisionGroup({
   currentCenterLat,
   currentZoom,
   maxZoom,
-  zoomPrecision = 0.05,
+  tuning = DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
 }: CollisionGroupZoomOptions): CollisionClickCamera | null {
   if (pins.length <= 1 || width <= 0 || height <= 0) return null;
 
-  const cameraBase = {
+  const stillColliding = pinsCollideAtCamera(pins, {
     centerLng: currentCenterLng,
     centerLat: currentCenterLat,
+    zoom: currentZoom,
+    width,
+    height,
+  });
+  if (!stillColliding) return null;
+
+  if (pins.length > LARGE_COLLISION_GROUP_PIN_COUNT) {
+    return resolveLargeCollisionGroupZoomTarget({
+      pins,
+      width,
+      height,
+      paddingPx,
+      currentCenterLng,
+      currentCenterLat,
+      currentZoom,
+      maxZoom,
+      tuning,
+    });
+  }
+
+  const centroid = collisionGroupCentroid(pins);
+  const cameraBase = {
+    centerLng: centroid.lng,
+    centerLat: centroid.lat,
     width,
     height,
   };
-  const currentCamera = { ...cameraBase, zoom: currentZoom };
-  const currentMaxSize = maxCollisionGroupSizeForPins(pins, currentCamera);
-  if (currentMaxSize <= 1) return null;
-
-  const reducesAtZoom = (zoom: number) => {
-    const camera = { ...cameraBase, zoom };
-    return (
-      allPinsFitInViewport(pins, camera, paddingPx) &&
-      maxCollisionGroupSizeForPins(pins, camera) < currentMaxSize
-    );
+  const currentAtCentroid: MapProjectionCamera = {
+    ...cameraBase,
+    zoom: currentZoom,
   };
+  const currentFraction = singletonFractionForPins(pins, currentAtCentroid);
+  const currentMaxSize = maxCollisionGroupSizeForPins(pins, currentAtCentroid);
 
-  let found: number | null = null;
-  for (
-    let zoom = currentZoom + zoomPrecision;
-    zoom <= maxZoom + zoomPrecision / 2;
-    zoom += zoomPrecision
-  ) {
-    if (reducesAtZoom(zoom)) {
-      found = zoom;
-      break;
-    }
+  const targetZoom = maxZoomPassing(
+    pins,
+    cameraBase,
+    currentZoom,
+    maxZoom,
+    paddingPx,
+    tuning,
+    (camera) =>
+      singletonFractionForPins(pins, camera) >= tuning.targetSingletonFraction,
+  );
+  if (targetZoom !== null) {
+    return {
+      centerLng: centroid.lng,
+      centerLat: centroid.lat,
+      zoom: targetZoom,
+    };
   }
-  if (found === null) return null;
 
-  let lo = currentZoom;
-  let hi = found;
-  while (hi - lo > zoomPrecision) {
-    const mid = (lo + hi) / 2;
-    if (reducesAtZoom(mid)) hi = mid;
-    else lo = mid;
+  const improvedZoom = maxZoomPassing(
+    pins,
+    cameraBase,
+    currentZoom,
+    maxZoom,
+    paddingPx,
+    tuning,
+    (camera) =>
+      singletonFractionForPins(pins, camera) >=
+      currentFraction + tuning.minSingletonFractionGain,
+  );
+  if (improvedZoom !== null) {
+    return {
+      centerLng: centroid.lng,
+      centerLat: centroid.lat,
+      zoom: improvedZoom,
+    };
   }
-  if (hi <= currentZoom + zoomPrecision / 2) return null;
 
-  return {
-    centerLng: currentCenterLng,
-    centerLat: currentCenterLat,
-    zoom: hi,
-  };
+  const reducedZoom = maxZoomPassing(
+    pins,
+    cameraBase,
+    currentZoom,
+    maxZoom,
+    paddingPx,
+    tuning,
+    (camera) => maxCollisionGroupSizeForPins(pins, camera) < currentMaxSize,
+  );
+  if (reducedZoom !== null) {
+    return {
+      centerLng: centroid.lng,
+      centerLat: centroid.lat,
+      zoom: reducedZoom,
+    };
+  }
+
+  return null;
 }
 
-/** True when zooming in can split a mixed collision stack before opening a picker. */
-export function canZoomToReduceCollisionGroup(
+/**
+ * Fast UI hint: identical coordinates cannot be separated by zoom alone.
+ * Full separation is resolved on click via {@link canZoomCollisionGroup}.
+ */
+export function collisionGroupLikelyZoomable(
+  pins: ReadonlyArray<PinLngLat>,
+): boolean {
+  if (pins.length <= 1) return false;
+  const first = pins[0]!;
+  return pins.some((pin) => pin.lng !== first.lng || pin.lat !== first.lat);
+}
+
+/** True when a collision click should zoom rather than open the pin picker. */
+export function canZoomCollisionGroup(
   options: CollisionGroupZoomOptions,
 ): boolean {
-  return minimumZoomToReduceCollisionGroup(options) !== null;
+  return resolveCollisionGroupZoomTarget(options) !== null;
 }
 
 export type ResolveCollisionClickCameraOptions = {
@@ -378,20 +610,12 @@ export type ResolveCollisionClickCameraOptions = {
   currentCenterLat: number;
   currentZoom: number;
   maxZoom: number;
-  /** Stop zoom search when the bracket is narrower than this. */
   zoomPrecision?: number;
 };
 
-export type CollisionClickCamera = {
-  centerLng: number;
-  centerLat: number;
-  zoom: number;
-};
-
 /**
- * Pick the least aggressive zoom-in (lowest target zoom above `currentZoom`)
- * that either frames every pin in the viewport (collisions allowed) or
- * separates them while keeping them on screen.
+ * @deprecated Legacy fit/separate heuristic; collision clicks use
+ * `resolveCollisionGroupZoomTarget` instead.
  */
 export function resolveCollisionClickCamera({
   pins,

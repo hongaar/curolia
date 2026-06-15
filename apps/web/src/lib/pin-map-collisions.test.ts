@@ -2,15 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   allPinsFitInViewport,
   buildCollisionLayout,
-  canZoomToReduceCollisionGroup,
+  canZoomCollisionGroup,
   collisionGroupCentroid,
+  collisionGroupLikelyZoomable,
   collisionRepresentativePinId,
+  DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
   groupPinIdsByScreenCollision,
   maxCollisionGroupSizeForPins,
   PIN_MARKER_COLLISION_RADIUS_PX,
   pinsCollideAtCamera,
   projectLngLatAtCamera,
   resolveCollisionClickCamera,
+  resolveCollisionGroupZoomTarget,
+  singletonFractionForPins,
   type PinGeoPoint,
   type PinLngLat,
   type PinScreenPoint,
@@ -248,7 +252,7 @@ describe("resolveCollisionClickCamera", () => {
   });
 });
 
-describe("canZoomToReduceCollisionGroup", () => {
+describe("resolveCollisionGroupZoomTarget", () => {
   const viewport = {
     width: 800,
     height: 600,
@@ -256,6 +260,11 @@ describe("canZoomToReduceCollisionGroup", () => {
     paddingPx: 48,
     currentCenterLng: 4.9,
     currentCenterLat: 52.37,
+  };
+
+  const tuning = {
+    ...DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+    minZoomDelta: 0.05,
   };
 
   function pinsAt(deltaLng: number): PinLngLat[] {
@@ -267,14 +276,60 @@ describe("canZoomToReduceCollisionGroup", () => {
     ];
   }
 
-  it("returns false when every pin in the group is inseparable", () => {
+  it("returns null when every pin in the group is inseparable", () => {
     expect(
-      canZoomToReduceCollisionGroup({
+      resolveCollisionGroupZoomTarget({
         pins: pinsAt(0),
         currentZoom: 10,
+        tuning,
+        ...viewport,
+      }),
+    ).toBeNull();
+    expect(
+      canZoomCollisionGroup({
+        pins: pinsAt(0),
+        currentZoom: 10,
+        tuning,
         ...viewport,
       }),
     ).toBe(false);
+  });
+
+  it("centers on the pin centroid", () => {
+    const pins = pinsAt(0.00012);
+    const centroid = collisionGroupCentroid(pins);
+    const target = resolveCollisionGroupZoomTarget({
+      pins,
+      currentZoom: 10,
+      tuning,
+      ...viewport,
+    });
+    expect(target).not.toBeNull();
+    expect(target!.centerLng).toBeCloseTo(centroid.lng, 8);
+    expect(target!.centerLat).toBeCloseTo(centroid.lat, 8);
+  });
+
+  it("zooms in aggressively for a separable pair", () => {
+    const pins = pinsAt(0.00012);
+    const currentZoom = 10;
+    const target = resolveCollisionGroupZoomTarget({
+      pins,
+      currentZoom,
+      tuning,
+      ...viewport,
+    });
+
+    expect(target).not.toBeNull();
+    expect(target!.zoom).toBeGreaterThan(currentZoom + 1);
+    expect(
+      singletonFractionForPins(pins, {
+        centerLng: target!.centerLng,
+        centerLat: target!.centerLat,
+        zoom: target!.zoom,
+        width: viewport.width,
+        height: viewport.height,
+      }),
+    ).toBe(1);
   });
 
   it("returns true when a nearby pin can peel off a tight cluster", () => {
@@ -284,19 +339,10 @@ describe("canZoomToReduceCollisionGroup", () => {
       { pinId: "c", lng: 4.90012, lat: 52.37 },
     ];
     expect(
-      canZoomToReduceCollisionGroup({
+      canZoomCollisionGroup({
         pins,
         currentZoom: 10,
-        ...viewport,
-      }),
-    ).toBe(true);
-  });
-
-  it("returns true when a separable pair can unpack", () => {
-    expect(
-      canZoomToReduceCollisionGroup({
-        pins: pinsAt(0.00012),
-        currentZoom: 10,
+        tuning,
         ...viewport,
       }),
     ).toBe(true);
@@ -310,12 +356,38 @@ describe("canZoomToReduceCollisionGroup", () => {
     ];
     expect(
       maxCollisionGroupSizeForPins(pins, {
-        centerLng: viewport.currentCenterLng,
-        centerLat: viewport.currentCenterLat,
+        centerLng: 4.9,
+        centerLat: 52.37,
         zoom: 10,
         width: viewport.width,
         height: viewport.height,
       }),
     ).toBe(3);
+  });
+});
+
+describe("collisionGroupLikelyZoomable", () => {
+  it("returns false for a single pin", () => {
+    expect(collisionGroupLikelyZoomable([{ pinId: "a", lng: 1, lat: 2 }])).toBe(
+      false,
+    );
+  });
+
+  it("returns false when all pins share identical coordinates", () => {
+    expect(
+      collisionGroupLikelyZoomable([
+        { pinId: "a", lng: 4.9, lat: 52.37 },
+        { pinId: "b", lng: 4.9, lat: 52.37 },
+      ]),
+    ).toBe(false);
+  });
+
+  it("returns true when pins have distinct coordinates", () => {
+    expect(
+      collisionGroupLikelyZoomable([
+        { pinId: "a", lng: 4.9, lat: 52.37 },
+        { pinId: "b", lng: 4.901, lat: 52.371 },
+      ]),
+    ).toBe(true);
   });
 });
