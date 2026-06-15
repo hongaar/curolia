@@ -156,12 +156,12 @@ export const Masonry: Story = {
 export const Strip: Story = {
   args: { layout: "strip" },
   parameters: storyDocs(
-    "Single horizontal row with scroll and edge fades when more photos are off-screen.",
+    "Single horizontal row with scroll, edge fades, and subtle prev/next buttons on pointer devices.",
   ),
 };
 
 export const StripBleed: Story = {
-  args: { layout: "strip", stripBleed: true },
+  args: { layout: "strip", stripBleed: true, stripThumbHeight: 150 },
   decorators: [
     (Story) => (
       <div style={{ paddingInline: "var(--card-pad)" }}>

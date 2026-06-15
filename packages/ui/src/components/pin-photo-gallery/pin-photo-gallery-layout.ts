@@ -13,6 +13,18 @@ export function photoAspect(item: PinPhotoGalleryLayoutItem): number {
   return DEFAULT_ASPECT;
 }
 
+/** Fixed-height strip thumb with natural aspect ratio (defaults to 4:3). */
+export function stripThumbSize(
+  item: PinPhotoGalleryLayoutItem,
+  thumbHeight: number,
+): { width: number; height: number } {
+  const aspect = photoAspect(item);
+  return {
+    width: Math.round(thumbHeight * aspect),
+    height: thumbHeight,
+  };
+}
+
 export type SizedGalleryItem<T extends PinPhotoGalleryLayoutItem> = {
   item: T;
   width: number;

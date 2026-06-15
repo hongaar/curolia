@@ -1,9 +1,5 @@
 import { cn } from "../../lib/utils";
 import { HoverTooltip } from "../tooltip/hover-tooltip";
-import {
-  tripTimelineActiveRingColor,
-  tripTimelineDimmedColor,
-} from "./trip-timeline-colors";
 import { computeTripTimelinePositions } from "./trip-timeline-positions";
 import styles from "./trip-timeline.module.css";
 
@@ -37,7 +33,6 @@ export function TripTimeline({
           const isActive = item.id === currentId;
           const color = item.color?.trim() || "var(--primary)";
           const position = positions[index] ?? 0;
-          const dotColor = isActive ? color : tripTimelineDimmedColor(color);
 
           return (
             <div
@@ -63,10 +58,10 @@ export function TripTimeline({
                     style={
                       isActive
                         ? {
-                            background: dotColor,
-                            boxShadow: `0 0 0 2px var(--card), 0 0 0 4px ${tripTimelineActiveRingColor(color)}`,
+                            background: color,
+                            boxShadow: `0 0 0 2px var(--card), 0 0 0 4px ${color}`,
                           }
-                        : { background: dotColor }
+                        : { background: color }
                     }
                     aria-hidden
                   />

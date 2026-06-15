@@ -1,11 +1,14 @@
-import { ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import type * as React from "react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import { cn } from "../../lib/utils";
+import { Button } from "../button";
 import {
   columnsForContainerWidth,
   computeColumnsLayout,
   computeRowsLayout,
+  stripThumbSize,
   targetRowHeightForWidth,
 } from "./pin-photo-gallery-layout";
 import styles from "./pin-photo-gallery.module.css";
@@ -38,6 +41,8 @@ export type PinPhotoGalleryProps = {
    * first and last photos aligned with `--card-pad` at the scroll extents.
    */
   stripBleed?: boolean;
+  /** Strip layout only: fixed thumb height in px; width follows each photo aspect. */
+  stripThumbHeight?: number;
 };
 
 function useContainerWidth() {
@@ -127,11 +132,25 @@ function PinPhotoCell({
   );
 }
 
-function LoadingPlaceholders({ count }: { count: number }) {
+function LoadingPlaceholders({
+  count,
+  thumbSize,
+}: {
+  count: number;
+  thumbSize?: { width: number; height: number };
+}) {
   return (
     <>
       {Array.from({ length: count }, (_, i) => (
-        <div key={`loading-${i}`} className={styles.itemWrap}>
+        <div
+          key={`loading-${i}`}
+          className={styles.itemWrap}
+          style={
+            thumbSize
+              ? { width: thumbSize.width, height: thumbSize.height }
+              : undefined
+          }
+        >
           <div className={styles.placeholder} aria-hidden>
             …
           </div>
@@ -245,11 +264,13 @@ function StripGallery({
   onOpen,
   loadingPlaceholders,
   stripBleed = false,
+  stripThumbHeight,
 }: {
   items: PinPhotoGalleryItem[];
   onOpen: (photoId: string) => void;
   loadingPlaceholders: number;
   stripBleed?: boolean;
+  stripThumbHeight?: number;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [scrollHints, setScrollHints] = useState({ left: false, right: false });
@@ -263,6 +284,13 @@ function StripGallery({
     });
   };
 
+  const scrollStrip = (direction: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const amount = Math.max(el.clientWidth * 0.75, 120);
+    el.scrollBy({ left: direction * amount, behavior: "smooth" });
+  };
+
   useLayoutEffect(() => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -272,6 +300,11 @@ function StripGallery({
     ro.observe(el);
     return () => ro.disconnect();
   }, [items.length, loadingPlaceholders]);
+
+  const stripSized = stripThumbHeight != null;
+  const placeholderThumbSize = stripSized
+    ? stripThumbSize({}, stripThumbHeight)
+    : undefined;
 
   return (
     <div
@@ -290,18 +323,31 @@ function StripGallery({
         }
         onScroll={syncScrollHint}
       >
-        <div className={styles.strip}>
-          {items.map((item) => (
-            <PinPhotoCell
-              key={item.id}
-              item={item}
-              width={104}
-              height={104}
-              onOpen={onOpen}
-            />
-          ))}
+        <div
+          className={
+            stripSized ? `${styles.strip} ${styles.stripSized}` : styles.strip
+          }
+        >
+          {items.map((item) => {
+            const thumbSize = stripSized
+              ? stripThumbSize(item, stripThumbHeight)
+              : { width: 104, height: 104 };
+
+            return (
+              <PinPhotoCell
+                key={item.id}
+                item={item}
+                width={thumbSize.width}
+                height={thumbSize.height}
+                onOpen={onOpen}
+              />
+            );
+          })}
           {loadingPlaceholders > 0 ? (
-            <LoadingPlaceholders count={loadingPlaceholders} />
+            <LoadingPlaceholders
+              count={loadingPlaceholders}
+              thumbSize={placeholderThumbSize}
+            />
           ) : null}
         </div>
       </div>
@@ -310,6 +356,30 @@ function StripGallery({
       ) : null}
       {scrollHints.right ? (
         <div className={styles.stripFadeRight} aria-hidden />
+      ) : null}
+      {scrollHints.left ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={cn(styles.stripNav, styles.stripNavPrev)}
+          aria-label="Scroll photos left"
+          onClick={() => scrollStrip(-1)}
+        >
+          <ChevronLeft className={styles.stripNavIcon} aria-hidden />
+        </Button>
+      ) : null}
+      {scrollHints.right ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={cn(styles.stripNav, styles.stripNavNext)}
+          aria-label="Scroll photos right"
+          onClick={() => scrollStrip(1)}
+        >
+          <ChevronRight className={styles.stripNavIcon} aria-hidden />
+        </Button>
       ) : null}
     </div>
   );
@@ -342,6 +412,7 @@ export function PinPhotoGallery({
   loadingPlaceholders = 0,
   layout = "rows",
   stripBleed = false,
+  stripThumbHeight,
 }: PinPhotoGalleryProps) {
   const { ref, width } = useContainerWidth();
 
@@ -357,6 +428,7 @@ export function PinPhotoGallery({
           onOpen={onOpen}
           loadingPlaceholders={loadingPlaceholders}
           stripBleed={stripBleed}
+          stripThumbHeight={stripThumbHeight}
         />
       ) : layout === "masonry" ? (
         <MasonryGallery

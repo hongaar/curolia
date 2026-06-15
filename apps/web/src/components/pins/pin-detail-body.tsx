@@ -274,17 +274,6 @@ export function PinDetailBody({
             ) : null}
           </PinDetailSubtitleNavRow>
         ) : null}
-        {showTripSequence ? (
-          <PinTripTimelineSection
-            pinId={pin.id}
-            mapPins={mapPins!}
-            mapRoute={permalinkMapRoute ?? null}
-            onNavigatePin={onNavigateSequencePin}
-          />
-        ) : null}
-        {pinSecondarySubtitles.length > 0 ? (
-          <PinDetailSubtitleStack rows={pinSecondarySubtitles} />
-        ) : null}
         {tagBadges.length > 0 ? (
           <PinDetailTagRow>
             {tagBadges.map((t) => (
@@ -301,6 +290,17 @@ export function PinDetailBody({
             ))}
           </PinDetailTagRow>
         ) : null}
+        {showTripSequence ? (
+          <PinTripTimelineSection
+            pinId={pin.id}
+            mapPins={mapPins!}
+            mapRoute={permalinkMapRoute ?? null}
+            onNavigatePin={onNavigateSequencePin}
+          />
+        ) : null}
+        {pinSecondarySubtitles.length > 0 ? (
+          <PinDetailSubtitleStack rows={pinSecondarySubtitles} />
+        ) : null}
       </PinDetailHeader>
       <PinDetailContent>
         {topContent}
@@ -316,6 +316,7 @@ export function PinDetailBody({
             loadingPlaceholders={photoPlaceholders}
             layout={sideSheet ? "strip" : "rows"}
             stripBleed={sideSheet}
+            stripThumbHeight={sideSheet ? (bottomSheet ? 150 : 200) : undefined}
             onOpen={(photoId) => setPhotoLightbox({ photoId })}
           />
         ) : null}
