@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import {
   ApiAccessIcon,
+  CommentsIcon,
   DirectionsIcon,
   GoogleMapsIcon,
   GooglePhotosIcon,
@@ -10,6 +11,7 @@ import {
   OpenMeteoIcon,
   PoiIcon,
   PolarstepsIcon,
+  ReactionsIcon,
   SpotifyIcon,
   StravaIcon,
   WikipediaIcon,
@@ -102,6 +104,20 @@ export const landingPlugins: LandingPlugin[] = [
     description: "Import trips from a share link as pins and photos",
     status: "available",
     icon: () => <PolarstepsIcon size={6} />,
+  },
+  {
+    id: "comments",
+    name: "Comments",
+    description: "Let map visitors leave comments on pins",
+    status: "available",
+    icon: () => <CommentsIcon size={6} />,
+  },
+  {
+    id: "reactions",
+    name: "Reactions",
+    description: "Emoji reactions on pins from map visitors",
+    status: "available",
+    icon: () => <ReactionsIcon size={6} />,
   },
   {
     id: "api",

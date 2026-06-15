@@ -1,4 +1,5 @@
 import { PluginIconFrame } from "@curolia/ui/plugin-icon-frame";
+import { MessageCircle, Smile } from "lucide-react";
 import type { ReactNode } from "react";
 
 import styles from "./plugin-marketing-icons.module.css";
@@ -280,6 +281,24 @@ export function PolarstepsIcon({ size = 5 }: IconProps) {
   return (
     <MarketingPluginIcon size={size}>
       <img src={polarstepsLogo} alt="" className={styles.logoImg} />
+    </MarketingPluginIcon>
+  );
+}
+
+/** Pin comments from map visitors. */
+export function CommentsIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <MessageCircle aria-hidden width="100%" height="100%" strokeWidth={2} />
+    </MarketingPluginIcon>
+  );
+}
+
+/** Emoji reactions on pins. */
+export function ReactionsIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <Smile aria-hidden width="100%" height="100%" strokeWidth={2} />
     </MarketingPluginIcon>
   );
 }

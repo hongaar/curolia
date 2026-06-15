@@ -31,7 +31,7 @@ const meta = {
   title: "Plugins",
   ...componentStoryMeta(
     `Plugin grid cards for the global plugins settings page.`,
-    `Each plugin is a compact \`PluginGridCard\` with icon, title, description, and actions.`,
+    `Each plugin is a \`PluginGridCard\` with icon, title, description, and actions.`,
   ),
   component: PluginGridCard,
 } satisfies Meta;
@@ -53,7 +53,7 @@ export const Grid: Story = {
         <PluginGridCard>
           <PluginGridCardTop>
             <PluginGridCardIcon>
-              <PluginIconFrame size={4}>
+              <PluginIconFrame size={5}>
                 <span aria-hidden>🎵</span>
               </PluginIconFrame>
             </PluginGridCardIcon>
@@ -80,7 +80,7 @@ export const Grid: Story = {
         <PluginGridCard>
           <PluginGridCardTop>
             <PluginGridCardIcon>
-              <PluginIconFrame size={4}>
+              <PluginIconFrame size={5}>
                 <span aria-hidden>📖</span>
               </PluginIconFrame>
             </PluginGridCardIcon>
@@ -105,7 +105,7 @@ export const Grid: Story = {
         <PluginGridCard>
           <PluginGridCardTop>
             <PluginGridCardIcon>
-              <PluginIconFrame size={4}>
+              <PluginIconFrame size={5}>
                 <span aria-hidden>☀️</span>
               </PluginIconFrame>
             </PluginGridCardIcon>
@@ -128,14 +128,15 @@ export const Grid: Story = {
         <PluginGridCard unavailable>
           <PluginGridCardTop>
             <PluginGridCardIcon>
-              <PluginIconFrame size={4}>
+              <PluginIconFrame size={5}>
                 <span aria-hidden>📍</span>
               </PluginIconFrame>
             </PluginGridCardIcon>
             <PluginGridCardHeading>
               <PluginGridCardTitle>Polarsteps</PluginGridCardTitle>
               <PluginGridCardDescription>
-                Import trips from Polarsteps.
+                Let map visitors leave comments on pins. Optionally allow
+                signed-out visitors to comment on public maps.
               </PluginGridCardDescription>
             </PluginGridCardHeading>
             <PluginGridCardToggle>
@@ -163,7 +164,7 @@ export const ListRow: Story = {
             <PluginListRowTitle
               icon={
                 <PluginListIcon>
-                  <PluginIconFrame size={4}>
+                  <PluginIconFrame size={5}>
                     <span aria-hidden>🎵</span>
                   </PluginIconFrame>
                 </PluginListIcon>

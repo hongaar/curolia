@@ -85,7 +85,7 @@ function PluginGridItem({
     <PluginGridCard unavailable={!implemented}>
       <PluginGridCardTop>
         <PluginGridCardIcon>
-          <Icon size={4} />
+          <Icon size={5} />
         </PluginGridCardIcon>
         <PluginGridCardHeading>
           <PluginGridCardTitle>{plugin.displayName}</PluginGridCardTitle>

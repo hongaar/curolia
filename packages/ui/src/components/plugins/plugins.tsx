@@ -102,14 +102,9 @@ export function PluginGridCardConfigureButton({
   label?: string;
 }) {
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="icon-sm"
-      aria-label={label}
-      onClick={onClick}
-    >
+    <Button type="button" variant="outline" size="sm" onClick={onClick}>
       <Settings2 aria-hidden />
+      {label}
     </Button>
   );
 }
