@@ -180,8 +180,10 @@ export type Database = {
       maps: {
         Row: {
           block_public_crawlers: boolean;
+          cover_url: string | null;
           created_at: string;
           created_by_user_id: string;
+          description: string | null;
           icon_emoji: string | null;
           id: string;
           is_public: boolean;
@@ -197,8 +199,10 @@ export type Database = {
         };
         Insert: {
           block_public_crawlers?: boolean;
+          cover_url?: string | null;
           created_at?: string;
           created_by_user_id: string;
+          description?: string | null;
           icon_emoji?: string | null;
           id?: string;
           is_public?: boolean;
@@ -214,8 +218,10 @@ export type Database = {
         };
         Update: {
           block_public_crawlers?: boolean;
+          cover_url?: string | null;
           created_at?: string;
           created_by_user_id?: string;
+          description?: string | null;
           icon_emoji?: string | null;
           id?: string;
           is_public?: boolean;
@@ -828,10 +834,12 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           bio: string | null;
+          block_public_crawlers: boolean;
           created_at: string;
           default_map_id: string | null;
           display_name: string | null;
           id: string;
+          is_public: boolean;
           notification_email_enabled: boolean;
           notification_push_enabled: boolean;
           onboarding_completed: boolean;
@@ -841,10 +849,12 @@ export type Database = {
         Insert: {
           avatar_url?: string | null;
           bio?: string | null;
+          block_public_crawlers?: boolean;
           created_at?: string;
           default_map_id?: string | null;
           display_name?: string | null;
           id: string;
+          is_public?: boolean;
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
           onboarding_completed?: boolean;
@@ -854,10 +864,12 @@ export type Database = {
         Update: {
           avatar_url?: string | null;
           bio?: string | null;
+          block_public_crawlers?: boolean;
           created_at?: string;
           default_map_id?: string | null;
           display_name?: string | null;
           id?: string;
+          is_public?: boolean;
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
           onboarding_completed?: boolean;
@@ -1116,6 +1128,10 @@ export type Database = {
         Args: { p_map_id: string; p_plugin_type_id: string };
         Returns: boolean;
       };
+      is_profile_publicly_readable: {
+        Args: { p_profile_id: string };
+        Returns: boolean;
+      };
       map_claim_slug: {
         Args: { p_desired: string; p_map_id: string; p_owner_id: string };
         Returns: string;
@@ -1168,6 +1184,14 @@ export type Database = {
       };
       set_map_public: {
         Args: { p_is_public: boolean; p_map_id: string };
+        Returns: undefined;
+      };
+      set_profile_block_public_crawlers: {
+        Args: { p_block: boolean };
+        Returns: undefined;
+      };
+      set_profile_public: {
+        Args: { p_is_public: boolean };
         Returns: undefined;
       };
       slugify_text: { Args: { p_raw: string }; Returns: string };

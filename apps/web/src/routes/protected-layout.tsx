@@ -1,3 +1,4 @@
+import { isPublicProfileViewPathname } from "@/lib/profile-route";
 import { isPublicMapViewPathname } from "@/lib/public-map-routes";
 import {
   consumeSkipLoginNextRedirect,
@@ -12,12 +13,15 @@ export function ProtectedLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
   const publicMapView = !user && isPublicMapViewPathname(location.pathname);
+  const publicProfileView =
+    !user && isPublicProfileViewPathname(location.pathname);
+  const publicView = publicMapView || publicProfileView;
 
   if (loading) {
     return <CuroliaLoadingSplash fill statusLabel="Loading" />;
   }
 
-  if (!user && !publicMapView) {
+  if (!user && !publicView) {
     if (consumeSkipLoginNextRedirect()) {
       return <Navigate to="/login" replace />;
     }

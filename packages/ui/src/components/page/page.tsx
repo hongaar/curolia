@@ -61,7 +61,7 @@ export function PageContentStack({
   width = "narrow",
 }: {
   children: React.ReactNode;
-  width?: "narrow" | "default" | "wide" | "2xl";
+  width?: "narrow" | "default" | "wide" | "2xl" | "full";
 }) {
   return (
     <div
@@ -71,6 +71,7 @@ export function PageContentStack({
         width === "default" && styles.contentStackWide,
         width === "wide" && styles.contentStackWide,
         width === "2xl" && styles.contentStack2xl,
+        width === "full" && styles.contentStackFull,
       )}
     >
       {children}
@@ -85,7 +86,7 @@ export function AppPageLayout({
   toolbarEnd,
 }: {
   children: React.ReactNode;
-  width?: "narrow" | "default" | "wide" | "2xl";
+  width?: "narrow" | "default" | "wide" | "2xl" | "full";
   /** Back navigation shown in a distinct toolbar on mobile stack screens. */
   toolbar?: React.ReactNode;
   /** Trailing toolbar actions (mobile stack screens). */

@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { cn } from "../../lib/utils";
 import { MarkdownContent } from "../markdown-content";
@@ -24,11 +24,14 @@ export function BlogContent({ children }: { children: React.ReactNode }) {
 export function BlogAuthorCard({
   avatar,
   name,
+  nameHref,
   bio,
   surface = "default",
 }: {
   avatar: React.ReactNode;
   name: React.ReactNode;
+  /** When set, the author name links to their public profile. */
+  nameHref?: string;
   /** Optional short profile bio; omitted when empty. */
   bio?: React.ReactNode;
   /** `floating` uses frosted panel styling for map overlays. */
@@ -44,7 +47,15 @@ export function BlogAuthorCard({
       <div className={styles.authorAvatar}>{avatar}</div>
       <div className={styles.authorIdentity}>
         <p className={styles.authorEyebrow}>Author</p>
-        <p className={styles.authorName}>{name}</p>
+        <p className={styles.authorName}>
+          {nameHref ? (
+            <Link className={styles.authorNameLink} to={nameHref}>
+              {name}
+            </Link>
+          ) : (
+            name
+          )}
+        </p>
       </div>
       {bio ? <p className={styles.authorBio}>{bio}</p> : null}
     </div>

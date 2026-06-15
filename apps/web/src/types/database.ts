@@ -20,6 +20,10 @@ export type Profile = {
   /** Short optional bio for public map blog attribution. */
   bio: string | null;
   avatar_url: string | null;
+  /** When true, the profile homepage is visible at /{slug}. */
+  is_public: boolean;
+  /** When true with is_public, discourage crawlers from indexing the profile page. */
+  block_public_crawlers: boolean;
   default_map_id: string | null;
   notification_email_enabled: boolean;
   notification_push_enabled: boolean;
@@ -36,6 +40,10 @@ export type CuroliaMap = {
   is_public: boolean;
   /** When true with is_public, discourage crawlers from indexing public URLs. */
   block_public_crawlers: boolean;
+  /** Optional short blurb for the public profile map card. */
+  description: string | null;
+  /** Optional cover image URL for the public profile map card. */
+  cover_url: string | null;
   /** When null, UI uses defaultMapIcon(). */
   icon_emoji: string | null;
   /** Basemap preset; `auto` follows app light/dark theme. */

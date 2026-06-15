@@ -80,9 +80,9 @@ import { useCallback, useMemo, useState, type SetStateAction } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { useMapMemberRole } from "@/hooks/use-map-access";
+import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
-import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinDetailHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
@@ -116,8 +116,7 @@ export function BlogPage() {
   } = useBlogPinListSort(activeMapId);
 
   const blogMapRoute = activeMap ? mapRouteForMap(activeMap) : null;
-  const ownerProfileQuery = usePublicMapOwnerProfile(activeMapId, publicView);
-  const ownerProfile = ownerProfileQuery.data;
+  const { profile: ownerProfile, show: showOwnerCard } = useMapOwnerCard();
   const [photoLightbox, setPhotoLightbox] = useState<{
     pinId: string;
     photoId: string;
@@ -293,7 +292,7 @@ export function BlogPage() {
         <BlogContent>
           <BlogHeader>
             <BlogTitle>{activeMap?.name.trim() || mapSlug || "Map"}</BlogTitle>
-            {publicView && ownerProfile ? (
+            {showOwnerCard && ownerProfile ? (
               <PublicMapOwnerCard profile={ownerProfile} />
             ) : null}
             <BlogLead>

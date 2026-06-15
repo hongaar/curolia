@@ -1,5 +1,7 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
+import { ProfileVisibilitySettings } from "@/components/profile/profile-visibility-controls";
 import { UserAvatar } from "@/components/user-avatar";
+import { publicProfileHref } from "@/lib/profile-route";
 import {
   profileSlugSaveErrorMessage,
   validateProfileSlugInput,
@@ -206,15 +208,15 @@ function ProfileEditor({
             id="pf-bio"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="A short intro for visitors on your public map blog"
+            placeholder="A short intro shown on your public profile and map blog"
             disabled={profileLoading}
             maxLength={MAX_PROFILE_BIO_LENGTH}
             rows={3}
           />
         </FieldControl>
         <FieldDescription>
-          Optional. Shown on your public map blog when visitors are not signed
-          in.
+          Optional. Shown on your public profile and on your public map blog
+          when visitors are not signed in.
         </FieldDescription>
       </Field>
       <PageAvatarSection>
@@ -288,8 +290,22 @@ function ProfileEditor({
         </FieldControl>
         {slugError ? (
           <FieldError id="pf-slug-error">{slugError}</FieldError>
-        ) : null}
+        ) : (
+          <FieldDescription>
+            Your public profile lives at{" "}
+            {profileSlug.trim()
+              ? publicProfileHref(profileSlug.trim())
+              : "your profile URL"}
+            .
+          </FieldDescription>
+        )}
       </Field>
+      {profile ? (
+        <ProfileVisibilitySettings
+          profile={profile}
+          disabled={profileLoading}
+        />
+      ) : null}
       <PageFitButton>
         <Button disabled={saving || profileLoading} onClick={() => void save()}>
           Save changes

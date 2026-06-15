@@ -11,6 +11,7 @@ describe("renderBlogPageHtml", () => {
         displayName: "Joram",
         avatarUrl: null,
         bio: "Traveler",
+        profileSlug: "joram",
       },
       pins: [
         {
@@ -25,6 +26,7 @@ describe("renderBlogPageHtml", () => {
     });
 
     expect(html).toContain("Europe trip");
+    expect(html).toContain('href="/joram"');
     expect(html).toContain("joram/europe/pin/paris");
     expect(html).toMatch(/pinList/);
     expect(html).toMatch(/pinTitle/);

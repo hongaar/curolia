@@ -59,7 +59,7 @@
 
 @media (min-width: 40rem) {
   .authorCard {
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-4);
   }
 }
 
@@ -102,6 +102,16 @@
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   letter-spacing: -0.02em;
+}
+
+.authorNameLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.authorNameLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .authorBio {

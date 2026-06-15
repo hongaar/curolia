@@ -1,0 +1,239 @@
+.masonry {
+  column-gap: var(--space-4);
+  column-count: 1;
+}
+
+@media (min-width: 40rem) {
+  .masonry {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 80rem) {
+  .masonry {
+    column-count: 3;
+    column-gap: var(--space-5);
+  }
+}
+
+.itemWrap {
+  break-inside: avoid;
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 80rem) {
+  .itemWrap {
+    margin-bottom: var(--space-5);
+  }
+}
+
+.card {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  color: inherit;
+  text-decoration: none;
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent),
+    0 10px 30px color-mix(in oklch, var(--foreground) 6%, transparent);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
+    0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
+}
+
+.cover {
+  position: relative;
+  overflow: hidden;
+  min-height: 14rem;
+  background: color-mix(in oklch, var(--muted) 50%, transparent);
+}
+
+.card[data-has-cover="true"][data-aspect-ready="false"] .cover {
+  aspect-ratio: 4 / 5;
+}
+
+.card[data-has-cover="false"] .cover {
+  background: color-mix(in oklch, var(--background) 88%, var(--muted));
+}
+
+.coverImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms ease;
+}
+
+.card:hover .coverImage {
+  transform: scale(1.05);
+}
+
+.coverEmojiArt {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.coverEmojiBackdrop {
+  position: absolute;
+  inset: -45%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(8rem, 42vw, 14rem);
+  line-height: 1;
+  transform: scale(2.8);
+  filter: blur(56px) saturate(2.8) brightness(1.08) contrast(1.08);
+  opacity: 0.42;
+  user-select: none;
+  transition:
+    transform 500ms ease,
+    opacity 500ms ease;
+}
+
+.card:hover .coverEmojiBackdrop {
+  transform: scale(3);
+  opacity: 0.48;
+}
+
+.coverEmojiMark {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coverEmojiMarkCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(4.75rem, 20vw, 6.75rem);
+  height: clamp(4.75rem, 20vw, 6.75rem);
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--background) 24%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, white 28%, transparent),
+    0 10px 28px color-mix(in oklch, var(--foreground) 8%, transparent);
+  font-size: clamp(2.25rem, 9vw, 3.25rem);
+  line-height: 1;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.card[data-has-cover="true"] .scrim {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--foreground) 10%, transparent) 0%,
+    color-mix(in oklch, var(--foreground) 10%, transparent) 35%,
+    color-mix(in oklch, var(--foreground) 78%, transparent) 100%
+  );
+}
+
+.card[data-has-cover="false"] .scrim {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--background) 8%, transparent) 0%,
+    color-mix(in oklch, var(--background) 4%, transparent) 38%,
+    color-mix(in oklch, var(--foreground) 74%, transparent) 100%
+  );
+}
+
+.overlay {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  padding: var(--space-5);
+}
+
+.overlayContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: white;
+}
+
+.description {
+  margin: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: color-mix(in oklch, white 82%, transparent);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  color: color-mix(in oklch, white 72%, transparent);
+}
+
+.metaItem + .metaItem::before {
+  content: "·";
+  margin-right: var(--space-3);
+  color: color-mix(in oklch, white 45%, transparent);
+}
+
+.empty {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.coverPreview {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--muted) 40%, transparent);
+}
+
+.coverPreviewImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverPreviewFallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  line-height: 1;
+}

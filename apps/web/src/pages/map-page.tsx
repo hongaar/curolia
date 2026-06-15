@@ -21,13 +21,13 @@ import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMapMemberRole } from "@/hooks/use-map-access";
+import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapPinPanel } from "@/hooks/use-map-pin-panel";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { useNativeShareLink } from "@/hooks/use-native-share-link";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
-import { usePublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import { pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
@@ -161,8 +161,7 @@ export function MapPage() {
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
   usePublicMapCrawlerBlockMeta(activeMap, publicView);
-  const ownerProfileQuery = usePublicMapOwnerProfile(activeMapId, publicView);
-  const ownerProfile = ownerProfileQuery.data;
+  const { profile: ownerProfile, show: showOwnerCard } = useMapOwnerCard();
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
     [activeMap],
@@ -1047,7 +1046,7 @@ export function MapPage() {
           />
         </MapHost>
         <MapControlsLayer>
-          {publicView && ownerProfile ? (
+          {showOwnerCard && ownerProfile ? (
             <MapControlsTopLeft>
               <PublicMapOwnerCard
                 profile={ownerProfile}

@@ -12,6 +12,13 @@ export function mapBlocksPublicCrawlers(map: {
   return map.is_public && map.block_public_crawlers;
 }
 
+export function profileBlocksPublicCrawlers(profile: {
+  is_public: boolean;
+  block_public_crawlers: boolean;
+}): boolean {
+  return profile.is_public && profile.block_public_crawlers;
+}
+
 export function isLikelyCrawlerUserAgent(
   userAgent: string | null | undefined,
 ): boolean {

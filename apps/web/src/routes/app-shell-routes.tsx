@@ -8,6 +8,7 @@ import { PinDetailPage } from "@/pages/pin-detail-page";
 import { PinEditPage } from "@/pages/pin-edit-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
+import { PublicProfilePage } from "@/pages/public-profile-page";
 import { PublicMapShortcutRedirect } from "@/routes/public-map-shortcut-redirect";
 import { Navigate, Route } from "react-router-dom";
 
@@ -45,5 +46,6 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
+    <Route path=":profileSlug" element={<PublicProfilePage />} />
   </>
 );

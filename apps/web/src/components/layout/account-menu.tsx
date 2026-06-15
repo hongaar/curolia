@@ -1,5 +1,6 @@
 import { UserAvatar } from "@/components/user-avatar";
 import { useUnreadNotificationsCount } from "@/hooks/use-map-access";
+import { profileEditHref, publicProfileHref } from "@/lib/profile-route";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
@@ -65,7 +66,15 @@ export function AccountMenu() {
               email={user?.email}
             />
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/profile")}>
+            <DropdownMenuItem
+              onClick={() =>
+                navigate(
+                  profileQuery.data?.slug
+                    ? publicProfileHref(profileQuery.data.slug)
+                    : profileEditHref(),
+                )
+              }
+            >
               <AccountMenuItemIcon>
                 <User />
               </AccountMenuItemIcon>

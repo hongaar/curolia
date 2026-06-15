@@ -1,5 +1,6 @@
 import { UserAvatar } from "@/components/user-avatar";
 import type { PublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
+import { publicProfileHref } from "@/lib/profile-route";
 import { BlogAuthorCard } from "@curolia/ui/blog";
 
 export function PublicMapOwnerCard({
@@ -25,6 +26,7 @@ export function PublicMapOwnerCard({
         />
       }
       name={profile.displayName}
+      nameHref={publicProfileHref(profile.profileSlug)}
       bio={showBio ? (profile.bio ?? undefined) : undefined}
     />
   );

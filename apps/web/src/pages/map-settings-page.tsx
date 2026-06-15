@@ -40,11 +40,19 @@ import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
 import { EntityLabelInput } from "@curolia/ui/entity-label-input";
-import { Field, FieldLabel } from "@curolia/ui/form-layout";
+import {
+  Field,
+  FieldControl,
+  FieldDescription,
+  FieldLabel,
+  SrOnlyInput,
+} from "@curolia/ui/form-layout";
 import { Label } from "@curolia/ui/label";
+import { MapCoverPreview } from "@curolia/ui/map-card";
 import {
   AppPageLayout,
   PageAnchoredSection,
+  PageAvatarActions,
   PageCenteredLoading,
   PageErrorText,
   PageFormBlockSpaced,
@@ -62,10 +70,25 @@ import {
   PageSideNavLink,
   PageSideNavList,
 } from "@curolia/ui/page";
+import { Textarea } from "@curolia/ui/textarea";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+
+const MAX_MAP_DESCRIPTION_LENGTH = 500;
+const MAX_MAP_COVER_BYTES = 2 * 1024 * 1024;
+
+const COVER_MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+};
+
+function extFromCoverFile(file: File): string | null {
+  return COVER_MIME_TO_EXT[file.type] ?? null;
+}
 
 export function MapSettingsPage() {
   const { profileSlug: profileSlugParam, mapSlug: mapSlugParam } = useParams<{
@@ -87,6 +110,10 @@ export function MapSettingsPage() {
     resolveMapPinMetadataShow(null),
   );
   const [showPinRoute, setShowPinRoute] = useState(true);
+  const [description, setDescription] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -211,7 +238,86 @@ export function MapSettingsPage() {
     setStyleOptions(normalizeMapStyleOptions(map));
     setShowPinMetadata(resolveMapPinMetadataShow(map.show_pin_metadata));
     setShowPinRoute(normalizeShowPinRoute(map.show_pin_route));
+    setDescription(map.description ?? "");
+    setCoverUrl(map.cover_url ?? "");
   }, [map]);
+
+  async function uploadCover(file: File) {
+    if (!mapId || !isOwner) return;
+    const ext = extFromCoverFile(file);
+    if (!ext) {
+      toast.error("Please choose a JPEG, PNG, GIF, or WebP image.");
+      return;
+    }
+    if (file.size > MAX_MAP_COVER_BYTES) {
+      toast.error("Image must be 2 MB or smaller.");
+      return;
+    }
+    setCoverUploading(true);
+    const path = `${mapId}/cover.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("map-covers")
+      .upload(path, file, {
+        upsert: true,
+        contentType: file.type || `image/${ext === "jpg" ? "jpeg" : ext}`,
+      });
+    if (uploadError) {
+      setCoverUploading(false);
+      toast.error(uploadError.message);
+      return;
+    }
+    const { data: pub } = supabase.storage
+      .from("map-covers")
+      .getPublicUrl(path);
+    const publicUrl = pub.publicUrl;
+    const { error: dbError } = await supabase
+      .from("maps")
+      .update({
+        cover_url: publicUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", mapId);
+    setCoverUploading(false);
+    if (dbError) {
+      toast.error(dbError.message);
+      return;
+    }
+    setCoverUrl(publicUrl);
+    toast.success("Cover photo updated");
+    if (user) {
+      await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+    }
+    if (coverInputRef.current) coverInputRef.current.value = "";
+  }
+
+  async function removeCover() {
+    if (!mapId || !isOwner) return;
+    setCoverUploading(true);
+    const { data: files } = await supabase.storage
+      .from("map-covers")
+      .list(mapId);
+    if (files?.length) {
+      const paths = files.map((f) => `${mapId}/${f.name}`);
+      await supabase.storage.from("map-covers").remove(paths);
+    }
+    const { error } = await supabase
+      .from("maps")
+      .update({
+        cover_url: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", mapId);
+    setCoverUploading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setCoverUrl("");
+    toast.success("Cover photo removed");
+    if (user) {
+      await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+    }
+  }
 
   async function save() {
     if (!mapId || !map || !name.trim()) return;
@@ -230,6 +336,7 @@ export function MapSettingsPage() {
         style_satellite_labels: styleOptions.satelliteLabels,
         show_pin_metadata: mapShowMetadataForSave(showPinMetadata),
         show_pin_route: showPinRoute,
+        description: description.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", mapId);
@@ -305,12 +412,19 @@ export function MapSettingsPage() {
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
   const metadataDirty = mapShowMetadataDirty(map, showPinMetadata);
   const routeDirty = showPinRoute !== normalizeShowPinRoute(map.show_pin_route);
+  const descriptionDirty =
+    description.trim() !== (map.description ?? "").trim();
   const controlsDisabled = !isOwner || roleQuery.isLoading;
 
   const canSave =
     isOwner &&
     Boolean(name.trim()) &&
-    (nameDirty || iconDirty || styleDirty || metadataDirty || routeDirty) &&
+    (nameDirty ||
+      iconDirty ||
+      styleDirty ||
+      metadataDirty ||
+      routeDirty ||
+      descriptionDirty) &&
     !saving;
 
   const sideNav = showSideNav ? (
@@ -379,6 +493,69 @@ export function MapSettingsPage() {
                   onEmojiChange={setIconEmoji}
                   emojiFallback={defaultMapIcon()}
                 />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="map-description">Description</FieldLabel>
+                <FieldControl>
+                  <Textarea
+                    id="map-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="A short intro for your public profile map card"
+                    disabled={controlsDisabled}
+                    maxLength={MAX_MAP_DESCRIPTION_LENGTH}
+                    rows={3}
+                  />
+                </FieldControl>
+                <FieldDescription>
+                  Optional. Shown on your public profile when this map is
+                  visible there.
+                </FieldDescription>
+              </Field>
+              <Field>
+                <FieldLabel>Cover photo</FieldLabel>
+                <FieldControl>
+                  <MapCoverPreview
+                    coverUrl={coverUrl.trim() || null}
+                    iconEmoji={iconEmoji || defaultMapIcon()}
+                  />
+                </FieldControl>
+                <SrOnlyInput
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  aria-label="Upload map cover photo"
+                  disabled={coverUploading || controlsDisabled}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void uploadCover(file);
+                  }}
+                />
+                <PageAvatarActions>
+                  <PageInlineActions spaced="none">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={coverUploading || controlsDisabled}
+                      onClick={() => coverInputRef.current?.click()}
+                    >
+                      {coverUploading ? "Working…" : "Upload cover"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={
+                        coverUploading || controlsDisabled || !coverUrl.trim()
+                      }
+                      onClick={() => void removeCover()}
+                    >
+                      Remove cover
+                    </Button>
+                  </PageInlineActions>
+                </PageAvatarActions>
+                <FieldDescription>
+                  Optional. Shown on your public profile map card.
+                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel id="map-style-label">Map style</FieldLabel>

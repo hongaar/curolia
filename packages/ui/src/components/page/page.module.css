@@ -129,6 +129,10 @@
   max-width: 56rem;
 }
 
+.contentStackFull {
+  max-width: none;
+}
+
 .contentWide {
   max-width: 56rem;
 }

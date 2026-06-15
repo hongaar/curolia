@@ -2,6 +2,7 @@ import { pinDetailHref } from "@/lib/app-paths";
 import type { PublicMapOwnerProfile } from "@/lib/fetch-public-map";
 import { mapRouteFromParts } from "@/lib/map-route";
 import { formatPinDateRange } from "@/lib/pin-dates";
+import { publicProfileHref } from "@/lib/profile-route";
 import type { Pin } from "@/types/database";
 import {
   BlogAuthorCard,
@@ -20,6 +21,7 @@ import {
 import { MarkdownContentBody } from "@curolia/ui/markdown-content";
 import { PageMuted } from "@curolia/ui/page";
 import { renderToString } from "react-dom/server";
+import { StaticRouter } from "react-router";
 
 export type BlogPinSsrRow = Pick<
   Pin,
@@ -50,6 +52,7 @@ function BlogOwnerSsr({ owner }: { owner: PublicMapOwnerProfile }) {
         )
       }
       name={owner.displayName}
+      nameHref={publicProfileHref(owner.profileSlug)}
       bio={owner.bio ?? undefined}
     />
   );
@@ -119,5 +122,9 @@ export function BlogPageSsrView({
 }
 
 export function renderBlogPageHtml(props: BlogPageSsrProps): string {
-  return renderToString(<BlogPageSsrView {...props} />);
+  return renderToString(
+    <StaticRouter location="/">
+      <BlogPageSsrView {...props} />
+    </StaticRouter>,
+  );
 }

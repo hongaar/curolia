@@ -11,6 +11,7 @@ export type PublicMapOwnerProfile = {
   displayName: string;
   avatarUrl: string | null;
   bio: string | null;
+  profileSlug: string;
 };
 
 type DbClient = SupabaseClient<Database>;
@@ -60,15 +61,19 @@ export async function fetchPublicMapOwnerProfile(
 
   const { data: profile, error: profileError } = await client
     .from("profiles")
-    .select("display_name, avatar_url, bio")
+    .select("display_name, avatar_url, bio, slug")
     .eq("id", ownerRow.user_id)
     .maybeSingle();
   if (profileError) throw profileError;
   if (!profile) return null;
 
+  const profileSlug = profile.slug?.trim() ?? "";
+  if (!profileSlug) return null;
+
   return {
     displayName: profile.display_name?.trim() || "Map owner",
     avatarUrl: profile.avatar_url?.trim() || null,
     bio: profile.bio?.trim() || null,
+    profileSlug,
   };
 }

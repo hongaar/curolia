@@ -13,6 +13,7 @@ const STACK_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/plugins\/?$/,
   /^\/notifications\/?$/,
   /^\/invitations\/?$/,
+  /^\/(?!profile$|settings$|plugins$|notifications$|invitations$)[^/]+\/?$/,
   /^\/[^/]+\/[^/]+\/settings\/?$/,
   /^\/[^/]+\/[^/]+\/pin\//,
 ];
