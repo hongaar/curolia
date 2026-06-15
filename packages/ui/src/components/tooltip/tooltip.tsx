@@ -39,3 +39,13 @@ export function TooltipTitle({
 }) {
   return <p className={cn(styles.title, className)}>{children}</p>;
 }
+
+export function TooltipDescription({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <p className={cn(styles.description, className)}>{children}</p>;
+}

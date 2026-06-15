@@ -509,21 +509,24 @@ export function MapPage() {
     (payload: PinCollisionClickPayload) => {
       setQuickAddPin(null);
       setQuickAddAnchorScreen(null);
-      onCollisionOpen(payload.lng, payload.lat);
-      setPinCollisionPicker({
-        pinIds: payload.pinIds,
-        lng: payload.lng,
-        lat: payload.lat,
-        clickedPinId: payload.clickedPinId,
-      });
-      setSidePanelAnimateIn(false);
+      const zoomed = mapRef.current?.fitCollisionPins(payload.pinIds) ?? false;
+      if (!zoomed) {
+        onCollisionOpen(payload.lng, payload.lat);
+        setPinCollisionPicker({
+          pinIds: payload.pinIds,
+          lng: payload.lng,
+          lat: payload.lat,
+          clickedPinId: payload.clickedPinId,
+        });
+        setSidePanelAnimateIn(false);
+        setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+          replace: true,
+        });
+      }
       mapRef.current?.invalidatePendingMarkerSelection();
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-      setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
-        replace: true,
-      });
     },
     [setSearchParams, onCollisionOpen, setSidePanelAnimateIn],
   );

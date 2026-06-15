@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  allPinsFitInViewport,
   buildCollisionLayout,
+  canZoomToReduceCollisionGroup,
   collisionGroupCentroid,
   collisionRepresentativePinId,
   groupPinIdsByScreenCollision,
+  maxCollisionGroupSizeForPins,
   PIN_MARKER_COLLISION_RADIUS_PX,
+  pinsCollideAtCamera,
+  projectLngLatAtCamera,
+  resolveCollisionClickCamera,
   type PinGeoPoint,
+  type PinLngLat,
   type PinScreenPoint,
 } from "./pin-map-collisions";
 
@@ -94,5 +101,221 @@ describe("buildCollisionLayout", () => {
       lng: 1,
       lat: 2,
     });
+  });
+});
+
+describe("resolveCollisionClickCamera", () => {
+  const viewport = {
+    width: 800,
+    height: 600,
+    maxZoom: 20,
+    paddingPx: 48,
+    currentCenterLng: 4.9,
+    currentCenterLat: 52.37,
+  };
+
+  function pinsAt(deltaLng: number, deltaLat = 0): PinLngLat[] {
+    const baseLng = 4.9;
+    const baseLat = 52.37;
+    return [
+      { pinId: "a", lng: baseLng, lat: baseLat },
+      { pinId: "b", lng: baseLng + deltaLng, lat: baseLat + deltaLat },
+    ];
+  }
+
+  it("returns null for a single pin", () => {
+    const pin = pinsAt(0)[0]!;
+    expect(
+      resolveCollisionClickCamera({
+        pins: [pin],
+        currentZoom: 10,
+        ...viewport,
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null when pins already separate at the current zoom", () => {
+    const pins = pinsAt(0.05);
+    expect(
+      resolveCollisionClickCamera({
+        pins,
+        currentZoom: 8,
+        ...viewport,
+      }),
+    ).toBeNull();
+  });
+
+  it("zooms in for identical coordinates via the fit fallback", () => {
+    const pins = pinsAt(0);
+    const currentZoom = 10;
+    const target = resolveCollisionClickCamera({
+      pins,
+      currentZoom,
+      ...viewport,
+    });
+
+    expect(target).not.toBeNull();
+    expect(target!.zoom).toBeGreaterThan(currentZoom);
+    expect(
+      allPinsFitInViewport(
+        pins,
+        {
+          centerLng: target!.centerLng,
+          centerLat: target!.centerLat,
+          zoom: target!.zoom,
+          width: viewport.width,
+          height: viewport.height,
+        },
+        viewport.paddingPx,
+      ),
+    ).toBe(true);
+  });
+
+  it("prefers separation when it needs less zoom than fit", () => {
+    const pins = pinsAt(0.00012);
+    const currentZoom = 10;
+    const target = resolveCollisionClickCamera({
+      pins,
+      currentZoom,
+      ...viewport,
+    });
+
+    expect(target).not.toBeNull();
+    expect(target!.zoom).toBeGreaterThan(currentZoom);
+    expect(
+      pinsCollideAtCamera(pins, {
+        centerLng: target!.centerLng,
+        centerLat: target!.centerLat,
+        zoom: target!.zoom,
+        width: viewport.width,
+        height: viewport.height,
+      }),
+    ).toBe(false);
+    expect(
+      allPinsFitInViewport(
+        pins,
+        {
+          centerLng: target!.centerLng,
+          centerLat: target!.centerLat,
+          zoom: target!.zoom,
+          width: viewport.width,
+          height: viewport.height,
+        },
+        viewport.paddingPx,
+      ),
+    ).toBe(true);
+  });
+
+  it("can frame spread pins even when separation is impossible", () => {
+    const pins: PinLngLat[] = [
+      { pinId: "a", lng: 4.9, lat: 52.37 },
+      { pinId: "b", lng: 4.92, lat: 52.39 },
+      { pinId: "c", lng: 4.88, lat: 52.35 },
+    ];
+    const currentZoom = 8;
+    const target = resolveCollisionClickCamera({
+      pins,
+      currentZoom,
+      ...viewport,
+    });
+
+    expect(target).not.toBeNull();
+    expect(target!.zoom).toBeGreaterThan(currentZoom);
+    expect(
+      allPinsFitInViewport(
+        pins,
+        {
+          centerLng: target!.centerLng,
+          centerLat: target!.centerLat,
+          zoom: target!.zoom,
+          width: viewport.width,
+          height: viewport.height,
+        },
+        viewport.paddingPx,
+      ),
+    ).toBe(true);
+  });
+
+  it("projects lng/lat relative to the map center", () => {
+    const center = projectLngLatAtCamera(0, 0, {
+      centerLng: 0,
+      centerLat: 0,
+      zoom: 10,
+      width: 800,
+      height: 600,
+    });
+    expect(center).toEqual({ x: 400, y: 300 });
+  });
+});
+
+describe("canZoomToReduceCollisionGroup", () => {
+  const viewport = {
+    width: 800,
+    height: 600,
+    maxZoom: 20,
+    paddingPx: 48,
+    currentCenterLng: 4.9,
+    currentCenterLat: 52.37,
+  };
+
+  function pinsAt(deltaLng: number): PinLngLat[] {
+    const baseLng = 4.9;
+    const baseLat = 52.37;
+    return [
+      { pinId: "a", lng: baseLng, lat: baseLat },
+      { pinId: "b", lng: baseLng + deltaLng, lat: baseLat },
+    ];
+  }
+
+  it("returns false when every pin in the group is inseparable", () => {
+    expect(
+      canZoomToReduceCollisionGroup({
+        pins: pinsAt(0),
+        currentZoom: 10,
+        ...viewport,
+      }),
+    ).toBe(false);
+  });
+
+  it("returns true when a nearby pin can peel off a tight cluster", () => {
+    const pins: PinLngLat[] = [
+      { pinId: "a", lng: 4.9, lat: 52.37 },
+      { pinId: "b", lng: 4.9, lat: 52.37 },
+      { pinId: "c", lng: 4.90012, lat: 52.37 },
+    ];
+    expect(
+      canZoomToReduceCollisionGroup({
+        pins,
+        currentZoom: 10,
+        ...viewport,
+      }),
+    ).toBe(true);
+  });
+
+  it("returns true when a separable pair can unpack", () => {
+    expect(
+      canZoomToReduceCollisionGroup({
+        pins: pinsAt(0.00012),
+        currentZoom: 10,
+        ...viewport,
+      }),
+    ).toBe(true);
+  });
+
+  it("tracks the largest on-screen collision subgroup", () => {
+    const pins: PinLngLat[] = [
+      { pinId: "a", lng: 4.9, lat: 52.37 },
+      { pinId: "b", lng: 4.9, lat: 52.37 },
+      { pinId: "c", lng: 4.90012, lat: 52.37 },
+    ];
+    expect(
+      maxCollisionGroupSizeForPins(pins, {
+        centerLng: viewport.currentCenterLng,
+        centerLat: viewport.currentCenterLat,
+        zoom: 10,
+        width: viewport.width,
+        height: viewport.height,
+      }),
+    ).toBe(3);
   });
 });

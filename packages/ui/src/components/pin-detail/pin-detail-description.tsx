@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
+import { cn } from "../../lib/utils";
 import { MarkdownContent } from "../markdown-content";
 import styles from "./pin-detail-description.module.css";
 
@@ -23,7 +24,18 @@ export function PinDetailDescription({
     if (!el || !collapsible || expanded) return;
 
     const measure = () => {
-      setOverflows(el.scrollHeight > el.clientHeight + 1);
+      const styles = getComputedStyle(el);
+      const lineHeight = Number.parseFloat(styles.lineHeight);
+      const maxLines = Number.parseInt(
+        styles.getPropertyValue("--pin-detail-description-collapsed-lines") ||
+          "5",
+        10,
+      );
+      if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
+        setOverflows(el.scrollHeight > el.clientHeight + 1);
+        return;
+      }
+      setOverflows(el.scrollHeight > lineHeight * maxLines + 1);
     };
 
     measure();
@@ -35,15 +47,17 @@ export function PinDetailDescription({
   if (!trimmed) return null;
 
   const showToggle = collapsible && (overflows || expanded);
+  const showCollapsed = collapsible && !expanded && overflows !== false;
+  const showFade = collapsible && !expanded && overflows === true;
 
   return (
     <div className={styles.root}>
       <div
         ref={contentRef}
         className={
-          !collapsible || expanded
-            ? styles.contentExpanded
-            : styles.contentCollapsed
+          showCollapsed
+            ? cn(styles.contentCollapsed, showFade && styles.contentFaded)
+            : styles.contentExpanded
         }
       >
         <MarkdownContent markdown={trimmed} />
