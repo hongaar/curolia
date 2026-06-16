@@ -20,6 +20,12 @@ import {
 } from "../map-marker-popover";
 import { MapToolbar, MapToolbarButton } from "../map-toolbar";
 import {
+  MapBlogPinConnector,
+  MapBlogPinConnectorMap,
+  MapBlogSidePanel,
+  MapBlogSidePanelContent,
+  MapBlogSidePanelScrim,
+  MapBlogSidePanelScroll,
   MapCanvas,
   MapControlsBottomRight,
   MapControlsLayer,
@@ -145,6 +151,59 @@ export const PlacementMode: Story = {
   ),
 };
 
+export const BlogSidePanel: Story = {
+  parameters: storyDocs(
+    "Desktop blog timeline in a wide right-hand panel (map stays visible on the left).",
+  ),
+  render: () => (
+    <div style={{ height: "28rem", width: "100%", position: "relative" }}>
+      <MapPageRoot>
+        <MapLayer panelRightWidth="66.67%">
+          <MapHost>
+            <MockMapSurface />
+          </MapHost>
+          <MapVignette />
+          <MapBlogSidePanel>
+            <MapBlogSidePanelScroll>
+              <MapBlogSidePanelContent>
+                <h1 style={{ margin: 0, fontSize: "1.5rem" }}>Summer 2025</h1>
+                <p style={{ color: "var(--muted-foreground)" }}>
+                  Blog entries scroll here while the map remains on the left.
+                </p>
+              </MapBlogSidePanelContent>
+            </MapBlogSidePanelScroll>
+          </MapBlogSidePanel>
+        </MapLayer>
+      </MapPageRoot>
+    </div>
+  ),
+};
+
+export const BlogSidePanelWithPinScrim: Story = {
+  parameters: storyDocs(
+    "Blog panel dimmed behind an open pin detail sheet; click the scrim to dismiss.",
+  ),
+  render: () => (
+    <div style={{ height: "28rem", width: "100%", position: "relative" }}>
+      <MapPageRoot>
+        <MapLayer panelRightWidth="66.67%">
+          <MapHost>
+            <MockMapSurface />
+          </MapHost>
+          <MapBlogSidePanel>
+            <MapBlogSidePanelScroll>
+              <MapBlogSidePanelContent>
+                <h1 style={{ margin: 0, fontSize: "1.5rem" }}>Summer 2025</h1>
+              </MapBlogSidePanelContent>
+            </MapBlogSidePanelScroll>
+            <MapBlogSidePanelScrim show onDismiss={() => undefined} />
+          </MapBlogSidePanel>
+        </MapLayer>
+      </MapPageRoot>
+    </div>
+  ),
+};
+
 export const FloatingMarkerPopover: Story = {
   parameters: storyDocs(
     "Marker-anchored popover (desktop Floating UI placement).",
@@ -169,6 +228,40 @@ export const FloatingMarkerPopover: Story = {
           </FloatingPanel>
         </MapFloatingPanel>
       </MapFloatingAnchor>
+    </div>
+  ),
+};
+
+export const BlogPinConnector: Story = {
+  parameters: storyDocs(
+    "Connector line: blog segment above the panel; map segment under markers.",
+  ),
+  render: () => (
+    <div style={{ height: "20rem", width: "100%", position: "relative" }}>
+      <MockMapSurface />
+      <div
+        style={{
+          position: "absolute",
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: "40%",
+          background: "var(--panel-bg-solid)",
+          borderLeft: "1px solid var(--border)",
+          zIndex: 15,
+        }}
+      />
+      <MapBlogPinConnector x1={520} y1={140} x2={380} y2={118} />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "60%",
+          pointerEvents: "none",
+        }}
+      >
+        <MapBlogPinConnectorMap x1={380} y1={118} x2={180} y2={96} />
+      </div>
     </div>
   ),
 };

@@ -134,6 +134,126 @@
   padding-inline: 0;
 }
 
+/* --- Map blog side panel (desktop blog view) --- */
+.blogSidePanel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 66.67%;
+  z-index: 15;
+  overflow: hidden;
+  background: var(--panel-bg-solid);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 24px color-mix(in oklch, black 7%, transparent);
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+.blogSidePanelScroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  --blog-panel-pad-inline-start: calc(var(--space-4) + var(--safe-left));
+  --blog-panel-pad-inline-end: calc(var(--space-4) + var(--safe-right));
+  padding: var(--space-4) var(--blog-panel-pad-inline-end)
+    calc(5rem + var(--safe-bottom)) var(--blog-panel-pad-inline-start);
+  color: var(--foreground);
+}
+
+@media (min-width: 40rem) {
+  .blogSidePanelScroll {
+    --blog-panel-pad-inline-start: calc(var(--space-6) + var(--safe-left));
+    --blog-panel-pad-inline-end: calc(var(--space-6) + var(--safe-right));
+    padding: var(--space-6) var(--blog-panel-pad-inline-end)
+      calc(6rem + var(--safe-bottom)) var(--blog-panel-pad-inline-start);
+  }
+}
+
+.blogSidePanelContent {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  max-width: 40rem;
+}
+
+.blogSidePanelPinBody {
+  position: relative;
+  z-index: 1;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
+.blogSidePanelGallery {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin-top: 1.25rem;
+  box-sizing: border-box;
+}
+
+.blogSidePanelScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 16;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: default;
+  background: oklch(0 0 0 / 0.28);
+  backdrop-filter: blur(1px);
+  opacity: 0;
+  transition: opacity 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.blogSidePanelScrimActive {
+  opacity: 1;
+}
+
+.blogPinConnector {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 17;
+}
+
+.blogPinConnectorInPanel {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.blogPinConnectorMap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.blogPinConnectorLine {
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-opacity: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blogSidePanelScrim {
+    transition: none;
+  }
+}
+
 /* --- Map side panel (pin detail) --- */
 .sidePanel {
   position: absolute;
@@ -142,7 +262,7 @@
   bottom: 0;
   /* Grows from 24rem → 40rem as the viewport widens, proportionally to 35% of available width */
   width: clamp(24rem, 35%, 40rem);
-  z-index: 20;
+  z-index: 25;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;

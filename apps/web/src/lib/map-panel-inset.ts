@@ -3,6 +3,10 @@ export type MapPanelLayout = "side" | "bottom";
 
 export const SIDE_PANEL_FALLBACK_WIDTH_PX = 384;
 
+/** Desktop blog panel width (~2/3 viewport) when element is not yet measured. */
+export const BLOG_PANEL_FALLBACK_WIDTH_PX =
+  typeof window !== "undefined" ? Math.round(window.innerWidth * (2 / 3)) : 853;
+
 /** Matches mobile pin `BottomSheet` `partialHeight="min(85dvh, 40rem)"`. */
 export function estimatedBottomSheetHeightPx(
   viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800,

@@ -5,10 +5,12 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../button";
 import {
+  columnsForBlogPanelWidth,
   columnsForContainerWidth,
   computeColumnsLayout,
   computeRowsLayout,
   stripThumbSize,
+  targetRowHeightForBlogPanel,
   targetRowHeightForWidth,
 } from "./pin-photo-gallery-layout";
 import styles from "./pin-photo-gallery.module.css";
@@ -43,6 +45,12 @@ export type PinPhotoGalleryProps = {
   stripBleed?: boolean;
   /** Strip layout only: fixed thumb height in px; width follows each photo aspect. */
   stripThumbHeight?: number;
+  /** Columns layout only: fixed column count (overrides `columnPreset`). */
+  columnCount?: number;
+  /** Columns layout only: `blog-panel` fits more thumbs per row in map blog side sheets. */
+  columnPreset?: "default" | "blog-panel";
+  /** Rows layout only: `blog-panel` uses shorter target rows in map blog side sheets. */
+  rowPreset?: "default" | "blog-panel";
 };
 
 function useContainerWidth() {
@@ -165,20 +173,24 @@ function RowsGallery({
   containerWidth,
   onOpen,
   loadingPlaceholders,
+  rowPreset = "default",
 }: {
   items: PinPhotoGalleryItem[];
   containerWidth: number;
   onOpen: (photoId: string) => void;
   loadingPlaceholders: number;
+  rowPreset?: "default" | "blog-panel";
 }) {
   const rows = useMemo(
     () =>
       computeRowsLayout(
         items,
         containerWidth,
-        targetRowHeightForWidth(containerWidth),
+        rowPreset === "blog-panel"
+          ? targetRowHeightForBlogPanel(containerWidth)
+          : targetRowHeightForWidth(containerWidth),
       ),
-    [items, containerWidth],
+    [items, containerWidth, rowPreset],
   );
 
   return (
@@ -210,16 +222,24 @@ function ColumnsGallery({
   containerWidth,
   onOpen,
   loadingPlaceholders,
+  columnCount: columnCountOverride,
+  columnPreset = "default",
 }: {
   items: PinPhotoGalleryItem[];
   containerWidth: number;
   onOpen: (photoId: string) => void;
   loadingPlaceholders: number;
+  columnCount?: number;
+  columnPreset?: "default" | "blog-panel";
 }) {
   const columns = useMemo(() => {
-    const count = columnsForContainerWidth(containerWidth);
+    const count =
+      columnCountOverride ??
+      (columnPreset === "blog-panel"
+        ? columnsForBlogPanelWidth(containerWidth)
+        : columnsForContainerWidth(containerWidth));
     return computeColumnsLayout(items, containerWidth, count);
-  }, [items, containerWidth]);
+  }, [items, containerWidth, columnCountOverride, columnPreset]);
 
   const placeholderColumn =
     loadingPlaceholders > 0
@@ -413,6 +433,9 @@ export function PinPhotoGallery({
   layout = "rows",
   stripBleed = false,
   stripThumbHeight,
+  columnCount,
+  columnPreset = "default",
+  rowPreset = "default",
 }: PinPhotoGalleryProps) {
   const { ref, width } = useContainerWidth();
 
@@ -443,6 +466,8 @@ export function PinPhotoGallery({
             containerWidth={width}
             onOpen={onOpen}
             loadingPlaceholders={loadingPlaceholders}
+            columnCount={columnCount}
+            columnPreset={columnPreset}
           />
         ) : (
           <MasonryGallery
@@ -457,6 +482,7 @@ export function PinPhotoGallery({
           containerWidth={width}
           onOpen={onOpen}
           loadingPlaceholders={loadingPlaceholders}
+          rowPreset={rowPreset}
         />
       ) : (
         <MasonryGallery

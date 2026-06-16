@@ -85,17 +85,16 @@ export function useMapPinsPhotosSignedUrls(
   pinIds: string[],
 ) {
   const qc = useQueryClient();
-  const sortedIdsKey = useMemo(() => [...pinIds].sort().join(","), [pinIds]);
+  const pinIdSet = useMemo(() => new Set(pinIds), [pinIds]);
 
   const photosQuery = useQuery({
-    queryKey: ["map-pin-photos", mapId, sortedIdsKey],
+    queryKey: ["map-pin-photos", mapId],
     queryFn: async () => {
-      if (!mapId || pinIds.length === 0) return [];
+      if (!mapId) return [];
       const { data, error } = await supabase
         .from("photos")
         .select("*")
         .eq("map_id", mapId)
-        .in("pin_id", pinIds)
         .order("sort_order");
       if (error) throw error;
       return (data ?? []) as Photo[];
@@ -103,7 +102,11 @@ export function useMapPinsPhotosSignedUrls(
     enabled: Boolean(mapId) && pinIds.length > 0,
   });
 
-  const photos = useMemo(() => photosQuery.data ?? [], [photosQuery.data]);
+  const photos = useMemo(() => {
+    const all = photosQuery.data ?? [];
+    if (pinIdSet.size === 0) return [];
+    return all.filter((p) => pinIdSet.has(p.pin_id));
+  }, [photosQuery.data, pinIdSet]);
   const idsKey = photoIdsKey(photos);
 
   const signedUrlsQuery = useQuery({

@@ -1,5 +1,10 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
+import {
+  BlogPinMapConnectorOverlay,
+  type BlogPinConnectorAnchor,
+} from "@/components/map/blog-pin-map-connector";
+import { MapBlogPanel } from "@/components/map/map-blog-panel";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
 import {
   MapPointerContextMenu,
@@ -20,6 +25,7 @@ import {
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
+import { useBlogHoverMapSync } from "@/hooks/use-blog-hover-map-sync";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapPinPanel } from "@/hooks/use-map-pin-panel";
@@ -29,7 +35,7 @@ import { useMinMd } from "@/hooks/use-min-md";
 import { useNativeShareLink } from "@/hooks/use-native-share-link";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { useRecordMapVisit } from "@/hooks/use-record-map-visit";
-import { pinEditHref } from "@/lib/app-paths";
+import { mapViewSegmentFromPathname, pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
   readStoredMapCamera,
@@ -90,6 +96,8 @@ import {
   DialogTitle,
 } from "@curolia/ui/dialog";
 import {
+  MapBlogSidePanel,
+  MapBlogSidePanelScrim,
   MapControlsBottomCenter,
   MapControlsBottomStack,
   MapControlsLayer,
@@ -113,7 +121,12 @@ import {
   useState,
   type SetStateAction,
 } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import { toast } from "sonner";
 
 const PinFormDialog = lazy(() =>
@@ -128,11 +141,21 @@ const PinFormDialog = lazy(() =>
  */
 const PANEL_RIGHT_WIDTH_CSS = "clamp(24rem, 35%, 40rem)";
 
+/** Desktop blog side panel — two thirds of the viewport width. */
+const BLOG_PANEL_WIDTH_CSS = "66.67%";
+
 export function MapPage() {
   const qc = useQueryClient();
   const isWideEnough = useMinMd();
   const isMobile = useMaxSm();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isBlogView = mapViewSegmentFromPathname(location.pathname) === "blog";
+  const showBlogPanel = isBlogView && isWideEnough;
+  const blogSidePanelRef = useRef<HTMLDivElement>(null);
+  const blogScrollRef = useRef<HTMLDivElement>(null);
+  const blogConnectorAnchorRef = useRef<BlogPinConnectorAnchor | null>(null);
+  const suspendBlogScrollPanRef = useRef(false);
   const { profileSlug, mapSlug } = useParams<{
     profileSlug: string;
     mapSlug: string;
@@ -169,8 +192,12 @@ export function MapPage() {
     [activeMap],
   );
   const prevMapIdRef = useRef<string | null>(null);
+  const mapFitGenerationRef = useRef(0);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);
   const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
+  useLayoutEffect(() => {
+    mapFitGenerationRef.current = mapFitGeneration;
+  }, [mapFitGeneration]);
   useLayoutEffect(() => {
     const prev = prevMapIdRef.current;
     const switchedMap =
@@ -436,12 +463,20 @@ export function MapPage() {
     if (parseSelectedPinTokenFromSearchParams(searchParams)) return;
     if (!pinsReadyForMapFit) return;
     if (visiblePinsForFit.length === 0) return;
-    mapRef.current?.fitVisiblePins();
+
+    const generation = mapFitGenerationRef.current;
+
+    mapRef.current?.fitVisiblePins({
+      onSettled: () => {
+        setMapFitResolvedGeneration(generation);
+      },
+    });
   }, [
     awaitingMapFit,
     searchParams,
     pinsReadyForMapFit,
     visiblePinsForFit.length,
+    activeMapId,
   ]);
 
   const sidebarPinToken = useMemo(
@@ -499,7 +534,60 @@ export function MapPage() {
     setSearchParams,
     clearCameraIdleTimer,
     activeMapId,
+    panelInsetMeasureRef: showBlogPanel ? blogSidePanelRef : undefined,
+    persistentPanelOpen: showBlogPanel,
   });
+
+  const { blogHoverPinId, onBlogPinHover, onBlogPinHoverEnd } =
+    useBlogHoverMapSync({
+      enabled: showBlogPanel && !showSidePanel,
+      blogPanelRef: blogSidePanelRef,
+      mapRef,
+      pins: visiblePinsForFit,
+      mapId: activeMapId ?? undefined,
+      mapFitReady: !awaitingMapFit,
+      suspendPanRef: suspendBlogScrollPanRef,
+    });
+
+  const handleBlogPinHover = useCallback(
+    (pinId: string, anchor: BlogPinConnectorAnchor) => {
+      blogConnectorAnchorRef.current = anchor;
+      onBlogPinHover(pinId);
+    },
+    [onBlogPinHover],
+  );
+
+  const handleBlogPinHoverEnd = useCallback(() => {
+    blogConnectorAnchorRef.current = null;
+    onBlogPinHoverEnd();
+  }, [onBlogPinHoverEnd]);
+
+  const blogHoverPin = useMemo(
+    () => pins.find((pin) => pin.id === blogHoverPinId) ?? null,
+    [pins, blogHoverPinId],
+  );
+
+  const mapPanelRightWidth = showBlogPanel
+    ? BLOG_PANEL_WIDTH_CSS
+    : showSidePanel
+      ? PANEL_RIGHT_WIDTH_CSS
+      : undefined;
+
+  useLayoutEffect(() => {
+    if (!showBlogPanel) {
+      mapRef.current?.clearPanelPadding();
+      return;
+    }
+    // Opening blog on the current map — shift camera for panel inset.
+    // Map switches while blog is open use fitVisiblePins + blog hover sync instead.
+    const applyBlogInset = () => {
+      const width = blogSidePanelRef.current?.offsetWidth;
+      const camera = mapRef.current?.getCurrentCamera();
+      if (!width || !camera) return;
+      mapRef.current?.panForPanel(camera.lng, camera.lat, { right: width });
+    };
+    requestAnimationFrame(applyBlogInset);
+  }, [showBlogPanel]);
 
   const onClosePinCollisionPicker = useCallback(() => {
     onCollisionClose();
@@ -991,9 +1079,7 @@ export function MapPage() {
 
   return (
     <MapPageRoot>
-      <MapLayer
-        panelRightWidth={showSidePanel ? PANEL_RIGHT_WIDTH_CSS : undefined}
-      >
+      <MapLayer panelRightWidth={mapPanelRightWidth}>
         <MapVignette />
         <MapHost>
           <PinMap
@@ -1002,6 +1088,10 @@ export function MapPage() {
             photoUrlByPinId={photoUrlByPinId}
             selectedTagIds={filterTagIds}
             selectedPinId={mapSelectedPinId}
+            scrollHoverPinId={
+              showBlogPanel && !showSidePanel ? blogHoverPinId : null
+            }
+            suspendBlogScrollPanRef={suspendBlogScrollPanRef}
             collisionFocus={
               pinCollisionPicker
                 ? {
@@ -1077,6 +1167,38 @@ export function MapPage() {
             <MapControlsToolbar mapRef={mapRef} />
           </MapControlsBottomStack>
         </MapControlsLayer>
+        {showBlogPanel &&
+        blogHoverPin &&
+        typeof blogHoverPin.lat === "number" &&
+        typeof blogHoverPin.lng === "number" ? (
+          <BlogPinMapConnectorOverlay
+            show
+            pinLng={blogHoverPin.lng}
+            pinLat={blogHoverPin.lat}
+            anchorRef={blogConnectorAnchorRef}
+            scrollRootRef={blogScrollRef}
+            blogPanelRef={blogSidePanelRef}
+            mapRef={mapRef}
+          />
+        ) : null}
+        {showBlogPanel ? (
+          <MapBlogSidePanel ref={blogSidePanelRef}>
+            <MapBlogPanel
+              mapSlug={mapSlug}
+              embedded
+              onViewPin={onSelectPin}
+              scrollRootRef={blogScrollRef}
+              onPinHover={handleBlogPinHover}
+              onPinHoverEnd={handleBlogPinHoverEnd}
+            />
+            {showBlogPanel ? (
+              <MapBlogSidePanelScrim
+                show={showSidePanel}
+                onDismiss={onClosePinMapPopover}
+              />
+            ) : null}
+          </MapBlogSidePanel>
+        ) : null}
         {showSidePanel ? (
           <MapSidePanel
             ref={sidePanelRef}

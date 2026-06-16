@@ -70,6 +70,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
 } from "react";
 import { toast } from "sonner";
 
@@ -93,7 +94,15 @@ export type PinMapHandle = {
   lngLatToScreen: (lng: number, lat: number) => { x: number; y: number } | null;
   subscribeCamera: (cb: () => void) => () => void;
   /** Fit map camera to currently filtered pins (same logic as former auto-fit). */
-  fitVisiblePins: () => void;
+  fitVisiblePins: (options?: {
+    panelInset?: {
+      top?: number;
+      right?: number;
+      bottom?: number;
+      left?: number;
+    };
+    onSettled?: () => void;
+  }) => void;
   /** Zoom collided pins apart when possible; returns whether the map zoomed. */
   fitCollisionPins: (pinIds: string[]) => boolean;
   zoomIn: () => void;
@@ -102,6 +111,8 @@ export type PinMapHandle = {
   triggerGeolocate: () => void;
   /** Return the current map center + zoom (normalized for URL/storage). */
   getCurrentCamera: () => MapCamera | null;
+  /** Map canvas element (for layering overlays under markers). */
+  getMapContainer: () => HTMLElement | null;
   /**
    * Ease to keep `lng/lat` in the visible map area, inset by panel/sheet padding
    * (e.g. `{ right }` for a side sheet, `{ bottom }` for a bottom sheet).
@@ -215,6 +226,10 @@ type PinMapProps = {
   placeHighlight?: PlaceMapHighlight | null;
   /** Signed first-photo URL per pin id, for photo markers. */
   photoUrlByPinId?: Record<string, string>;
+  /** Blog scroll focus — marker hover styling without map tooltip. */
+  scrollHoverPinId?: string | null;
+  /** When true, blog scroll sync should not pan the map (marker hover). */
+  suspendBlogScrollPanRef?: MutableRefObject<boolean>;
 };
 
 const CAMERA_DURATION_MS = 850;
@@ -276,6 +291,31 @@ function cameraFitPaddingPx(map: maplibregl.Map): number {
   );
 }
 
+function fitPaddingForMap(
+  map: maplibregl.Map,
+  panelInset?: { top?: number; right?: number; bottom?: number; left?: number },
+): maplibregl.PaddingOptions {
+  const pad = cameraFitPaddingPx(map);
+  return {
+    top: (panelInset?.top ?? 0) + pad,
+    right: (panelInset?.right ?? 0) + pad,
+    bottom: (panelInset?.bottom ?? 0) + pad,
+    left: (panelInset?.left ?? 0) + pad,
+  };
+}
+
+function notifyFitSettled(map: maplibregl.Map, onSettled?: () => void) {
+  if (!onSettled) return;
+  const finish = () => onSettled();
+  requestAnimationFrame(() => {
+    if (map.isMoving()) {
+      map.once("moveend", finish);
+    } else {
+      finish();
+    }
+  });
+}
+
 function boundsSpanIsDegenerate(bounds: maplibregl.LngLatBounds): boolean {
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();
@@ -286,20 +326,32 @@ function boundsSpanIsDegenerate(bounds: maplibregl.LngLatBounds): boolean {
 function fitMapToPinCoordinates(
   map: maplibregl.Map,
   coords: ReadonlyArray<{ lng: number; lat: number }>,
-  options?: { maxZoom?: number },
+  options?: {
+    maxZoom?: number;
+    panelInset?: {
+      top?: number;
+      right?: number;
+      bottom?: number;
+      left?: number;
+    };
+    onSettled?: () => void;
+  },
 ) {
   if (coords.length === 0) return;
 
   const maxZoom = options?.maxZoom ?? map.getMaxZoom();
+  const padding = fitPaddingForMap(map, options?.panelInset);
 
   if (coords.length === 1) {
     const t = coords[0]!;
     map.flyTo({
       center: [t.lng, t.lat],
       zoom: Math.min(SINGLE_PIN_ZOOM, maxZoom),
+      padding,
       duration: CAMERA_DURATION_MS,
       essential: true,
     });
+    notifyFitSettled(map, options?.onSettled);
     return;
   }
 
@@ -316,18 +368,21 @@ function fitMapToPinCoordinates(
     map.flyTo({
       center: [center.lng, center.lat],
       zoom: Math.min(map.getZoom() + 2, maxZoom),
+      padding,
       duration: CAMERA_DURATION_MS,
       essential: true,
     });
+    notifyFitSettled(map, options?.onSettled);
     return;
   }
 
   map.fitBounds(bounds, {
-    padding: cameraFitPaddingPx(map),
+    padding,
     maxZoom,
     duration: CAMERA_DURATION_MS,
     essential: true,
   });
+  notifyFitSettled(map, options?.onSettled);
 }
 
 function geolocationToastMessage(err: unknown): string {
@@ -440,6 +495,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     showPinRoute = false,
     placeHighlight = null,
     photoUrlByPinId = EMPTY_PHOTO_URLS,
+    scrollHoverPinId = null,
+    suspendBlogScrollPanRef,
   },
   ref,
 ) {
@@ -454,6 +511,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const mapRef = useRef<maplibregl.Map | null>(null);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pinHover, setPinHover] = useState<PinHoverPreview | null>(null);
+  const scrollHoverPinIdRef = useRef(scrollHoverPinId);
+  scrollHoverPinIdRef.current = scrollHoverPinId;
   const hoveredCollisionCountRef = useRef(1);
   const hoveredCollisionSeparableRef = useRef(true);
   const [hoveredCollisionEpoch, setHoveredCollisionEpoch] = useState(0);
@@ -568,7 +627,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     filteredByIdRef.current = new Map(filtered.map((p) => [p.id, p]));
     selectedPinIdRef.current = selectedPinId;
     collisionFocusRef.current = collisionFocus;
-    latestPinHoverIdRef.current = pinHover?.pin.id ?? null;
+    latestPinHoverIdRef.current = pinHover?.pin.id ?? scrollHoverPinId ?? null;
     placementModeRef.current = placementMode;
     relocatePinIdRef.current = relocatePinId;
   }, [
@@ -584,6 +643,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     selectedPinId,
     collisionFocus,
     pinHover,
+    scrollHoverPinId,
     placementMode,
     relocatePinId,
   ]);
@@ -770,10 +830,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
     leaveTimerRef.current = setTimeout(() => {
       leaveTimerRef.current = null;
-      applyMarkerHoverStack(null);
+      const hoverId = scrollHoverPinIdRef.current;
+      setPinHover(null);
+      applyMarkerHoverStack(hoverId);
       hoveredCollisionCountRef.current = 1;
       hoveredCollisionSeparableRef.current = true;
-      setPinHover(null);
     }, HOVER_LEAVE_MS);
   }, [applyMarkerHoverStack]);
 
@@ -1149,6 +1210,12 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   useEffect(() => () => cancelHidePreview(), [cancelHidePreview]);
 
+  useLayoutEffect(() => {
+    const suspendRef = suspendBlogScrollPanRef;
+    if (!suspendRef) return;
+    suspendRef.current = pinHover !== null;
+  }, [pinHover, suspendBlogScrollPanRef]);
+
   const pinHoverAnchorId = pinHover?.pin.id;
   const pinHoverLng = pinHover?.lng;
   const pinHoverLat = pinHover?.lat;
@@ -1192,9 +1259,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     };
   }, [pinHoverAnchorId, pinHoverLng, pinHoverLat]);
 
+  const pinHoverPinId = pinHover?.pin.id ?? null;
+
   useLayoutEffect(() => {
-    applyMarkerHoverStack(pinHover?.pin.id ?? null);
-  }, [pinHover, applyMarkerHoverStack]);
+    const effectiveHoverId = pinHoverPinId ?? scrollHoverPinId ?? null;
+    applyMarkerHoverStack(effectiveHoverId);
+  }, [scrollHoverPinId, pinHoverPinId, applyMarkerHoverStack]);
+
+  const showHoverTooltip = pinHover !== null;
 
   useLayoutEffect(() => {
     scheduleSyncVisibleMarkers();
@@ -1261,6 +1333,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         const r = el.getBoundingClientRect();
         return { x: r.left + p.x, y: r.top + p.y };
       },
+      getMapContainer() {
+        return containerRef.current;
+      },
       subscribeCamera(cb: () => void) {
         const map = mapRef.current;
         if (!map) return () => {};
@@ -1275,7 +1350,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           map.off("pitch", cb);
         };
       },
-      fitVisiblePins() {
+      fitVisiblePins(options) {
         const map = mapRef.current;
         const list = filteredRef.current;
         if (!map || list.length === 0) return;
@@ -1284,7 +1359,11 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         fitMapToPinCoordinates(
           map,
           list.map((t) => ({ lng: t.lng, lat: t.lat })),
-          { maxZoom: CAMERA_MAX_ZOOM },
+          {
+            maxZoom: CAMERA_MAX_ZOOM,
+            panelInset: options?.panelInset,
+            onSettled: options?.onSettled,
+          },
         );
       },
       fitCollisionPins(pinIds: string[]) {
@@ -2142,7 +2221,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         placementMode={placementMode || Boolean(relocatePinId)}
         containerRef={containerRef}
       />
-      {pinHover ? (
+      {showHoverTooltip ? (
         <Tooltip hostRef={hoverFloatingRef}>
           <TooltipContent>
             <TooltipTitle>{hoverTitle}</TooltipTitle>

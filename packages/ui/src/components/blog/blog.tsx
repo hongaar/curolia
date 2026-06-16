@@ -13,8 +13,18 @@ export function BlogFabSlot({ children }: { children: React.ReactNode }) {
   return <div className={styles.fabSlot}>{children}</div>;
 }
 
-export function BlogScroll({ children }: { children: React.ReactNode }) {
-  return <div className={styles.scroll}>{children}</div>;
+export function BlogScroll({
+  children,
+  ref,
+}: {
+  children: React.ReactNode;
+  ref?: React.Ref<HTMLDivElement>;
+}) {
+  return (
+    <div ref={ref} className={styles.scroll}>
+      {children}
+    </div>
+  );
 }
 
 export function BlogContent({ children }: { children: React.ReactNode }) {
@@ -148,6 +158,17 @@ export function BlogPinTitleLink({
     <Link className={styles.pinTitleLink} to={to}>
       {children}
     </Link>
+  );
+}
+
+export function BlogPinTitleButton({
+  children,
+  ...props
+}: React.ComponentProps<"button">) {
+  return (
+    <button type="button" className={styles.pinTitleLink} {...props}>
+      {children}
+    </button>
   );
 }
 

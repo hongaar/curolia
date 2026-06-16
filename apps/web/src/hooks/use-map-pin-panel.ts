@@ -64,6 +64,10 @@ export type UseMapPinPanelOptions = {
   setSearchParams: SetSearchParams;
   clearCameraIdleTimer: () => void;
   activeMapId: string | null;
+  /** When set (e.g. blog side panel), pan inset uses this element instead of the pin sheet. */
+  panelInsetMeasureRef?: RefObject<HTMLElement | null>;
+  /** Blog panel stays open — closing pin detail must not restore the pre-pin camera. */
+  persistentPanelOpen?: boolean;
 };
 
 export function useMapPinPanel({
@@ -78,6 +82,8 @@ export function useMapPinPanel({
   setSearchParams,
   clearCameraIdleTimer,
   activeMapId,
+  panelInsetMeasureRef,
+  persistentPanelOpen = false,
 }: UseMapPinPanelOptions) {
   const layout: MapPanelLayout = isWideEnough ? "side" : "bottom";
   const usesBottomSheet = layout === "bottom";
@@ -113,7 +119,9 @@ export function useMapPinPanel({
 
   const showSidePanel = Boolean(sidebarPinId && isWideEnough);
 
-  const panelMeasureRef = usesBottomSheet ? panelPopupRef : sidePanelRef;
+  const panelMeasureRef = usesBottomSheet
+    ? panelPopupRef
+    : (panelInsetMeasureRef ?? sidePanelRef);
 
   const restoreCameraAfterPanelClose = useCallback(
     (options?: { respectUrlPin?: boolean }) => {
@@ -451,7 +459,11 @@ export function useMapPinPanel({
     } else if (currId && prevId && currId !== prevId) {
       panOpenPin(currId);
     } else if (!currId && prevId) {
-      if (panelCameraRestoredRef.current) {
+      if (persistentPanelOpen) {
+        panelCameraRestoredRef.current = false;
+        prevCameraBeforePanelRef.current = null;
+        postPanCameraBeforePanelRef.current = null;
+      } else if (panelCameraRestoredRef.current) {
         panelCameraRestoredRef.current = false;
       } else {
         restoreCameraAfterPanelClose({ respectUrlPin: true });
@@ -468,6 +480,7 @@ export function useMapPinPanel({
     panelMeasureRef,
     restoreCameraAfterPanelClose,
     mapRef,
+    persistentPanelOpen,
   ]);
 
   return {

@@ -1,5 +1,4 @@
 import { AppSettingsPage } from "@/pages/app-settings-page";
-import { BlogPage } from "@/pages/blog-page";
 import { InvitationsPage } from "@/pages/invitations-page";
 import { MapPage } from "@/pages/map-page";
 import { MapSettingsPage } from "@/pages/map-settings-page";
@@ -9,6 +8,7 @@ import { PinEditPage } from "@/pages/pin-edit-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { PublicProfilePage } from "@/pages/public-profile-page";
+import { BlogRoute } from "@/routes/blog-route";
 import { PublicMapShortcutRedirect } from "@/routes/public-map-shortcut-redirect";
 import { Navigate, Route } from "react-router-dom";
 
@@ -20,7 +20,7 @@ export const appShellRouteElements = (
       element={<PublicMapShortcutRedirect />}
     />
     <Route path=":profileSlug/:mapSlug/map" element={<MapPage />} />
-    <Route path=":profileSlug/:mapSlug/blog" element={<BlogPage />} />
+    <Route path=":profileSlug/:mapSlug/blog" element={<BlogRoute />} />
     <Route
       path=":profileSlug/:mapSlug/pin/:pinSlug/edit"
       element={<PinEditPage />}

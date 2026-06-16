@@ -1,6 +1,6 @@
 import { isMapFullscreenPathname } from "@/lib/app-paths";
 
-/** Map fullscreen view only (`/:profile/:map/map`). Stack screens keep compact app chrome. */
+/** Map/blog base views (`/:profile/:map/map` or `/blog`). Stack screens keep compact app chrome. */
 export function isMapChromeRoute(pathname: string): boolean {
   return isMapFullscreenPathname(pathname);
 }
