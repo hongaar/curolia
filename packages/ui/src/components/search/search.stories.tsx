@@ -19,6 +19,7 @@ import { Button } from "../button";
 import { MapMarker } from "../map-marker";
 import { PageBackButton } from "../page-back-button";
 import { Popover as SearchPopover } from "../popover";
+import { UserAvatar } from "../user-avatar";
 import {
   SearchActivePanel,
   SearchActivePanelActions,
@@ -36,6 +37,7 @@ import {
   SearchInput,
   SearchPopoverContent,
   SearchPopoverTitle,
+  SearchResultAvatar,
   SearchResultBody,
   SearchResultCategory,
   SearchResultEnd,
@@ -64,6 +66,7 @@ function SampleResultRow({
   subtitle,
   categoryLabel,
   icon,
+  avatar,
   trailing,
   shortcutKeys,
   active = false,
@@ -73,6 +76,7 @@ function SampleResultRow({
   subtitle?: string;
   categoryLabel?: string;
   icon?: ReactNode;
+  avatar?: ReactNode;
   trailing?: ReactNode;
   shortcutKeys?: string[];
   active?: boolean;
@@ -90,7 +94,11 @@ function SampleResultRow({
 
   return (
     <SearchResultRow active={active} selected={selected} onClick={noop}>
-      {icon ? <SearchResultIcon>{icon}</SearchResultIcon> : null}
+      {avatar ? (
+        <SearchResultAvatar>{avatar}</SearchResultAvatar>
+      ) : icon ? (
+        <SearchResultIcon>{icon}</SearchResultIcon>
+      ) : null}
       <SearchResultBody>
         <SearchResultTitleRow>
           <SearchResultTitle>{title}</SearchResultTitle>
@@ -299,6 +307,19 @@ export const FullResultRow: Story = {
           title="Settings"
           subtitle="Preferences and account"
           shortcutKeys={["⌘", ","]}
+        />
+        <SearchSectionLabel>People</SearchSectionLabel>
+        <SampleResultRow
+          title="Joram"
+          subtitle="@joram"
+          trailing={
+            <UserAvatar
+              storedAvatarUrl="https://picsum.photos/seed/curolia-search/80"
+              email="demo@example.com"
+              size="sm"
+              label="Joram"
+            />
+          }
         />
         <SearchSectionLabel>Places</SearchSectionLabel>
         <SampleResultRow

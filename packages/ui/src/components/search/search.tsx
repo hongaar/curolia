@@ -160,6 +160,15 @@ export function SearchResultIcon({ children }: { children: React.ReactNode }) {
   return <span className={styles.resultIcon}>{children}</span>;
 }
 
+/** Leading avatar slot sized for `UserAvatar` `xs` in search result rows. */
+export function SearchResultAvatar({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <span className={styles.resultAvatar}>{children}</span>;
+}
+
 export function SearchResultBody({ children }: { children: React.ReactNode }) {
   return <span className={styles.resultBody}>{children}</span>;
 }

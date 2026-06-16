@@ -1,3 +1,4 @@
+import { UserAvatar } from "@/components/user-avatar";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
@@ -44,6 +45,13 @@ import {
   type PinSearchRow,
 } from "@/lib/pin-text-search";
 import { placeCategorySearchIcon } from "@/lib/place-category-search-icon";
+import { publicProfileHref } from "@/lib/profile-route";
+import {
+  profileSearchSubtitle,
+  profileSearchTitle,
+  searchProfiles,
+  type ProfileSearchRow,
+} from "@/lib/profile-text-search";
 import { useAuth } from "@/providers/auth-provider";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
@@ -553,6 +561,12 @@ export function Search() {
       open && !selectedPlace && debounced.length >= 2 && mapIds.length > 0,
   });
 
+  const profilesQuery = useQuery({
+    queryKey: ["global-search-profiles", debounced],
+    queryFn: () => searchProfiles(debounced),
+    enabled: open && !selectedPlace && debounced.length >= 1,
+  });
+
   const placesQuery = useQuery({
     queryKey: ["global-search-places", debounced],
     queryFn: () => searchPlaces(debounced),
@@ -573,6 +587,16 @@ export function Search() {
       dismissSearchAfterPick();
     },
     [dismissSearchAfterPick, location.pathname, location.search, navigate],
+  );
+
+  const onPickProfile = useCallback(
+    (profile: ProfileSearchRow) => {
+      const slug = profile.slug.trim();
+      if (!slug) return;
+      navigate(publicProfileHref(slug));
+      dismissSearchAfterPick();
+    },
+    [dismissSearchAfterPick, navigate],
   );
 
   const onPickPin = useCallback(
@@ -680,9 +704,12 @@ export function Search() {
     isMapRoute && debounced.length >= 2 && selectedPlace == null;
   const showPins = debounced.length >= 2;
   const showMapSearch = debounced.length >= 1;
+  const showUserSearch = debounced.length >= 1;
+  const profileMatches = profilesQuery.data ?? [];
   const busy =
     (showPins && pinsQuery.isFetching) ||
-    (showPlaces && placesQuery.isFetching);
+    (showPlaces && placesQuery.isFetching) ||
+    (showUserSearch && profilesQuery.isFetching);
   const showToolbarShortcutHint =
     input.length === 0 && !busy && selectedPlace == null;
   const showToolbarClearButton = selectedPlace != null;
@@ -707,6 +734,15 @@ export function Search() {
         items.push({
           id: `map-${map.id}`,
           onSelect: () => onPickMap(map),
+        });
+      }
+    }
+    if (showUserSearch && !profilesQuery.isError && profileMatches.length > 0) {
+      for (const profile of profileMatches) {
+        if (!profile.slug.trim()) continue;
+        items.push({
+          id: `profile-${profile.id}`,
+          onSelect: () => onPickProfile(profile),
         });
       }
     }
@@ -737,6 +773,10 @@ export function Search() {
     pageMatches,
     showMapSearch,
     mapMatches,
+    showUserSearch,
+    profilesQuery.isError,
+    profileMatches,
+    onPickProfile,
     showPins,
     pinsQuery.isError,
     pinsSorted,
@@ -776,8 +816,7 @@ export function Search() {
       <SearchResults id={SEARCH_LISTBOX_ID}>
         {debounced.length === 0 ? (
           <SearchEmptyHint>
-            Search {isMapRoute ? "for places on the map" : ""} and across all
-            your pins
+            Search for maps{isMapRoute ? ", places" : ""}, pins and people
           </SearchEmptyHint>
         ) : null}
 
@@ -846,13 +885,52 @@ export function Search() {
           </>
         ) : null}
 
+        {showUserSearch ? (
+          <>
+            <SearchSectionLabel>People</SearchSectionLabel>
+            {profilesQuery.isError ? (
+              <SearchStatusText>Could not load people.</SearchStatusText>
+            ) : profilesQuery.isFetching && profileMatches.length === 0 ? (
+              <SearchStatusText>Searching…</SearchStatusText>
+            ) : profileMatches.length === 0 ? (
+              <SearchStatusText>No matching people.</SearchStatusText>
+            ) : (
+              profileMatches.map((profile) => {
+                const itemId = `profile-${profile.id}`;
+                const rowProps = resultRowProps(itemId);
+                return (
+                  <ResultRow
+                    key={profile.id}
+                    title={profileSearchTitle(profile)}
+                    subtitle={profileSearchSubtitle(profile)}
+                    trailing={
+                      <UserAvatar
+                        storedAvatarUrl={profile.avatar_url}
+                        email={null}
+                        gravatarHash={profile.gravatar_hash}
+                        gravatarFallback
+                        gravatarSize={64}
+                        size="sm"
+                        label={profileSearchTitle(profile)}
+                      />
+                    }
+                    onPick={() => onPickProfile(profile)}
+                    {...rowProps}
+                  />
+                );
+              })
+            )}
+          </>
+        ) : null}
+
         {showMapSearch &&
         mapMatches.length === 0 &&
+        profileMatches.length === 0 &&
         debounced.length < 2 &&
         actionMatches.length === 0 &&
         pageMatches.length === 0 ? (
           <SearchStatusText>
-            No maps match. Add another letter to search pins
+            No maps or people match. Add another letter to search pins
             {isMapRoute ? " and places" : ""}.
           </SearchStatusText>
         ) : null}

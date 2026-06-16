@@ -347,6 +347,17 @@
   height: var(--icon-size-sm);
 }
 
+.resultAvatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-5);
+  height: var(--space-5);
+  overflow: hidden;
+  border-radius: var(--radius-full);
+}
+
 .resultBody {
   min-width: 0;
   flex: 1;
