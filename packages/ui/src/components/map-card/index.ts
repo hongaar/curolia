@@ -10,4 +10,5 @@ export {
   MapCoverPreview,
   type MapCardCompactProps,
   type MapCardProps,
+  type MapCardVisibility,
 } from "./map-card";

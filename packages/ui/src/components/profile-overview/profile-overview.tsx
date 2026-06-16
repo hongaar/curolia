@@ -129,22 +129,34 @@ export function ProfileOverviewFollowListItem({
 }: {
   avatar: React.ReactNode;
   name: React.ReactNode;
-  handle: React.ReactNode;
-  onClick: () => void;
+  handle?: React.ReactNode;
+  onClick?: () => void;
 }) {
+  const content = (
+    <>
+      <span className={styles.followListAvatar}>{avatar}</span>
+      <span className={styles.followListBody}>
+        <span className={styles.followListName}>{name}</span>
+        {handle != null ? (
+          <span className={styles.followListHandle}>{handle}</span>
+        ) : null}
+      </span>
+    </>
+  );
+
   return (
     <li className={styles.followListItem}>
-      <button
-        type="button"
-        className={styles.followListButton}
-        onClick={onClick}
-      >
-        <span className={styles.followListAvatar}>{avatar}</span>
-        <span className={styles.followListBody}>
-          <span className={styles.followListName}>{name}</span>
-          <span className={styles.followListHandle}>{handle}</span>
-        </span>
-      </button>
+      {onClick ? (
+        <button
+          type="button"
+          className={styles.followListButton}
+          onClick={onClick}
+        >
+          {content}
+        </button>
+      ) : (
+        <div className={styles.followListStatic}>{content}</div>
+      )}
     </li>
   );
 }

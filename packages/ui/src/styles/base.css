@@ -49,6 +49,7 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   font-weight: var(--font-weight-normal);
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
@@ -108,7 +109,7 @@ textarea {
 
 .fontDisplay,
 .fontHeading {
-  font-synthesis: none;
+  font-weight: var(--font-weight-normal);
 }
 
 .srOnly {

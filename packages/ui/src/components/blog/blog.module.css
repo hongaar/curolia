@@ -100,7 +100,7 @@
   margin: var(--space-1) 0 0;
   font-family: var(--font-display);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-normal);
   letter-spacing: -0.02em;
 }
 

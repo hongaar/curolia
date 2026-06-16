@@ -65,6 +65,42 @@ export const TitleOnly: Story = {
   ...storyDocs("Minimal card with title and stats only."),
 };
 
+export const VisibilityPrivate: Story = {
+  args: {
+    coverUrl: null,
+    title: "Personal notes",
+    description: "Only visible to you.",
+    iconEmoji: "🔒",
+    layoutSeed: "personal-notes",
+    pinCountLabel: "4 pins",
+    updatedLabel: "Updated 2d ago",
+    visibility: "private",
+  },
+  ...storyDocs("Private map badge with lock icon."),
+};
+
+export const VisibilityPublic: Story = {
+  args: {
+    title: "Europe 2025",
+    visibility: "public",
+  },
+  ...storyDocs("Public map badge with globe icon."),
+};
+
+export const VisibilityShared: Story = {
+  args: {
+    coverUrl: null,
+    title: "Family trip",
+    description: "Shared with a few collaborators.",
+    iconEmoji: "👨‍👩‍👧‍👦",
+    layoutSeed: "family-trip",
+    pinCountLabel: "9 pins",
+    updatedLabel: "Updated 5h ago",
+    visibility: "shared",
+  },
+  ...storyDocs("Shared map badge with users icon."),
+};
+
 export const MasonryGrid: Story = {
   render: () => (
     <MapCardMasonryGrid>
@@ -124,6 +160,7 @@ export const CompactStream: Story = {
           coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
           iconEmoji="🗺️"
           subtitle="12 pins"
+          visibility="public"
         />
       </MapCardStreamItem>
       <MapCardStreamItem>

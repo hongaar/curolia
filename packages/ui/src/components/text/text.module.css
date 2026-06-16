@@ -56,6 +56,11 @@
   font-weight: var(--font-weight-medium);
 }
 
+.display.medium,
+.heading.medium {
+  font-weight: var(--font-weight-normal);
+}
+
 .destructive {
   color: var(--destructive);
 }

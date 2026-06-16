@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 
+import { fetchMapMemberCounts } from "./fetch-map-member-counts";
+
 async function attachPinCounts<T extends CuroliaMap>(
   maps: T[],
 ): Promise<Array<T & { pin_count: number }>> {
@@ -29,6 +31,7 @@ async function attachPinCounts<T extends CuroliaMap>(
 export type ProfileMapCard = CuroliaMap & {
   owner_profile_slug: string;
   pin_count: number;
+  member_count: number;
 };
 
 function sortMapsByUpdatedAt(maps: ProfileMapCard[]): ProfileMapCard[] {
@@ -43,8 +46,15 @@ async function finalizeProfileMaps(
   profileSlug: string,
 ): Promise<ProfileMapCard[]> {
   const withCounts = await attachPinCounts(maps);
+  const memberCounts = await fetchMapMemberCounts(
+    withCounts.map((map) => map.id),
+  );
   return sortMapsByUpdatedAt(
-    withCounts.map((map) => ({ ...map, owner_profile_slug: profileSlug })),
+    withCounts.map((map) => ({
+      ...map,
+      owner_profile_slug: profileSlug,
+      member_count: memberCounts.get(map.id) ?? 0,
+    })),
   );
 }
 

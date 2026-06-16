@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { Globe, Lock, MapPin, Users } from "lucide-react";
 import type * as React from "react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -14,6 +14,40 @@ import {
   normalizeCoverAspectRatio,
 } from "./map-card-layout";
 import styles from "./map-card.module.css";
+
+export type MapCardVisibility = "private" | "public" | "shared";
+
+const VISIBILITY_META: Record<
+  MapCardVisibility,
+  { label: string; Icon: typeof Lock }
+> = {
+  private: { label: "Only me", Icon: Lock },
+  public: { label: "Public", Icon: Globe },
+  shared: { label: "Shared", Icon: Users },
+};
+
+function MapCardVisibilityBadge({
+  visibility,
+  compact = false,
+}: {
+  visibility: MapCardVisibility;
+  compact?: boolean;
+}) {
+  const { label, Icon } = VISIBILITY_META[visibility];
+
+  return (
+    <span
+      className={
+        compact ? styles.visibilityBadgeCompact : styles.visibilityBadge
+      }
+      aria-label={label}
+      title={label}
+    >
+      <Icon className={styles.visibilityIcon} aria-hidden />
+      {compact ? null : <span className={styles.visibilityLabel}>{label}</span>}
+    </span>
+  );
+}
 
 export function MapCardMasonryGrid({
   children,
@@ -58,6 +92,7 @@ export type MapCardCompactProps = {
   coverUrl?: string | null;
   iconEmoji?: React.ReactNode;
   subtitle?: React.ReactNode;
+  visibility?: MapCardVisibility;
 };
 
 export function MapCardCompact({
@@ -66,12 +101,16 @@ export function MapCardCompact({
   coverUrl,
   iconEmoji,
   subtitle,
+  visibility,
 }: MapCardCompactProps) {
   const hasCover = Boolean(coverUrl?.trim());
 
   return (
     <Link to={to} className={styles.compact}>
       <div className={styles.compactThumb}>
+        {visibility ? (
+          <MapCardVisibilityBadge visibility={visibility} compact />
+        ) : null}
         {hasCover ? (
           <img src={coverUrl!} alt="" className={styles.compactThumbImage} />
         ) : (
@@ -124,6 +163,7 @@ export type MapCardProps = {
   pinCountLabel?: React.ReactNode;
   /** Relative update label, e.g. "Updated 3d ago". */
   updatedLabel?: React.ReactNode;
+  visibility?: MapCardVisibility;
 };
 
 export function MapCard({
@@ -135,6 +175,7 @@ export function MapCard({
   layoutSeed,
   pinCountLabel,
   updatedLabel,
+  visibility,
 }: MapCardProps) {
   const hasCover = Boolean(coverUrl?.trim());
   const hasMeta = Boolean(pinCountLabel || updatedLabel);
@@ -198,6 +239,9 @@ export function MapCard({
         }
       >
         <div className={styles.cover} style={coverStyle}>
+          {visibility ? (
+            <MapCardVisibilityBadge visibility={visibility} />
+          ) : null}
           {hasCover ? (
             <img
               ref={coverImageRef}

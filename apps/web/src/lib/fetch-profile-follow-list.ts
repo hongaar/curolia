@@ -4,9 +4,10 @@ import type { Database } from "@/lib/database.types";
 
 export type ProfileFollowListUser = {
   profileId: string;
-  slug: string;
+  slug: string | null;
   displayName: string;
   avatarUrl: string | null;
+  isPrivate: boolean;
 };
 
 type DbClient = SupabaseClient<Database>;
@@ -14,17 +15,19 @@ type FollowListKind = "followers" | "following";
 
 type FollowListRow = {
   profile_id: string;
-  slug: string;
+  slug: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  is_private: boolean;
 };
 
 function mapFollowListRow(row: FollowListRow): ProfileFollowListUser {
   return {
     profileId: row.profile_id,
-    slug: row.slug,
-    displayName: row.display_name?.trim() || row.slug,
+    slug: row.slug?.trim() || null,
+    displayName: row.display_name?.trim() || "Unknown",
     avatarUrl: row.avatar_url?.trim() || null,
+    isPrivate: row.is_private,
   };
 }
 

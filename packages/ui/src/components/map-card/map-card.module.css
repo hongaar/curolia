@@ -185,7 +185,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal);
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: var(--card-foreground);
@@ -226,6 +226,45 @@
   height: 0.75rem;
   margin-right: var(--space-3);
   background: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+}
+
+.visibilityIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+.visibilityBadge,
+.visibilityBadgeCompact {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.3125rem 0.5625rem;
+  border-radius: 9999px;
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--background) 78%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent),
+    0 4px 12px color-mix(in oklch, var(--foreground) 10%, transparent);
+  pointer-events: none;
+}
+
+.visibilityBadgeCompact {
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: 0.3125rem;
+}
+
+.visibilityLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  letter-spacing: 0.01em;
 }
 
 .metaIcon {
@@ -280,7 +319,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal);
   line-height: 1.25;
   letter-spacing: -0.02em;
 }
@@ -364,7 +403,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal);
   line-height: 1.25;
   letter-spacing: -0.02em;
 }

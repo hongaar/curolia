@@ -182,3 +182,8 @@
     margin: 0 auto 2rem;
   }
 }
+
+.campaignTitle,
+.campaignSectionTitle {
+  font-weight: var(--font-weight-normal);
+}

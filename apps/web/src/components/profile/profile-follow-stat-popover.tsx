@@ -71,8 +71,14 @@ function ProfileFollowListPanel({
                   />
                 }
                 name={user.displayName}
-                handle={`@${user.slug}`}
-                onClick={() => onSelectUser(user.slug)}
+                handle={
+                  user.isPrivate || !user.slug ? undefined : `@${user.slug}`
+                }
+                onClick={
+                  user.isPrivate || !user.slug
+                    ? undefined
+                    : () => onSelectUser(user.slug!)
+                }
               />
             ))}
           </ProfileOverviewFollowList>

@@ -9,6 +9,7 @@ import { fetchProfileMaps } from "@/lib/fetch-profile-maps";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { mapRouteForMap } from "@/lib/map-route";
+import { resolveMapVisibility } from "@/lib/map-visibility";
 import { profileEditHref, publicProfileHref } from "@/lib/profile-route";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
@@ -211,7 +212,7 @@ export function PublicProfilePage() {
               name={displayName}
               bio={profile.bio?.trim() || undefined}
             />
-            {profile.is_public ? (
+            {profile.is_public || isOwner ? (
               <ProfileOverviewStats>
                 <ProfileFollowStatPopover
                   profileId={profile.id}
@@ -275,6 +276,11 @@ export function PublicProfilePage() {
                   layoutSeed={map.id}
                   pinCountLabel={formatPinCount(map.pin_count)}
                   updatedLabel={`Updated ${formatTimeAgo(map.updated_at)}`}
+                  visibility={
+                    isOwner
+                      ? resolveMapVisibility(map, map.member_count)
+                      : undefined
+                  }
                 />
               ))}
             </MapCardMasonryGrid>
