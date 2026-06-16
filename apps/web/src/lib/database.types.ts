@@ -890,6 +890,7 @@ export type Database = {
           created_at: string;
           default_map_id: string | null;
           display_name: string | null;
+          gravatar_hash: string | null;
           id: string;
           is_public: boolean;
           notification_email_enabled: boolean;
@@ -905,6 +906,7 @@ export type Database = {
           created_at?: string;
           default_map_id?: string | null;
           display_name?: string | null;
+          gravatar_hash?: string | null;
           id: string;
           is_public?: boolean;
           notification_email_enabled?: boolean;
@@ -920,6 +922,7 @@ export type Database = {
           created_at?: string;
           default_map_id?: string | null;
           display_name?: string | null;
+          gravatar_hash?: string | null;
           id?: string;
           is_public?: boolean;
           notification_email_enabled?: boolean;
@@ -1156,6 +1159,10 @@ export type Database = {
     Functions: {
       accept_map_invitation: { Args: { p_token: string }; Returns: string };
       can_view_map: { Args: { p_map_id: string }; Returns: boolean };
+      can_view_profile_follow_lists: {
+        Args: { p_profile_id: string };
+        Returns: boolean;
+      };
       cancel_map_invitation: {
         Args: { p_invitation_id: string };
         Returns: undefined;
@@ -1163,6 +1170,7 @@ export type Database = {
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
       delete_map: { Args: { p_map_id: string }; Returns: undefined };
       follow_profile: { Args: { p_following_id: string }; Returns: undefined };
+      gravatar_hash_for_email: { Args: { p_email: string }; Returns: string };
       home_map_pin_count: { Args: { p_map_id: string }; Returns: number };
       invite_map_member: {
         Args: {
@@ -1203,7 +1211,9 @@ export type Database = {
           icon_emoji: string;
           map_id: string;
           name: string;
+          owner_avatar_url: string;
           owner_display_name: string;
+          owner_gravatar_hash: string;
           owner_profile_slug: string;
           pin_count: number;
           slug: string;
@@ -1219,7 +1229,9 @@ export type Database = {
           icon_emoji: string;
           map_id: string;
           name: string;
+          owner_avatar_url: string;
           owner_display_name: string;
+          owner_gravatar_hash: string;
           owner_profile_slug: string;
           pin_count: number;
           slug: string;
@@ -1232,6 +1244,8 @@ export type Database = {
         Returns: {
           avatar_url: string;
           display_name: string;
+          gravatar_hash: string;
+          is_private: boolean;
           profile_id: string;
           slug: string;
         }[];
@@ -1241,6 +1255,8 @@ export type Database = {
         Returns: {
           avatar_url: string;
           display_name: string;
+          gravatar_hash: string;
+          is_private: boolean;
           profile_id: string;
           slug: string;
         }[];
@@ -1253,7 +1269,9 @@ export type Database = {
           icon_emoji: string;
           map_id: string;
           name: string;
+          owner_avatar_url: string;
           owner_display_name: string;
+          owner_gravatar_hash: string;
           owner_profile_slug: string;
           pin_count: number;
           slug: string;
@@ -1269,7 +1287,9 @@ export type Database = {
           icon_emoji: string;
           map_id: string;
           name: string;
+          owner_avatar_url: string;
           owner_display_name: string;
+          owner_gravatar_hash: string;
           owner_profile_slug: string;
           pin_count: number;
           slug: string;

@@ -3,7 +3,15 @@ import type * as React from "react";
 import { cn } from "../../lib/utils";
 import styles from "./stack.module.css";
 
-export type StackGap = "none" | "xs" | "sm" | "md" | "lg" | "xl";
+export type StackGap =
+  | "none"
+  | "xs"
+  | "sm"
+  | "md"
+  | "lg"
+  | "xl"
+  | "2xl"
+  | "3xl";
 export type StackAlign = "start" | "center" | "end" | "stretch";
 export type StackJustify = "start" | "center" | "end" | "between";
 export type StackPadding = "none" | "sm" | "md" | "lg";
@@ -15,6 +23,8 @@ const gapClass: Record<StackGap, string> = {
   md: styles.gapMd,
   lg: styles.gapLg,
   xl: styles.gapXl,
+  "2xl": styles.gap2xl,
+  "3xl": styles.gap3xl,
 };
 
 const alignClass: Record<StackAlign, string> = {

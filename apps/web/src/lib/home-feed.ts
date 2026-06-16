@@ -12,6 +12,8 @@ export type HomeFeedMap = {
   visited_at: string | null;
   owner_profile_slug: string;
   owner_display_name: string | null;
+  owner_avatar_url: string | null;
+  owner_gravatar_hash: string | null;
   pin_count: number;
 };
 
@@ -26,6 +28,8 @@ type HomeFeedMapRow = {
   visited_at: string | null;
   owner_profile_slug: string;
   owner_display_name: string | null;
+  owner_avatar_url: string | null;
+  owner_gravatar_hash: string | null;
   pin_count: number | string;
 };
 
@@ -41,6 +45,8 @@ function mapHomeFeedRow(row: HomeFeedMapRow): HomeFeedMap {
     visited_at: row.visited_at,
     owner_profile_slug: row.owner_profile_slug,
     owner_display_name: row.owner_display_name,
+    owner_avatar_url: row.owner_avatar_url?.trim() || null,
+    owner_gravatar_hash: row.owner_gravatar_hash?.trim() || null,
     pin_count: Number(row.pin_count ?? 0),
   };
 }

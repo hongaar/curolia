@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { withMemoryRouter } from "../../storybook/decorators";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
+import { UserAvatar } from "../user-avatar";
 import {
   MapCard,
   MapCardCompact,
@@ -63,6 +64,30 @@ export const TitleOnly: Story = {
     updatedLabel: "Updated just now",
   },
   ...storyDocs("Minimal card with title and stats only."),
+};
+
+export const WithAuthor: Story = {
+  args: {
+    title: "Test",
+    description: undefined,
+    authorAvatar: (
+      <UserAvatar
+        storedAvatarUrl={null}
+        email={null}
+        gravatarUrl="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?d=404"
+        size="xs"
+        label="joram"
+      />
+    ),
+    authorName: "joram",
+    coverUrl:
+      "https://images.unsplash.com/photo-1589652717520-7852f4a937f8?w=800&q=80&auto=format&fit=crop",
+    iconEmoji: "😇",
+    layoutSeed: "author-demo",
+    pinCountLabel: "No pins",
+    updatedLabel: "Updated 22h ago",
+  },
+  ...storyDocs("Author row with avatar beside the display name."),
 };
 
 export const VisibilityPrivate: Story = {

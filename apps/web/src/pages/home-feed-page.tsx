@@ -1,4 +1,5 @@
 import { HomeSidebar } from "@/components/home/home-sidebar";
+import { UserAvatar } from "@/components/user-avatar";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
 import {
   fetchDiscoverRecentPublicMaps,
@@ -29,15 +30,14 @@ import {
   PageCenteredLoading,
   PageHeader,
   PageHeaderTitle,
-  PageSectionSpaced,
 } from "@curolia/ui/page";
 import { Stack } from "@curolia/ui/stack";
 import { useQuery } from "@tanstack/react-query";
 
-function ownerLabel(map: HomeFeedMap): string | undefined {
+function ownerDisplayName(map: HomeFeedMap): string {
   const name = map.owner_display_name?.trim();
-  if (name) return `by ${name}`;
-  return `by @${map.owner_profile_slug}`;
+  if (name) return name;
+  return `@${map.owner_profile_slug}`;
 }
 
 function HomeFeedMapCard({
@@ -47,13 +47,27 @@ function HomeFeedMapCard({
   map: HomeFeedMap;
   showOwner?: boolean;
 }) {
+  const authorName = showOwner ? ownerDisplayName(map) : undefined;
+
   return (
     <MapCard
       to={homeFeedMapHref(map)}
       title={map.name}
-      description={
-        showOwner ? ownerLabel(map) : map.description?.trim() || undefined
+      description={map.description?.trim() || undefined}
+      authorAvatar={
+        showOwner ? (
+          <UserAvatar
+            storedAvatarUrl={map.owner_avatar_url}
+            email={null}
+            gravatarHash={map.owner_gravatar_hash}
+            gravatarFallback
+            gravatarSize={40}
+            size="xs"
+            label={authorName ?? ""}
+          />
+        ) : undefined
       }
+      authorName={authorName}
       coverUrl={map.cover_url}
       iconEmoji={map.icon_emoji ?? defaultMapIcon()}
       layoutSeed={map.id}
@@ -152,42 +166,36 @@ export function HomeFeedPage() {
         </HomeFeedAside>
 
         <HomeFeedMain>
-          <PageHeader>
-            <PageHeaderTitle>Home</PageHeaderTitle>
-          </PageHeader>
-
-          <Stack gap="lg">
-            <HomeFeedStreamSection
-              title="Recently visited"
-              maps={visited}
-              emptyLabel="Maps you open will show up here."
-            />
-
+          <Stack gap="2xl">
             <HomeFeedStreamSection
               title="Recently edited"
               maps={edited}
               emptyLabel="Maps you can edit will appear here after changes."
             />
 
-            <PageSectionSpaced>
-              <Stack gap="md">
-                <PageHeader>
-                  <PageHeaderTitle>Recent updates</PageHeaderTitle>
-                </PageHeader>
-                {feed.length === 0 ? (
-                  <MapCardEmptyState>
-                    Follow public profiles or explore public maps to fill this
-                    feed.
-                  </MapCardEmptyState>
-                ) : (
-                  <MapCardMasonryGrid columns={4}>
-                    {feed.map((map) => (
-                      <HomeFeedMapCard key={map.id} map={map} showOwner />
-                    ))}
-                  </MapCardMasonryGrid>
-                )}
-              </Stack>
-            </PageSectionSpaced>
+            <Stack gap="md">
+              <PageHeader>
+                <PageHeaderTitle>Recent updates</PageHeaderTitle>
+              </PageHeader>
+              {feed.length === 0 ? (
+                <MapCardEmptyState>
+                  Follow public profiles or explore public maps to fill this
+                  feed.
+                </MapCardEmptyState>
+              ) : (
+                <MapCardMasonryGrid columns={4}>
+                  {feed.map((map) => (
+                    <HomeFeedMapCard key={map.id} map={map} showOwner />
+                  ))}
+                </MapCardMasonryGrid>
+              )}
+            </Stack>
+
+            <HomeFeedStreamSection
+              title="Recently visited"
+              maps={visited}
+              emptyLabel="Maps you open will show up here."
+            />
           </Stack>
         </HomeFeedMain>
       </HomeFeedLayout>

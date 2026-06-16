@@ -46,6 +46,16 @@ export const GapLarge: Story = {
   args: { gap: "lg" },
 };
 
+export const Gap2Xl: Story = {
+  parameters: storyDocs('`gap="2xl"` for roomy section spacing.'),
+  args: { gap: "2xl" },
+};
+
+export const Gap3Xl: Story = {
+  parameters: storyDocs('`gap="3xl"` for the largest stack spacing.'),
+  args: { gap: "3xl" },
+};
+
 export const AlignCenter: Story = {
   parameters: storyDocs('`align="center"` on the cross axis.'),
   args: { direction: "row", gap: "sm", align: "center" },

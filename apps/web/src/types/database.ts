@@ -21,6 +21,8 @@ export type Profile = {
   /** Short optional bio for public map blog attribution. */
   bio: string | null;
   avatar_url: string | null;
+  /** SHA-256 hex digest of account email for Gravatar (not reversible). */
+  gravatar_hash: string | null;
   /** When true, the profile homepage is visible at /{slug}. */
   is_public: boolean;
   /** When true with is_public, discourage crawlers from indexing the profile page. */

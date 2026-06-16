@@ -7,8 +7,8 @@ import styles from "./user-avatar.module.css";
 /** 0 = custom URL, 1 = Gravatar, 2 = give up (placeholder). */
 type Attempt = 0 | 1 | 2;
 
-/** `sm` 1.5rem · `md` 2rem · `lg` 6rem · `full` fills the parent. */
-export type UserAvatarSize = "sm" | "md" | "lg" | "full";
+/** `xs` 1.25rem · `sm` 2rem · `md` 2rem · `lg` 6rem · `full` fills the parent. */
+export type UserAvatarSize = "xs" | "sm" | "md" | "lg" | "full";
 
 export type UserAvatarProps = {
   /** User-uploaded avatar URL; tried before Gravatar. */
@@ -51,6 +51,7 @@ export function UserAvatar({
 
   const placeholderClass = cn(
     styles.placeholder,
+    size === "xs" && styles.placeholderXs,
     size === "sm" && styles.placeholderSm,
     size === "md" && styles.placeholderMd,
     size === "lg" && styles.placeholderLg,
@@ -59,6 +60,7 @@ export function UserAvatar({
 
   const imageWrapClass = cn(
     styles.imageWrap,
+    size === "xs" && styles.imageWrapXs,
     size === "sm" && styles.imageWrapSm,
     size === "md" && styles.imageWrapMd,
     size === "lg" && styles.imageWrapLg,
@@ -67,6 +69,7 @@ export function UserAvatar({
 
   const imageClass = cn(
     styles.image,
+    size === "xs" && styles.imageXs,
     size === "sm" && styles.imageSm,
     size === "md" && styles.imageMd,
     size === "lg" && styles.imageLg,
@@ -74,6 +77,7 @@ export function UserAvatar({
   );
 
   const iconClass = cn(
+    size === "xs" && styles.iconXs,
     size === "sm" && styles.iconSm,
     size === "md" && styles.iconMd,
     size === "lg" && styles.iconLg,

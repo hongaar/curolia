@@ -203,7 +203,10 @@ export function PublicProfilePage() {
                 <UserAvatar
                   storedAvatarUrl={profile.avatar_url}
                   email={isOwner ? user?.email : null}
-                  gravatarFallback={isOwner}
+                  gravatarHash={profile.gravatar_hash}
+                  gravatarFallback={
+                    isOwner || Boolean(profile.gravatar_hash?.trim())
+                  }
                   gravatarSize={256}
                   size="lg"
                   label={displayName}

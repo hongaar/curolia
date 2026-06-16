@@ -7,6 +7,7 @@ export type ProfileFollowListUser = {
   slug: string | null;
   displayName: string;
   avatarUrl: string | null;
+  gravatarHash: string | null;
   isPrivate: boolean;
 };
 
@@ -18,6 +19,7 @@ type FollowListRow = {
   slug: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  gravatar_hash: string | null;
   is_private: boolean;
 };
 
@@ -27,6 +29,7 @@ function mapFollowListRow(row: FollowListRow): ProfileFollowListUser {
     slug: row.slug?.trim() || null,
     displayName: row.display_name?.trim() || "Unknown",
     avatarUrl: row.avatar_url?.trim() || null,
+    gravatarHash: row.gravatar_hash?.trim() || null,
     isPrivate: row.is_private,
   };
 }

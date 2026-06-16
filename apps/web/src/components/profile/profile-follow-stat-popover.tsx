@@ -65,15 +65,14 @@ function ProfileFollowListPanel({
                   <UserAvatar
                     storedAvatarUrl={user.avatarUrl}
                     email={null}
-                    gravatarFallback={false}
+                    gravatarHash={user.gravatarHash}
+                    gravatarFallback
+                    gravatarSize={48}
                     size="sm"
                     label={user.displayName}
                   />
                 }
                 name={user.displayName}
-                handle={
-                  user.isPrivate || !user.slug ? undefined : `@${user.slug}`
-                }
                 onClick={
                   user.isPrivate || !user.slug
                     ? undefined

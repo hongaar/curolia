@@ -2,6 +2,15 @@
  * Gravatar image URL from email (SHA-256 of trimmed lowercase email).
  * @see https://docs.gravatar.com/general/hash/
  */
+export function gravatarUrlFromHash(hashHex: string, sizePx = 160): string {
+  const params = new URLSearchParams({
+    s: String(sizePx),
+    d: "404",
+    r: "g",
+  });
+  return `https://www.gravatar.com/avatar/${hashHex}?${params.toString()}`;
+}
+
 export async function getGravatarUrl(
   email: string,
   sizePx = 160,
@@ -15,10 +24,5 @@ export async function getGravatarUrl(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  const params = new URLSearchParams({
-    s: String(sizePx),
-    d: "404",
-    r: "g",
-  });
-  return `https://www.gravatar.com/avatar/${hashHex}?${params.toString()}`;
+  return gravatarUrlFromHash(hashHex, sizePx);
 }

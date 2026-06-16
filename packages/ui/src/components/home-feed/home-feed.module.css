@@ -93,13 +93,11 @@
 }
 
 @media (max-width: 47.99rem) {
-  .shortcuts {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
+  .aside {
+    display: none;
   }
 
-  .newMapAction {
-    margin-bottom: var(--space-2);
+  .shortcuts {
+    display: none;
   }
 }

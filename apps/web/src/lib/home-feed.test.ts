@@ -14,6 +14,8 @@ function map(id: string): HomeFeedMap {
     visited_at: null,
     owner_profile_slug: "alex",
     owner_display_name: "Alex",
+    owner_avatar_url: null,
+    owner_gravatar_hash: null,
     pin_count: 1,
   };
 }

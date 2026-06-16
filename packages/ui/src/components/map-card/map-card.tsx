@@ -154,6 +154,10 @@ export type MapCardProps = {
   title: React.ReactNode;
   /** Optional short map blurb. */
   description?: React.ReactNode;
+  /** Small avatar shown beside the author name. */
+  authorAvatar?: React.ReactNode;
+  /** Author display name beside the avatar. */
+  authorName?: React.ReactNode;
   coverUrl?: string | null;
   /** Shown when there is no cover image. */
   iconEmoji?: React.ReactNode;
@@ -170,6 +174,8 @@ export function MapCard({
   to,
   title,
   description,
+  authorAvatar,
+  authorName,
   coverUrl,
   iconEmoji,
   layoutSeed,
@@ -179,6 +185,7 @@ export function MapCard({
 }: MapCardProps) {
   const hasCover = Boolean(coverUrl?.trim());
   const hasMeta = Boolean(pinCountLabel || updatedLabel);
+  const showAuthor = Boolean(authorAvatar || authorName);
   const showInsetIcon = hasCover && Boolean(iconEmoji);
   const [coverAspectRatio, setCoverAspectRatio] = useState<number | null>(null);
   const [coverAccentColor, setCoverAccentColor] = useState<string | null>(null);
@@ -271,6 +278,16 @@ export function MapCard({
             </div>
           ) : null}
           <h3 className={styles.title}>{title}</h3>
+          {showAuthor ? (
+            <div className={styles.author}>
+              {authorAvatar ? (
+                <span className={styles.authorAvatar}>{authorAvatar}</span>
+              ) : null}
+              {authorName ? (
+                <span className={styles.authorName}>{authorName}</span>
+              ) : null}
+            </div>
+          ) : null}
           {description ? (
             <p className={styles.description}>{description}</p>
           ) : null}

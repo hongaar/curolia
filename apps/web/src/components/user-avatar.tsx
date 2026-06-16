@@ -1,10 +1,12 @@
-import { getGravatarUrl } from "@/lib/gravatar";
+import { getGravatarUrl, gravatarUrlFromHash } from "@/lib/gravatar";
 import { UserAvatar as UiUserAvatar } from "@curolia/ui/user-avatar";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export type UserAvatarProps = {
   storedAvatarUrl: string | null | undefined;
   email: string | null | undefined;
+  /** Precomputed SHA-256 hash for Gravatar (no email needed on the client). */
+  gravatarHash?: string | null;
   gravatarSize?: number;
   /**
    * When false, skip Gravatar until the caller knows there is no stored avatar
@@ -13,12 +15,13 @@ export type UserAvatarProps = {
   gravatarFallback?: boolean;
   label?: string;
   showUnreadDot?: boolean;
-  size?: "sm" | "md" | "lg" | "full";
+  size?: "xs" | "sm" | "md" | "lg" | "full";
 };
 
 export function UserAvatar({
   storedAvatarUrl,
   email,
+  gravatarHash = null,
   gravatarSize = 160,
   gravatarFallback = true,
   label = "",
@@ -26,6 +29,7 @@ export function UserAvatar({
   size = "md",
 }: UserAvatarProps) {
   const trimmedEmail = email?.trim() ?? "";
+  const trimmedHash = gravatarHash?.trim() ?? "";
   const stored = storedAvatarUrl?.trim() || null;
   const shouldUseGravatar = gravatarFallback && !stored;
   const [gravatar, setGravatar] = useState<{
@@ -34,7 +38,7 @@ export function UserAvatar({
   } | null>(null);
 
   useEffect(() => {
-    if (!shouldUseGravatar || !trimmedEmail) return;
+    if (!shouldUseGravatar || !trimmedEmail || trimmedHash) return;
     let cancelled = false;
     void getGravatarUrl(trimmedEmail, gravatarSize).then((url) => {
       if (!cancelled) setGravatar({ email: trimmedEmail, url });
@@ -42,12 +46,18 @@ export function UserAvatar({
     return () => {
       cancelled = true;
     };
-  }, [trimmedEmail, gravatarSize, shouldUseGravatar]);
+  }, [trimmedEmail, trimmedHash, gravatarSize, shouldUseGravatar]);
+
+  const hashGravatarUrl = useMemo(() => {
+    if (!shouldUseGravatar || !trimmedHash) return null;
+    return gravatarUrlFromHash(trimmedHash, gravatarSize);
+  }, [gravatarSize, shouldUseGravatar, trimmedHash]);
 
   const gravatarUrl =
-    shouldUseGravatar && trimmedEmail && gravatar?.email === trimmedEmail
+    hashGravatarUrl ??
+    (shouldUseGravatar && trimmedEmail && gravatar?.email === trimmedEmail
       ? gravatar.url
-      : null;
+      : null);
 
   return (
     <UiUserAvatar

@@ -5,7 +5,7 @@ import { defaultMapIcon } from "@/lib/map-display-icon";
 import { mapRouteForMap } from "@/lib/map-route";
 import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
 import { isBaseRoute } from "@/lib/stack-routes";
-import { getStoredActiveMapId } from "@/providers/auth-provider";
+import { getStoredActiveMapId, useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import { DropdownMenu } from "@curolia/ui/dropdown-menu";
@@ -20,7 +20,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 export function MapPicker() {
   const navigateToMapSettings = useNavigateToMapSettings();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const { user } = useAuth();
   const { memberMaps, activeMap } = useMap();
   const { openNewMapDialog } = useNavigationShell();
   const [open, setOpen] = useState(false);
@@ -49,12 +50,22 @@ export function MapPicker() {
   }, [activeMap, memberMaps]);
 
   if (!onMapBase) {
+    const signedOut = !user;
+    const mapName = signedOut ? "Create map" : activeMap?.name?.trim() || "Map";
+
     return (
       <MapNavButton
-        mapEmoji={mapEmoji}
-        mapName={activeMap?.name?.trim() || "Map"}
-        onClick={() => navigate(activeMapHref)}
-        aria-label="Go to map"
+        mapEmoji={signedOut ? null : mapEmoji}
+        mapName={mapName}
+        onClick={() => {
+          if (signedOut) {
+            const next = encodeURIComponent(`${pathname}${search}`);
+            navigate(`/login?next=${next}`);
+            return;
+          }
+          navigate(activeMapHref);
+        }}
+        aria-label={signedOut ? "Create map" : "Go to map"}
       />
     );
   }

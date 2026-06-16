@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { getGravatarUrl } from "./gravatar";
+import { getGravatarUrl, gravatarUrlFromHash } from "./gravatar";
 
 describe("getGravatarUrl", () => {
   it("returns null for blank email", async () => {
@@ -15,5 +15,15 @@ describe("getGravatarUrl", () => {
       .digest("hex");
     expect(url).toContain(expectedHex);
     expect(url).toContain("d=404");
+  });
+});
+
+describe("gravatarUrlFromHash", () => {
+  it("builds a Gravatar URL from a precomputed hash", () => {
+    const hash = createHash("sha256")
+      .update("myemailaddress@example.com")
+      .digest("hex");
+    const url = gravatarUrlFromHash(hash, 48);
+    expect(url).toBe(`https://www.gravatar.com/avatar/${hash}?s=48&d=404&r=g`);
   });
 });

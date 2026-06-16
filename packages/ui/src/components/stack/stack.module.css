@@ -35,6 +35,14 @@
   gap: var(--space-6);
 }
 
+.gap2xl {
+  gap: var(--space-8);
+}
+
+.gap3xl {
+  gap: var(--space-10);
+}
+
 .alignStart {
   align-items: flex-start;
 }
