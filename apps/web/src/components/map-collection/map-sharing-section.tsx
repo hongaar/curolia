@@ -530,7 +530,7 @@ export function MapSharingSection({
                   />
                 ) : null}
               </PageSwitchStack>
-              {ownerProfileIsPrivate ? (
+              {isPublic && ownerProfileIsPrivate ? (
                 <PrivateProfilePublicMapWarning context="map-public-access" />
               ) : null}
               {isPublic && publicMapUrl ? (
