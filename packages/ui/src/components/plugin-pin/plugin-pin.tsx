@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import type * as React from "react";
 
+import { AuthorRow } from "../author-row";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import styles from "./plugin-pin.module.css";
 
@@ -79,6 +80,29 @@ export function PluginPinError({ children }: { children: React.ReactNode }) {
 
 export function PluginPinList({ children }: { children: React.ReactNode }) {
   return <ul className={styles.trackList}>{children}</ul>;
+}
+
+/** Pin item rows with larger vertical spacing (e.g. comments). */
+export function PluginPinItemList({ children }: { children: React.ReactNode }) {
+  return <ul className={styles.itemList}>{children}</ul>;
+}
+
+/** Larger gap between stacked pin sections (e.g. comment list and composer). */
+export function PluginPinSectionStack({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.sectionStack}>{children}</div>;
+}
+
+/** Form fields inside a pin card; uses standard field spacing. */
+export function PluginPinFormStack({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.contentStack}>{children}</div>;
 }
 
 function PluginPinTrackAnchor({
@@ -162,29 +186,22 @@ export function PluginPinItemMain({ children }: { children: React.ReactNode }) {
 }
 
 export function PluginPinItemByline({
+  avatar,
   title,
   meta,
 }: {
+  /** Small avatar beside the author name (map-card author row style). */
+  avatar?: React.ReactNode;
   title: React.ReactNode;
   meta?: React.ReactNode;
 }) {
-  if (meta == null || meta === "") {
-    return (
-      <p className={styles.itemByline}>
-        <strong className={styles.itemBylineTitle}>{title}</strong>
-      </p>
-    );
-  }
-
   return (
-    <p className={styles.itemByline}>
-      <strong className={styles.itemBylineTitle}>{title}</strong>
-      <span className={styles.itemBylineSep} aria-hidden>
-        {" "}
-        ·{" "}
-      </span>
-      <span className={styles.itemBylineMeta}>{meta}</span>
-    </p>
+    <div className={styles.itemByline}>
+      <AuthorRow avatar={avatar} name={title} />
+      {meta != null && meta !== "" ? (
+        <span className={styles.itemBylineMeta}>{meta}</span>
+      ) : null}
+    </div>
   );
 }
 

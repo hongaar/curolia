@@ -3,6 +3,7 @@ import type * as React from "react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { AuthorRow } from "../author-row";
 import {
   coverImageCrossOrigin,
   sampleCoverAccentFromImage,
@@ -279,14 +280,7 @@ export function MapCard({
           ) : null}
           <h3 className={styles.title}>{title}</h3>
           {showAuthor ? (
-            <div className={styles.author}>
-              {authorAvatar ? (
-                <span className={styles.authorAvatar}>{authorAvatar}</span>
-              ) : null}
-              {authorName ? (
-                <span className={styles.authorName}>{authorName}</span>
-              ) : null}
-            </div>
+            <AuthorRow avatar={authorAvatar} name={authorName} />
           ) : null}
           {description ? (
             <p className={styles.description}>{description}</p>

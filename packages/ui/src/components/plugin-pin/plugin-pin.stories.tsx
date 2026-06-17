@@ -4,6 +4,7 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame, storyFrameStyles } from "../../storybook/story-frame";
 import { Button } from "../button";
 import { PluginIconFrame } from "../plugin-icon-frame";
+import { UserAvatar } from "../user-avatar";
 import {
   PluginPinCard,
   PluginPinContent,
@@ -110,6 +111,15 @@ export const CommentByline: Story = {
             <PluginPinItemRow>
               <PluginPinItemMain>
                 <PluginPinItemByline
+                  avatar={
+                    <UserAvatar
+                      storedAvatarUrl={null}
+                      email={null}
+                      gravatarUrl="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?d=404"
+                      size="xs"
+                      label="Joram van den Boezem"
+                    />
+                  }
                   title="Joram van den Boezem"
                   meta={<time dateTime="2026-06-12T10:00:00Z">3d ago</time>}
                 />

@@ -1,3 +1,8 @@
+export type PinCommentAuthorProfile = {
+  avatar_url: string | null;
+  gravatar_hash: string | null;
+};
+
 export type PinCommentRow = {
   id: string;
   pin_id: string;
@@ -8,4 +13,5 @@ export type PinCommentRow = {
   body: string;
   created_at: string;
   updated_at: string;
+  author_profile: PinCommentAuthorProfile | null;
 };

@@ -5,20 +5,22 @@ import {
   PluginPinCard,
   PluginPinContent,
   PluginPinError,
+  PluginPinFormStack,
   PluginPinHeader,
   PluginPinItemByline,
+  PluginPinItemList,
   PluginPinItemMain,
   PluginPinItemRow,
-  PluginPinList,
   PluginPinMuted,
+  PluginPinSectionStack,
   PluginPinTitleRow,
 } from "@curolia/ui/plugin-pin";
-import { Separator } from "@curolia/ui/separator";
 import { Textarea } from "@curolia/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CommentAuthorAvatar } from "./comment-author-avatar";
 import {
   getStoredCommentDisplayName,
   setStoredCommentDisplayName,
@@ -146,87 +148,89 @@ export function CommentsPinInteractionSection({
         />
       </PluginPinHeader>
       <PluginPinContent>
-        {comments.length > 0 ? (
-          <PluginPinList>
-            {comments.map((comment) => {
-              const isAuthor =
-                (userId != null && comment.author_user_id === userId) ||
-                (!userId &&
-                  comment.author_guest_id != null &&
-                  guestId != null &&
-                  comment.author_guest_id === guestId);
-              const canRemove = isAuthor || canModerateComments;
-              const removeLabel = isAuthor
-                ? "Delete your comment"
-                : "Remove comment";
-              return (
-                <PluginPinItemRow key={comment.id}>
-                  <PluginPinItemMain>
-                    <PluginPinItemByline
-                      title={comment.author_display_name}
-                      meta={
-                        <time dateTime={comment.created_at}>
-                          {formatCommentDate(comment.created_at)}
-                        </time>
-                      }
-                    />
-                    <p>{comment.body}</p>
-                  </PluginPinItemMain>
-                  {canRemove ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={removeLabel}
-                      disabled={deleteComment.isPending}
-                      onClick={() =>
-                        void deleteComment.mutateAsync({
-                          commentId: comment.id,
-                          guestId: isAuthor ? guestId : null,
-                        })
-                      }
-                    >
-                      <Trash2Icon />
-                    </Button>
-                  ) : null}
-                </PluginPinItemRow>
-              );
-            })}
-          </PluginPinList>
-        ) : null}
-        {canComment ? (
-          <>
-            {comments.length > 0 ? <Separator /> : null}
-            {requiresName ? (
-              <Input
-                id="comment-author-name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your name"
-                autoComplete="name"
+        <PluginPinSectionStack>
+          {comments.length > 0 ? (
+            <PluginPinItemList>
+              {comments.map((comment) => {
+                const isAuthor =
+                  (userId != null && comment.author_user_id === userId) ||
+                  (!userId &&
+                    comment.author_guest_id != null &&
+                    guestId != null &&
+                    comment.author_guest_id === guestId);
+                const canRemove = isAuthor || canModerateComments;
+                const removeLabel = isAuthor
+                  ? "Delete your comment"
+                  : "Remove comment";
+                return (
+                  <PluginPinItemRow key={comment.id}>
+                    <PluginPinItemMain>
+                      <PluginPinItemByline
+                        avatar={<CommentAuthorAvatar comment={comment} />}
+                        title={comment.author_display_name}
+                        meta={
+                          <time dateTime={comment.created_at}>
+                            {formatCommentDate(comment.created_at)}
+                          </time>
+                        }
+                      />
+                      <p>{comment.body}</p>
+                    </PluginPinItemMain>
+                    {canRemove ? (
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={removeLabel}
+                        disabled={deleteComment.isPending}
+                        onClick={() =>
+                          void deleteComment.mutateAsync({
+                            commentId: comment.id,
+                            guestId: isAuthor ? guestId : null,
+                          })
+                        }
+                      >
+                        <Trash2Icon />
+                      </Button>
+                    ) : null}
+                  </PluginPinItemRow>
+                );
+              })}
+            </PluginPinItemList>
+          ) : null}
+          {canComment ? (
+            <PluginPinFormStack>
+              {requiresName ? (
+                <Input
+                  id="comment-author-name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name"
+                  autoComplete="name"
+                />
+              ) : null}
+              <Textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Write a comment…"
+                rows={3}
               />
-            ) : null}
-            <Textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write a comment…"
-              rows={3}
-            />
-            <Button
-              size="sm"
-              disabled={addComment.isPending || !body.trim()}
-              onClick={() => void submit()}
-            >
-              Post comment
-            </Button>
-            {addComment.isError ? (
-              <PluginPinError>
-                {addComment.error instanceof Error
-                  ? addComment.error.message
-                  : "Could not post comment"}
-              </PluginPinError>
-            ) : null}
-          </>
-        ) : null}
+              <Button
+                size="sm"
+                disabled={addComment.isPending || !body.trim()}
+                onClick={() => void submit()}
+              >
+                Post comment
+              </Button>
+              {addComment.isError ? (
+                <PluginPinError>
+                  {addComment.error instanceof Error
+                    ? addComment.error.message
+                    : "Could not post comment"}
+                </PluginPinError>
+              ) : null}
+            </PluginPinFormStack>
+          ) : null}
+        </PluginPinSectionStack>
       </PluginPinContent>
     </PluginPinCard>
   );
