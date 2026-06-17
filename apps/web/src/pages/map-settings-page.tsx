@@ -7,6 +7,7 @@ import {
 } from "@/components/map-collection/map-show-metadata";
 import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
 import { MapViewsSettingsField } from "@/components/map-collection/map-views-settings-field";
+import { MapCoverPinPhotoPicker } from "@/components/map/map-cover-pin-photo-picker";
 import { useActivePageSection } from "@/hooks/use-active-page-section";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMinMd } from "@/hooks/use-min-md";
@@ -117,6 +118,7 @@ export function MapSettingsPage() {
   );
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
   const [coverUploading, setCoverUploading] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
@@ -254,6 +256,7 @@ export function MapSettingsPage() {
     setMapViewSettings(normalizeMapViewSettings(map));
     setDescription(map.description ?? "");
     setCoverUrl(map.cover_url ?? "");
+    setCoverPhotoId(map.cover_photo_id ?? null);
   }, [map]);
 
   async function uploadCover(file: File) {
@@ -262,6 +265,7 @@ export function MapSettingsPage() {
     try {
       const publicUrl = await setMapCoverFromFile(mapId, file);
       setCoverUrl(publicUrl);
+      setCoverPhotoId(null);
       toast.success("Cover photo updated");
       if (user) {
         await qc.invalidateQueries({ queryKey: ["maps", user.id] });
@@ -280,6 +284,7 @@ export function MapSettingsPage() {
     try {
       await removeMapCover(mapId);
       setCoverUrl("");
+      setCoverPhotoId(null);
       toast.success("Cover photo removed");
       if (user) {
         await qc.invalidateQueries({ queryKey: ["maps", user.id] });
@@ -520,6 +525,18 @@ export function MapSettingsPage() {
                     >
                       {coverUploading ? "Working…" : "Upload cover"}
                     </Button>
+                    <MapCoverPinPhotoPicker
+                      mapId={map.id}
+                      coverPhotoId={coverPhotoId}
+                      disabled={coverUploading || controlsDisabled}
+                      onWorkingChange={setCoverUploading}
+                      onCoverSet={({ url, photoId }) => {
+                        setCoverUrl(url);
+                        setCoverPhotoId(photoId);
+                        toast.success("Cover photo updated");
+                      }}
+                      onError={(message) => toast.error(message)}
+                    />
                     <Button
                       type="button"
                       variant="ghost"

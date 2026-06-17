@@ -1,3 +1,4 @@
+import { MapCoverPinPhotoPicker } from "@/components/map/map-cover-pin-photo-picker";
 import { MapVisibilityMenu } from "@/components/map/map-visibility-controls";
 import { PrivateProfilePublicMapWarning } from "@/components/profile/private-profile-public-map-warning";
 import { useNavigateToMapSettings } from "@/hooks/use-navigate-to-map-settings";
@@ -155,6 +156,7 @@ export function MapQuickSettingsPanel({
   );
   const [description, setDescription] = useState(map.description ?? "");
   const [coverUrl, setCoverUrl] = useState(map.cover_url ?? "");
+  const [coverPhotoId, setCoverPhotoId] = useState(map.cover_photo_id ?? null);
   const [mapStyle, setMapStyle] = useState<MapStylePreset>(
     normalizeMapStylePreset(map.style),
   );
@@ -194,6 +196,7 @@ export function MapQuickSettingsPanel({
     setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setDescription(map.description ?? "");
     setCoverUrl(map.cover_url ?? "");
+    setCoverPhotoId(map.cover_photo_id ?? null);
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
     setIsPublic(map.is_public);
@@ -326,6 +329,7 @@ export function MapQuickSettingsPanel({
     try {
       const publicUrl = await setMapCoverFromFile(map.id, file);
       setCoverUrl(publicUrl);
+      setCoverPhotoId(null);
       if (user) {
         await qc.invalidateQueries({ queryKey: ["maps", user.id] });
       }
@@ -345,6 +349,7 @@ export function MapQuickSettingsPanel({
     try {
       await removeMapCover(map.id);
       setCoverUrl("");
+      setCoverPhotoId(null);
       if (user) {
         await qc.invalidateQueries({ queryKey: ["maps", user.id] });
       }
@@ -442,6 +447,21 @@ export function MapQuickSettingsPanel({
                 >
                   {coverUploading ? "Working…" : "Upload cover"}
                 </Button>
+                <MapCoverPinPhotoPicker
+                  mapId={map.id}
+                  coverPhotoId={coverPhotoId}
+                  disabled={coverUploading}
+                  onWorkingChange={setCoverUploading}
+                  onCoverSet={({ url, photoId }) => {
+                    setCoverUrl(url);
+                    setCoverPhotoId(photoId);
+                    showSaved();
+                  }}
+                  onError={(message) => {
+                    setSaveStatus("error");
+                    setSaveError(message);
+                  }}
+                />
                 <Button
                   type="button"
                   variant="ghost"

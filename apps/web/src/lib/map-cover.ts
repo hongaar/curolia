@@ -34,6 +34,18 @@ export function coverMimeForExt(ext: string): string {
   return COVER_EXT_TO_MIME[ext] ?? `image/${ext === "jpg" ? "jpeg" : ext}`;
 }
 
+/** Public map-cover URLs are stable per map + extension; bust cache after upsert. */
+export function mapCoverPublicUrl(
+  storagePath: string,
+  versionMs: number = Date.now(),
+): string {
+  const { data: pub } = supabase.storage
+    .from("map-covers")
+    .getPublicUrl(storagePath);
+  const separator = pub.publicUrl.includes("?") ? "&" : "?";
+  return `${pub.publicUrl}${separator}v=${versionMs}`;
+}
+
 export async function uploadMapCoverBlob(
   mapId: string,
   blob: Blob,
@@ -51,8 +63,7 @@ export async function uploadMapCoverBlob(
       contentType,
     });
   if (uploadError) throw uploadError;
-  const { data: pub } = supabase.storage.from("map-covers").getPublicUrl(path);
-  return pub.publicUrl;
+  return mapCoverPublicUrl(path);
 }
 
 export async function setMapCoverFromPinPhoto(
