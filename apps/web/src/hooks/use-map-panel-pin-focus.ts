@@ -50,7 +50,7 @@ export function useMapPanelPinFocus({
   }, []);
 
   const runFocus = useCallback(
-    (targetPinId: string, attempt = 0) => {
+    function runFocus(targetPinId: string, attempt = 0) {
       const scrollRoot = scrollRootRef.current;
       if (!scrollRoot) return;
 

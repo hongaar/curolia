@@ -611,6 +611,7 @@ export function MapPage() {
 
   const showQuickSettingsPanel =
     quickSettingsOpen &&
+    !showSidePanel &&
     isWideEnough &&
     isOwner &&
     !publicView &&
@@ -624,8 +625,13 @@ export function MapPage() {
         ? PANEL_RIGHT_WIDTH_CSS
         : undefined;
 
-  const previewMapStyle = quickSettingsStylePreview?.preset;
-  const previewMapStyleOptions = quickSettingsStylePreview?.options;
+  const quickSettingsStyleActive = quickSettingsOpen && !showSidePanel;
+  const previewMapStyle = quickSettingsStyleActive
+    ? quickSettingsStylePreview?.preset
+    : undefined;
+  const previewMapStyleOptions = quickSettingsStyleActive
+    ? quickSettingsStylePreview?.options
+    : undefined;
   const pinMapStyle = previewMapStyle
     ? previewMapStyle
     : normalizeMapStylePreset(activeMap?.style);
@@ -643,13 +649,6 @@ export function MapPage() {
     if (sidebarPinId) onClosePinMapPopover();
     setQuickSettingsOpen(true);
   }, [onClosePinMapPopover, sidebarPinId]);
-
-  useEffect(() => {
-    if (showSidePanel && quickSettingsOpen) {
-      setQuickSettingsOpen(false);
-      setQuickSettingsStylePreview(null);
-    }
-  }, [showSidePanel, quickSettingsOpen]);
 
   useLayoutEffect(() => {
     if (!showContentSidePanel) {

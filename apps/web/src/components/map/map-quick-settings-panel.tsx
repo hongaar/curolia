@@ -148,7 +148,6 @@ export function MapQuickSettingsPanel({
   );
   const mapRef = useRef(map);
   const syncedMapIdRef = useRef(map.id);
-  mapRef.current = map;
 
   const [name, setName] = useState(map.name);
   const [iconEmoji, setIconEmoji] = useState(
@@ -183,10 +182,10 @@ export function MapQuickSettingsPanel({
   });
 
   useEffect(() => {
+    mapRef.current = map;
     const switchedMap = syncedMapIdRef.current !== map.id;
     if (switchedMap) {
       syncedMapIdRef.current = map.id;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset status when switching map
       setSaveStatus("idle");
       setSaveError(null);
     }
