@@ -1,13 +1,17 @@
 import { Globe, Lock, MapPin, Users } from "lucide-react";
 import type * as React from "react";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Link } from "react-router-dom";
 
 import { AuthorRow } from "../author-row";
-import {
-  coverImageCrossOrigin,
-  sampleCoverAccentFromImage,
-} from "./map-card-cover-accent";
+import { loadCoverAccentFromUrl } from "./map-card-cover-accent";
 import {
   coverAspectRatioCss,
   deterministicAccentColor,
@@ -192,23 +196,36 @@ export function MapCard({
   const [coverAccentColor, setCoverAccentColor] = useState<string | null>(null);
   const coverImageRef = useRef<HTMLImageElement>(null);
 
-  const syncCoverImageMetrics = useCallback((image: HTMLImageElement) => {
+  const syncCoverAspectRatio = useCallback((image: HTMLImageElement) => {
     const { naturalWidth, naturalHeight } = image;
     if (naturalWidth <= 0 || naturalHeight <= 0) return;
     setCoverAspectRatio(normalizeCoverAspectRatio(naturalWidth, naturalHeight));
-    setCoverAccentColor(sampleCoverAccentFromImage(image));
   }, []);
 
   useLayoutEffect(() => {
     setCoverAspectRatio(null);
-    setCoverAccentColor(null);
     if (!hasCover) return;
 
     const image = coverImageRef.current;
     if (image?.complete && image.naturalWidth > 0) {
-      syncCoverImageMetrics(image);
+      syncCoverAspectRatio(image);
     }
-  }, [coverUrl, hasCover, syncCoverImageMetrics]);
+  }, [coverUrl, hasCover, syncCoverAspectRatio]);
+
+  useEffect(() => {
+    setCoverAccentColor(null);
+    if (!showInsetIcon || !hasCover || !coverUrl?.trim()) return;
+
+    return loadCoverAccentFromUrl(
+      coverUrl,
+      (accent) => {
+        if (accent) setCoverAccentColor(accent);
+      },
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost",
+    );
+  }, [coverUrl, hasCover, showInsetIcon]);
 
   const seed = layoutSeed ?? title?.toString() ?? "map";
 
@@ -218,16 +235,6 @@ export function MapCard({
   );
 
   const insetAccentColor = coverAccentColor ?? deterministicAccentColor(seed);
-
-  const coverCrossOrigin = useMemo(() => {
-    if (!hasCover) return undefined;
-    return coverImageCrossOrigin(
-      coverUrl!,
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost",
-    );
-  }, [coverUrl, hasCover]);
 
   const coverStyle = hasCover
     ? coverAspectRatio != null
@@ -256,8 +263,7 @@ export function MapCard({
               src={coverUrl!}
               alt=""
               className={styles.coverImage}
-              crossOrigin={coverCrossOrigin}
-              onLoad={(event) => syncCoverImageMetrics(event.currentTarget)}
+              onLoad={(event) => syncCoverAspectRatio(event.currentTarget)}
             />
           ) : (
             <div className={styles.coverEmojiArt} aria-hidden>

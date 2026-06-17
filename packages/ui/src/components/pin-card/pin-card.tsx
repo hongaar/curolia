@@ -1,12 +1,8 @@
 import { Calendar, Images } from "lucide-react";
 import type * as React from "react";
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-import {
-  coverImageCrossOrigin,
-  sampleCoverAccentFromImage,
-} from "../map-card/map-card-cover-accent";
 import {
   coverAspectRatioCss,
   normalizeCoverAspectRatio,
@@ -108,11 +104,10 @@ export function PinCard({
   const [coverAspectRatio, setCoverAspectRatio] = useState<number | null>(null);
   const coverImageRef = useRef<HTMLImageElement>(null);
 
-  const syncCoverImageMetrics = useCallback((image: HTMLImageElement) => {
+  const syncCoverAspectRatio = useCallback((image: HTMLImageElement) => {
     const { naturalWidth, naturalHeight } = image;
     if (naturalWidth <= 0 || naturalHeight <= 0) return;
     setCoverAspectRatio(normalizeCoverAspectRatio(naturalWidth, naturalHeight));
-    sampleCoverAccentFromImage(image);
   }, []);
 
   useLayoutEffect(() => {
@@ -121,19 +116,9 @@ export function PinCard({
 
     const image = coverImageRef.current;
     if (image?.complete && image.naturalWidth > 0) {
-      syncCoverImageMetrics(image);
+      syncCoverAspectRatio(image);
     }
-  }, [coverUrl, hasCover, syncCoverImageMetrics]);
-
-  const coverCrossOrigin = useMemo(() => {
-    if (!hasCover) return undefined;
-    return coverImageCrossOrigin(
-      coverUrl!,
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "http://localhost",
-    );
-  }, [coverUrl, hasCover]);
+  }, [coverUrl, hasCover, syncCoverAspectRatio]);
 
   const coverStyle =
     hasCover && coverAspectRatio != null
@@ -166,8 +151,7 @@ export function PinCard({
               src={coverUrl!}
               alt=""
               className={styles.coverImage}
-              crossOrigin={coverCrossOrigin}
-              onLoad={(event) => syncCoverImageMetrics(event.currentTarget)}
+              onLoad={(event) => syncCoverAspectRatio(event.currentTarget)}
             />
           </div>
         ) : null}

@@ -93,10 +93,37 @@ export function rgbToAccentCss(r: number, g: number, b: number): string {
 }
 
 /**
- * Sample the bottom-left cover region (where the inset icon sits) on a tiny
- * canvas. Returns null when the image is unreadable (e.g. cross-origin without
- * CORS) so callers can fall back to a deterministic color.
+ * Sample inset-badge accent from a cover URL without putting crossOrigin on the
+ * visible <img> (which breaks when a service worker cached an opaque response).
  */
+export function loadCoverAccentFromUrl(
+  url: string,
+  onResult: (accent: string | null) => void,
+  origin = "http://localhost",
+): () => void {
+  const image = new Image();
+  const crossOrigin = coverImageCrossOrigin(url, origin);
+  if (crossOrigin) image.crossOrigin = crossOrigin;
+
+  let cancelled = false;
+  image.onload = () => {
+    if (cancelled) return;
+    onResult(sampleCoverAccentFromImage(image));
+  };
+  image.onerror = () => {
+    if (cancelled) return;
+    onResult(null);
+  };
+  image.src = url;
+
+  return () => {
+    cancelled = true;
+    image.onload = null;
+    image.onerror = null;
+  };
+}
+
+/** Sample cover pixels on a canvas; null when the image is not canvas-readable. */
 export function sampleCoverAccentFromImage(
   image: HTMLImageElement,
 ): string | null {

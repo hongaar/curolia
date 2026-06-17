@@ -59,11 +59,15 @@ export default defineConfig({
         navigateFallbackDenylist: SSR_NAVIGATE_FALLBACK_DENYLIST,
         runtimeCaching: [
           {
-            urlPattern: ({ request }) =>
-              request.destination === "script" ||
-              request.destination === "style" ||
-              request.destination === "image" ||
-              request.destination === "font",
+            // Only cache same-origin assets. Cross-origin images (e.g. Supabase
+            // storage) must not be cached as opaque responses — that breaks
+            // later CORS-mode fetches (card covers with crossOrigin).
+            urlPattern: ({ request, sameOrigin }) =>
+              sameOrigin &&
+              (request.destination === "script" ||
+                request.destination === "style" ||
+                request.destination === "image" ||
+                request.destination === "font"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "static-assets",
