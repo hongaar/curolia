@@ -1,4 +1,5 @@
 import { AppSettingsPage } from "@/pages/app-settings-page";
+import { DiscoverPage } from "@/pages/discover-page";
 import { InvitationsPage } from "@/pages/invitations-page";
 import { MapPage } from "@/pages/map-page";
 import { MapSettingsPage } from "@/pages/map-settings-page";
@@ -48,6 +49,7 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
+    <Route path="discover" element={<DiscoverPage />} />
     <Route path=":profileSlug" element={<PublicProfilePage />} />
   </>
 );

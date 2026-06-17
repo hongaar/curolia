@@ -1,4 +1,6 @@
+import { PinSourceMapLink } from "@/components/map/pin-source-map-link";
 import { PinDetailBody, type PinRow } from "@/components/pins/pin-detail-body";
+import type { DiscoverPinMeta } from "@/lib/fetch-discover-pins";
 import type { MapRoute } from "@/lib/map-route";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
@@ -19,6 +21,8 @@ interface PinDetailSideSheetProps {
   onClose: () => void;
   /** Mobile bottom sheet layout on the map. */
   bottomSheet?: boolean;
+  /** When viewing a pin outside its home map (e.g. Discover), link back to the source map. */
+  sourceMap?: DiscoverPinMeta | null;
 }
 
 export function PinDetailSideSheet({
@@ -28,6 +32,7 @@ export function PinDetailSideSheet({
   onNavigatePin,
   onClose,
   bottomSheet = false,
+  sourceMap = null,
 }: PinDetailSideSheetProps) {
   const dismissBottomSheet = useBottomSheetDismiss();
   const pinQuery = useQuery({
@@ -66,6 +71,9 @@ export function PinDetailSideSheet({
       onNavigateSequencePin={(target) => onNavigatePin(target.id)}
       sideSheet
       bottomSheet={bottomSheet}
+      topContent={
+        sourceMap ? <PinSourceMapLink sourceMap={sourceMap} /> : undefined
+      }
       extraActions={
         <Button
           type="button"

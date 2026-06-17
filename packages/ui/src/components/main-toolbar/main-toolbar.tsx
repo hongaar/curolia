@@ -7,6 +7,10 @@ export type MainToolbarProps = {
   mapPicker?: React.ReactNode;
   /** Search slot beside map picker (hidden on small viewports via CSS). */
   search?: React.ReactNode;
+  /** Promo nav control after the brand (e.g. Discover for signed-out users). */
+  leftPromo?: React.ReactNode;
+  /** Promo nav control before notifications (e.g. Discover for signed-in users). */
+  rightPromo?: React.ReactNode;
   /** Notifications control shown left of the account menu. */
   notifications?: React.ReactNode;
   accountMenu: React.ReactNode;
@@ -63,6 +67,8 @@ export function MainToolbarBrandAnchor({
 export function MainToolbar({
   mapPicker,
   search,
+  leftPromo,
+  rightPromo,
   notifications,
   accountMenu,
   logoSrc,
@@ -78,6 +84,7 @@ export function MainToolbar({
               <MainToolbarBrand logoSrc={logoSrc} label={brandLabel} />
             </div>
           )}
+          {leftPromo}
           {mapPicker}
           {search ? (
             <div className={styles.search}>
@@ -86,6 +93,7 @@ export function MainToolbar({
           ) : null}
         </div>
         <div className={styles.right}>
+          {rightPromo}
           {notifications}
           {accountMenu}
         </div>

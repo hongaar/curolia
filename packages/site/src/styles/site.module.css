@@ -73,6 +73,17 @@
   padding: var(--space-5);
 }
 
+.headerStart {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.discoverHeaderLink {
+  margin-left: var(--space-2);
+}
+
 .brand {
   display: inline-flex;
   align-items: center;

@@ -1,6 +1,8 @@
+import { Compass } from "lucide-react";
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
+import { cn } from "@curolia/ui";
 import { buttonClassName } from "@curolia/ui/button";
 import styles from "../styles/site.module.css";
 
@@ -23,11 +25,15 @@ export function MarketingButtonLink({
   children,
   variant = "default",
   size = "default",
+  rounded = false,
+  className,
 }: {
   to: string;
   children: React.ReactNode;
-  variant?: "default" | "outline" | "secondary" | "ghost";
+  variant?: "default" | "outline" | "secondary" | "ghost" | "accent";
   size?: "default" | "sm" | "lg";
+  rounded?: boolean;
+  className?: string;
 }) {
   return (
     <Link
@@ -35,7 +41,8 @@ export function MarketingButtonLink({
       className={buttonClassName({
         variant,
         size,
-        className: styles.buttonLink,
+        rounded,
+        className: cn(styles.buttonLink, className),
       })}
     >
       {children}
@@ -60,17 +67,29 @@ export function MarketingHeader({
   return (
     <header className={styles.header}>
       <div className={styles.headerInner}>
-        <MarketingLink to="/" className={styles.brand}>
-          <img
-            className={styles.brandLogo}
-            src={logoSrc}
-            alt=""
-            width={36}
-            height={36}
-            decoding="async"
-          />
-          <p className={styles.brandName}>Curolia</p>
-        </MarketingLink>
+        <div className={styles.headerStart}>
+          <MarketingLink to="/" className={styles.brand}>
+            <img
+              className={styles.brandLogo}
+              src={logoSrc}
+              alt=""
+              width={36}
+              height={36}
+              decoding="async"
+            />
+            <p className={styles.brandName}>Curolia</p>
+          </MarketingLink>
+          <MarketingButtonLink
+            to="/discover"
+            variant="accent"
+            rounded
+            size="default"
+            className={styles.discoverHeaderLink}
+          >
+            <Compass />
+            Discover
+          </MarketingButtonLink>
+        </div>
 
         <div className={styles.headerActions}>
           <MarketingButtonLink to="/login" variant="ghost">

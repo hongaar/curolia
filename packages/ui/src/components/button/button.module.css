@@ -139,6 +139,24 @@
   text-decoration: underline;
 }
 
+.variantAccent {
+  background: oklch(0.66 0.21 52);
+  color: oklch(0.98 0.015 90);
+}
+
+.variantAccent:hover {
+  background: oklch(0.62 0.21 52);
+}
+
+:global(.dark) .variantAccent {
+  background: oklch(0.74 0.19 52);
+  color: oklch(0.16 0.03 52);
+}
+
+:global(.dark) .variantAccent:hover {
+  background: oklch(0.7 0.19 52);
+}
+
 .sizeDefault {
   height: var(--control-h-md);
   gap: var(--space-2);
@@ -218,4 +236,17 @@
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
+}
+
+/* `rounded` must follow size rules so pill shape wins over per-size corner radii. */
+.sizeXs.rounded,
+.sizeSm.rounded,
+.sizeDefault.rounded,
+.sizeLg.rounded,
+.sizeIcon.rounded,
+.sizeIconXs.rounded,
+.sizeIconSm.rounded,
+.sizeIconLg.rounded,
+.rounded {
+  border-radius: var(--radius-full);
 }

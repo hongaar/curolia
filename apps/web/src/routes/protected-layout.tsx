@@ -1,3 +1,4 @@
+import { isDiscoverPathname } from "@/lib/discover-routes";
 import { isPublicProfileViewPathname } from "@/lib/profile-route";
 import { isPublicMapViewPathname } from "@/lib/public-map-routes";
 import {
@@ -12,10 +13,11 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 export function ProtectedLayout() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const discoverView = isDiscoverPathname(location.pathname);
   const publicMapView = !user && isPublicMapViewPathname(location.pathname);
   const publicProfileView =
     !user && isPublicProfileViewPathname(location.pathname);
-  const publicView = publicMapView || publicProfileView;
+  const publicView = publicMapView || publicProfileView || discoverView;
 
   if (loading) {
     return <CuroliaLoadingSplash fill statusLabel="Loading" />;

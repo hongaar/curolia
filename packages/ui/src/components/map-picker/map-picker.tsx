@@ -48,6 +48,44 @@ export function MapPickerContent({
   );
 }
 
+/** Pill link that navigates to a map (emoji + name). */
+export function MapNavLink({
+  mapEmoji,
+  mapName,
+  href,
+  "aria-label": ariaLabel,
+  className,
+}: {
+  mapEmoji?: React.ReactNode;
+  mapName: string;
+  href: string;
+  "aria-label"?: string;
+  className?: string;
+}) {
+  return (
+    <a
+      href={href}
+      className={cn(
+        styles.trigger,
+        styles.mapNavRoot,
+        !mapEmoji && styles.triggerNoEmoji,
+        className,
+      )}
+      aria-label={ariaLabel ?? `Go to ${mapName}`}
+    >
+      {mapEmoji ? (
+        <span className={styles.mapEmoji} aria-hidden>
+          {mapEmoji}
+        </span>
+      ) : null}
+      <span className={styles.mapName}>{mapName}</span>
+      <span className={styles.chevron} aria-hidden>
+        <ChevronRight />
+      </span>
+    </a>
+  );
+}
+
 /** Pill button that navigates back to a map (emoji + name). */
 export function MapNavButton({
   mapEmoji,

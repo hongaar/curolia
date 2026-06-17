@@ -10,7 +10,8 @@ type ButtonVariant =
   | "secondary"
   | "ghost"
   | "destructive"
-  | "link";
+  | "link"
+  | "accent";
 
 type ButtonSize =
   | "default"
@@ -29,6 +30,7 @@ const variantClass: Record<ButtonVariant, string> = {
   ghost: styles.variantGhost,
   destructive: styles.variantDestructive,
   link: styles.variantLink,
+  accent: styles.variantAccent,
 };
 
 const sizeClass: Record<ButtonSize, string> = {
@@ -45,13 +47,21 @@ const sizeClass: Record<ButtonSize, string> = {
 function buttonClassName({
   variant = "default",
   size = "default",
+  rounded = false,
   className,
 }: {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  rounded?: boolean;
   className?: string;
 }) {
-  return cn(styles.root, variantClass[variant], sizeClass[size], className);
+  return cn(
+    styles.root,
+    variantClass[variant],
+    sizeClass[size],
+    rounded && styles.rounded,
+    className,
+  );
 }
 
 const Button = React.forwardRef<
@@ -59,6 +69,8 @@ const Button = React.forwardRef<
   Omit<ButtonPrimitive.Props, "className"> & {
     variant?: ButtonVariant;
     size?: ButtonSize;
+    /** Fully rounded pill shape (`border-radius: full`). */
+    rounded?: boolean;
     className?: string;
   }
 >(function Button(
@@ -66,6 +78,7 @@ const Button = React.forwardRef<
     className,
     variant = "default",
     size = "default",
+    rounded = false,
     nativeButton,
     render,
     ...props
@@ -76,7 +89,7 @@ const Button = React.forwardRef<
     <ButtonPrimitive
       ref={ref}
       data-slot="button"
-      className={buttonClassName({ variant, size, className })}
+      className={buttonClassName({ variant, size, rounded, className })}
       nativeButton={nativeButton ?? (render != null ? false : undefined)}
       render={render}
       {...props}

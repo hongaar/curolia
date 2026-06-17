@@ -55,6 +55,20 @@ export const Link: Story = {
   args: { variant: "link" },
 };
 
+export const Accent: Story = {
+  parameters: storyDocs(
+    '`variant="accent"` for promotional actions using the accent color.',
+  ),
+  args: { variant: "accent" },
+};
+
+export const AccentRounded: Story = {
+  parameters: storyDocs(
+    '`variant="accent"` with `rounded` for pill-shaped accent buttons.',
+  ),
+  args: { variant: "accent", rounded: true },
+};
+
 export const Disabled: Story = {
   parameters: storyDocs("Disabled state blocks interaction."),
   args: { disabled: true },

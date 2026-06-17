@@ -65,6 +65,7 @@ export function resolveMapFromSettingsParam(
 
 /** Map uses fullscreen chrome (floating toolbar, no page chrome). */
 export function isMapFullscreenPathname(pathname: string): boolean {
+  if (pathname === "/discover" || pathname === "/discover/") return true;
   return /^\/[^/]+\/[^/]+\/(map|blog|gallery)\/?$/.test(pathname);
 }
 
