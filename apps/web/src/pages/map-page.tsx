@@ -12,7 +12,8 @@ import {
   MapPointerContextMenu,
   type MapPointerContextMenuTarget,
 } from "@/components/map/map-pointer-context-menu";
-import { MapQuickSettingsControl } from "@/components/map/map-quick-settings-control";
+import { MapQuickSettingsSideSheet } from "@/components/map/map-quick-settings-side-sheet";
+import { MapQuickSettingsTrigger } from "@/components/map/map-quick-settings-trigger";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
@@ -47,11 +48,14 @@ import {
   readStoredMapCamera,
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
+import { measureMapPanelInset } from "@/lib/map-panel-inset";
 import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
+  type MapStyleOptions,
+  type MapStylePreset,
 } from "@/lib/map-style";
 import {
   applyFilterTagsToSearchParams,
@@ -108,7 +112,6 @@ import {
   MapControlsBottomStack,
   MapControlsLayer,
   MapControlsTopLeft,
-  MapControlsTopRight,
   MapHost,
   MapLayer,
   MapPageRoot,
@@ -203,6 +206,12 @@ export function MapPage() {
     () => normalizeMapStyleOptions(activeMap),
     [activeMap],
   );
+  const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
+  const [quickSettingsStylePreview, setQuickSettingsStylePreview] = useState<{
+    preset: MapStylePreset;
+    options: MapStyleOptions;
+  } | null>(null);
+  const quickSettingsPanelRef = useRef<HTMLDivElement>(null);
   const prevMapIdRef = useRef<string | null>(null);
   const mapFitGenerationRef = useRef(0);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);
@@ -600,11 +609,47 @@ export function MapPage() {
     [pins, hoverPinId],
   );
 
+  const showQuickSettingsPanel =
+    quickSettingsOpen &&
+    isWideEnough &&
+    isOwner &&
+    !publicView &&
+    Boolean(activeMap);
+
   const mapPanelRightWidth = showContentSidePanel
     ? BLOG_PANEL_WIDTH_CSS
-    : showSidePanel
+    : showSidePanel && !showQuickSettingsPanel
       ? PANEL_RIGHT_WIDTH_CSS
-      : undefined;
+      : showQuickSettingsPanel
+        ? PANEL_RIGHT_WIDTH_CSS
+        : undefined;
+
+  const previewMapStyle = quickSettingsStylePreview?.preset;
+  const previewMapStyleOptions = quickSettingsStylePreview?.options;
+  const pinMapStyle = previewMapStyle
+    ? previewMapStyle
+    : normalizeMapStylePreset(activeMap?.style);
+  const pinMapStyleOptions = previewMapStyleOptions ?? mapStyleOptions;
+
+  const closeQuickSettings = useCallback(() => {
+    setQuickSettingsOpen(false);
+    setQuickSettingsStylePreview(null);
+    if (!showSidePanel) {
+      mapRef.current?.clearPanelPadding();
+    }
+  }, [showSidePanel]);
+
+  const openQuickSettings = useCallback(() => {
+    if (sidebarPinId) onClosePinMapPopover();
+    setQuickSettingsOpen(true);
+  }, [onClosePinMapPopover, sidebarPinId]);
+
+  useEffect(() => {
+    if (showSidePanel && quickSettingsOpen) {
+      setQuickSettingsOpen(false);
+      setQuickSettingsStylePreview(null);
+    }
+  }, [showSidePanel, quickSettingsOpen]);
 
   useLayoutEffect(() => {
     if (!showContentSidePanel) {
@@ -619,6 +664,17 @@ export function MapPage() {
     };
     requestAnimationFrame(applyContentPanelInset);
   }, [showContentSidePanel]);
+
+  useLayoutEffect(() => {
+    if (!showQuickSettingsPanel) return;
+    const applyQuickSettingsPanelInset = () => {
+      const inset = measureMapPanelInset("side", quickSettingsPanelRef.current);
+      const camera = mapRef.current?.getCurrentCamera();
+      if (!camera) return;
+      mapRef.current?.panForPanel(camera.lng, camera.lat, inset);
+    };
+    requestAnimationFrame(applyQuickSettingsPanelInset);
+  }, [showQuickSettingsPanel]);
 
   const onClosePinCollisionPicker = useCallback(() => {
     onCollisionClose();
@@ -1130,8 +1186,8 @@ export function MapPage() {
                   }
                 : null
             }
-            mapStyle={normalizeMapStylePreset(activeMap?.style)}
-            mapStyleOptions={mapStyleOptions}
+            mapStyle={pinMapStyle}
+            mapStyleOptions={pinMapStyleOptions}
             showPinRoute={showPinRoute}
             placeHighlight={globalSearchPlaceHighlight}
             onSelectPin={onSelectPin}
@@ -1147,6 +1203,10 @@ export function MapPage() {
               }
               if (panelPinId && !isWideEnough) {
                 bottomSheetDismissRef.current?.();
+                return;
+              }
+              if (quickSettingsOpen && isWideEnough) {
+                closeQuickSettings();
                 return;
               }
               if (panelPinId) onClosePinMapPopover();
@@ -1169,14 +1229,6 @@ export function MapPage() {
               />
             </MapControlsTopLeft>
           ) : null}
-          {isOwner && !publicView && activeMap && activeMapRoute ? (
-            <MapControlsTopRight>
-              <MapQuickSettingsControl
-                map={activeMap}
-                mapRoute={activeMapRoute}
-              />
-            </MapControlsTopRight>
-          ) : null}
           <MapControlsBottomCenter>
             {activeRelocatePinId ? (
               <MapPlacementHint>
@@ -1194,6 +1246,15 @@ export function MapPage() {
               onEditTag={openEditTagDialog}
               canEdit={canEdit}
             />
+            {isOwner && !publicView ? (
+              <MapQuickSettingsTrigger
+                open={quickSettingsOpen}
+                onClick={() => {
+                  if (quickSettingsOpen) closeQuickSettings();
+                  else openQuickSettings();
+                }}
+              />
+            ) : null}
             <MapControlsToolbar mapRef={mapRef} />
           </MapControlsBottomStack>
         </MapControlsLayer>
@@ -1268,7 +1329,44 @@ export function MapPage() {
             />
           </MapSidePanel>
         ) : null}
+        {showQuickSettingsPanel && activeMap && activeMapRoute ? (
+          <MapSidePanel ref={quickSettingsPanelRef} animateIn containBody>
+            <MapQuickSettingsSideSheet
+              map={activeMap}
+              mapRoute={activeMapRoute}
+              onClose={closeQuickSettings}
+              onStylePreviewChange={setQuickSettingsStylePreview}
+            />
+          </MapSidePanel>
+        ) : null}
       </MapLayer>
+
+      {!isWideEnough &&
+      activeMap &&
+      activeMapRoute &&
+      isOwner &&
+      !publicView ? (
+        <BottomSheet
+          open={quickSettingsOpen}
+          onOpenChange={(open) => {
+            if (open) openQuickSettings();
+            else closeQuickSettings();
+          }}
+          title="Map settings"
+          containBody
+          partialHeight="min(85dvh, 40rem)"
+          overlay="none"
+          modal={false}
+        >
+          <MapQuickSettingsSideSheet
+            map={activeMap}
+            mapRoute={activeMapRoute}
+            onClose={closeQuickSettings}
+            onStylePreviewChange={setQuickSettingsStylePreview}
+            bottomSheet
+          />
+        </BottomSheet>
+      ) : null}
 
       {!isWideEnough ? (
         <BottomSheet

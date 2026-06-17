@@ -3,14 +3,22 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
+  min-width: 0;
 }
 
 .scroll {
   min-height: 0;
   flex: 1;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 var(--dialog-pad) var(--dialog-pad);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-form-grid);
+  padding: 3px var(--card-pad) var(--card-pad);
 }
 
 .visibilityRow {
@@ -31,7 +39,75 @@
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
   border-top: 1px solid var(--border);
-  padding: var(--dialog-pad);
+  background: var(--panel-bg-solid);
+  padding: var(--space-4) var(--card-pad)
+    calc(var(--space-4) + var(--safe-bottom));
+}
+
+.statusSlot {
+  position: relative;
+  min-height: 1.25rem;
+}
+
+.statusLayer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+  transition:
+    opacity 280ms ease,
+    visibility 280ms ease;
+}
+
+.statusLayerHidden {
+  visibility: hidden;
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.statusLayerVisible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.statusSuccess {
+  color: var(--chart-1);
+}
+
+.statusError {
+  color: var(--destructive);
+}
+
+.statusIcon {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  flex-shrink: 0;
+}
+
+.statusIconSpin {
+  composes: statusIcon;
+  animation: spin 1s linear infinite;
+}
+
+.footerButton {
+  width: 100%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusLayer {
+    transition: none;
+  }
 }

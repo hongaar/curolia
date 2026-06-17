@@ -1,7 +1,7 @@
 import { TagsFilterMenuContent } from "@/components/tags/tags-filter-menu-content";
 import type { Tag } from "@/types/database";
 import { DropdownMenu, DropdownMenuContent } from "@curolia/ui/dropdown-menu";
-import { MapToolbarMenuTrigger } from "@curolia/ui/map-toolbar";
+import { MapToolbar, MapToolbarIconButton } from "@curolia/ui/map-toolbar";
 import { Tag as TagIcon } from "lucide-react";
 import { useState, type SetStateAction } from "react";
 
@@ -27,13 +27,16 @@ export function MapTagFiltersControl({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <MapToolbarMenuTrigger
-        icon={<TagIcon aria-hidden />}
-        label="Tag filters"
-        title="Filter pins by tag"
-        active={activeCount > 0}
-        badgeCount={activeCount}
-      />
+      <MapToolbar>
+        <MapToolbarIconButton
+          menuTrigger
+          icon={<TagIcon aria-hidden />}
+          label="Tag filters"
+          title="Filter pins by tag"
+          active={activeCount > 0}
+          badgeCount={activeCount}
+        />
+      </MapToolbar>
       <DropdownMenuContent align="end" side="top" sideOffset={8}>
         <TagsFilterMenuContent
           tags={tags}

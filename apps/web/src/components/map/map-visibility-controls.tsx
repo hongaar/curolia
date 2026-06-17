@@ -15,10 +15,13 @@ export function MapVisibilityMenu({
   map,
   onMapChange,
   disabled = false,
+  silent = false,
 }: {
   map: Pick<CuroliaMap, "id" | "is_public" | "slug">;
   onMapChange?: (isPublic: boolean) => void;
   disabled?: boolean;
+  /** Skip toast notifications (e.g. quick settings footer feedback). */
+  silent?: boolean;
 }) {
   const { setPublic, publicBusy } = useMapVisibility(map);
   const value = map.is_public ? "public" : "private";
@@ -45,9 +48,11 @@ export function MapVisibilityMenu({
             value={value}
             onValueChange={(next) => {
               if (next !== "public" && next !== "private") return;
-              void setPublic(next === "public", map.is_public).then((ok) => {
-                if (ok) onMapChange?.(next === "public");
-              });
+              void setPublic(next === "public", map.is_public, { silent }).then(
+                (ok) => {
+                  if (ok) onMapChange?.(next === "public");
+                },
+              );
             }}
           >
             <DropdownMenuRadioItem value="public">Public</DropdownMenuRadioItem>

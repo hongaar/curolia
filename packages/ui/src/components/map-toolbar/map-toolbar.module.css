@@ -19,6 +19,10 @@
     0 0 0 1px rgb(255 255 255 / 0.1);
 }
 
+.root:has(> .iconButton) {
+  overflow: hidden;
+}
+
 .root > * + * {
   border-top: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent);
 }
@@ -107,10 +111,24 @@
   background: transparent;
   padding: 0;
   outline: none;
+  overflow: hidden;
+}
+
+.root > .iconButton:only-child {
+  border-radius: calc(var(--radius-md) - 1px);
+}
+
+.root > .iconButton:first-child:not(:last-child) {
+  border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
+}
+
+.root > .iconButton:last-child:not(:first-child) {
+  border-radius: 0 0 calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px);
 }
 
 .iconButton:hover,
-.iconButton:focus-visible {
+.iconButton:focus-visible,
+.iconButton[data-popup-open] {
   background: color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
@@ -118,35 +136,8 @@
   box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--ring) 30%, transparent);
 }
 
-.menuTrigger {
-  position: relative;
-  pointer-events: auto;
-  box-sizing: content-box;
-  display: flex;
-  width: var(--control-h-md);
-  flex-direction: column;
-  overflow: visible;
-  border-radius: var(--radius-md);
-  border: 1px solid color-mix(in oklch, var(--foreground) 15%, transparent);
-  background: var(--panel-bg);
-  box-shadow:
-    var(--shadow-md),
-    0 0 0 1px rgb(0 0 0 / 0.04);
-  padding: 0;
-  cursor: pointer;
-  outline: none;
-}
-
-.menuTrigger:hover,
-.menuTrigger:focus-visible,
-.menuTrigger[data-popup-open] {
-  background: var(--panel-bg);
-}
-
-.menuTrigger:focus-visible {
-  box-shadow:
-    var(--shadow-md),
-    inset 0 0 0 2px color-mix(in oklch, var(--ring) 30%, transparent);
+.iconButton.buttonActive[data-popup-open] {
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
 }
 
 .badge {

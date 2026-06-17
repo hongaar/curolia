@@ -31,20 +31,75 @@ import {
 } from "@curolia/ui/form-layout";
 import { Label } from "@curolia/ui/label";
 import { MapCoverPreview } from "@curolia/ui/map-card";
-import {
-  PageAvatarActions,
-  PageErrorText,
-  PageFormBlockSpaced,
-  PageInlineActions,
-} from "@curolia/ui/page";
+import { PageAvatarActions, PageInlineActions } from "@curolia/ui/page";
 import { Textarea } from "@curolia/ui/textarea";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Check, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@curolia/ui/lib/utils";
 
 import styles from "./map-quick-settings-panel.module.css";
 
 const MAX_MAP_DESCRIPTION_LENGTH = 500;
+const SAVED_STATUS_MS = 2000;
+const SAVED_FADE_MS = 280;
+
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+function MapQuickSettingsFooterStatus({
+  saveStatus,
+  saveError,
+}: {
+  saveStatus: SaveStatus;
+  saveError: string | null;
+}) {
+  const showHint = saveStatus === "idle";
+  const showSaving = saveStatus === "saving";
+  const showSuccess = saveStatus === "saved";
+  const showError = saveStatus === "error";
+
+  return (
+    <div className={styles.statusSlot} aria-live="polite">
+      <p
+        className={cn(
+          styles.statusLayer,
+          showHint ? styles.statusLayerVisible : styles.statusLayerHidden,
+        )}
+      >
+        Settings save automatically
+      </p>
+      <p
+        className={cn(
+          styles.statusLayer,
+          showSaving ? styles.statusLayerVisible : styles.statusLayerHidden,
+        )}
+      >
+        <Loader2 className={styles.statusIconSpin} aria-hidden />
+        Saving…
+      </p>
+      <p
+        className={cn(
+          styles.statusLayer,
+          styles.statusSuccess,
+          showSuccess ? styles.statusLayerVisible : styles.statusLayerHidden,
+        )}
+      >
+        <Check className={styles.statusIcon} aria-hidden />
+        Saved
+      </p>
+      <p
+        className={cn(
+          styles.statusLayer,
+          styles.statusError,
+          showError ? styles.statusLayerVisible : styles.statusLayerHidden,
+        )}
+      >
+        {saveError ?? "Could not save settings"}
+      </p>
+    </div>
+  );
+}
 
 function MapStyleOptionCheckbox({
   label,
@@ -73,16 +128,27 @@ export function MapQuickSettingsPanel({
   map,
   mapRoute,
   onClose,
+  onStylePreviewChange,
 }: {
   map: CuroliaMap;
   mapRoute: MapRoute;
   onClose?: () => void;
+  onStylePreviewChange?: (style: {
+    preset: MapStylePreset;
+    options: MapStyleOptions;
+  }) => void;
 }) {
   const { user } = useAuth();
   const { refetch: refetchMaps } = useMap();
   const navigateToMapSettings = useNavigateToMapSettings();
   const qc = useQueryClient();
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const mapRef = useRef(map);
+  const syncedMapIdRef = useRef(map.id);
+  mapRef.current = map;
 
   const [name, setName] = useState(map.name);
   const [iconEmoji, setIconEmoji] = useState(
@@ -98,8 +164,8 @@ export function MapQuickSettingsPanel({
   );
   const [isPublic, setIsPublic] = useState(map.is_public);
   const [coverUploading, setCoverUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const ownerProfileQuery = useQuery({
     queryKey: ["profile", user?.id],
@@ -117,7 +183,14 @@ export function MapQuickSettingsPanel({
   });
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset fields when switching map
+    const switchedMap = syncedMapIdRef.current !== map.id;
+    if (switchedMap) {
+      syncedMapIdRef.current = map.id;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset status when switching map
+      setSaveStatus("idle");
+      setSaveError(null);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync fields from server
     setName(map.name);
     setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setDescription(map.description ?? "");
@@ -127,33 +200,141 @@ export function MapQuickSettingsPanel({
     setIsPublic(map.is_public);
   }, [map]);
 
+  useEffect(() => {
+    onStylePreviewChange?.({ preset: mapStyle, options: styleOptions });
+  }, [mapStyle, styleOptions, onStylePreviewChange]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(savedTimerRef.current);
+    },
+    [],
+  );
+
+  const showSaved = useCallback(() => {
+    setSaveStatus("saved");
+    setSaveError(null);
+    clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => {
+      setSaveStatus("idle");
+    }, SAVED_STATUS_MS + SAVED_FADE_MS);
+  }, []);
+
+  const persistMapFields = useCallback(
+    async (
+      fields: {
+        name?: string;
+        iconEmoji?: string;
+        description?: string;
+        mapStyle?: MapStylePreset;
+        styleOptions?: MapStyleOptions;
+      },
+      options?: { textOnly?: boolean },
+    ) => {
+      const currentMap = mapRef.current;
+      const trimmedName = (fields.name ?? name).trim();
+      if (!trimmedName) return;
+
+      const nextIcon =
+        fields.iconEmoji !== undefined
+          ? normalizeMapIconForPersist(fields.iconEmoji)
+          : normalizeMapIconForPersist(iconEmoji);
+      const nextDescription =
+        fields.description !== undefined
+          ? fields.description.trim() || null
+          : description.trim() || null;
+      const nextStyle = fields.mapStyle ?? mapStyle;
+      const nextStyleOptions = fields.styleOptions ?? styleOptions;
+
+      const textDirtyNow =
+        trimmedName !== currentMap.name ||
+        nextIcon !== (currentMap.icon_emoji ?? null) ||
+        nextDescription !== (currentMap.description ?? null);
+      const savedStyleOptions = normalizeMapStyleOptions(currentMap);
+      const styleDirtyNow =
+        nextStyle !== normalizeMapStylePreset(currentMap.style) ||
+        nextStyleOptions.hillshades !== savedStyleOptions.hillshades ||
+        nextStyleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
+
+      if (options?.textOnly ? !textDirtyNow : !textDirtyNow && !styleDirtyNow) {
+        return;
+      }
+
+      setSaveStatus("saving");
+      setSaveError(null);
+
+      const { error } = await supabase
+        .from("maps")
+        .update({
+          name: trimmedName,
+          icon_emoji: nextIcon,
+          style: nextStyle,
+          style_hillshades: nextStyleOptions.hillshades,
+          style_satellite_labels: nextStyleOptions.satelliteLabels,
+          description: nextDescription,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", currentMap.id);
+
+      if (error) {
+        setSaveStatus("error");
+        setSaveError(error.message);
+        return;
+      }
+
+      if (user) {
+        await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+        if (trimmedName !== currentMap.name) {
+          await refetchMaps();
+        }
+      }
+      showSaved();
+    },
+    [
+      description,
+      iconEmoji,
+      mapStyle,
+      name,
+      qc,
+      refetchMaps,
+      showSaved,
+      styleOptions,
+      user,
+    ],
+  );
+
+  const saveTextFieldsIfDirty = useCallback(() => {
+    void persistMapFields({}, { textOnly: true });
+  }, [persistMapFields]);
+
   const savedStyleOptions = normalizeMapStyleOptions(map);
-  const nameDirty = name.trim() !== map.name;
-  const iconDirty =
-    normalizeMapIconForPersist(iconEmoji) !== (map.icon_emoji ?? null);
-  const descriptionDirty =
-    description.trim() !== (map.description ?? "").trim();
   const styleDirty =
     mapStyle !== normalizeMapStylePreset(map.style) ||
     styleOptions.hillshades !== savedStyleOptions.hillshades ||
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
-  const canSave =
-    Boolean(name.trim()) &&
-    (nameDirty || iconDirty || descriptionDirty || styleDirty) &&
-    !saving;
+
+  useEffect(() => {
+    if (!styleDirty) return;
+    void persistMapFields({
+      mapStyle,
+      styleOptions,
+    });
+  }, [mapStyle, styleOptions, styleDirty, persistMapFields]);
 
   async function uploadCover(file: File) {
     setCoverUploading(true);
+    setSaveStatus("saving");
     try {
       const publicUrl = await setMapCoverFromFile(map.id, file);
       setCoverUrl(publicUrl);
-      toast.success("Cover photo updated");
       if (user) {
         await qc.invalidateQueries({ queryKey: ["maps", user.id] });
       }
       if (coverInputRef.current) coverInputRef.current.value = "";
+      showSaved();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not upload cover.");
+      setSaveStatus("error");
+      setSaveError(e instanceof Error ? e.message : "Could not upload cover.");
     } finally {
       setCoverUploading(false);
     }
@@ -161,51 +342,19 @@ export function MapQuickSettingsPanel({
 
   async function removeCover() {
     setCoverUploading(true);
+    setSaveStatus("saving");
     try {
       await removeMapCover(map.id);
       setCoverUrl("");
-      toast.success("Cover photo removed");
       if (user) {
         await qc.invalidateQueries({ queryKey: ["maps", user.id] });
       }
+      showSaved();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not remove cover.");
+      setSaveStatus("error");
+      setSaveError(e instanceof Error ? e.message : "Could not remove cover.");
     } finally {
       setCoverUploading(false);
-    }
-  }
-
-  async function save() {
-    if (!name.trim()) return;
-    setSaving(true);
-    setError(null);
-    const trimmedName = name.trim();
-    const nameChanged = trimmedName !== map.name;
-    const { error: saveError } = await supabase
-      .from("maps")
-      .update({
-        name: trimmedName,
-        ...(nameChanged ? { slug: "" } : {}),
-        icon_emoji: normalizeMapIconForPersist(iconEmoji),
-        style: mapStyle,
-        style_hillshades: styleOptions.hillshades,
-        style_satellite_labels: styleOptions.satelliteLabels,
-        description: description.trim() || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", map.id);
-    setSaving(false);
-    if (saveError) {
-      setError(saveError.message);
-      toast.error(saveError.message);
-      return;
-    }
-    toast.success("Map settings saved");
-    if (user) {
-      await qc.invalidateQueries({ queryKey: ["maps", user.id] });
-      if (nameChanged) {
-        await refetchMaps();
-      }
     }
   }
 
@@ -214,19 +363,38 @@ export function MapQuickSettingsPanel({
   return (
     <div className={styles.root}>
       <div className={styles.scroll}>
-        <PageFormBlockSpaced>
-          {error ? <PageErrorText>{error}</PageErrorText> : null}
+        <div className={styles.form}>
           <Field>
             <EntityLabelInput
               id="map-quick-name"
               label="Map"
               name={name}
               onNameChange={setName}
+              onNameBlur={saveTextFieldsIfDirty}
               placeholder="Map name"
               emoji={iconEmoji}
-              onEmojiChange={setIconEmoji}
+              onEmojiChange={(next) => {
+                setIconEmoji(next);
+                void persistMapFields({ iconEmoji: next }, { textOnly: true });
+              }}
               emojiFallback={defaultMapIcon()}
             />
+          </Field>
+          <Field>
+            <div className={styles.visibilityRow}>
+              <span className={styles.visibilityLabel}>Visibility</span>
+              <MapVisibilityMenu
+                map={{ id: map.id, is_public: isPublic, slug: map.slug }}
+                silent
+                onMapChange={(next) => {
+                  setIsPublic(next);
+                  showSaved();
+                }}
+              />
+            </div>
+            {isPublic && ownerProfileIsPrivate ? (
+              <PrivateProfilePublicMapWarning context="map-public-access" />
+            ) : null}
           </Field>
           <Field>
             <FieldLabel htmlFor="map-quick-description">Description</FieldLabel>
@@ -235,6 +403,7 @@ export function MapQuickSettingsPanel({
                 id="map-quick-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                onBlur={saveTextFieldsIfDirty}
                 placeholder="A short intro for your public profile map card"
                 maxLength={MAX_MAP_DESCRIPTION_LENGTH}
                 rows={3}
@@ -339,28 +508,19 @@ export function MapQuickSettingsPanel({
               />
             </ChoiceCards>
           </Field>
-          <Field>
-            <div className={styles.visibilityRow}>
-              <span className={styles.visibilityLabel}>Visibility</span>
-              <MapVisibilityMenu
-                map={{ id: map.id, is_public: isPublic, slug: map.slug }}
-                onMapChange={setIsPublic}
-              />
-            </div>
-            {isPublic && ownerProfileIsPrivate ? (
-              <PrivateProfilePublicMapWarning context="map-public-access" />
-            ) : null}
-          </Field>
-        </PageFormBlockSpaced>
+        </div>
       </div>
       <div className={styles.footer}>
-        <Button type="button" disabled={!canSave} onClick={() => void save()}>
-          {saving ? "Saving…" : "Save changes"}
-        </Button>
+        <MapQuickSettingsFooterStatus
+          saveStatus={saveStatus}
+          saveError={saveError}
+        />
         <Button
           type="button"
           variant="outline"
+          className={styles.footerButton}
           onClick={() => {
+            saveTextFieldsIfDirty();
             onClose?.();
             navigateToMapSettings(mapRoute);
           }}

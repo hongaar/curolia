@@ -301,7 +301,6 @@ export function MapSettingsPage() {
       .from("maps")
       .update({
         name: trimmedName,
-        ...(nameChanged ? { slug: "" } : {}),
         icon_emoji: normalizeMapIconForPersist(iconEmoji),
         style: mapStyle,
         style_hillshades: styleOptions.hillshades,

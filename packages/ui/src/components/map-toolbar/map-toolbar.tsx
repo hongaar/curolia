@@ -41,69 +41,95 @@ export function MapToolbarButton({
   );
 }
 
-/** Icon-only control for map toolbar stacks (e.g. tag filters). */
-export function MapToolbarIconButton({
-  icon,
-  label,
-  active,
-  onClick,
-  title,
-  badgeCount,
-}: {
+type MapToolbarIconButtonBaseProps = {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
-  onClick?: () => void;
   title?: string;
   badgeCount?: number;
+};
+
+type MapToolbarIconButtonAsButton = MapToolbarIconButtonBaseProps & {
+  menuTrigger?: false;
+  onClick?: () => void;
+};
+
+type MapToolbarIconButtonAsMenuTrigger = MapToolbarIconButtonBaseProps & {
+  menuTrigger: true;
+  onClick?: never;
+} & Omit<
+    React.ComponentProps<typeof DropdownMenuTrigger>,
+    "children" | "className" | "type"
+  >;
+
+export type MapToolbarIconButtonProps =
+  | MapToolbarIconButtonAsButton
+  | MapToolbarIconButtonAsMenuTrigger;
+
+function MapToolbarIconButtonContent({
+  icon,
+  badgeCount,
+}: {
+  icon: React.ReactNode;
+  badgeCount?: number;
 }) {
+  return (
+    <>
+      <span className={styles.iconCell}>{icon}</span>
+      {badgeCount != null && badgeCount > 0 ? (
+        <span className={styles.badge} aria-hidden>
+          {badgeCount > 9 ? "9+" : badgeCount}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+/** Icon-only map toolbar control (action button or dropdown trigger). */
+export function MapToolbarIconButton(props: MapToolbarIconButtonProps) {
+  const { icon, label, active, title, badgeCount } = props;
+  const className = cn(styles.iconButton, active && styles.buttonActive);
+
+  if (props.menuTrigger) {
+    const {
+      menuTrigger: _menuTrigger,
+      icon: _icon,
+      label: _label,
+      active: _active,
+      title: _title,
+      badgeCount: _badgeCount,
+      ...triggerProps
+    } = props;
+    return (
+      <DropdownMenuTrigger
+        type="button"
+        title={title ?? label}
+        aria-label={label}
+        className={className}
+        {...triggerProps}
+      >
+        <MapToolbarIconButtonContent icon={icon} badgeCount={badgeCount} />
+      </DropdownMenuTrigger>
+    );
+  }
+
+  const { onClick } = props;
   return (
     <button
       type="button"
       title={title ?? label}
       aria-label={label}
       onClick={onClick}
-      className={cn(styles.iconButton, active && styles.buttonActive)}
+      className={className}
     >
-      <span className={styles.iconCell}>{icon}</span>
-      {badgeCount != null && badgeCount > 0 ? (
-        <span className={styles.badge} aria-hidden>
-          {badgeCount > 9 ? "9+" : badgeCount}
-        </span>
-      ) : null}
+      <MapToolbarIconButtonContent icon={icon} badgeCount={badgeCount} />
     </button>
   );
 }
 
-/** Map-toolbar-styled dropdown trigger (single button, no nested controls). */
-export function MapToolbarMenuTrigger({
-  icon,
-  label,
-  active,
-  title,
-  badgeCount,
-  ...props
-}: Omit<React.ComponentProps<typeof DropdownMenuTrigger>, "children"> & {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  title?: string;
-  badgeCount?: number;
-}) {
-  return (
-    <DropdownMenuTrigger
-      type="button"
-      title={title ?? label}
-      aria-label={label}
-      className={cn(styles.menuTrigger, active && styles.buttonActive)}
-      {...props}
-    >
-      <span className={styles.iconCell}>{icon}</span>
-      {badgeCount != null && badgeCount > 0 ? (
-        <span className={styles.badge} aria-hidden>
-          {badgeCount > 9 ? "9+" : badgeCount}
-        </span>
-      ) : null}
-    </DropdownMenuTrigger>
-  );
+/** @deprecated Use `MapToolbarIconButton` with `menuTrigger`. */
+export function MapToolbarMenuTrigger(
+  props: Omit<MapToolbarIconButtonAsMenuTrigger, "menuTrigger">,
+) {
+  return <MapToolbarIconButton menuTrigger {...props} />;
 }

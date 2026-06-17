@@ -26,6 +26,7 @@ type EntityLabelInputProps = {
   label?: string;
   name: string;
   onNameChange: (name: string) => void;
+  onNameBlur?: () => void;
   placeholder?: string;
   disabled?: boolean;
   color?: string;
@@ -43,6 +44,7 @@ export function EntityLabelInput({
   label,
   name,
   onNameChange,
+  onNameBlur,
   placeholder,
   disabled = false,
   color,
@@ -210,6 +212,7 @@ export function EntityLabelInput({
           placeholder={placeholder}
           disabled={disabled}
           onChange={(event) => onNameChange(event.target.value)}
+          onBlur={() => onNameBlur?.()}
         />
       </div>
     </div>

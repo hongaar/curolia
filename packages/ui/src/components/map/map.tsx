@@ -152,12 +152,21 @@ export const MapSidePanel = React.forwardRef<
     children: React.ReactNode;
     /** Slide-in when the user selects a map marker; omit on URL restore / navigation. */
     animateIn?: boolean;
+    /** Child regions own scrolling (e.g. sticky footer + scrollable body). */
+    containBody?: boolean;
   }
->(function MapSidePanel({ children, animateIn = false }, ref) {
+>(function MapSidePanel(
+  { children, animateIn = false, containBody = false },
+  ref,
+) {
   return (
     <div
       ref={ref}
-      className={cn(styles.sidePanel, animateIn && styles.sidePanelEnter)}
+      className={cn(
+        styles.sidePanel,
+        containBody && styles.sidePanelContain,
+        animateIn && styles.sidePanelEnter,
+      )}
     >
       {children}
     </div>

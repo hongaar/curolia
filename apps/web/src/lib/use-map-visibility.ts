@@ -12,6 +12,7 @@ export function useMapVisibility(map: { id: string; slug: string }) {
   async function setPublic(
     isPublic: boolean,
     currentIsPublic: boolean,
+    options?: { silent?: boolean },
   ): Promise<boolean> {
     if (isPublic === currentIsPublic) return true;
     setPublicBusy(true);
@@ -21,10 +22,12 @@ export function useMapVisibility(map: { id: string; slug: string }) {
     });
     setPublicBusy(false);
     if (error) {
-      toast.error(error.message);
+      if (!options?.silent) toast.error(error.message);
       return false;
     }
-    toast.success(isPublic ? "Map is now public" : "Map is now private");
+    if (!options?.silent) {
+      toast.success(isPublic ? "Map is now public" : "Map is now private");
+    }
     if (user) {
       await qc.invalidateQueries({ queryKey: ["maps", user.id] });
     }
