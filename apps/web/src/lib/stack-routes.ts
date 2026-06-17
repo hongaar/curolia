@@ -1,9 +1,10 @@
 import type { Location } from "react-router-dom";
 
-/** Map / blog — kept mounted under the stack. */
+/** Map / blog / gallery — kept mounted under the stack. */
 const BASE_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/[^/]+\/[^/]+\/map\/?$/,
   /^\/[^/]+\/[^/]+\/blog\/?$/,
+  /^\/[^/]+\/[^/]+\/gallery\/?$/,
 ];
 
 /** Screens stacked above the base (settings, pin detail, …). */

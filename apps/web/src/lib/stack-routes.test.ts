@@ -24,14 +24,16 @@ describe("isStackRoute", () => {
   it("does not match primary map views", () => {
     expect(isStackRoute("/joram/summer-2024/map")).toBe(false);
     expect(isStackRoute("/joram/summer-2024/blog")).toBe(false);
+    expect(isStackRoute("/joram/summer-2024/gallery")).toBe(false);
     expect(isStackRoute("/settings/plugins")).toBe(false);
   });
 });
 
 describe("isBaseRoute", () => {
-  it("matches profile-scoped map and blog routes", () => {
+  it("matches profile-scoped map, blog, and gallery routes", () => {
     expect(isBaseRoute("/joram/trip/map")).toBe(true);
     expect(isBaseRoute("/joram/trip/blog")).toBe(true);
+    expect(isBaseRoute("/joram/trip/gallery")).toBe(true);
   });
 
   it("does not match stack screens", () => {

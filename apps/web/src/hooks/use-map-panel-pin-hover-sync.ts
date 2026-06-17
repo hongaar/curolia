@@ -9,9 +9,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const HOVER_PAN_DEBOUNCE_MS = 180;
 
-type UseBlogHoverMapSyncOptions = {
+type UseMapPanelPinHoverSyncOptions = {
   enabled: boolean;
-  blogPanelRef: RefObject<HTMLElement | null>;
+  sidePanelRef: RefObject<HTMLElement | null>;
   mapRef: RefObject<PinMapHandle | null>;
   pins: PinWithTags[];
   mapId?: string;
@@ -21,17 +21,17 @@ type UseBlogHoverMapSyncOptions = {
   suspendPanRef?: RefObject<boolean>;
 };
 
-/** Pans the map when the user hovers a pin section in the embedded blog panel. */
-export function useBlogHoverMapSync({
+/** Pans the map when the user hovers a pin in an embedded map side panel (blog or gallery). */
+export function useMapPanelPinHoverSync({
   enabled,
-  blogPanelRef,
+  sidePanelRef,
   mapRef,
   pins,
   mapId,
   mapFitReady = true,
   suspendPanRef,
-}: UseBlogHoverMapSyncOptions) {
-  const [blogHoverPinId, setBlogHoverPinId] = useState<string | null>(null);
+}: UseMapPanelPinHoverSyncOptions) {
+  const [hoverPinId, setHoverPinId] = useState<string | null>(null);
   const [hoverMapId, setHoverMapId] = useState<string | undefined>(mapId);
   const pinsByIdRef = useRef(new Map<string, PinWithTags>());
   const lastPannedPinIdRef = useRef<string | null>(null);
@@ -39,8 +39,7 @@ export function useBlogHoverMapSync({
   const pendingPanPinIdRef = useRef<string | null>(null);
   const mapFitReadyRef = useRef(mapFitReady);
 
-  const activeBlogHoverPinId =
-    enabled && hoverMapId === mapId ? blogHoverPinId : null;
+  const activeHoverPinId = enabled && hoverMapId === mapId ? hoverPinId : null;
 
   useEffect(() => {
     mapFitReadyRef.current = mapFitReady;
@@ -90,37 +89,37 @@ export function useBlogHoverMapSync({
           return;
         }
         lastPannedPinIdRef.current = nextId;
-        const inset = measureMapPanelInset("side", blogPanelRef.current);
+        const inset = measureMapPanelInset("side", sidePanelRef.current);
         mapRef.current?.panForPanel(pin.lng, pin.lat, {
           right: inset.right ?? BLOG_PANEL_FALLBACK_WIDTH_PX,
         });
       }, HOVER_PAN_DEBOUNCE_MS);
     },
-    [enabled, blogPanelRef, mapRef, suspendPanRef],
+    [enabled, sidePanelRef, mapRef, suspendPanRef],
   );
 
-  const onBlogPinHover = useCallback(
+  const onPinHover = useCallback(
     (pinId: string) => {
       if (!enabled) return;
       setHoverMapId(mapId);
-      setBlogHoverPinId(pinId);
+      setHoverPinId(pinId);
       schedulePan(pinId);
     },
     [enabled, mapId, schedulePan],
   );
 
-  const onBlogPinHoverEnd = useCallback(() => {
+  const onPinHoverEnd = useCallback(() => {
     if (panDebounceRef.current) {
       clearTimeout(panDebounceRef.current);
       panDebounceRef.current = null;
     }
     pendingPanPinIdRef.current = null;
-    setBlogHoverPinId(null);
+    setHoverPinId(null);
   }, []);
 
   return {
-    blogHoverPinId: activeBlogHoverPinId,
-    onBlogPinHover,
-    onBlogPinHoverEnd,
+    hoverPinId: activeHoverPinId,
+    onPinHover,
+    onPinHoverEnd,
   };
 }

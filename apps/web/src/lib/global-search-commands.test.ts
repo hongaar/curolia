@@ -117,6 +117,7 @@ describe("filterGlobalSearchCommands", () => {
       "",
     );
     expect(visible.some((c) => c.id === "view-blog")).toBe(true);
+    expect(visible.some((c) => c.id === "view-gallery")).toBe(true);
     expect(visible.some((c) => c.id === "view-map")).toBe(false);
   });
 
@@ -131,10 +132,26 @@ describe("filterGlobalSearchCommands", () => {
       "",
     );
     expect(visible.some((c) => c.id === "view-map")).toBe(true);
+    expect(visible.some((c) => c.id === "view-gallery")).toBe(true);
     expect(visible.some((c) => c.id === "view-blog")).toBe(false);
   });
 
-  it("shows both view actions on pin detail", () => {
+  it("shows view map and blog on gallery routes", () => {
+    const visible = filterGlobalSearchCommands(
+      GLOBAL_SEARCH_COMMANDS,
+      {
+        ...baseCtx,
+        mapViewRoute: mapRoute,
+        mapViewContext: "gallery",
+      },
+      "",
+    );
+    expect(visible.some((c) => c.id === "view-map")).toBe(true);
+    expect(visible.some((c) => c.id === "view-blog")).toBe(true);
+    expect(visible.some((c) => c.id === "view-gallery")).toBe(false);
+  });
+
+  it("shows all view actions on pin detail", () => {
     const visible = filterGlobalSearchCommands(
       GLOBAL_SEARCH_COMMANDS,
       {
@@ -146,6 +163,7 @@ describe("filterGlobalSearchCommands", () => {
     );
     expect(visible.some((c) => c.id === "view-map")).toBe(true);
     expect(visible.some((c) => c.id === "view-blog")).toBe(true);
+    expect(visible.some((c) => c.id === "view-gallery")).toBe(true);
   });
 
   it("does not list invitations", () => {
@@ -159,9 +177,12 @@ describe("filterGlobalSearchCommands", () => {
 });
 
 describe("resolveGlobalSearchMapViewContext", () => {
-  it("detects map, blog, and pin detail routes", () => {
+  it("detects map, blog, gallery, and pin detail routes", () => {
     expect(resolveGlobalSearchMapViewContext("/me/trip/map")).toBe("map");
     expect(resolveGlobalSearchMapViewContext("/me/trip/blog")).toBe("blog");
+    expect(resolveGlobalSearchMapViewContext("/me/trip/gallery")).toBe(
+      "gallery",
+    );
     expect(resolveGlobalSearchMapViewContext("/me/trip/pin/cafe")).toBe(
       "pin-detail",
     );

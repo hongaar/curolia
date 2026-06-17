@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { BookOpen, Map as MapIcon, Settings } from "lucide-react";
+import { BookOpen, LayoutGrid, Map as MapIcon, Settings } from "lucide-react";
 import { MemoryRouter } from "react-router-dom";
 
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
@@ -119,6 +119,41 @@ export const Large: Story = {
     <SegmentedSwitcher aria-label="Map view" size="lg">
       <SwitcherLinks />
     </SegmentedSwitcher>
+  ),
+};
+
+export const ContainerLabels: Story = {
+  parameters: storyDocs(
+    '`labelMode="container"` — labels appear only when the host container is at least 36rem wide; slight overflow is allowed.',
+  ),
+  decorators: [
+    (Story) => (
+      <MemoryRouter initialEntries={["/map/demo"]}>
+        <Story />
+      </MemoryRouter>
+    ),
+  ],
+  render: () => (
+    <div
+      style={{
+        resize: "horizontal",
+        overflow: "auto",
+        width: "18rem",
+        minWidth: "12rem",
+        maxWidth: "100%",
+        padding: "1rem",
+        border: "1px dashed var(--border)",
+        containerType: "inline-size",
+        containerName: "map-controls-bottom-center",
+      }}
+    >
+      <SegmentedSwitcher aria-label="Map view" size="lg" labelMode="container">
+        <SwitcherLinks />
+        <SegmentedSwitcherLink to="/gallery/demo" end icon={<LayoutGrid />}>
+          Gallery
+        </SegmentedSwitcherLink>
+      </SegmentedSwitcher>
+    </div>
   ),
 };
 

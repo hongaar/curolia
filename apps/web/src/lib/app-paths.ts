@@ -5,7 +5,7 @@ import {
 } from "@/lib/map-view-params";
 import type { CuroliaMap } from "@/types/database";
 
-export type MapViewSegment = "map" | "blog";
+export type MapViewSegment = "map" | "blog" | "gallery";
 
 export type MapWithOwnerSlug = CuroliaMap & { owner_profile_slug: string };
 
@@ -57,11 +57,13 @@ export function resolveMapFromSettingsParam(
 
 /** Map uses fullscreen chrome (floating toolbar, no page chrome). */
 export function isMapFullscreenPathname(pathname: string): boolean {
-  return /^\/[^/]+\/[^/]+\/(map|blog)\/?$/.test(pathname);
+  return /^\/[^/]+\/[^/]+\/(map|blog|gallery)\/?$/.test(pathname);
 }
 
 export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {
-  return pathname.includes("/blog") ? "blog" : "map";
+  if (pathname.includes("/blog")) return "blog";
+  if (pathname.includes("/gallery")) return "gallery";
+  return "map";
 }
 
 /** Switch between map and blog for the same map, keeping tag filters. */

@@ -44,6 +44,12 @@
   max-width: 40rem;
 }
 
+.fullWidthContent {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
 .authorCard {
   display: grid;
   grid-template-columns: auto 1fr;

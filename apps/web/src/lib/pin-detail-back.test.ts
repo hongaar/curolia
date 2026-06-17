@@ -70,5 +70,6 @@ describe("pinDetailBackLabel", () => {
   it("maps view segments to labels", () => {
     expect(pinDetailBackLabel("map")).toBe("Back to map");
     expect(pinDetailBackLabel("blog")).toBe("Back to blog");
+    expect(pinDetailBackLabel("gallery")).toBe("Back to gallery");
   });
 });

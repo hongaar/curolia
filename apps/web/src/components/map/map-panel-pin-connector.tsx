@@ -8,46 +8,48 @@ import { createPortal } from "react-dom";
 
 /** Radius to stop the map segment before the marker center so the pin sits on top. */
 const MARKER_LINE_INSET_PX = 18;
-/** Gap between the blog line start and pin title/content. */
-const BLOG_LINE_CONTENT_GAP_PX = 12;
-/** Offset below the scroll viewport top when the title is offscreen. */
-const BLOG_LINE_TOP_INSET_PX = 16;
+/** Gap between the panel line start and pin content. */
+const PANEL_LINE_CONTENT_GAP_PX = 12;
+/** Offset below the scroll viewport top when the line anchor is offscreen. */
+const PANEL_LINE_TOP_INSET_PX = 16;
 
-export type BlogPinConnectorAnchor = {
-  titleAnchor: HTMLElement;
+export type MapPanelPinConnectorAnchor = {
+  /** Element whose left edge and vertical position anchor the line (title, card, …). */
+  lineAnchor: HTMLElement;
+  /** Pin row/card container used to clamp the anchor while scrolling. */
   pinEntry: HTMLElement;
 };
 
-type BlogPinMapConnectorOverlayProps = {
+type MapPanelPinConnectorOverlayProps = {
   show: boolean;
   pinLng: number;
   pinLat: number;
-  anchorRef: RefObject<BlogPinConnectorAnchor | null>;
+  anchorRef: RefObject<MapPanelPinConnectorAnchor | null>;
   scrollRootRef: RefObject<HTMLElement | null>;
-  blogPanelRef: RefObject<HTMLElement | null>;
+  sidePanelRef: RefObject<HTMLElement | null>;
   mapRef: RefObject<PinMapHandle | null>;
 };
 
 type ConnectorSegments = {
-  blog: { x1: number; y1: number; x2: number; y2: number };
+  panel: { x1: number; y1: number; x2: number; y2: number };
   map: { x1: number; y1: number; x2: number; y2: number };
 };
 
-function splitConnectorAtBlogEdge(
-  titleX: number,
-  titleY: number,
+function splitConnectorAtPanelEdge(
+  anchorX: number,
+  anchorY: number,
   markerX: number,
   markerY: number,
-  blogPanelLeft: number,
+  panelLeft: number,
 ): { splitX: number; splitY: number } {
-  const dx = markerX - titleX;
+  const dx = markerX - anchorX;
   if (Math.abs(dx) < 1) {
-    return { splitX: blogPanelLeft, splitY: titleY };
+    return { splitX: panelLeft, splitY: anchorY };
   }
-  const t = (blogPanelLeft - titleX) / dx;
+  const t = (panelLeft - anchorX) / dx;
   return {
-    splitX: blogPanelLeft,
-    splitY: titleY + t * (markerY - titleY),
+    splitX: panelLeft,
+    splitY: anchorY + t * (markerY - anchorY),
   };
 }
 
@@ -81,54 +83,54 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function computeBlogLineAnchor(
-  titleAnchor: HTMLElement,
+function computePanelLineAnchor(
+  lineAnchor: HTMLElement,
   pinEntry: HTMLElement,
   scrollRoot: HTMLElement | null,
 ): { x: number; y: number } {
-  const titleRect = titleAnchor.getBoundingClientRect();
+  const lineRect = lineAnchor.getBoundingClientRect();
   const pinRect = pinEntry.getBoundingClientRect();
   const scrollRect = scrollRoot?.getBoundingClientRect();
 
   const visibleTop = scrollRect?.top ?? 0;
   const visibleBottom = scrollRect?.bottom ?? window.innerHeight;
-  const lockedTopY = visibleTop + BLOG_LINE_TOP_INSET_PX;
+  const lockedTopY = visibleTop + PANEL_LINE_TOP_INSET_PX;
 
   const pinVisibleBottom = Math.min(pinRect.bottom, visibleBottom);
-  const titleCenterY = titleRect.top + titleRect.height / 2;
-  const titleOffscreenAbove =
-    titleRect.bottom <= visibleTop || titleCenterY < lockedTopY;
+  const lineCenterY = lineRect.top + lineRect.height / 2;
+  const lineOffscreenAbove =
+    lineRect.bottom <= visibleTop || lineCenterY < lockedTopY;
 
   let anchorY: number;
-  if (titleOffscreenAbove) {
+  if (lineOffscreenAbove) {
     anchorY = lockedTopY;
   } else {
     const pinVisibleTop = Math.max(pinRect.top, visibleTop);
     anchorY =
       pinVisibleBottom > pinVisibleTop
-        ? clamp(titleCenterY, lockedTopY, pinVisibleBottom)
-        : titleCenterY;
+        ? clamp(lineCenterY, lockedTopY, pinVisibleBottom)
+        : lineCenterY;
   }
 
   return {
-    x: titleRect.left - BLOG_LINE_CONTENT_GAP_PX,
+    x: lineRect.left - PANEL_LINE_CONTENT_GAP_PX,
     y: anchorY,
   };
 }
 
-/** Draws a line from the blog pin title to the map marker while hovered. */
-export function BlogPinMapConnectorOverlay({
+/** Draws a line from a map side-panel pin to its map marker while hovered. */
+export function MapPanelPinConnectorOverlay({
   show,
   pinLng,
   pinLat,
   anchorRef,
   scrollRootRef,
-  blogPanelRef,
+  sidePanelRef,
   mapRef,
-}: BlogPinMapConnectorOverlayProps) {
+}: MapPanelPinConnectorOverlayProps) {
   const [segments, setSegments] = useState<ConnectorSegments | null>(null);
   const [mapContainer, setMapContainer] = useState<HTMLElement | null>(null);
-  const [blogPanelEl, setBlogPanelEl] = useState<HTMLElement | null>(null);
+  const [sidePanelEl, setSidePanelEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!show) return;
@@ -137,11 +139,11 @@ export function BlogPinMapConnectorOverlay({
       const anchor = anchorRef.current;
       const map = mapRef.current;
       const container = map?.getMapContainer() ?? null;
-      const blogPanel = blogPanelRef.current;
-      if (!anchor || !map || !container || !blogPanel) {
+      const sidePanel = sidePanelRef.current;
+      if (!anchor || !map || !container || !sidePanel) {
         setSegments(null);
         setMapContainer(null);
-        setBlogPanelEl(null);
+        setSidePanelEl(null);
         return;
       }
 
@@ -149,25 +151,25 @@ export function BlogPinMapConnectorOverlay({
       if (!screen) {
         setSegments(null);
         setMapContainer(null);
-        setBlogPanelEl(null);
+        setSidePanelEl(null);
         return;
       }
 
-      const { x: titleX, y: titleY } = computeBlogLineAnchor(
-        anchor.titleAnchor,
+      const { x: anchorX, y: anchorY } = computePanelLineAnchor(
+        anchor.lineAnchor,
         anchor.pinEntry,
         scrollRootRef.current,
       );
 
-      const blogPanelLeft =
-        blogPanelRef.current?.getBoundingClientRect().left ?? titleX - 1;
+      const panelLeft =
+        sidePanelRef.current?.getBoundingClientRect().left ?? anchorX - 1;
 
-      const { splitX, splitY } = splitConnectorAtBlogEdge(
-        titleX,
-        titleY,
+      const { splitX, splitY } = splitConnectorAtPanelEdge(
+        anchorX,
+        anchorY,
         screen.x,
         screen.y,
-        blogPanelLeft,
+        panelLeft,
       );
 
       const markerEnd = shortenToward(
@@ -183,9 +185,9 @@ export function BlogPinMapConnectorOverlay({
       const markerLocal = toMapLocal(markerEnd.x, markerEnd.y, containerRect);
 
       setMapContainer(container);
-      setBlogPanelEl(blogPanel);
+      setSidePanelEl(sidePanel);
       setSegments({
-        blog: { x1: titleX, y1: titleY, x2: splitX, y2: splitY },
+        panel: { x1: anchorX, y1: anchorY, x2: splitX, y2: splitY },
         map: {
           x1: splitLocal.x,
           y1: splitLocal.y,
@@ -204,22 +206,22 @@ export function BlogPinMapConnectorOverlay({
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [show, pinLng, pinLat, anchorRef, scrollRootRef, blogPanelRef, mapRef]);
+  }, [show, pinLng, pinLat, anchorRef, scrollRootRef, sidePanelRef, mapRef]);
 
   if (!show || !segments) return null;
 
-  const blogSegment = (
+  const panelSegment = (
     <MapBlogPinConnectorInPanel
-      x1={segments.blog.x1}
-      y1={segments.blog.y1}
-      x2={segments.blog.x2}
-      y2={segments.blog.y2}
+      x1={segments.panel.x1}
+      y1={segments.panel.y1}
+      x2={segments.panel.x2}
+      y2={segments.panel.y2}
     />
   );
 
   return (
     <>
-      {blogPanelEl ? createPortal(blogSegment, blogPanelEl) : null}
+      {sidePanelEl ? createPortal(panelSegment, sidePanelEl) : null}
       {mapContainer
         ? createPortal(
             <MapBlogPinConnectorMap

@@ -6,14 +6,14 @@ export type MapRoute = {
 };
 
 export type ParsedMapRoutePath = MapRoute & {
-  view: "map" | "blog" | "settings";
+  view: "map" | "blog" | "gallery" | "settings";
 };
 
 export type ParsedPinRoutePath = MapRoute & {
   pinSlug: string;
 };
 
-const MAP_VIEW_PATH_RE = /^\/([^/]+)\/([^/]+)\/(map|blog|settings)\/?$/;
+const MAP_VIEW_PATH_RE = /^\/([^/]+)\/([^/]+)\/(map|blog|gallery|settings)\/?$/;
 const PIN_PATH_RE = /^\/([^/]+)\/([^/]+)\/pin\/([^/]+)\/?$/;
 const PUBLIC_MAP_SHORTCUT_PATH_RE = /^\/([^/]+)\/([^/]+)\/?$/;
 
@@ -95,7 +95,13 @@ export function parseMapRoutePathname(pathname: string): MapRoute | null {
 
 export function isPublicMapViewPathname(pathname: string): boolean {
   const parsed = parseMapViewPathname(pathname);
-  if (parsed && (parsed.view === "map" || parsed.view === "blog")) return true;
+  if (
+    parsed &&
+    (parsed.view === "map" ||
+      parsed.view === "blog" ||
+      parsed.view === "gallery")
+  )
+    return true;
   if (parsePinRoutePathname(pathname)) return true;
   return parsePublicMapShortcutPathname(pathname) !== null;
 }

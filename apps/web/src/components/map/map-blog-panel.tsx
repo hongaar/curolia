@@ -1,15 +1,9 @@
 import { FloatingPanel } from "@/components/layout/floating-panel";
+import { BlogPinListSortLead } from "@/components/map/blog-pin-list-sort-lead";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { useBlogPinListSort } from "@/hooks/use-blog-pin-list-order";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
-import {
-  blogPinListDirectionAriaLabel,
-  blogPinListDirectionLabel,
-  blogPinListDirectionOptions,
-  blogPinListOrderAriaLabel,
-  blogPinListOrderLabel,
-  orderedBlogPinList,
-} from "@/lib/blog-pin-list-order";
+import { orderedBlogPinList } from "@/lib/blog-pin-list-order";
 import { formatPinDateRange } from "@/lib/pin-dates";
 import {
   photosToGalleryItems,
@@ -26,7 +20,6 @@ import {
   BlogContent,
   BlogEmptyPanel,
   BlogHeader,
-  BlogLead,
   BlogPinActions,
   BlogPinDate,
   BlogPinDescription,
@@ -36,21 +29,10 @@ import {
   BlogPinTitleButton,
   BlogPinTitleLink,
   BlogScroll,
-  BlogSortChevron,
-  BlogSortLabel,
-  BlogSortTrigger,
   BlogTagRow,
   BlogTitle,
 } from "@curolia/ui/blog";
 import { Button } from "@curolia/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@curolia/ui/dropdown-menu";
 import {
   MapBlogSidePanelContent,
   MapBlogSidePanelGallery,
@@ -62,11 +44,10 @@ import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { TagBadge } from "@curolia/ui/tag-badge";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown } from "lucide-react";
 import { useMemo, useRef, useState, type RefObject } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
-import type { BlogPinConnectorAnchor } from "@/components/map/blog-pin-map-connector";
+import type { MapPanelPinConnectorAnchor } from "@/components/map/map-panel-pin-connector";
 import { pinDetailHref } from "@/lib/app-paths";
 import type { MapRoute } from "@/lib/map-route";
 import { mapRouteForMap } from "@/lib/map-route";
@@ -79,7 +60,7 @@ type MapBlogPanelProps = {
   onViewPin?: (pinId: string) => void;
   scrollRootRef?: RefObject<HTMLDivElement | null>;
   /** Desktop map+blog: hover a pin section to focus it on the map. */
-  onPinHover?: (pinId: string, anchor: BlogPinConnectorAnchor) => void;
+  onPinHover?: (pinId: string, anchor: MapPanelPinConnectorAnchor) => void;
   onPinHoverEnd?: () => void;
 };
 
@@ -185,93 +166,12 @@ export function MapBlogPanel({
       {showOwnerCard && ownerProfile ? (
         <PublicMapOwnerCard profile={ownerProfile} />
       ) : null}
-      <BlogLead>
-        Pins are listed in{" "}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <BlogSortTrigger
-                aria-label={blogPinListOrderAriaLabel(blogListOrder)}
-              />
-            }
-          >
-            <BlogSortLabel>
-              {blogPinListOrderLabel(blogListOrder)}
-            </BlogSortLabel>
-            <BlogSortChevron>
-              <ChevronDown aria-hidden />
-            </BlogSortChevron>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuGroup>
-              <DropdownMenuRadioGroup
-                value={blogListOrder}
-                onValueChange={(v) => {
-                  if (
-                    v === "chronological" ||
-                    v === "alphabetical" ||
-                    v === "created"
-                  ) {
-                    setBlogListOrder(v);
-                  }
-                }}
-              >
-                <DropdownMenuRadioItem value="chronological">
-                  Chronological
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="alphabetical">
-                  Alphabetical
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="created">
-                  Created
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>{" "}
-        order,{" "}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <BlogSortTrigger
-                aria-label={blogPinListDirectionAriaLabel(
-                  blogListOrder,
-                  blogListDirection,
-                )}
-              />
-            }
-          >
-            <BlogSortLabel>
-              {blogPinListDirectionLabel(blogListOrder, blogListDirection)}
-            </BlogSortLabel>
-            <BlogSortChevron>
-              <ChevronDown aria-hidden />
-            </BlogSortChevron>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuGroup>
-              <DropdownMenuRadioGroup
-                value={blogListDirection}
-                onValueChange={(v) => {
-                  if (v === "asc" || v === "desc") {
-                    setBlogListDirection(v);
-                  }
-                }}
-              >
-                {blogPinListDirectionOptions(blogListOrder).map((option) => (
-                  <DropdownMenuRadioItem
-                    key={option.value}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        .
-      </BlogLead>
+      <BlogPinListSortLead
+        order={blogListOrder}
+        direction={blogListDirection}
+        onOrderChange={setBlogListOrder}
+        onDirectionChange={setBlogListDirection}
+      />
     </BlogHeader>
   );
 
@@ -362,7 +262,7 @@ function BlogPinEntry({
   signedUrlByPhotoId: Record<string, string>;
   embedded: boolean;
   onViewPin?: (pinId: string) => void;
-  onPinHover?: (pinId: string, anchor: BlogPinConnectorAnchor) => void;
+  onPinHover?: (pinId: string, anchor: MapPanelPinConnectorAnchor) => void;
   onPinHoverEnd?: () => void;
   onOpenPhoto: (photoId: string) => void;
 }) {
@@ -482,7 +382,7 @@ function BlogPinEntry({
               const titleAnchor = titleAnchorRef.current;
               const pinEntry = pinEntryRef.current;
               if (titleAnchor && pinEntry) {
-                onPinHover(t.id, { titleAnchor, pinEntry });
+                onPinHover(t.id, { lineAnchor: titleAnchor, pinEntry });
               }
             }
           : undefined

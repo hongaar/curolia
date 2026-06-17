@@ -6,7 +6,7 @@ import {
   SegmentedSwitcher,
   SegmentedSwitcherLink,
 } from "@curolia/ui/segmented-switcher";
-import { BookOpen, Map as MapIcon } from "lucide-react";
+import { BookOpen, LayoutGrid, Map as MapIcon } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 export function MapViewSwitcher() {
@@ -24,7 +24,7 @@ export function MapViewSwitcher() {
   const route = mapRouteForMap(activeMap);
 
   return (
-    <SegmentedSwitcher aria-label="Map view" size="lg">
+    <SegmentedSwitcher aria-label="Map view" size="lg" labelMode="container">
       <SegmentedSwitcherLink
         to={mapViewSwitchHref("map", route, search)}
         end
@@ -38,6 +38,13 @@ export function MapViewSwitcher() {
         icon={<BookOpen />}
       >
         Blog
+      </SegmentedSwitcherLink>
+      <SegmentedSwitcherLink
+        to={mapViewSwitchHref("gallery", route, search)}
+        end
+        icon={<LayoutGrid />}
+      >
+        Gallery
       </SegmentedSwitcherLink>
     </SegmentedSwitcher>
   );

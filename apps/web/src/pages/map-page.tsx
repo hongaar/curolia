@@ -1,11 +1,12 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
-import {
-  BlogPinMapConnectorOverlay,
-  type BlogPinConnectorAnchor,
-} from "@/components/map/blog-pin-map-connector";
 import { MapBlogPanel } from "@/components/map/map-blog-panel";
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
+import { MapGalleryPanel } from "@/components/map/map-gallery-panel";
+import {
+  MapPanelPinConnectorOverlay,
+  type MapPanelPinConnectorAnchor,
+} from "@/components/map/map-panel-pin-connector";
 import {
   MapPointerContextMenu,
   type MapPointerContextMenuTarget,
@@ -25,9 +26,9 @@ import {
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
-import { useBlogHoverMapSync } from "@/hooks/use-blog-hover-map-sync";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
+import { useMapPanelPinHoverSync } from "@/hooks/use-map-panel-pin-hover-sync";
 import { useMapPinPanel } from "@/hooks/use-map-pin-panel";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMaxSm } from "@/hooks/use-max-sm";
@@ -152,11 +153,15 @@ export function MapPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isBlogView = mapViewSegmentFromPathname(location.pathname) === "blog";
+  const isGalleryView =
+    mapViewSegmentFromPathname(location.pathname) === "gallery";
   const showBlogPanel = isBlogView && isWideEnough;
-  const blogSidePanelRef = useRef<HTMLDivElement>(null);
-  const blogScrollRef = useRef<HTMLDivElement>(null);
-  const blogConnectorAnchorRef = useRef<BlogPinConnectorAnchor | null>(null);
-  const suspendBlogScrollPanRef = useRef(false);
+  const showGalleryPanel = isGalleryView && isWideEnough;
+  const showContentSidePanel = showBlogPanel || showGalleryPanel;
+  const contentSidePanelRef = useRef<HTMLDivElement>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const connectorAnchorRef = useRef<MapPanelPinConnectorAnchor | null>(null);
+  const suspendContentPanRef = useRef(false);
   const { profileSlug, mapSlug } = useParams<{
     profileSlug: string;
     mapSlug: string;
@@ -535,60 +540,59 @@ export function MapPage() {
     setSearchParams,
     clearCameraIdleTimer,
     activeMapId,
-    panelInsetMeasureRef: showBlogPanel ? blogSidePanelRef : undefined,
-    persistentPanelOpen: showBlogPanel,
+    panelInsetMeasureRef: showContentSidePanel
+      ? contentSidePanelRef
+      : undefined,
+    persistentPanelOpen: showContentSidePanel,
   });
 
-  const { blogHoverPinId, onBlogPinHover, onBlogPinHoverEnd } =
-    useBlogHoverMapSync({
-      enabled: showBlogPanel && !showSidePanel,
-      blogPanelRef: blogSidePanelRef,
-      mapRef,
-      pins: visiblePinsForFit,
-      mapId: activeMapId ?? undefined,
-      mapFitReady: !awaitingMapFit,
-      suspendPanRef: suspendBlogScrollPanRef,
-    });
+  const { hoverPinId, onPinHover, onPinHoverEnd } = useMapPanelPinHoverSync({
+    enabled: showContentSidePanel && !showSidePanel,
+    sidePanelRef: contentSidePanelRef,
+    mapRef,
+    pins: visiblePinsForFit,
+    mapId: activeMapId ?? undefined,
+    mapFitReady: !awaitingMapFit,
+    suspendPanRef: suspendContentPanRef,
+  });
 
-  const handleBlogPinHover = useCallback(
-    (pinId: string, anchor: BlogPinConnectorAnchor) => {
-      blogConnectorAnchorRef.current = anchor;
-      onBlogPinHover(pinId);
+  const handlePanelPinHover = useCallback(
+    (pinId: string, anchor: MapPanelPinConnectorAnchor) => {
+      connectorAnchorRef.current = anchor;
+      onPinHover(pinId);
     },
-    [onBlogPinHover],
+    [onPinHover],
   );
 
-  const handleBlogPinHoverEnd = useCallback(() => {
-    blogConnectorAnchorRef.current = null;
-    onBlogPinHoverEnd();
-  }, [onBlogPinHoverEnd]);
+  const handlePanelPinHoverEnd = useCallback(() => {
+    connectorAnchorRef.current = null;
+    onPinHoverEnd();
+  }, [onPinHoverEnd]);
 
-  const blogHoverPin = useMemo(
-    () => pins.find((pin) => pin.id === blogHoverPinId) ?? null,
-    [pins, blogHoverPinId],
+  const hoverPin = useMemo(
+    () => pins.find((pin) => pin.id === hoverPinId) ?? null,
+    [pins, hoverPinId],
   );
 
-  const mapPanelRightWidth = showBlogPanel
+  const mapPanelRightWidth = showContentSidePanel
     ? BLOG_PANEL_WIDTH_CSS
     : showSidePanel
       ? PANEL_RIGHT_WIDTH_CSS
       : undefined;
 
   useLayoutEffect(() => {
-    if (!showBlogPanel) {
+    if (!showContentSidePanel) {
       mapRef.current?.clearPanelPadding();
       return;
     }
-    // Opening blog on the current map — shift camera for panel inset.
-    // Map switches while blog is open use fitVisiblePins + blog hover sync instead.
-    const applyBlogInset = () => {
-      const width = blogSidePanelRef.current?.offsetWidth;
+    const applyContentPanelInset = () => {
+      const width = contentSidePanelRef.current?.offsetWidth;
       const camera = mapRef.current?.getCurrentCamera();
       if (!width || !camera) return;
       mapRef.current?.panForPanel(camera.lng, camera.lat, { right: width });
     };
-    requestAnimationFrame(applyBlogInset);
-  }, [showBlogPanel]);
+    requestAnimationFrame(applyContentPanelInset);
+  }, [showContentSidePanel]);
 
   const onClosePinCollisionPicker = useCallback(() => {
     onCollisionClose();
@@ -1092,9 +1096,9 @@ export function MapPage() {
             selectedTagIds={filterTagIds}
             selectedPinId={mapSelectedPinId}
             scrollHoverPinId={
-              showBlogPanel && !showSidePanel ? blogHoverPinId : null
+              showContentSidePanel && !showSidePanel ? hoverPinId : null
             }
-            suspendBlogScrollPanRef={suspendBlogScrollPanRef}
+            suspendBlogScrollPanRef={suspendContentPanRef}
             collisionFocus={
               pinCollisionPicker
                 ? {
@@ -1170,36 +1174,51 @@ export function MapPage() {
             <MapControlsToolbar mapRef={mapRef} />
           </MapControlsBottomStack>
         </MapControlsLayer>
-        {showBlogPanel &&
-        blogHoverPin &&
-        typeof blogHoverPin.lat === "number" &&
-        typeof blogHoverPin.lng === "number" ? (
-          <BlogPinMapConnectorOverlay
+        {showContentSidePanel &&
+        hoverPin &&
+        typeof hoverPin.lat === "number" &&
+        typeof hoverPin.lng === "number" ? (
+          <MapPanelPinConnectorOverlay
             show
-            pinLng={blogHoverPin.lng}
-            pinLat={blogHoverPin.lat}
-            anchorRef={blogConnectorAnchorRef}
-            scrollRootRef={blogScrollRef}
-            blogPanelRef={blogSidePanelRef}
+            pinLng={hoverPin.lng}
+            pinLat={hoverPin.lat}
+            anchorRef={connectorAnchorRef}
+            scrollRootRef={contentScrollRef}
+            sidePanelRef={contentSidePanelRef}
             mapRef={mapRef}
           />
         ) : null}
+        {showGalleryPanel ? (
+          <MapBlogSidePanel ref={contentSidePanelRef}>
+            <MapGalleryPanel
+              mapSlug={mapSlug}
+              embedded
+              onViewPin={onSelectPin}
+              scrollRootRef={contentScrollRef}
+              onPinHover={handlePanelPinHover}
+              onPinHoverEnd={handlePanelPinHoverEnd}
+              gridColumns={3}
+            />
+            <MapBlogSidePanelScrim
+              show={showSidePanel}
+              onDismiss={onClosePinMapPopover}
+            />
+          </MapBlogSidePanel>
+        ) : null}
         {showBlogPanel ? (
-          <MapBlogSidePanel ref={blogSidePanelRef}>
+          <MapBlogSidePanel ref={contentSidePanelRef}>
             <MapBlogPanel
               mapSlug={mapSlug}
               embedded
               onViewPin={onSelectPin}
-              scrollRootRef={blogScrollRef}
-              onPinHover={handleBlogPinHover}
-              onPinHoverEnd={handleBlogPinHoverEnd}
+              scrollRootRef={contentScrollRef}
+              onPinHover={handlePanelPinHover}
+              onPinHoverEnd={handlePanelPinHoverEnd}
             />
-            {showBlogPanel ? (
-              <MapBlogSidePanelScrim
-                show={showSidePanel}
-                onDismiss={onClosePinMapPopover}
-              />
-            ) : null}
+            <MapBlogSidePanelScrim
+              show={showSidePanel}
+              onDismiss={onClosePinMapPopover}
+            />
           </MapBlogSidePanel>
         ) : null}
         {showSidePanel ? (

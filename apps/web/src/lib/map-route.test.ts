@@ -8,9 +8,10 @@ import {
 import { describe, expect, it } from "vitest";
 
 describe("isPublicMapViewPathname", () => {
-  it("allows public map and blog views", () => {
+  it("allows public map, blog, and gallery views", () => {
     expect(isPublicMapViewPathname("/joram/trip/map")).toBe(true);
     expect(isPublicMapViewPathname("/joram/trip/blog")).toBe(true);
+    expect(isPublicMapViewPathname("/joram/trip/gallery")).toBe(true);
     expect(isPublicMapViewPathname("/joram/trip")).toBe(true);
   });
 

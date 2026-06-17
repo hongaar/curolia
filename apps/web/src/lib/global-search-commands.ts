@@ -10,7 +10,11 @@ import {
 import { isPinDetailPagePathname } from "@/lib/pin-detail-back";
 import type { NavigateFunction } from "react-router-dom";
 
-export type GlobalSearchMapViewContext = "map" | "blog" | "pin-detail";
+export type GlobalSearchMapViewContext =
+  | "map"
+  | "blog"
+  | "gallery"
+  | "pin-detail";
 
 export type GlobalSearchCommandSection = "actions" | "pages";
 
@@ -37,6 +41,7 @@ export function resolveGlobalSearchMapViewContext(
   if (isPinDetailPagePathname(pathname)) return "pin-detail";
   const mapView = parseMapViewPathname(pathname);
   if (mapView?.view === "blog") return "blog";
+  if (mapView?.view === "gallery") return "gallery";
   if (mapView?.view === "map" || pathname === "/") return "map";
   return null;
 }
@@ -44,7 +49,9 @@ export function resolveGlobalSearchMapViewContext(
 export function canShowViewMapAction(ctx: GlobalSearchCommandContext): boolean {
   return Boolean(
     ctx.mapViewRoute &&
-    (ctx.mapViewContext === "blog" || ctx.mapViewContext === "pin-detail"),
+    (ctx.mapViewContext === "blog" ||
+      ctx.mapViewContext === "gallery" ||
+      ctx.mapViewContext === "pin-detail"),
   );
 }
 
@@ -53,7 +60,20 @@ export function canShowViewBlogAction(
 ): boolean {
   return Boolean(
     ctx.mapViewRoute &&
-    (ctx.mapViewContext === "map" || ctx.mapViewContext === "pin-detail"),
+    (ctx.mapViewContext === "map" ||
+      ctx.mapViewContext === "gallery" ||
+      ctx.mapViewContext === "pin-detail"),
+  );
+}
+
+export function canShowViewGalleryAction(
+  ctx: GlobalSearchCommandContext,
+): boolean {
+  return Boolean(
+    ctx.mapViewRoute &&
+    (ctx.mapViewContext === "map" ||
+      ctx.mapViewContext === "blog" ||
+      ctx.mapViewContext === "pin-detail"),
   );
 }
 
@@ -81,6 +101,13 @@ export const GLOBAL_SEARCH_COMMANDS: readonly GlobalSearchCommandDef[] = [
     title: "View blog",
     keywords: ["blog", "list", "switch", "view"],
     isAvailable: canShowViewBlogAction,
+  },
+  {
+    id: "view-gallery",
+    section: "actions",
+    title: "View gallery",
+    keywords: ["gallery", "cards", "grid", "photos", "switch", "view"],
+    isAvailable: canShowViewGalleryAction,
   },
   {
     id: "new-map",
@@ -200,6 +227,7 @@ const DEFAULT_EMPTY_ACTION_IDS = new Set([
   "map-settings",
   "view-map",
   "view-blog",
+  "view-gallery",
   "edit-pin",
   "move-pin",
   "delete-pin",
@@ -272,6 +300,13 @@ export function runGlobalSearchCommand(
       if (!canShowViewBlogAction(ctx) || !ctx.mapViewRoute) return;
       ctx.navigate(
         mapViewSwitchHref("blog", ctx.mapViewRoute, ctx.locationSearch),
+      );
+      return;
+    }
+    case "view-gallery": {
+      if (!canShowViewGalleryAction(ctx) || !ctx.mapViewRoute) return;
+      ctx.navigate(
+        mapViewSwitchHref("gallery", ctx.mapViewRoute, ctx.locationSearch),
       );
       return;
     }

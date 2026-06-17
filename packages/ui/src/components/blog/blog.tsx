@@ -31,6 +31,14 @@ export function BlogContent({ children }: { children: React.ReactNode }) {
   return <div className={styles.content}>{children}</div>;
 }
 
+export function BlogFullWidthContent({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.fullWidthContent}>{children}</div>;
+}
+
 export function BlogAuthorCard({
   avatar,
   name,

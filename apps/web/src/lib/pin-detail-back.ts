@@ -8,7 +8,7 @@ import type { Location } from "react-router-dom";
 
 export type PinDetailBackTarget = {
   href: string;
-  label: "Back to map" | "Back to blog";
+  label: "Back to map" | "Back to blog" | "Back to gallery";
   view: MapViewSegment;
 };
 
@@ -33,7 +33,9 @@ export function locationHref(
 export function pinDetailBackLabel(
   view: MapViewSegment,
 ): PinDetailBackTarget["label"] {
-  return view === "blog" ? "Back to blog" : "Back to map";
+  if (view === "blog") return "Back to blog";
+  if (view === "gallery") return "Back to gallery";
+  return "Back to map";
 }
 
 /** Map/blog return target from the frozen stack base location. */

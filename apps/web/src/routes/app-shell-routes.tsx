@@ -9,6 +9,7 @@ import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { PublicProfilePage } from "@/pages/public-profile-page";
 import { BlogRoute } from "@/routes/blog-route";
+import { GalleryRoute } from "@/routes/gallery-route";
 import { PublicMapShortcutRedirect } from "@/routes/public-map-shortcut-redirect";
 import { Navigate, Route } from "react-router-dom";
 
@@ -21,6 +22,7 @@ export const appShellRouteElements = (
     />
     <Route path=":profileSlug/:mapSlug/map" element={<MapPage />} />
     <Route path=":profileSlug/:mapSlug/blog" element={<BlogRoute />} />
+    <Route path=":profileSlug/:mapSlug/gallery" element={<GalleryRoute />} />
     <Route
       path=":profileSlug/:mapSlug/pin/:pinSlug/edit"
       element={<PinEditPage />}

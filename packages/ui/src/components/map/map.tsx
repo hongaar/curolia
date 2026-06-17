@@ -71,6 +71,15 @@ export function MapBlogSidePanelPinBody({
   return <div className={styles.blogSidePanelPinBody}>{children}</div>;
 }
 
+/** Full-width header region above the gallery grid in the map side panel. */
+export function MapBlogSidePanelGalleryHeader({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.blogSidePanelGalleryHeader}>{children}</div>;
+}
+
 /** Photo gallery region within the blog side panel (respects panel scroll padding). */
 export function MapBlogSidePanelGallery({
   children,
