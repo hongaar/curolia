@@ -181,7 +181,7 @@ export function MapBlogPanel({
 
   const blogHeader = (
     <BlogHeader>
-      <BlogTitle>{activeMap?.name.trim() || mapSlug || "Map"}</BlogTitle>
+      <BlogTitle>{activeMap?.name?.trim() || mapSlug || "Map"}</BlogTitle>
       {showOwnerCard && ownerProfile ? (
         <PublicMapOwnerCard profile={ownerProfile} />
       ) : null}
@@ -380,7 +380,9 @@ function BlogPinEntry({
     pinPhotos,
     galleryItems,
   );
-  const detailHref = blogMapRoute ? pinDetailHref(blogMapRoute, t.slug) : "#";
+  const pinSlug = t.slug?.trim();
+  const detailHref =
+    blogMapRoute && pinSlug ? pinDetailHref(blogMapRoute, pinSlug) : "#";
 
   const titleBlock = (
     <>

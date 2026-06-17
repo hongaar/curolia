@@ -85,7 +85,10 @@ export function BlogPageSsrView({
               {pins.map((pin) => {
                 const title = pin.title?.trim() || "Untitled pin";
                 const description = pin.description?.trim() ?? "";
-                const detailHref = pinDetailHref(route, pin.slug);
+                const pinSlug = pin.slug?.trim();
+                const detailHref = pinSlug
+                  ? pinDetailHref(route, pinSlug)
+                  : "#";
 
                 return (
                   <li key={pin.id}>
