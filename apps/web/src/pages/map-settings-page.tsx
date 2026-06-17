@@ -115,7 +115,7 @@ export function MapSettingsPage() {
   const [showPinMetadata, setShowPinMetadata] = useState(
     resolveMapPinMetadataShow(null),
   );
-  const [showPinRoute, setShowPinRoute] = useState(true);
+  const [showPinRoute, setShowPinRoute] = useState(false);
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [coverUploading, setCoverUploading] = useState(false);

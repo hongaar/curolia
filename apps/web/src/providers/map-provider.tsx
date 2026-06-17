@@ -301,7 +301,7 @@ export function MapProvider({
           name,
           created_by_user_id: user.id,
           icon_emoji,
-          show_pin_route: true,
+          show_pin_route: false,
         })
         .select()
         .single();
