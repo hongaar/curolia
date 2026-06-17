@@ -41,7 +41,7 @@ export function HomeSidebar() {
         <Button onClick={() => openNewMapDialog()}>New map</Button>
       </HomeFeedNewMapAction>
       <HomeFeedShortcutLink to={profileHref} icon={<User />}>
-        Profile
+        View my profile
       </HomeFeedShortcutLink>
       <HomeFeedShortcutLink to="/plugins" icon={<Plug />}>
         Plugins
