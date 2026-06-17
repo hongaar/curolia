@@ -228,7 +228,7 @@ jobs:
             "${{ env.DEPLOY_REF }}" > "$changelog_dir/${{ needs.resolve-version.outputs.app_version }}.txt"
 
       - name: Publish to Google Play
-        uses: r0adkll/upload-google-play@v1.1.3
+        uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.curolia.app
