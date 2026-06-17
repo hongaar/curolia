@@ -250,6 +250,19 @@ describe("resolveCollisionClickCamera", () => {
     });
     expect(center).toEqual({ x: 400, y: 300 });
   });
+
+  it("projects lng/lat relative to the padded visible map center", () => {
+    const center = projectLngLatAtCamera(0, 0, {
+      centerLng: 0,
+      centerLat: 0,
+      zoom: 10,
+      width: 800,
+      height: 600,
+      panelPadding: { top: 0, right: 400, bottom: 0, left: 0 },
+    });
+    expect(center.x).toBeCloseTo(200, 0);
+    expect(center.y).toBeCloseTo(300, 0);
+  });
 });
 
 describe("resolveCollisionGroupZoomTarget", () => {
@@ -403,6 +416,51 @@ describe("resolveCollisionGroupZoomTarget", () => {
         ...viewport,
       }),
     ).not.toBeNull();
+  });
+
+  it("keeps separated pins inside the visible map area when a side sheet is open", () => {
+    const pins = pinsAt(0.00012);
+    const panelPadding = { top: 0, right: 400, bottom: 0, left: 0 };
+    const target = resolveCollisionGroupZoomTarget({
+      pins,
+      currentZoom: 10,
+      tuning,
+      width: 800,
+      height: 600,
+      maxZoom: 20,
+      contentPaddingPx: 48,
+      panelPadding,
+      currentCenterLng: 4.9,
+      currentCenterLat: 52.37,
+    });
+
+    expect(target).not.toBeNull();
+    expect(
+      allPinsFitInViewport(
+        pins,
+        {
+          centerLng: target!.centerLng,
+          centerLat: target!.centerLat,
+          zoom: target!.zoom,
+          width: 800,
+          height: 600,
+          panelPadding,
+        },
+        48,
+      ),
+    ).toBe(true);
+    for (const pin of pins) {
+      const { x } = projectLngLatAtCamera(pin.lng, pin.lat, {
+        centerLng: target!.centerLng,
+        centerLat: target!.centerLat,
+        zoom: target!.zoom,
+        width: 800,
+        height: 600,
+        panelPadding,
+      });
+      expect(x).toBeLessThan(800 - 400 - 48);
+      expect(x).toBeGreaterThan(48);
+    }
   });
 });
 

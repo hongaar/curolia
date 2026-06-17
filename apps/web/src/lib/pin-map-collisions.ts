@@ -22,7 +22,67 @@ export type MapProjectionCamera = {
   zoom: number;
   width: number;
   height: number;
+  /** MapLibre side-panel padding — shifts the projected center. */
+  panelPadding?: MapViewportPadding;
 };
+
+export type MapViewportPadding = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+export const EMPTY_MAP_VIEWPORT_PADDING: MapViewportPadding = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+};
+
+export function uniformMapViewportPadding(px: number): MapViewportPadding {
+  return { top: px, right: px, bottom: px, left: px };
+}
+
+type CollisionZoomPadding = {
+  panelPadding: MapViewportPadding;
+  contentPaddingPx: number;
+};
+
+function resolveCollisionZoomPadding(options: {
+  paddingPx?: number;
+  panelPadding?: MapViewportPadding;
+  contentPaddingPx?: number;
+}): CollisionZoomPadding {
+  if (
+    options.panelPadding !== undefined ||
+    options.contentPaddingPx !== undefined
+  ) {
+    return {
+      panelPadding: options.panelPadding ?? EMPTY_MAP_VIEWPORT_PADDING,
+      contentPaddingPx: options.contentPaddingPx ?? 0,
+    };
+  }
+  return {
+    panelPadding: EMPTY_MAP_VIEWPORT_PADDING,
+    contentPaddingPx: options.paddingPx ?? 0,
+  };
+}
+
+function panelPaddingFor(camera: MapProjectionCamera): MapViewportPadding {
+  return camera.panelPadding ?? EMPTY_MAP_VIEWPORT_PADDING;
+}
+
+function projectionCenter(camera: MapProjectionCamera): {
+  x: number;
+  y: number;
+} {
+  const pad = panelPaddingFor(camera);
+  return {
+    x: pad.left + (camera.width - pad.left - pad.right) / 2,
+    y: pad.top + (camera.height - pad.top - pad.bottom) / 2,
+  };
+}
 
 export type PinGeoPoint = {
   pinId: string;
@@ -113,9 +173,10 @@ export function projectLngLatAtCamera(
   const centerY = mercatorNormalizedY(camera.centerLat) * worldSize;
   const x = ((lng + 180) / 360) * worldSize;
   const y = mercatorNormalizedY(lat) * worldSize;
+  const origin = projectionCenter(camera);
   return {
-    x: camera.width / 2 + (x - centerX),
-    y: camera.height / 2 + (y - centerY),
+    x: origin.x + (x - centerX),
+    y: origin.y + (y - centerY),
   };
 }
 
@@ -136,20 +197,19 @@ export function pinsCollideAtCamera(
 export function allPinsFitInViewport(
   pins: ReadonlyArray<PinLngLat>,
   camera: MapProjectionCamera,
-  paddingPx: number,
+  contentPaddingPx: number,
 ): boolean {
+  const pad = panelPaddingFor(camera);
   const { width, height } = camera;
-  if (width <= 0 || height <= 0) return false;
-  if (width - 2 * paddingPx <= 0 || height - 2 * paddingPx <= 0) return false;
+  const minX = pad.left + contentPaddingPx;
+  const maxX = width - pad.right - contentPaddingPx;
+  const minY = pad.top + contentPaddingPx;
+  const maxY = height - pad.bottom - contentPaddingPx;
+  if (maxX <= minX || maxY <= minY) return false;
 
   for (const pin of pins) {
     const { x, y } = projectLngLatAtCamera(pin.lng, pin.lat, camera);
-    if (
-      x < paddingPx ||
-      x > width - paddingPx ||
-      y < paddingPx ||
-      y > height - paddingPx
-    ) {
+    if (x < minX || x > maxX || y < minY || y > maxY) {
       return false;
     }
   }
@@ -277,13 +337,23 @@ function maximumZoomFittingAllPins(
   centerLat: number,
   width: number,
   height: number,
-  paddingPx: number,
+  padding: CollisionZoomPadding,
   maxZoom: number,
   zoomPrecision: number,
 ): number {
-  const cameraBase = { centerLng, centerLat, width, height };
+  const cameraBase = {
+    centerLng,
+    centerLat,
+    width,
+    height,
+    panelPadding: padding.panelPadding,
+  };
   const fits = (zoom: number) =>
-    allPinsFitInViewport(pins, { ...cameraBase, zoom }, paddingPx);
+    allPinsFitInViewport(
+      pins,
+      { ...cameraBase, zoom },
+      padding.contentPaddingPx,
+    );
 
   let lo = 0;
   let hi = maxZoom;
@@ -309,17 +379,23 @@ function minimumZoomSeparatingVisiblePins(
   centerLat: number,
   width: number,
   height: number,
-  paddingPx: number,
+  padding: CollisionZoomPadding,
   currentZoom: number,
   maxZoom: number,
   zoomPrecision: number,
 ): number | null {
-  const cameraBase = { centerLng, centerLat, width, height };
+  const cameraBase = {
+    centerLng,
+    centerLat,
+    width,
+    height,
+    panelPadding: padding.panelPadding,
+  };
   const satisfies = (zoom: number) => {
     const camera = { ...cameraBase, zoom };
     return (
       !pinsCollideAtCamera(pins, camera) &&
-      allPinsFitInViewport(pins, camera, paddingPx)
+      allPinsFitInViewport(pins, camera, padding.contentPaddingPx)
     );
   };
 
@@ -354,7 +430,12 @@ export type CollisionGroupZoomOptions = {
   pins: ReadonlyArray<PinLngLat>;
   width: number;
   height: number;
-  paddingPx: number;
+  /** Uniform margin inside the visible map (legacy). Prefer `contentPaddingPx`. */
+  paddingPx?: number;
+  /** MapLibre side-panel insets (blog, gallery, pin sheet). */
+  panelPadding?: MapViewportPadding;
+  /** Extra margin inside the visible map area on every side. */
+  contentPaddingPx?: number;
   currentCenterLng: number;
   currentCenterLat: number;
   currentZoom: number;
@@ -376,10 +457,17 @@ function resolveLargeCollisionGroupZoomTarget({
   width,
   height,
   paddingPx,
+  panelPadding,
+  contentPaddingPx,
   currentZoom,
   maxZoom,
   tuning = DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
 }: CollisionGroupZoomOptions): CollisionClickCamera | null {
+  const padding = resolveCollisionZoomPadding({
+    paddingPx,
+    panelPadding,
+    contentPaddingPx,
+  });
   const zoomCap = cappedCollisionMaxZoom(maxZoom, tuning);
   const centroid = collisionGroupCentroid(pins);
   const coarsePrecision = Math.max(tuning.zoomPrecision, 0.25);
@@ -389,6 +477,7 @@ function resolveLargeCollisionGroupZoomTarget({
     zoom: currentZoom,
     width,
     height,
+    panelPadding: padding.panelPadding,
   };
   const currentMaxSize = maxCollisionGroupSizeForPins(pins, currentAtCentroid);
 
@@ -398,7 +487,7 @@ function resolveLargeCollisionGroupZoomTarget({
     centroid.lat,
     width,
     height,
-    paddingPx,
+    padding,
     currentZoom,
     zoomCap,
     coarsePrecision,
@@ -417,7 +506,7 @@ function resolveLargeCollisionGroupZoomTarget({
     centroid.lat,
     width,
     height,
-    paddingPx,
+    padding,
     zoomCap,
     coarsePrecision,
   );
@@ -441,7 +530,7 @@ function maxZoomPassing(
   cameraBase: Omit<MapProjectionCamera, "zoom">,
   currentZoom: number,
   maxZoom: number,
-  paddingPx: number,
+  padding: CollisionZoomPadding,
   tuning: CollisionGroupZoomTuning,
   predicate: (camera: MapProjectionCamera) => boolean,
 ): number | null {
@@ -451,7 +540,11 @@ function maxZoomPassing(
 
   const passes = (zoom: number) =>
     predicate({ ...cameraBase, zoom }) &&
-    allPinsFitInViewport(pins, { ...cameraBase, zoom }, paddingPx);
+    allPinsFitInViewport(
+      pins,
+      { ...cameraBase, zoom },
+      padding.contentPaddingPx,
+    );
 
   let lo = minZoom;
   let hi = maxZoom;
@@ -491,19 +584,29 @@ function maxZoomPassing(
  * Highest zoom (centered on the pin centroid) that unpacks most of the stack.
  * Returns `null` when no useful zoom-in remains — caller should open the picker.
  */
-export function resolveCollisionGroupZoomTarget({
-  pins,
-  width,
-  height,
-  paddingPx,
-  currentCenterLng,
-  currentCenterLat,
-  currentZoom,
-  maxZoom,
-  tuning = DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
-}: CollisionGroupZoomOptions): CollisionClickCamera | null {
+export function resolveCollisionGroupZoomTarget(
+  options: CollisionGroupZoomOptions,
+): CollisionClickCamera | null {
+  const {
+    pins,
+    width,
+    height,
+    paddingPx,
+    panelPadding,
+    contentPaddingPx,
+    currentCenterLng,
+    currentCenterLat,
+    currentZoom,
+    maxZoom,
+    tuning = DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+  } = options;
   if (pins.length <= 1 || width <= 0 || height <= 0) return null;
 
+  const padding = resolveCollisionZoomPadding({
+    paddingPx,
+    panelPadding,
+    contentPaddingPx,
+  });
   const zoomCap = cappedCollisionMaxZoom(maxZoom, tuning);
 
   const stillColliding = pinsCollideAtCamera(pins, {
@@ -512,21 +615,12 @@ export function resolveCollisionGroupZoomTarget({
     zoom: currentZoom,
     width,
     height,
+    panelPadding: padding.panelPadding,
   });
   if (!stillColliding) return null;
 
   if (pins.length > LARGE_COLLISION_GROUP_PIN_COUNT) {
-    return resolveLargeCollisionGroupZoomTarget({
-      pins,
-      width,
-      height,
-      paddingPx,
-      currentCenterLng,
-      currentCenterLat,
-      currentZoom,
-      maxZoom,
-      tuning,
-    });
+    return resolveLargeCollisionGroupZoomTarget(options);
   }
 
   const centroid = collisionGroupCentroid(pins);
@@ -535,6 +629,7 @@ export function resolveCollisionGroupZoomTarget({
     centerLat: centroid.lat,
     width,
     height,
+    panelPadding: padding.panelPadding,
   };
   const currentAtCentroid: MapProjectionCamera = {
     ...cameraBase,
@@ -548,7 +643,7 @@ export function resolveCollisionGroupZoomTarget({
     cameraBase,
     currentZoom,
     zoomCap,
-    paddingPx,
+    padding,
     tuning,
     (camera) =>
       singletonFractionForPins(pins, camera) >= tuning.targetSingletonFraction,
@@ -566,7 +661,7 @@ export function resolveCollisionGroupZoomTarget({
     cameraBase,
     currentZoom,
     zoomCap,
-    paddingPx,
+    padding,
     tuning,
     (camera) =>
       singletonFractionForPins(pins, camera) >=
@@ -585,7 +680,7 @@ export function resolveCollisionGroupZoomTarget({
     cameraBase,
     currentZoom,
     zoomCap,
-    paddingPx,
+    padding,
     tuning,
     (camera) => maxCollisionGroupSizeForPins(pins, camera) < currentMaxSize,
   );
@@ -655,6 +750,7 @@ export function resolveCollisionClickCamera({
     width,
     height,
   };
+  const padding = resolveCollisionZoomPadding({ paddingPx });
   if (!pinsCollideAtCamera(pins, currentCamera)) return null;
 
   const bounds = geographicBounds(pins);
@@ -667,7 +763,7 @@ export function resolveCollisionClickCamera({
     bounds.centerLat,
     width,
     height,
-    paddingPx,
+    padding,
     maxZoom,
     zoomPrecision,
   );
@@ -694,7 +790,7 @@ export function resolveCollisionClickCamera({
     centroid.lat,
     width,
     height,
-    paddingPx,
+    padding,
     currentZoom,
     maxZoom,
     zoomPrecision,
@@ -719,7 +815,7 @@ export function resolveCollisionClickCamera({
       };
       if (
         bumpZoom > currentZoom + zoomPrecision / 2 &&
-        allPinsFitInViewport(pins, camera, paddingPx)
+        allPinsFitInViewport(pins, camera, padding.contentPaddingPx)
       ) {
         return camera;
       }

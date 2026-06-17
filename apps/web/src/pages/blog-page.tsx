@@ -79,7 +79,8 @@ export function BlogPage() {
   });
 
   const pinsQuery = useQuery({
-    queryKey: ["pins", activeMapId, "blog"],
+    // Distinct from MapBlogPanel's full pins query — same key would cache only `id`.
+    queryKey: ["pins", activeMapId, "blog", "probe"],
     queryFn: async () => {
       if (!activeMapId) return [];
       const { data, error } = await supabase

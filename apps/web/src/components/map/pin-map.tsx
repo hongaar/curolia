@@ -292,6 +292,16 @@ function cameraFitPaddingPx(map: maplibregl.Map): number {
   );
 }
 
+function mapPanelPadding(map: maplibregl.Map) {
+  const padding = map.getPadding();
+  return {
+    top: padding.top ?? 0,
+    right: padding.right ?? 0,
+    bottom: padding.bottom ?? 0,
+    left: padding.left ?? 0,
+  };
+}
+
 function fitPaddingForMap(
   map: maplibregl.Map,
   panelInset?: { top?: number; right?: number; bottom?: number; left?: number },
@@ -1388,11 +1398,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         if (width <= 0 || height <= 0) return false;
 
         const center = map.getCenter();
+        const panelPadding = mapPanelPadding(map);
         const cameraOptions = {
           pins,
           width,
           height,
-          paddingPx: cameraFitPaddingPx(map),
+          panelPadding,
+          contentPaddingPx: cameraFitPaddingPx(map),
           currentCenterLng: center.lng,
           currentCenterLat: center.lat,
           currentZoom: map.getZoom(),
@@ -1406,6 +1418,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         map.flyTo({
           center: [target.centerLng, target.centerLat],
           zoom: target.zoom,
+          padding: panelPadding,
           duration: CAMERA_DURATION_MS,
           essential: true,
         });

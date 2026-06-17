@@ -247,9 +247,9 @@ function GalleryPinCard({
     ? formatPinDateRange(pin.date, pin.end_date)
     : undefined;
   const photoLabel = photoCountLabel(photos.length);
-  const detailHref = galleryMapRoute
-    ? pinDetailHref(galleryMapRoute, pin.slug)
-    : "#";
+  const pinSlug = pin.slug?.trim();
+  const detailHref =
+    galleryMapRoute && pinSlug ? pinDetailHref(galleryMapRoute, pinSlug) : "#";
   const tagRow = pinTagRow(pin);
 
   const hoverHandlers =

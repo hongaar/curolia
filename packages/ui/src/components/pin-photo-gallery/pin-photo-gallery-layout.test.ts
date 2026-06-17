@@ -79,3 +79,9 @@ describe("photoAspect", () => {
     expect(photoAspect({})).toBeCloseTo(4 / 3);
   });
 });
+
+describe("targetRowHeightForWidth", () => {
+  it("uses taller rows on phone-width containers", () => {
+    expect(targetRowHeightForWidth(375)).toBeCloseTo(150);
+  });
+});

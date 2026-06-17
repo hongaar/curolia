@@ -79,7 +79,8 @@ export function GalleryPage() {
   });
 
   const pinsQuery = useQuery({
-    queryKey: ["pins", activeMapId, "gallery"],
+    // Distinct from MapGalleryPanel's full pins query — same key would cache only `id`.
+    queryKey: ["pins", activeMapId, "gallery", "probe"],
     queryFn: async () => {
       if (!activeMapId) return [];
       const { data, error } = await supabase

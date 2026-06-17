@@ -12,6 +12,7 @@ import {
   MapPointerContextMenu,
   type MapPointerContextMenuTarget,
 } from "@/components/map/map-pointer-context-menu";
+import { MapQuickSettingsControl } from "@/components/map/map-quick-settings-control";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
@@ -107,6 +108,7 @@ import {
   MapControlsBottomStack,
   MapControlsLayer,
   MapControlsTopLeft,
+  MapControlsTopRight,
   MapHost,
   MapLayer,
   MapPageRoot,
@@ -192,7 +194,7 @@ export function MapPage() {
     () => (activeMap ? mapRouteForMap(activeMap) : null),
     [activeMap],
   );
-  const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
+  const { canEdit: memberCanEdit, isOwner } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
   useRecordMapVisit(activeMapId);
   usePublicMapCrawlerBlockMeta(activeMap, publicView);
@@ -1166,6 +1168,14 @@ export function MapPage() {
                 showBio={false}
               />
             </MapControlsTopLeft>
+          ) : null}
+          {isOwner && !publicView && activeMap && activeMapRoute ? (
+            <MapControlsTopRight>
+              <MapQuickSettingsControl
+                map={activeMap}
+                mapRoute={activeMapRoute}
+              />
+            </MapControlsTopRight>
           ) : null}
           <MapControlsBottomCenter>
             {activeRelocatePinId ? (

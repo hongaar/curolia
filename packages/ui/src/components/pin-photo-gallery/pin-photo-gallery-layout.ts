@@ -228,7 +228,7 @@ export function computeColumnsLayout<T extends PinPhotoGalleryLayoutItem>(
 export function targetRowHeightForWidth(containerWidth: number): number {
   if (containerWidth >= 1200) return containerWidth / 5;
   if (containerWidth >= 600) return containerWidth / 4;
-  if (containerWidth >= 300) return containerWidth / 5;
+  if (containerWidth >= 300) return containerWidth / 2.5;
   return containerWidth / 2;
 }
 
