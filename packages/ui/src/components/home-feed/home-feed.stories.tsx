@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Plug, User } from "lucide-react";
+import { MapPlus, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
@@ -18,7 +19,7 @@ import {
   HomeFeedMapListEmpty,
   HomeFeedMapListItem,
   HomeFeedNewMapAction,
-  HomeFeedShortcutLink,
+  HomeFeedShortcutActions,
   HomeFeedShortcuts,
 } from "./home-feed";
 
@@ -38,18 +39,7 @@ export const Layout: Story = {
   render: () => (
     <HomeFeedLayout>
       <HomeFeedAside>
-        <HomeFeedShortcuts>
-          <HomeFeedNewMapAction>
-            <Button>New map</Button>
-          </HomeFeedNewMapAction>
-          <HomeFeedShortcutLink to="/joram" icon={<User />}>
-            Profile
-          </HomeFeedShortcutLink>
-          <HomeFeedShortcutLink to="/plugins" icon={<Plug />}>
-            Plugins
-          </HomeFeedShortcutLink>
-        </HomeFeedShortcuts>
-        <HomeFeedMapList title="Your maps" placement="sidebar">
+        <HomeFeedMapList title="Your maps">
           <HomeFeedMapListItem
             to="/alex/europe"
             title="Europe 2025"
@@ -70,6 +60,22 @@ export const Layout: Story = {
             meta="8 pins · 2d ago"
           />
         </HomeFeedMapList>
+        <HomeFeedShortcuts>
+          <HomeFeedShortcutActions>
+            <HomeFeedNewMapAction>
+              <Button>
+                <MapPlus aria-hidden />
+                New map
+              </Button>
+            </HomeFeedNewMapAction>
+            <HomeFeedNewMapAction>
+              <Button variant="outline" render={<Link to="/joram" />}>
+                <User aria-hidden />
+                View my profile
+              </Button>
+            </HomeFeedNewMapAction>
+          </HomeFeedShortcutActions>
+        </HomeFeedShortcuts>
       </HomeFeedAside>
       <HomeFeedMain>
         <MapCardStreamPanel title="Recently visited">
@@ -116,14 +122,14 @@ export const Layout: Story = {
     </HomeFeedLayout>
   ),
   ...storyDocs(
-    "Desktop sidebar with shortcuts, your-maps list, compact stream cards, and a denser four-column feed.",
+    "Sidebar with your-maps list, shortcut actions, compact stream cards, and a denser four-column feed.",
   ),
 };
 
 export const MapList: Story = {
   render: () => (
     <div style={{ maxWidth: "14rem" }}>
-      <HomeFeedMapList title="Your maps" placement="sidebar">
+      <HomeFeedMapList title="Your maps">
         <HomeFeedMapListItem
           to="/alex/europe"
           title="Europe 2025"
@@ -150,7 +156,6 @@ export const MapListEmpty: Story = {
     <div style={{ maxWidth: "14rem" }}>
       <HomeFeedMapList
         title="Your maps"
-        placement="sidebar"
         empty={
           <HomeFeedMapListEmpty>
             Maps you can edit will appear here after changes.

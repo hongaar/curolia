@@ -8,11 +8,12 @@ import type { Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import {
   HomeFeedNewMapAction,
-  HomeFeedShortcutLink,
+  HomeFeedShortcutActions,
   HomeFeedShortcuts,
 } from "@curolia/ui/home-feed";
 import { useQuery } from "@tanstack/react-query";
-import { Plug, User } from "lucide-react";
+import { MapPlus, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function HomeSidebar({ editedMaps }: { editedMaps: HomeFeedMap[] }) {
   const { user } = useAuth();
@@ -39,18 +40,23 @@ export function HomeSidebar({ editedMaps }: { editedMaps: HomeFeedMap[] }) {
 
   return (
     <>
+      <HomeEditedMapsList maps={editedMaps} />
       <HomeFeedShortcuts>
-        <HomeFeedNewMapAction>
-          <Button onClick={() => openNewMapDialog()}>New map</Button>
-        </HomeFeedNewMapAction>
-        <HomeFeedShortcutLink to={profileHref} icon={<User />}>
-          View my profile
-        </HomeFeedShortcutLink>
-        <HomeFeedShortcutLink to="/plugins" icon={<Plug />}>
-          Plugins
-        </HomeFeedShortcutLink>
+        <HomeFeedShortcutActions>
+          <HomeFeedNewMapAction>
+            <Button onClick={() => openNewMapDialog()}>
+              <MapPlus aria-hidden />
+              New map
+            </Button>
+          </HomeFeedNewMapAction>
+          <HomeFeedNewMapAction>
+            <Button variant="outline" render={<Link to={profileHref} />}>
+              <User aria-hidden />
+              View my profile
+            </Button>
+          </HomeFeedNewMapAction>
+        </HomeFeedShortcutActions>
       </HomeFeedShortcuts>
-      <HomeEditedMapsList maps={editedMaps} placement="sidebar" />
     </>
   );
 }

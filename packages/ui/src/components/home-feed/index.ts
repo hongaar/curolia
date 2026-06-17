@@ -6,7 +6,6 @@ export {
   HomeFeedMapListEmpty,
   HomeFeedMapListItem,
   HomeFeedNewMapAction,
-  HomeFeedShortcutLink,
+  HomeFeedShortcutActions,
   HomeFeedShortcuts,
-  type HomeFeedMapListPlacement,
 } from "./home-feed";

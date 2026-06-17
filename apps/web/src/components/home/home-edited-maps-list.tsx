@@ -5,20 +5,12 @@ import {
   HomeFeedMapList,
   HomeFeedMapListEmpty,
   HomeFeedMapListItem,
-  type HomeFeedMapListPlacement,
 } from "@curolia/ui/home-feed";
 
-export function HomeEditedMapsList({
-  maps,
-  placement = "sidebar",
-}: {
-  maps: HomeFeedMap[];
-  placement?: HomeFeedMapListPlacement;
-}) {
+export function HomeEditedMapsList({ maps }: { maps: HomeFeedMap[] }) {
   return (
     <HomeFeedMapList
       title="Your maps"
-      placement={placement}
       empty={
         <HomeFeedMapListEmpty>
           Maps you can edit will appear here after changes.

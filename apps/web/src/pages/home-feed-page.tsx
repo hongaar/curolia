@@ -1,4 +1,3 @@
-import { HomeEditedMapsList } from "@/components/home/home-edited-maps-list";
 import { HomeSidebar } from "@/components/home/home-sidebar";
 import { UserAvatar } from "@/components/user-avatar";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
@@ -168,8 +167,6 @@ export function HomeFeedPage() {
 
         <HomeFeedMain>
           <Stack gap="2xl">
-            <HomeEditedMapsList maps={edited} placement="mobile" />
-
             <Stack gap="md">
               <PageHeader>
                 <PageHeaderTitle>Recent updates</PageHeaderTitle>

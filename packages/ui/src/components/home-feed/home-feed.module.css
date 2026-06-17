@@ -41,54 +41,38 @@
   gap: var(--space-2);
 }
 
-.shortcutLink {
+@media (min-width: 48rem) {
+  .shortcuts {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  }
+}
+
+.shortcutActions {
   display: flex;
-  align-items: center;
+  flex-direction: row;
   gap: var(--space-2);
-  min-height: 2.25rem;
-  padding: var(--space-1) 0;
-  border-radius: var(--radius-md);
-  color: var(--primary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.25;
-  text-decoration: none;
-  text-underline-offset: 4px;
-  transition:
-    color 150ms ease,
-    text-decoration-color 150ms ease;
 }
 
-.shortcutLink:hover {
-  text-decoration: underline;
+@media (min-width: 48rem) {
+  .shortcutActions {
+    flex-direction: column;
+  }
 }
 
-.shortcutLink:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+.shortcutAction {
+  min-width: 0;
+  flex: 1;
 }
 
-.shortcutIcon {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 1rem;
-  height: 1rem;
-  color: currentColor;
-  opacity: 0.85;
+@media (min-width: 48rem) {
+  .shortcutAction {
+    flex: initial;
+  }
 }
 
-.shortcutIcon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.newMapAction {
-  margin-bottom: var(--space-2);
-}
-
-.newMapAction > * {
+.shortcutAction > * {
   width: 100%;
 }
 
@@ -96,27 +80,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-}
-
-.mapList[data-placement="sidebar"] {
-  display: none;
-}
-
-.mapList[data-placement="mobile"] {
-  display: flex;
-}
-
-@media (min-width: 48rem) {
-  .mapList[data-placement="sidebar"] {
-    display: flex;
-    margin-top: var(--space-4);
-    padding-top: var(--space-4);
-    border-top: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
-  }
-
-  .mapList[data-placement="mobile"] {
-    display: none;
-  }
 }
 
 .mapListTitle {
@@ -143,7 +106,8 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-1) var(--space-1) var(--space-1) 0;
+  padding-block: var(--space-1);
+  padding-inline: 0;
   border-radius: var(--radius-md);
   color: var(--foreground);
   text-decoration: none;
@@ -219,14 +183,4 @@
   font-size: var(--font-size-xs);
   line-height: 1.45;
   color: var(--muted-foreground);
-}
-
-@media (max-width: 47.99rem) {
-  .aside {
-    display: none;
-  }
-
-  .shortcuts {
-    display: none;
-  }
 }

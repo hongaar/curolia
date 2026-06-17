@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 
 import styles from "./home-feed.module.css";
 
-export type HomeFeedMapListPlacement = "sidebar" | "mobile";
-
 export function HomeFeedLayout({ children }: { children: React.ReactNode }) {
   return <div className={styles.homeFeedLayout}>{children}</div>;
 }
@@ -25,41 +23,28 @@ export function HomeFeedShortcuts({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function HomeFeedShortcutActions({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.shortcutActions}>{children}</div>;
+}
+
 export function HomeFeedNewMapAction({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <div className={styles.newMapAction}>{children}</div>;
-}
-
-export function HomeFeedShortcutLink({
-  to,
-  icon,
-  children,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link to={to} className={styles.shortcutLink}>
-      <span className={styles.shortcutIcon} aria-hidden>
-        {icon}
-      </span>
-      {children}
-    </Link>
-  );
+  return <div className={styles.shortcutAction}>{children}</div>;
 }
 
 export function HomeFeedMapList({
   title,
-  placement = "sidebar",
   empty,
   children,
 }: {
   title: React.ReactNode;
-  placement?: HomeFeedMapListPlacement;
   empty?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -68,7 +53,6 @@ export function HomeFeedMapList({
   return (
     <section
       className={styles.mapList}
-      data-placement={placement}
       aria-label={typeof title === "string" ? title : undefined}
     >
       <h2 className={styles.mapListTitle}>{title}</h2>
