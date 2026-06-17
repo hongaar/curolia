@@ -87,6 +87,7 @@
     "./bullet-list": "./src/components/bullet-list/index.ts",
     "./option-list": "./src/components/option-list/index.ts",
     "./photo-grid": "./src/components/photo-grid/index.ts",
+    "./pin-card": "./src/components/pin-card/index.ts",
     "./pin-detail": "./src/components/pin-detail/index.ts",
     "./pin-form": "./src/components/pin-form/index.ts",
     "./pin-links": "./src/components/pin-links/index.ts",
