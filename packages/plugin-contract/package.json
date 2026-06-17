@@ -10,7 +10,7 @@
     }
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.49.8"
+    "@supabase/supabase-js": "2.105.1"
   },
   "peerDependencies": {
     "react": ">=19"

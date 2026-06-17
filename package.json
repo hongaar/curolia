@@ -21,11 +21,11 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "prettier": "^3.8.3",
-    "turbo": "^2.5.4",
-    "typescript": "~6.0.2"
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "prettier": "3.8.3",
+    "turbo": "2.9.8",
+    "typescript": "6.0.3"
   },
   "overrides": {
     "@vercel/node": {

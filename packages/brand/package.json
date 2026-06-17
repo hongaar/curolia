@@ -9,6 +9,6 @@
     "generate:native": "node scripts/generate-native.mjs"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5"
+    "@capacitor/assets": "3.0.5"
   }
 }
