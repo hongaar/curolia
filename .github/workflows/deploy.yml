@@ -48,7 +48,7 @@ jobs:
     outputs:
       app_version: ${{ steps.version.outputs.app_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.DEPLOY_REF }}
 
@@ -65,7 +65,7 @@ jobs:
       cancel-in-progress: false
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.DEPLOY_REF }}
 
@@ -120,7 +120,7 @@ jobs:
       group: production-vercel
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.DEPLOY_REF }}
 
@@ -171,7 +171,7 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       PLAY_STORE_TRACK: ${{ vars.PLAY_STORE_TRACK || 'internal' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.DEPLOY_REF }}
 
