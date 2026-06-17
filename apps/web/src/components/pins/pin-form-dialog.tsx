@@ -919,7 +919,10 @@ export function PinFormDialog({
   }
 
   const formFields = (
-    <PinFormGrid onPasteCapture={open ? onFormPasteCapture : undefined}>
+    <PinFormGrid
+      data-pin-form
+      onPasteCapture={open ? onFormPasteCapture : undefined}
+    >
       <Field>
         <FieldLabel htmlFor={`t-title-${idSuffix}`}>Title</FieldLabel>
         <FieldControl>

@@ -31,6 +31,10 @@
     "./cache": {
       "types": "./src/lru-cache.ts",
       "default": "./src/lru-cache.ts"
+    },
+    "./plus-code": {
+      "types": "./src/plus-code.ts",
+      "default": "./src/plus-code.ts"
     }
   },
   "scripts": {
@@ -38,6 +42,10 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/open-location-code": "1.0.1",
     "vitest": "3.2.4"
+  },
+  "dependencies": {
+    "open-location-code": "1.0.3"
   }
 }

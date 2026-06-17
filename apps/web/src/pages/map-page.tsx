@@ -73,9 +73,14 @@ import {
   stripMapBboxFromSearchParams,
   type MapCamera,
 } from "@/lib/map-view-params";
+import {
+  looksLikePastedLocation,
+  resolvePastedLocation,
+} from "@/lib/pasted-location";
 import { pinDetailSideSheetTitle } from "@/lib/pin-detail-side-sheet-title";
 import {
   fileFromClipboardData,
+  isPinFormPasteTarget,
   isPinFormTextEntryPasteTarget,
   urlFromClipboardData,
 } from "@/lib/pin-form-clipboard";
@@ -284,9 +289,13 @@ export function MapPage() {
 
   const openQuickAddForPin = useCallback(
     (row: Pin, lng: number, lat: number) => {
-      const p = mapRef.current?.lngLatToScreen(lng, lat);
-      setQuickAddAnchorScreen(p ?? null);
-      setQuickAddPin(row);
+      const show = () => {
+        const p = mapRef.current?.lngLatToScreen(lng, lat);
+        setQuickAddAnchorScreen(p ?? null);
+        setQuickAddPin(row);
+      };
+      mapRef.current?.panToLocationIfOutsideView(lng, lat, show);
+      if (!mapRef.current) show();
     },
     [],
   );
@@ -329,6 +338,48 @@ export function MapPage() {
     [activeMapId, canEdit, openQuickAddForPin, qc, setSearchParams],
   );
 
+  const createPinFromPastedLocation = useCallback(
+    (text: string) => {
+      if (!activeMapId || !canEdit || linkPasteBusyRef.current) return;
+      linkPasteBusyRef.current = true;
+      void (async () => {
+        try {
+          const camera = mapRef.current?.getCurrentCamera();
+          const location = await resolvePastedLocation(text, {
+            mapCenter: camera ? { lat: camera.lat, lng: camera.lng } : null,
+          });
+          if (!location) {
+            toast.message("Could not read coordinates from clipboard.");
+            return;
+          }
+          const pin = await createPinAtLocation({
+            mapId: activeMapId,
+            lat: location.lat,
+            lng: location.lng,
+            zoom: camera?.zoom ?? 12,
+          });
+          toast.success("Pin created");
+          await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+          invalidateHomeFeed(qc);
+          setSearchParams(
+            (prev) => applySelectedPinToSearchParams(prev, null),
+            { replace: true },
+          );
+          openQuickAddForPin(pin, location.lng, location.lat);
+        } catch (err) {
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : "Could not create pin from coordinates.",
+          );
+        } finally {
+          linkPasteBusyRef.current = false;
+        }
+      })();
+    },
+    [activeMapId, canEdit, openQuickAddForPin, qc, setSearchParams],
+  );
+
   useNativeShareLink(createPinFromSharedLink);
 
   useEffect(() => {
@@ -336,15 +387,22 @@ export function MapPage() {
       const data = e.clipboardData;
       if (!data) return;
       if (isPinFormTextEntryPasteTarget(e.target)) return;
+      if (isPinFormPasteTarget(e.target)) return;
       if (fileFromClipboardData(data)) return;
+      const text = data.getData("text/plain");
       const url = urlFromClipboardData(data);
-      if (!url) return;
+      if (url) {
+        e.preventDefault();
+        createPinFromSharedLink(url);
+        return;
+      }
+      if (!looksLikePastedLocation(text)) return;
       e.preventDefault();
-      createPinFromSharedLink(url);
+      createPinFromPastedLocation(text);
     };
     window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
-  }, [createPinFromSharedLink]);
+  }, [createPinFromPastedLocation, createPinFromSharedLink]);
 
   const pinsQuery = useQuery({
     queryKey: ["pins", activeMapId],

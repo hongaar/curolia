@@ -11,6 +11,15 @@ const NON_TEXT_INPUT_TYPES = new Set([
   "submit",
 ]);
 
+/** Pin editor shell (`data-pin-form` on dialog body / page wrapper). */
+export const PIN_FORM_PASTE_ROOT_SELECTOR = "[data-pin-form]";
+
+/** Whether a paste event originated inside an open pin editor. */
+export function isPinFormPasteTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return target.closest(PIN_FORM_PASTE_ROOT_SELECTOR) !== null;
+}
+
 /** Whether a lone URL paste should stay in the focused field (not used for image paste). */
 export function isPinFormTextEntryPasteTarget(
   target: EventTarget | null,

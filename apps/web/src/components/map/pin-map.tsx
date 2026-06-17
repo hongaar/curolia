@@ -135,6 +135,12 @@ export type PinMapHandle = {
     lat: number,
     options?: number | PinMapFlyToOptions,
   ) => void;
+  /** Pan to lng/lat at the current zoom when the point is outside the visible bounds. */
+  panToLocationIfOutsideView: (
+    lng: number,
+    lat: number,
+    onSettled?: () => void,
+  ) => void;
 };
 
 export type PinMapFlyToOptions = {
@@ -1544,6 +1550,32 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           padding,
           duration: CAMERA_DURATION_MS,
           essential: true,
+        });
+      },
+      panToLocationIfOutsideView(
+        lng: number,
+        lat: number,
+        onSettled?: () => void,
+      ) {
+        const map = mapRef.current;
+        if (!map) {
+          onSettled?.();
+          return;
+        }
+        if (map.getBounds().contains([lng, lat])) {
+          onSettled?.();
+          return;
+        }
+        invalidateMarkerViewportCullingRef.current();
+        map.easeTo({
+          center: [lng, lat],
+          duration: CAMERA_DURATION_MS,
+          essential: true,
+        });
+        map.once("moveend", () => {
+          map.resize();
+          syncMapOverlaysRef.current();
+          onSettled?.();
         });
       },
       restoreCameraAfterPanel(camera: MapCamera) {

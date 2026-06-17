@@ -52,6 +52,71 @@ export function parseLatLngPair(raw: string): Coords | null {
   return { lat, lng };
 }
 
+const DMS_COMPONENT =
+  /(\d+(?:\.\d+)?)\s*°\s*(\d+(?:\.\d+)?)\s*['′]\s*(\d+(?:\.\d+)?)\s*["″]?\s*([NSEW])/gi;
+
+function dmsComponentToDegrees(
+  degrees: number,
+  minutes: number,
+  seconds: number,
+  hemisphere: string,
+): number | null {
+  if (![degrees, minutes, seconds].every(Number.isFinite)) return null;
+  let value = degrees + minutes / 60 + seconds / 3600;
+  const h = hemisphere.toUpperCase();
+  if (h === "S" || h === "W") value = -Math.abs(value);
+  else if (h === "N" || h === "E") value = Math.abs(value);
+  else return null;
+  return value;
+}
+
+/** Parse DMS coordinates like `45°59'02.4"N 8°30'32.9"E`. */
+export function parseDmsLatLng(raw: string): Coords | null {
+  const matches = [...raw.trim().matchAll(DMS_COMPONENT)];
+  if (matches.length < 2) return null;
+
+  const first = dmsComponentToDegrees(
+    Number(matches[0]![1]),
+    Number(matches[0]![2]),
+    Number(matches[0]![3]),
+    matches[0]![4]!,
+  );
+  const second = dmsComponentToDegrees(
+    Number(matches[1]![1]),
+    Number(matches[1]![2]),
+    Number(matches[1]![3]),
+    matches[1]![4]!,
+  );
+  if (first == null || second == null) return null;
+
+  const firstHemisphere = matches[0]![4]!.toUpperCase();
+  const secondHemisphere = matches[1]![4]!.toUpperCase();
+  let lat: number;
+  let lng: number;
+  if (
+    (firstHemisphere === "N" || firstHemisphere === "S") &&
+    (secondHemisphere === "E" || secondHemisphere === "W")
+  ) {
+    lat = first;
+    lng = second;
+  } else if (
+    (secondHemisphere === "N" || secondHemisphere === "S") &&
+    (firstHemisphere === "E" || firstHemisphere === "W")
+  ) {
+    lat = second;
+    lng = first;
+  } else {
+    return null;
+  }
+
+  return isValidLatLng(lat, lng) ? { lat, lng } : null;
+}
+
+/** Parse decimal or DMS coordinate pairs from pasted text. */
+export function parseLocationCoordinates(raw: string): Coords | null {
+  return parseLatLngPair(raw) ?? parseDmsLatLng(raw);
+}
+
 export function pickBestLocation(
   candidates: ({
     lat: number;

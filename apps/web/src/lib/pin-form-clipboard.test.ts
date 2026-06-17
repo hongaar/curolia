@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   extractUrlFromSharedText,
   fileFromClipboardData,
+  isPinFormPasteTarget,
   isPinFormTextEntryPasteTarget,
   urlFromClipboardText,
 } from "./pin-form-clipboard";
@@ -25,6 +26,24 @@ function mockDataTransfer(init: {
     getData: (type: string) => (type === "text/plain" ? (init.text ?? "") : ""),
   } as unknown as DataTransfer;
 }
+
+describe("isPinFormPasteTarget", () => {
+  it("is true inside the pin editor shell", () => {
+    document.body.innerHTML = `
+      <div data-pin-form>
+        <span id="label">Links</span>
+        <input id="url" type="url" />
+      </div>
+      <button id="outside">Map</button>
+    `;
+    expect(isPinFormPasteTarget(document.getElementById("label"))).toBe(true);
+    expect(isPinFormPasteTarget(document.getElementById("url"))).toBe(true);
+    expect(isPinFormPasteTarget(document.getElementById("outside"))).toBe(
+      false,
+    );
+    expect(isPinFormPasteTarget(null)).toBe(false);
+  });
+});
 
 describe("isPinFormTextEntryPasteTarget", () => {
   it("is true for text-like inputs, textareas, and contenteditable", () => {
