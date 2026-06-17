@@ -133,7 +133,7 @@
   --muted-foreground: oklch(0.44 0.035 260);
   --accent: oklch(0.91 0.055 82);
   --accent-foreground: oklch(0.2 0.055 260);
-  --accent-strong: oklch(0.52 0.18 52);
+  --accent-strong: oklch(0.66 0.21 52);
   --accent-strong-foreground: oklch(0.98 0.015 90);
   --orange: var(--accent-strong);
   --orange-foreground: var(--accent-strong-foreground);
@@ -222,7 +222,7 @@ html.stack-chrome {
   --muted-foreground: oklch(0.72 0.025 95);
   --accent: oklch(0.3 0.045 260);
   --accent-foreground: oklch(0.94 0.025 95);
-  --accent-strong: oklch(0.68 0.16 52);
+  --accent-strong: oklch(0.74 0.19 52);
   --accent-strong-foreground: oklch(0.16 0.03 52);
   --orange: var(--accent-strong);
   --orange-foreground: var(--accent-strong-foreground);

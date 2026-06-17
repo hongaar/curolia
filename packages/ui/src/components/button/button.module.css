@@ -140,21 +140,16 @@
 }
 
 .variantAccent {
-  background: oklch(0.66 0.21 52);
-  color: oklch(0.98 0.015 90);
+  background: var(--accent-strong);
+  color: var(--accent-strong-foreground);
 }
 
 .variantAccent:hover {
-  background: oklch(0.62 0.21 52);
-}
-
-:global(.dark) .variantAccent {
-  background: oklch(0.74 0.19 52);
-  color: oklch(0.16 0.03 52);
+  background: color-mix(in oklch, var(--accent-strong) 88%, black);
 }
 
 :global(.dark) .variantAccent:hover {
-  background: oklch(0.7 0.19 52);
+  background: color-mix(in oklch, var(--accent-strong) 92%, black);
 }
 
 .sizeDefault {
