@@ -37,6 +37,7 @@ import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-blo
 import { useRecordMapVisit } from "@/hooks/use-record-map-visit";
 import { mapViewSegmentFromPathname, pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
+import { invalidateHomeFeed } from "@/lib/home-feed";
 import {
   readStoredMapCamera,
   writeStoredMapCamera,
@@ -741,6 +742,7 @@ export function MapPage() {
       if (activeMapId) {
         await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
       }
+      invalidateHomeFeed(qc);
       if (sidebarPinId === pinId) {
         onClosePinMapPopover();
       }
@@ -816,6 +818,7 @@ export function MapPage() {
       });
       toast.success("Pin created");
       await qc.invalidateQueries({ queryKey: ["pins", activeMapId] });
+      invalidateHomeFeed(qc);
       return row;
     },
     [activeMapId, canEdit, qc],

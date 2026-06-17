@@ -1,7 +1,9 @@
-import type * as React from "react";
+import * as React from "react";
 import { Link } from "react-router-dom";
 
 import styles from "./home-feed.module.css";
+
+export type HomeFeedMapListPlacement = "sidebar" | "mobile";
 
 export function HomeFeedLayout({ children }: { children: React.ReactNode }) {
   return <div className={styles.homeFeedLayout}>{children}</div>;
@@ -48,4 +50,71 @@ export function HomeFeedShortcutLink({
       {children}
     </Link>
   );
+}
+
+export function HomeFeedMapList({
+  title,
+  placement = "sidebar",
+  empty,
+  children,
+}: {
+  title: React.ReactNode;
+  placement?: HomeFeedMapListPlacement;
+  empty?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const hasItems = React.Children.count(children) > 0;
+
+  return (
+    <section
+      className={styles.mapList}
+      data-placement={placement}
+      aria-label={typeof title === "string" ? title : undefined}
+    >
+      <h2 className={styles.mapListTitle}>{title}</h2>
+      {hasItems ? <ul className={styles.mapListItems}>{children}</ul> : empty}
+    </section>
+  );
+}
+
+export function HomeFeedMapListItem({
+  to,
+  title,
+  coverUrl,
+  iconEmoji,
+  meta,
+}: {
+  to: string;
+  title: React.ReactNode;
+  coverUrl?: string | null;
+  iconEmoji?: React.ReactNode;
+  meta?: React.ReactNode;
+}) {
+  const hasCover = Boolean(coverUrl?.trim());
+
+  return (
+    <li>
+      <Link to={to} className={styles.mapListLink}>
+        <span className={styles.mapListThumb} aria-hidden>
+          {hasCover ? (
+            <img src={coverUrl!} alt="" className={styles.mapListThumbImage} />
+          ) : (
+            <span className={styles.mapListThumbEmoji}>{iconEmoji}</span>
+          )}
+        </span>
+        <span className={styles.mapListBody}>
+          <span className={styles.mapListName}>{title}</span>
+          {meta ? <span className={styles.mapListMeta}>{meta}</span> : null}
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+export function HomeFeedMapListEmpty({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.mapListEmpty}>{children}</p>;
 }

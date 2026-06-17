@@ -1,3 +1,5 @@
+import { HomeEditedMapsList } from "@/components/home/home-edited-maps-list";
+import type { HomeFeedMap } from "@/lib/home-feed";
 import { profileEditHref, publicProfileHref } from "@/lib/profile-route";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
@@ -12,7 +14,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Plug, User } from "lucide-react";
 
-export function HomeSidebar() {
+export function HomeSidebar({ editedMaps }: { editedMaps: HomeFeedMap[] }) {
   const { user } = useAuth();
   const { openNewMapDialog } = useNavigationShell();
 
@@ -36,16 +38,19 @@ export function HomeSidebar() {
     : profileEditHref();
 
   return (
-    <HomeFeedShortcuts>
-      <HomeFeedNewMapAction>
-        <Button onClick={() => openNewMapDialog()}>New map</Button>
-      </HomeFeedNewMapAction>
-      <HomeFeedShortcutLink to={profileHref} icon={<User />}>
-        View my profile
-      </HomeFeedShortcutLink>
-      <HomeFeedShortcutLink to="/plugins" icon={<Plug />}>
-        Plugins
-      </HomeFeedShortcutLink>
-    </HomeFeedShortcuts>
+    <>
+      <HomeFeedShortcuts>
+        <HomeFeedNewMapAction>
+          <Button onClick={() => openNewMapDialog()}>New map</Button>
+        </HomeFeedNewMapAction>
+        <HomeFeedShortcutLink to={profileHref} icon={<User />}>
+          View my profile
+        </HomeFeedShortcutLink>
+        <HomeFeedShortcutLink to="/plugins" icon={<Plug />}>
+          Plugins
+        </HomeFeedShortcutLink>
+      </HomeFeedShortcuts>
+      <HomeEditedMapsList maps={editedMaps} placement="sidebar" />
+    </>
   );
 }

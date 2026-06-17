@@ -141,3 +141,9 @@ export async function recordMapVisit(mapId: string): Promise<void> {
   });
   if (error) throw error;
 }
+
+export function invalidateHomeFeed(queryClient: {
+  invalidateQueries: (options: { queryKey: unknown[] }) => unknown;
+}): void {
+  void queryClient.invalidateQueries({ queryKey: ["home_feed"] });
+}

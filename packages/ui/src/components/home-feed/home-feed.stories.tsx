@@ -14,6 +14,9 @@ import {
   HomeFeedAside,
   HomeFeedLayout,
   HomeFeedMain,
+  HomeFeedMapList,
+  HomeFeedMapListEmpty,
+  HomeFeedMapListItem,
   HomeFeedNewMapAction,
   HomeFeedShortcutLink,
   HomeFeedShortcuts,
@@ -46,6 +49,27 @@ export const Layout: Story = {
             Plugins
           </HomeFeedShortcutLink>
         </HomeFeedShortcuts>
+        <HomeFeedMapList title="Your maps" placement="sidebar">
+          <HomeFeedMapListItem
+            to="/alex/europe"
+            title="Europe 2025"
+            coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
+            iconEmoji="🗺️"
+            meta="42 pins · 3d ago"
+          />
+          <HomeFeedMapListItem
+            to="/alex/food"
+            title="Food map"
+            iconEmoji="🍜"
+            meta="26 pins · 1w ago"
+          />
+          <HomeFeedMapListItem
+            to="/alex/weekend-hikes"
+            title="Weekend hikes"
+            iconEmoji="🥾"
+            meta="8 pins · 2d ago"
+          />
+        </HomeFeedMapList>
       </HomeFeedAside>
       <HomeFeedMain>
         <MapCardStreamPanel title="Recently visited">
@@ -92,6 +116,48 @@ export const Layout: Story = {
     </HomeFeedLayout>
   ),
   ...storyDocs(
-    "Desktop sidebar with compact stream cards and a denser four-column feed.",
+    "Desktop sidebar with shortcuts, your-maps list, compact stream cards, and a denser four-column feed.",
   ),
+};
+
+export const MapList: Story = {
+  render: () => (
+    <div style={{ maxWidth: "14rem" }}>
+      <HomeFeedMapList title="Your maps" placement="sidebar">
+        <HomeFeedMapListItem
+          to="/alex/europe"
+          title="Europe 2025"
+          coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
+          iconEmoji="🗺️"
+          meta="42 pins · 3d ago"
+        />
+        <HomeFeedMapListItem
+          to="/alex/food"
+          title="Food map"
+          iconEmoji="🍜"
+          meta="26 pins · 1w ago"
+        />
+      </HomeFeedMapList>
+    </div>
+  ),
+  ...storyDocs(
+    "Sidebar map list rows with cover or emoji thumb, title, and meta.",
+  ),
+};
+
+export const MapListEmpty: Story = {
+  render: () => (
+    <div style={{ maxWidth: "14rem" }}>
+      <HomeFeedMapList
+        title="Your maps"
+        placement="sidebar"
+        empty={
+          <HomeFeedMapListEmpty>
+            Maps you can edit will appear here after changes.
+          </HomeFeedMapListEmpty>
+        }
+      />
+    </div>
+  ),
+  ...storyDocs("Empty sidebar map list placeholder."),
 };

@@ -3,6 +3,7 @@ import { PinLinksEditor } from "@/components/pins/pin-links-editor";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
+import { invalidateHomeFeed } from "@/lib/home-feed";
 import { imageDimensionsFromFile } from "@/lib/image-dimensions";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
 import { mapRouteForMap } from "@/lib/map-route";
@@ -644,6 +645,7 @@ export function PinFormDialog({
       await qc.invalidateQueries({
         queryKey: ["map-pin-photos", pin.map_id],
       });
+      invalidateHomeFeed(qc);
       setDeleteOpen(false);
       onOpenChange(false);
       toast.success("Pin deleted");
@@ -761,6 +763,7 @@ export function PinFormDialog({
       } else {
         await qc.invalidateQueries({ queryKey: ["pins", mapId] });
       }
+      invalidateHomeFeed(qc);
       toast.success(pin ? "Pin updated" : "Pin created");
       onOpenChange(false);
     } catch (e) {

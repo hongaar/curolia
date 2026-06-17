@@ -1,3 +1,4 @@
+import { HomeEditedMapsList } from "@/components/home/home-edited-maps-list";
 import { HomeSidebar } from "@/components/home/home-sidebar";
 import { UserAvatar } from "@/components/user-avatar";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
@@ -162,16 +163,12 @@ export function HomeFeedPage() {
     <AppPageLayout width="full">
       <HomeFeedLayout>
         <HomeFeedAside>
-          <HomeSidebar />
+          <HomeSidebar editedMaps={edited} />
         </HomeFeedAside>
 
         <HomeFeedMain>
           <Stack gap="2xl">
-            <HomeFeedStreamSection
-              title="Recently edited"
-              maps={edited}
-              emptyLabel="Maps you can edit will appear here after changes."
-            />
+            <HomeEditedMapsList maps={edited} placement="mobile" />
 
             <Stack gap="md">
               <PageHeader>
