@@ -6,6 +6,7 @@ import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
 import { invalidateHomeFeed } from "@/lib/home-feed";
 import { imageDimensionsFromFile } from "@/lib/image-dimensions";
 import { mapAnchorPanelMiddleware } from "@/lib/map-anchor-floating-ui";
+import { removeMapCover, setMapCoverFromPinPhoto } from "@/lib/map-cover";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   fileFromClipboardData,
@@ -74,6 +75,7 @@ import {
 } from "@curolia/ui/page";
 import {
   PhotoGrid,
+  PhotoGridCoverButton,
   PhotoGridPlaceholder,
   PhotoGridRemoveButton,
   PhotoGridThumb,
@@ -164,7 +166,7 @@ export function PinFormDialog({
   const { user } = useAuth();
   const { plugins: enabledPlugins } = useEnabledPlugins();
   const navigate = useNavigate();
-  const { maps } = useMap();
+  const { maps, refetch: refetchMaps } = useMap();
   const isNarrow = useMaxSm();
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
@@ -215,6 +217,49 @@ export function PinFormDialog({
     [geocode],
   );
 
+  const currentMap = useMemo(
+    () => maps.find((m) => m.id === mapId) ?? null,
+    [maps, mapId],
+  );
+
+  const mapOwnerQuery = useQuery({
+    queryKey: ["map_member_role", mapId, user?.id],
+    queryFn: async () => {
+      if (!mapId || !user) return null;
+      const { data, error: err } = await supabase
+        .from("map_members")
+        .select("role")
+        .eq("map_id", mapId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (err) throw err;
+      return data?.role ?? null;
+    },
+    enabled: open && Boolean(mapId && user),
+  });
+
+  const isMapOwner = mapOwnerQuery.data === "owner";
+  const mapCoverPhotoId = currentMap?.cover_photo_id ?? null;
+
+  const setMapCoverMut = useMutation({
+    mutationFn: async (photo: Photo) => {
+      if (!mapId) throw new Error("missing_map");
+      await setMapCoverFromPinPhoto(mapId, photo);
+    },
+    onSuccess: async () => {
+      toast.success("Map cover photo updated");
+      if (user) {
+        await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+      }
+      await refetchMaps();
+    },
+    onError: (e) => {
+      toast.error(
+        e instanceof Error ? e.message : "Could not set map cover photo.",
+      );
+    },
+  });
+
   const reorderPhotosMut = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       if (!pin) throw new Error("missing_pin");
@@ -261,6 +306,9 @@ export function PinFormDialog({
           .remove([path]);
         if (stErr) console.error(stErr);
       }
+      if (mapCoverPhotoId === photoId && isMapOwner) {
+        await removeMapCover(mapId);
+      }
     },
     onSuccess: async (_data, photoId) => {
       setPhotoLightbox((prev) => (prev?.photoId === photoId ? null : prev));
@@ -274,6 +322,10 @@ export function PinFormDialog({
         queryKey: ["photo-urls-batch", mapId],
       });
       await qc.invalidateQueries({ queryKey: ["pin-side-sheet", pin.id] });
+      if (mapCoverPhotoId === photoId && isMapOwner && user) {
+        await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+        await refetchMaps();
+      }
     },
     onError: (e) => {
       toast.error(e instanceof Error ? e.message : "Could not remove photo.");
@@ -987,6 +1039,13 @@ export function PinFormDialog({
             {photos.length > 1 ? (
               <FieldDescription variant="body">
                 Drag photos to reorder.
+                {isMapOwner
+                  ? " Use the image button to set the map cover."
+                  : null}
+              </FieldDescription>
+            ) : isMapOwner && photos.length === 1 ? (
+              <FieldDescription variant="body">
+                Use the image button to set the map cover.
               </FieldDescription>
             ) : null}
             {photos.length > 0 ? (
@@ -1002,9 +1061,23 @@ export function PinFormDialog({
                   const removing =
                     removePhotoMut.isPending &&
                     removePhotoMut.variables === p.id;
+                  const settingCover =
+                    setMapCoverMut.isPending &&
+                    setMapCoverMut.variables?.id === p.id;
+                  const isCover = mapCoverPhotoId === p.id;
                   return url ? (
                     <PhotoGridThumb
                       dragHandle={dragHandle}
+                      isCover={isCover}
+                      coverButton={
+                        isMapOwner ? (
+                          <PhotoGridCoverButton
+                            active={isCover}
+                            disabled={settingCover || isCover}
+                            onClick={() => setMapCoverMut.mutate(p)}
+                          />
+                        ) : undefined
+                      }
                       removeButton={
                         <PhotoGridRemoveButton
                           onClick={() => removePhotoMut.mutate(p.id)}
@@ -1014,6 +1087,7 @@ export function PinFormDialog({
                     >
                       <PinPhotoThumb
                         url={url}
+                        size="square"
                         onOpen={() => setPhotoLightbox({ photoId: p.id })}
                       />
                     </PhotoGridThumb>

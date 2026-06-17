@@ -2,7 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
-import { PhotoGrid, PhotoGridThumb } from "./photo-grid";
+import {
+  PhotoGrid,
+  PhotoGridCoverButton,
+  PhotoGridRemoveButton,
+  PhotoGridThumb,
+} from "./photo-grid";
 
 const meta = {
   title: "Photo Grid",
@@ -64,6 +69,62 @@ export const Sortable: Story = {
           onReorder={setItems}
           renderItem={(item, { dragHandle }) => (
             <PhotoGridThumb dragHandle={dragHandle}>
+              <div
+                style={{
+                  display: "grid",
+                  placeItems: "center",
+                  width: "100%",
+                  height: "100%",
+                  background: item.color,
+                  color: "white",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                }}
+              >
+                {item.label}
+              </div>
+            </PhotoGridThumb>
+          )}
+        />
+      </StoryFrame>
+    );
+  },
+};
+
+export const WithControls: Story = {
+  parameters: storyDocs(
+    "Hover controls: drag handle, map cover action, and remove.",
+  ),
+  render: function Render() {
+    const [coverId, setCoverId] = useState<string | null>("b");
+
+    return (
+      <StoryFrame width="md">
+        <PhotoGrid
+          items={[
+            { id: "a", label: "Sunset", color: "#f4a261" },
+            { id: "b", label: "Harbor", color: "#2a9d8f" },
+            { id: "c", label: "Street", color: "#264653" },
+            { id: "d", label: "Cafe", color: "#e9c46a" },
+            { id: "e", label: "Park", color: "#457b9d" },
+          ]}
+          getItemId={(item) => item.id}
+          onReorder={() => {}}
+          renderItem={(item, { dragHandle }) => (
+            <PhotoGridThumb
+              dragHandle={dragHandle}
+              isCover={coverId === item.id}
+              coverButton={
+                <PhotoGridCoverButton
+                  active={coverId === item.id}
+                  disabled={coverId === item.id}
+                  onClick={() => setCoverId(item.id)}
+                />
+              }
+              removeButton={
+                <PhotoGridRemoveButton onClick={() => setCoverId(null)} />
+              }
+            >
               <div
                 style={{
                   display: "grid",

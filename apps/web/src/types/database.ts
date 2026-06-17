@@ -47,6 +47,8 @@ export type CuroliaMap = {
   description: string | null;
   /** Optional cover image URL for the public profile map card. */
   cover_url: string | null;
+  /** Pin photo copied to the map cover, when set from the pin editor. */
+  cover_photo_id: string | null;
   /** When null, UI uses defaultMapIcon(). */
   icon_emoji: string | null;
   /** Basemap preset; `auto` follows app light/dark theme. */

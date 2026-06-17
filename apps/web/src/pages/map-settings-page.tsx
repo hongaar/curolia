@@ -15,6 +15,7 @@ import {
   mapViewHref,
   resolveMapFromSettingsParam,
 } from "@/lib/app-paths";
+import { removeMapCover, setMapCoverFromFile } from "@/lib/map-cover";
 import {
   defaultMapIcon,
   normalizeMapIconForPersist,
@@ -77,18 +78,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const MAX_MAP_DESCRIPTION_LENGTH = 500;
-const MAX_MAP_COVER_BYTES = 2 * 1024 * 1024;
-
-const COVER_MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-};
-
-function extFromCoverFile(file: File): string | null {
-  return COVER_MIME_TO_EXT[file.type] ?? null;
-}
 
 export function MapSettingsPage() {
   const { profileSlug: profileSlugParam, mapSlug: mapSlugParam } = useParams<{
@@ -258,78 +247,36 @@ export function MapSettingsPage() {
 
   async function uploadCover(file: File) {
     if (!mapId || !isOwner) return;
-    const ext = extFromCoverFile(file);
-    if (!ext) {
-      toast.error("Please choose a JPEG, PNG, GIF, or WebP image.");
-      return;
-    }
-    if (file.size > MAX_MAP_COVER_BYTES) {
-      toast.error("Image must be 2 MB or smaller.");
-      return;
-    }
     setCoverUploading(true);
-    const path = `${mapId}/cover.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("map-covers")
-      .upload(path, file, {
-        upsert: true,
-        contentType: file.type || `image/${ext === "jpg" ? "jpeg" : ext}`,
-      });
-    if (uploadError) {
+    try {
+      const publicUrl = await setMapCoverFromFile(mapId, file);
+      setCoverUrl(publicUrl);
+      toast.success("Cover photo updated");
+      if (user) {
+        await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+      }
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upload cover.");
+    } finally {
       setCoverUploading(false);
-      toast.error(uploadError.message);
-      return;
     }
-    const { data: pub } = supabase.storage
-      .from("map-covers")
-      .getPublicUrl(path);
-    const publicUrl = pub.publicUrl;
-    const { error: dbError } = await supabase
-      .from("maps")
-      .update({
-        cover_url: publicUrl,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", mapId);
-    setCoverUploading(false);
-    if (dbError) {
-      toast.error(dbError.message);
-      return;
-    }
-    setCoverUrl(publicUrl);
-    toast.success("Cover photo updated");
-    if (user) {
-      await qc.invalidateQueries({ queryKey: ["maps", user.id] });
-    }
-    if (coverInputRef.current) coverInputRef.current.value = "";
   }
 
   async function removeCover() {
     if (!mapId || !isOwner) return;
     setCoverUploading(true);
-    const { data: files } = await supabase.storage
-      .from("map-covers")
-      .list(mapId);
-    if (files?.length) {
-      const paths = files.map((f) => `${mapId}/${f.name}`);
-      await supabase.storage.from("map-covers").remove(paths);
-    }
-    const { error } = await supabase
-      .from("maps")
-      .update({
-        cover_url: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", mapId);
-    setCoverUploading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setCoverUrl("");
-    toast.success("Cover photo removed");
-    if (user) {
-      await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+    try {
+      await removeMapCover(mapId);
+      setCoverUrl("");
+      toast.success("Cover photo removed");
+      if (user) {
+        await qc.invalidateQueries({ queryKey: ["maps", user.id] });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not remove cover.");
+    } finally {
+      setCoverUploading(false);
     }
   }
 

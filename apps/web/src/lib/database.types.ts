@@ -206,6 +206,7 @@ export type Database = {
       maps: {
         Row: {
           block_public_crawlers: boolean;
+          cover_photo_id: string | null;
           cover_url: string | null;
           created_at: string;
           created_by_user_id: string;
@@ -225,6 +226,7 @@ export type Database = {
         };
         Insert: {
           block_public_crawlers?: boolean;
+          cover_photo_id?: string | null;
           cover_url?: string | null;
           created_at?: string;
           created_by_user_id: string;
@@ -244,6 +246,7 @@ export type Database = {
         };
         Update: {
           block_public_crawlers?: boolean;
+          cover_photo_id?: string | null;
           cover_url?: string | null;
           created_at?: string;
           created_by_user_id?: string;
@@ -261,7 +264,15 @@ export type Database = {
           style_satellite_labels?: boolean;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "maps_cover_photo_id_fkey";
+            columns: ["cover_photo_id"];
+            isOneToOne: false;
+            referencedRelation: "photos";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       notifications: {
         Row: {
@@ -1374,6 +1385,7 @@ export type Database = {
         Args: { p_desired: string; p_map_id: string; p_tag_id: string };
         Returns: string;
       };
+      touch_map_updated_at: { Args: { p_map_id: string }; Returns: undefined };
       transfer_map_ownership: {
         Args: { p_map_id: string; p_new_owner_user_id: string };
         Returns: undefined;

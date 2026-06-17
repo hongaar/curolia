@@ -1,4 +1,4 @@
-import { GripVertical, X } from "lucide-react";
+import { BookImage, GripVertical, X } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
 
@@ -113,7 +113,7 @@ export function PhotoGrid<T>(
                 setOverIndex(null);
               }}
             >
-              <GripVertical className={styles.dragHandleIcon} aria-hidden />
+              <GripVertical className={styles.actionButtonIcon} aria-hidden />
             </button>
           ) : null;
 
@@ -174,18 +174,30 @@ export function PhotoGridThumb({
   children,
   removeButton,
   dragHandle,
+  coverButton,
+  isCover,
   className,
 }: {
   children: React.ReactNode;
   removeButton?: React.ReactNode;
   dragHandle?: React.ReactNode;
+  coverButton?: React.ReactNode;
+  isCover?: boolean;
   className?: string;
 }) {
+  const hasControls = Boolean(removeButton || dragHandle || coverButton);
+
   return (
-    <div className={cn(styles.thumb, className)}>
-      {dragHandle}
+    <div className={cn(styles.thumb, isCover && styles.thumbCover, className)}>
+      {isCover ? <span className={styles.coverBadge}>Map cover</span> : null}
       {children}
-      {removeButton}
+      {hasControls ? (
+        <div className={styles.controls}>
+          <div className={styles.controlsStart}>{dragHandle}</div>
+          <div className={styles.controlsCenter}>{coverButton}</div>
+          <div className={styles.controlsEnd}>{removeButton}</div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -214,7 +226,42 @@ export function PhotoGridRemoveButton({
       aria-label={ariaLabel}
       title="Remove photo"
     >
-      <X className={styles.removeButtonIcon} aria-hidden />
+      <X className={styles.actionButtonIcon} aria-hidden />
+    </button>
+  );
+}
+
+export function PhotoGridCoverButton({
+  onClick,
+  disabled,
+  active = false,
+  ariaLabel = "Use as map cover",
+  className,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  ariaLabel?: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        styles.actionButton,
+        active && styles.actionButtonActive,
+        className,
+      )}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      title={active ? "Map cover photo" : "Use as map cover"}
+    >
+      <BookImage className={styles.actionButtonIcon} aria-hidden />
     </button>
   );
 }
