@@ -247,6 +247,7 @@ const VIEWPORT_BOUNDS_PADDING_RATIO = 0.35;
 /** Collision-click zoom tuning — edit fields or spread `DEFAULT_COLLISION_GROUP_ZOOM_TUNING`. */
 const COLLISION_GROUP_ZOOM_TUNING: CollisionGroupZoomTuning = {
   ...DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+  maxSeparationZoom: CAMERA_MAX_ZOOM,
 };
 
 function clampLatitude(lat: number): number {

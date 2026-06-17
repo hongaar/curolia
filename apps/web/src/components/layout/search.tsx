@@ -5,6 +5,7 @@ import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import {
   mapHrefWithSearch,
   mapSwitchHref,
+  mapViewHrefWithSearch,
   pinDetailHref,
 } from "@/lib/app-paths";
 import {
@@ -281,6 +282,7 @@ export function Search() {
     selectPlace,
     clearSelectedPlace,
     requestAddPinFromSelectedPlace,
+    requestPanelPinFocus,
   } = useGlobalSearchPlace();
   const { signOut } = useAuth();
   const { openNewMapDialog, openAboutDialog } = useNavigationShell();
@@ -603,13 +605,38 @@ export function Search() {
 
   const onPickPin = useCallback(
     (t: PinSearchRow) => {
-      if (isMapRoute) {
-        const map = mapById.get(t.map_id);
-        if (!map?.owner_profile_slug || !map.slug?.trim()) {
-          dismissSearchAfterPick();
-          return;
+      const map = mapById.get(t.map_id);
+      if (!map?.owner_profile_slug || !map.slug?.trim()) {
+        if (
+          !isMapRoute &&
+          mapViewContext !== "blog" &&
+          mapViewContext !== "gallery"
+        ) {
+          navigate("/");
         }
-        const route = mapRouteForMap(map);
+        dismissSearchAfterPick();
+        return;
+      }
+      const route = mapRouteForMap(map);
+
+      if (mapViewContext === "blog" || mapViewContext === "gallery") {
+        const withoutPin = applySelectedPinToSearchParams(
+          new URLSearchParams(location.search),
+          null,
+        );
+        const params = applyMapCameraToSearchParams(
+          withoutPin,
+          normalizeCameraForUrl({
+            lat: t.lat,
+            lng: t.lng,
+            zoom: PIN_FOCUS_ZOOM,
+          }),
+        );
+        navigate(
+          mapViewHrefWithSearch(mapViewContext, route, `?${params.toString()}`),
+        );
+        requestPanelPinFocus(t.id);
+      } else if (isMapRoute) {
         const withPin = applySelectedPinToSearchParams(
           new URLSearchParams(),
           t.slug,
@@ -624,17 +651,19 @@ export function Search() {
         );
         navigate(mapHrefWithSearch(route, `?${params.toString()}`));
       } else {
-        const map = mapById.get(t.map_id);
-        if (!map?.owner_profile_slug || !map.slug?.trim()) {
-          navigate("/");
-          dismissSearchAfterPick();
-          return;
-        }
-        navigate(pinDetailHref(mapRouteForMap(map), t.slug));
+        navigate(pinDetailHref(route, t.slug));
       }
       dismissSearchAfterPick();
     },
-    [dismissSearchAfterPick, isMapRoute, mapById, navigate],
+    [
+      dismissSearchAfterPick,
+      isMapRoute,
+      location.search,
+      mapById,
+      mapViewContext,
+      navigate,
+      requestPanelPinFocus,
+    ],
   );
 
   const onPickPlace = useCallback(
@@ -708,6 +737,10 @@ export function Search() {
   const showMapSearch = debounced.length >= 1;
   const showUserSearch = debounced.length >= 1;
   const profileMatches = profilesQuery.data ?? [];
+  const visibleProfileMatches = useMemo(
+    () => profileMatches.filter((profile) => profile.slug.trim()),
+    [profileMatches],
+  );
   const busy =
     (showPins && pinsQuery.isFetching) ||
     (showPlaces && placesQuery.isFetching) ||
@@ -739,9 +772,12 @@ export function Search() {
         });
       }
     }
-    if (showUserSearch && !profilesQuery.isError && profileMatches.length > 0) {
-      for (const profile of profileMatches) {
-        if (!profile.slug.trim()) continue;
+    if (
+      showUserSearch &&
+      !profilesQuery.isError &&
+      visibleProfileMatches.length > 0
+    ) {
+      for (const profile of visibleProfileMatches) {
         items.push({
           id: `profile-${profile.id}`,
           onSelect: () => onPickProfile(profile),
@@ -777,7 +813,7 @@ export function Search() {
     mapMatches,
     showUserSearch,
     profilesQuery.isError,
-    profileMatches,
+    visibleProfileMatches,
     onPickProfile,
     showPins,
     pinsQuery.isError,
@@ -812,6 +848,8 @@ export function Search() {
     if (index == null) return {};
     return getItemProps(index);
   }
+
+  const showSearchStatus = debounced.length > 0 && selectableItems.length === 0;
 
   const searchResults = (
     <>
@@ -887,121 +925,96 @@ export function Search() {
           </>
         ) : null}
 
-        {showUserSearch ? (
+        {showUserSearch && visibleProfileMatches.length > 0 ? (
           <>
             <SearchSectionLabel>People</SearchSectionLabel>
-            {profilesQuery.isError ? (
-              <SearchStatusText>Could not load people.</SearchStatusText>
-            ) : profilesQuery.isFetching && profileMatches.length === 0 ? (
-              <SearchStatusText>Searching…</SearchStatusText>
-            ) : profileMatches.length === 0 ? (
-              <SearchStatusText>No matching people.</SearchStatusText>
-            ) : (
-              profileMatches.map((profile) => {
-                const itemId = `profile-${profile.id}`;
-                const rowProps = resultRowProps(itemId);
-                return (
-                  <ResultRow
-                    key={profile.id}
-                    title={profileSearchTitle(profile)}
-                    subtitle={profileSearchSubtitle(profile)}
-                    trailing={
-                      <UserAvatar
-                        storedAvatarUrl={profile.avatar_url}
-                        email={null}
-                        gravatarHash={profile.gravatar_hash}
-                        gravatarFallback
-                        gravatarSize={64}
-                        size="sm"
-                        label={profileSearchTitle(profile)}
-                      />
-                    }
-                    onPick={() => onPickProfile(profile)}
-                    {...rowProps}
-                  />
-                );
-              })
-            )}
+            {visibleProfileMatches.map((profile) => {
+              const itemId = `profile-${profile.id}`;
+              const rowProps = resultRowProps(itemId);
+              return (
+                <ResultRow
+                  key={profile.id}
+                  title={profileSearchTitle(profile)}
+                  subtitle={profileSearchSubtitle(profile)}
+                  trailing={
+                    <UserAvatar
+                      storedAvatarUrl={profile.avatar_url}
+                      email={null}
+                      gravatarHash={profile.gravatar_hash}
+                      gravatarFallback
+                      gravatarSize={64}
+                      size="sm"
+                      label={profileSearchTitle(profile)}
+                    />
+                  }
+                  onPick={() => onPickProfile(profile)}
+                  {...rowProps}
+                />
+              );
+            })}
           </>
         ) : null}
 
-        {showMapSearch &&
-        mapMatches.length === 0 &&
-        profileMatches.length === 0 &&
-        debounced.length < 2 &&
-        actionMatches.length === 0 &&
-        pageMatches.length === 0 ? (
-          <SearchStatusText>
-            No maps or people match. Add another letter to search pins
-            {isMapRoute ? " and places" : ""}.
-          </SearchStatusText>
+        {showSearchStatus && busy ? (
+          <SearchStatusText>Searching…</SearchStatusText>
         ) : null}
 
-        {showPins ? (
+        {showSearchStatus && !busy ? (
+          <SearchEmptyHint>
+            {debounced.length < 2
+              ? `No maps or people match. Add another letter to search pins${isMapRoute ? " and places" : ""}.`
+              : "No results match your search."}
+          </SearchEmptyHint>
+        ) : null}
+
+        {showPins && pinsSorted.length > 0 ? (
           <>
             <SearchSectionLabel>Pins</SearchSectionLabel>
-            {pinsQuery.isError ? (
-              <SearchStatusText>Could not load pins.</SearchStatusText>
-            ) : pinsQuery.isFetching && pinsSorted.length === 0 ? (
-              <SearchStatusText>Searching…</SearchStatusText>
-            ) : pinsSorted.length === 0 ? (
-              <SearchStatusText>No matching pins.</SearchStatusText>
-            ) : (
-              pinsSorted.map((t) => {
-                const itemId = `pin-${t.id}`;
-                const rowProps = resultRowProps(itemId);
-                const marker = pinSearchMarkerVisual(t);
-                return (
-                  <ResultRow
-                    key={t.id}
-                    title={pinPrimaryLabel(t)}
-                    subtitle={mapTitle(t, mapById)}
-                    trailing={
-                      <MapMarker
-                        size="sm"
-                        emoji={marker.emoji}
-                        fill={marker.fill}
-                      />
-                    }
-                    onPick={() => onPickPin(t)}
-                    {...rowProps}
-                  />
-                );
-              })
-            )}
+            {pinsSorted.map((t) => {
+              const itemId = `pin-${t.id}`;
+              const rowProps = resultRowProps(itemId);
+              const marker = pinSearchMarkerVisual(t);
+              return (
+                <ResultRow
+                  key={t.id}
+                  title={pinPrimaryLabel(t)}
+                  subtitle={mapTitle(t, mapById)}
+                  trailing={
+                    <MapMarker
+                      size="sm"
+                      emoji={marker.emoji}
+                      fill={marker.fill}
+                    />
+                  }
+                  onPick={() => onPickPin(t)}
+                  {...rowProps}
+                />
+              );
+            })}
           </>
         ) : null}
 
-        {showPlaces ? (
+        {showPlaces && (placesQuery.data?.length ?? 0) > 0 ? (
           <>
             <SearchSectionLabel>Places</SearchSectionLabel>
-            {placesQuery.isError ? (
-              <SearchStatusText>Could not load places.</SearchStatusText>
-            ) : placesQuery.isFetching &&
-              (placesQuery.data?.length ?? 0) === 0 ? (
-              <SearchStatusText>Searching…</SearchStatusText>
-            ) : (placesQuery.data?.length ?? 0) === 0 ? (
-              <SearchStatusText>No matching places.</SearchStatusText>
-            ) : (
-              (placesQuery.data ?? []).map((p) => {
-                const primary = p.primaryName.trim();
-                const full = p.fullLabel.trim();
-                const subtitle = full && full !== primary ? full : undefined;
-                const itemId = `place-${p.id}`;
-                const rowProps = resultRowProps(itemId);
-                return (
-                  <ResultRow
-                    key={p.id}
-                    title={primary || full || "Place"}
-                    subtitle={subtitle}
-                    categoryLabel={p.categoryLabel}
-                    trailing={placeCategorySearchIcon(p.categoryLabel)}
-                    onPick={() => rememberQueryAndPickPlace(p)}
-                    {...rowProps}
-                  />
-                );
-              })
-            )}
+            {(placesQuery.data ?? []).map((p) => {
+              const primary = p.primaryName.trim();
+              const full = p.fullLabel.trim();
+              const subtitle = full && full !== primary ? full : undefined;
+              const itemId = `place-${p.id}`;
+              const rowProps = resultRowProps(itemId);
+              return (
+                <ResultRow
+                  key={p.id}
+                  title={primary || full || "Place"}
+                  subtitle={subtitle}
+                  categoryLabel={p.categoryLabel}
+                  trailing={placeCategorySearchIcon(p.categoryLabel)}
+                  onPick={() => rememberQueryAndPickPlace(p)}
+                  {...rowProps}
+                />
+              );
+            })}
           </>
         ) : null}
       </SearchResults>

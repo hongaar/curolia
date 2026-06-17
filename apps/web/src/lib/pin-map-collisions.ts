@@ -211,6 +211,8 @@ export function singletonFractionForPins(
  * - Raise `minZoomDelta` to avoid tiny zoom steps per click.
  * - Lower `minSingletonFractionGain` to accept smaller improvements when the
  *   target fraction is unreachable (e.g. a pair stuck on the same coordinates).
+ * - Lower `maxSeparationZoom` to open the collision picker when pins are so
+ *   close that separating them would require zooming past that level.
  */
 export type CollisionGroupZoomTuning = {
   /** Desired share of pins that end up non-colliding (0–1). */
@@ -224,6 +226,11 @@ export type CollisionGroupZoomTuning = {
    * gain (0–1) over the current centroid view to still zoom.
    */
   minSingletonFractionGain: number;
+  /**
+   * Highest zoom the collision-click algorithm may target. When pins still
+   * collide above this level, the picker opens instead of zooming further.
+   */
+  maxSeparationZoom: number;
 };
 
 export const DEFAULT_COLLISION_GROUP_ZOOM_TUNING: CollisionGroupZoomTuning = {
@@ -231,7 +238,15 @@ export const DEFAULT_COLLISION_GROUP_ZOOM_TUNING: CollisionGroupZoomTuning = {
   minZoomDelta: 0.25,
   zoomPrecision: 0.05,
   minSingletonFractionGain: 0.15,
+  maxSeparationZoom: 20,
 };
+
+function cappedCollisionMaxZoom(
+  maxZoom: number,
+  tuning: CollisionGroupZoomTuning,
+): number {
+  return Math.min(maxZoom, tuning.maxSeparationZoom);
+}
 
 function geographicBounds(pins: ReadonlyArray<PinLngLat>) {
   let minLng = pins[0]!.lng;
@@ -365,6 +380,7 @@ function resolveLargeCollisionGroupZoomTarget({
   maxZoom,
   tuning = DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
 }: CollisionGroupZoomOptions): CollisionClickCamera | null {
+  const zoomCap = cappedCollisionMaxZoom(maxZoom, tuning);
   const centroid = collisionGroupCentroid(pins);
   const coarsePrecision = Math.max(tuning.zoomPrecision, 0.25);
   const currentAtCentroid: MapProjectionCamera = {
@@ -384,7 +400,7 @@ function resolveLargeCollisionGroupZoomTarget({
     height,
     paddingPx,
     currentZoom,
-    maxZoom,
+    zoomCap,
     coarsePrecision,
   );
   if (separatedZoom !== null) {
@@ -402,7 +418,7 @@ function resolveLargeCollisionGroupZoomTarget({
     width,
     height,
     paddingPx,
-    maxZoom,
+    zoomCap,
     coarsePrecision,
   );
   if (fitZoom <= currentZoom + tuning.minZoomDelta) return null;
@@ -488,6 +504,8 @@ export function resolveCollisionGroupZoomTarget({
 }: CollisionGroupZoomOptions): CollisionClickCamera | null {
   if (pins.length <= 1 || width <= 0 || height <= 0) return null;
 
+  const zoomCap = cappedCollisionMaxZoom(maxZoom, tuning);
+
   const stillColliding = pinsCollideAtCamera(pins, {
     centerLng: currentCenterLng,
     centerLat: currentCenterLat,
@@ -529,7 +547,7 @@ export function resolveCollisionGroupZoomTarget({
     pins,
     cameraBase,
     currentZoom,
-    maxZoom,
+    zoomCap,
     paddingPx,
     tuning,
     (camera) =>
@@ -547,7 +565,7 @@ export function resolveCollisionGroupZoomTarget({
     pins,
     cameraBase,
     currentZoom,
-    maxZoom,
+    zoomCap,
     paddingPx,
     tuning,
     (camera) =>
@@ -566,7 +584,7 @@ export function resolveCollisionGroupZoomTarget({
     pins,
     cameraBase,
     currentZoom,
-    maxZoom,
+    zoomCap,
     paddingPx,
     tuning,
     (camera) => maxCollisionGroupSizeForPins(pins, camera) < currentMaxSize,

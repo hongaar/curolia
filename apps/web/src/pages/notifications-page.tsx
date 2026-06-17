@@ -1,4 +1,5 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
+import { formatTimeAgo } from "@/lib/format-time-ago";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { AppNotification } from "@/types/database";
@@ -13,6 +14,7 @@ import {
   PageHeaderLead,
   PageHeaderTitle,
   PagePanel,
+  PageTextLink,
 } from "@curolia/ui/page";
 import { Stack } from "@curolia/ui/stack";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -68,7 +70,17 @@ export function NotificationsPage() {
           <PageHeader>
             <PageHeaderTitle>Notifications</PageHeaderTitle>
             <PageHeaderLead>
-              Opens are marked as read. Email and push use your settings.
+              Change how you receive notifications in{" "}
+              <PageTextLink
+                href="/settings"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate("/settings");
+                }}
+              >
+                settings
+              </PageTextLink>
+              .
             </PageHeaderLead>
           </PageHeader>
           <BorderedList>
@@ -84,7 +96,11 @@ export function NotificationsPage() {
                   onClick={() => void openOne(n)}
                   title={n.title}
                   body={n.body ?? undefined}
-                  meta={new Date(n.created_at).toLocaleString()}
+                  meta={
+                    <time dateTime={n.created_at}>
+                      {formatTimeAgo(n.created_at)}
+                    </time>
+                  }
                 />
               ))
             )}

@@ -17,6 +17,7 @@ import {
 } from "@curolia/ui/page";
 import { Switch } from "@curolia/ui/switch";
 import { ChevronDown, Globe, Lock } from "lucide-react";
+import { PrivateProfilePublicMapWarning } from "./private-profile-public-map-warning";
 
 export function ProfileVisibilityMenu({
   profile,
@@ -111,6 +112,9 @@ export function ProfileVisibilitySettings({
           />
         ) : null}
       </PageSwitchStack>
+      {!profile.is_public ? (
+        <PrivateProfilePublicMapWarning context="profile-visibility" />
+      ) : null}
     </>
   );
 }

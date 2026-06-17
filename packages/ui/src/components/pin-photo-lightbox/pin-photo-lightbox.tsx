@@ -59,17 +59,21 @@ export function PinPhotoLightbox({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
+        e.stopImmediatePropagation();
         onOpenChange(false);
       } else if (e.key === "ArrowLeft" && hasNav) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         goPrev();
       } else if (e.key === "ArrowRight" && hasNav) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         goNext();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", onKey, { capture: true });
   }, [open, hasNav, onOpenChange, goPrev, goNext]);
 
   useEffect(() => {

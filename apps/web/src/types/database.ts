@@ -59,6 +59,10 @@ export type CuroliaMap = {
   style_satellite_labels: boolean;
   /** Connect dated pins with route lines on the map view. */
   show_pin_route: boolean;
+  /** Landing view for map shortcut URLs and home links. */
+  default_map_view: import("@/lib/app-paths").MapViewSegment;
+  /** Per-view availability (`{ map, blog, gallery }`; false hides). */
+  enabled_map_views: import("@/lib/database.types").Json;
   /** Per-field pin metadata visibility (`{ fields: string[] }`). */
   show_pin_metadata?: import("@/lib/database.types").Json | null;
   /** Per-plugin pin output visibility (`{ [pluginId]: boolean }`; false hides). */

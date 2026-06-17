@@ -26,6 +26,7 @@ import {
   PageContentStack,
   PageEmailLine,
   PageErrorText,
+  PageErrorTextSpaced,
   PageExternalLink,
   PageFab,
   PageFitButton,
@@ -64,7 +65,9 @@ import {
   PageSideNavList,
   PageSwitchRow,
   PageSwitchStack,
+  PageTextLink,
   PageTitle,
+  PageToolbar,
 } from "./page";
 import styles from "./page.stories.module.css";
 
@@ -222,6 +225,68 @@ export const PageHeaderWithFormBlock: Story = {
   ),
 };
 
+export const PageTextLinks: Story = {
+  name: "Text links",
+  parameters: storyDocs(
+    '`PageTextLink` for inline anchors in lead copy; `PageExternalLink` opens in a new tab with `rel="noreferrer"`.',
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <PagePanel>
+        <PageHeader>
+          <PageHeaderTitle>Notifications</PageHeaderTitle>
+          <PageHeaderLead>
+            Change how you receive notifications in{" "}
+            <PageTextLink href="#settings">settings</PageTextLink>.
+          </PageHeaderLead>
+        </PageHeader>
+        <PageAvatarHint>
+          We use{" "}
+          <PageExternalLink href="https://gravatar.com">
+            Gravatar
+          </PageExternalLink>{" "}
+          for this email when no photo is set.
+        </PageAvatarHint>
+      </PagePanel>
+    </StoryFrame>
+  ),
+};
+
+export const PageToolbarStory: Story = {
+  name: "Page toolbar",
+  parameters: storyDocs(
+    "`PageToolbar` is sticky on mobile stack screens. Pair with `PageScroll pageToolbar` and optional `end` actions.",
+  ),
+  render: () => (
+    <PageShell>
+      <Page>
+        <PageScroll underNav pageToolbar>
+          <PageContentStack width="narrow">
+            <PageToolbar
+              end={
+                <Button size="sm" variant="outline">
+                  Edit
+                </Button>
+              }
+            >
+              <PageBackButton label="Back" onClick={() => undefined} />
+            </PageToolbar>
+            <PagePanel>
+              <PageHeader>
+                <PageHeaderTitle>Map settings</PageHeaderTitle>
+                <PageHeaderLead>
+                  Toolbar stays pinned while this panel scrolls on narrow stack
+                  routes.
+                </PageHeaderLead>
+              </PageHeader>
+            </PagePanel>
+          </PageContentStack>
+        </PageScroll>
+      </Page>
+    </PageShell>
+  ),
+};
+
 export const PageClassicHeaderStory: Story = {
   name: "Classic header",
   parameters: storyDocs(
@@ -273,7 +338,7 @@ export const HeaderPrimitives: Story = {
 
 export const Sections: Story = {
   parameters: storyDocs(
-    "Section spacing, headings, subheadings, hints, and inline action rows.",
+    "Section spacing, headings, hints, inline actions, and status/error text (`PageErrorText`, `PageErrorTextSpaced`, `PageMessageText`).",
   ),
   render: () => (
     <PageShell>
@@ -298,6 +363,7 @@ export const Sections: Story = {
           </PageSectionHint>
         </PageSection>
         <PageErrorText>Could not load members.</PageErrorText>
+        <PageErrorTextSpaced>Invite email is required.</PageErrorTextSpaced>
       </AppPageLayout>
     </PageShell>
   ),

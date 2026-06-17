@@ -11,6 +11,7 @@ import {
 } from "react";
 
 type AddPinFromPlaceHandler = (place: PlaceSearchResult) => void;
+type PanelPinFocusHandler = (pinId: string) => void;
 
 export type GlobalSearchPlaceContextValue = {
   selectedPlace: PlaceSearchResult | null;
@@ -20,6 +21,8 @@ export type GlobalSearchPlaceContextValue = {
   registerAddPinFromPlaceHandler: (
     handler: AddPinFromPlaceHandler | null,
   ) => void;
+  requestPanelPinFocus: (pinId: string) => void;
+  registerPanelPinFocusHandler: (handler: PanelPinFocusHandler | null) => void;
 };
 
 const GlobalSearchPlaceContext =
@@ -34,6 +37,7 @@ export function GlobalSearchPlaceProvider({
     null,
   );
   const addPinHandlerRef = useRef<AddPinFromPlaceHandler | null>(null);
+  const panelPinFocusHandlerRef = useRef<PanelPinFocusHandler | null>(null);
 
   const selectPlace = useCallback((place: PlaceSearchResult) => {
     setSelectedPlace(place);
@@ -50,6 +54,17 @@ export function GlobalSearchPlaceProvider({
     [],
   );
 
+  const registerPanelPinFocusHandler = useCallback(
+    (handler: PanelPinFocusHandler | null) => {
+      panelPinFocusHandlerRef.current = handler;
+    },
+    [],
+  );
+
+  const requestPanelPinFocus = useCallback((pinId: string) => {
+    panelPinFocusHandlerRef.current?.(pinId);
+  }, []);
+
   const requestAddPinFromSelectedPlace = useCallback(() => {
     const place = selectedPlace;
     if (!place) return;
@@ -63,6 +78,8 @@ export function GlobalSearchPlaceProvider({
       clearSelectedPlace,
       requestAddPinFromSelectedPlace,
       registerAddPinFromPlaceHandler,
+      requestPanelPinFocus,
+      registerPanelPinFocusHandler,
     }),
     [
       selectedPlace,
@@ -70,6 +87,8 @@ export function GlobalSearchPlaceProvider({
       clearSelectedPlace,
       requestAddPinFromSelectedPlace,
       registerAddPinFromPlaceHandler,
+      requestPanelPinFocus,
+      registerPanelPinFocusHandler,
     ],
   );
 

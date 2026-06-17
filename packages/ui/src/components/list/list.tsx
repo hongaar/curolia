@@ -35,11 +35,15 @@ export function NotificationListButton({
           <span className={styles.unreadSpacer} aria-hidden />
         )}
         <span className={styles.listButtonBody}>
-          <span className={styles.listButtonTitle}>{title}</span>
+          <span className={styles.listButtonHeader}>
+            <span className={styles.listButtonTitle}>{title}</span>
+            {meta ? (
+              <span className={styles.listButtonMeta}>{meta}</span>
+            ) : null}
+          </span>
           {body ? (
             <span className={styles.listButtonSubtitle}>{body}</span>
           ) : null}
-          {meta ? <span className={styles.listButtonMeta}>{meta}</span> : null}
         </span>
       </button>
     </li>

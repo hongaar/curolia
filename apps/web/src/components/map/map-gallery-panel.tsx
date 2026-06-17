@@ -273,6 +273,7 @@ function GalleryPinCard({
     dateLabel,
     photoCountLabel: photoLabel,
     tags: tagRow,
+    pinId: pin.id,
     pinEntryRef,
     lineAnchorRef,
     ...hoverHandlers,

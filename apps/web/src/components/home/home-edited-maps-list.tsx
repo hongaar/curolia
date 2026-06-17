@@ -10,7 +10,7 @@ import {
 export function HomeEditedMapsList({ maps }: { maps: HomeFeedMap[] }) {
   return (
     <HomeFeedMapList
-      title="Your maps"
+      title="My maps"
       empty={
         <HomeFeedMapListEmpty>
           Maps you can edit will appear here after changes.

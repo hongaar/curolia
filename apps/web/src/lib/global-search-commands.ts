@@ -7,6 +7,10 @@ import {
   parseMapViewPathname,
   type MapRoute,
 } from "@/lib/map-route";
+import {
+  isMapViewEnabled,
+  normalizeMapViewSettings,
+} from "@/lib/map-view-settings";
 import { isPinDetailPagePathname } from "@/lib/pin-detail-back";
 import type { NavigateFunction } from "react-router-dom";
 
@@ -47,8 +51,10 @@ export function resolveGlobalSearchMapViewContext(
 }
 
 export function canShowViewMapAction(ctx: GlobalSearchCommandContext): boolean {
+  const settings = normalizeMapViewSettings(ctx.activeMap);
   return Boolean(
     ctx.mapViewRoute &&
+    isMapViewEnabled(settings, "map") &&
     (ctx.mapViewContext === "blog" ||
       ctx.mapViewContext === "gallery" ||
       ctx.mapViewContext === "pin-detail"),
@@ -58,8 +64,10 @@ export function canShowViewMapAction(ctx: GlobalSearchCommandContext): boolean {
 export function canShowViewBlogAction(
   ctx: GlobalSearchCommandContext,
 ): boolean {
+  const settings = normalizeMapViewSettings(ctx.activeMap);
   return Boolean(
     ctx.mapViewRoute &&
+    isMapViewEnabled(settings, "blog") &&
     (ctx.mapViewContext === "map" ||
       ctx.mapViewContext === "gallery" ||
       ctx.mapViewContext === "pin-detail"),
@@ -69,8 +77,10 @@ export function canShowViewBlogAction(
 export function canShowViewGalleryAction(
   ctx: GlobalSearchCommandContext,
 ): boolean {
+  const settings = normalizeMapViewSettings(ctx.activeMap);
   return Boolean(
     ctx.mapViewRoute &&
+    isMapViewEnabled(settings, "gallery") &&
     (ctx.mapViewContext === "map" ||
       ctx.mapViewContext === "blog" ||
       ctx.mapViewContext === "pin-detail"),

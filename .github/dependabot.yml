@@ -1,0 +1,36 @@
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Root npm workspaces (apps/*, packages/*, packages/plugins/*).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      npm-dev:
+        dependency-type: development
+        patterns:
+          - "*"
+      npm-production:
+        dependency-type: production
+        patterns:
+          - "*"
+
+  # actions/checkout, setup-node, cache, upload-artifact, setup-java, etc.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+  # Capacitor Android project (apps/mobile/android).
+  - package-ecosystem: gradle
+    directory: /apps/mobile/android
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5

@@ -1,3 +1,4 @@
+import { PrivateProfilePublicMapWarning } from "@/components/profile/private-profile-public-map-warning";
 import { UserAvatar } from "@/components/user-avatar";
 import { mapViewHref, publicMapLinkHref } from "@/lib/app-paths";
 import {
@@ -112,6 +113,21 @@ export function MapSharingSection({
   const [publicBusy, setPublicBusy] = useState(false);
   const [crawlerBlockBusy, setCrawlerBlockBusy] = useState(false);
 
+  const ownerProfileQuery = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("is_public")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Pick<Profile, "is_public"> | null;
+    },
+    enabled: Boolean(user?.id && isOwner),
+  });
+
   const membersQuery = useQuery({
     queryKey: ["map_members_detail", mapId],
     queryFn: async () => {
@@ -154,6 +170,7 @@ export function MapSharingSection({
 
   const members = useMemo(() => membersQuery.data ?? [], [membersQuery.data]);
   const pendingInvites = invitationsQuery.data ?? [];
+  const ownerProfileIsPrivate = ownerProfileQuery.data?.is_public === false;
   const trimmedProfileSlug = ownerProfileSlug.trim();
   const trimmedSlug = mapSlug.trim();
   const publicMapUrl =
@@ -513,6 +530,9 @@ export function MapSharingSection({
                   />
                 ) : null}
               </PageSwitchStack>
+              {ownerProfileIsPrivate ? (
+                <PrivateProfilePublicMapWarning context="map-public-access" />
+              ) : null}
               {isPublic && publicMapUrl ? (
                 <PageInviteRow>
                   <PageInviteEmailField>

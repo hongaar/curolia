@@ -110,7 +110,7 @@ export function TagsFilterMenuContent({
           })
         )}
       </DropdownMenuGroup>
-      {onNewTag ? (
+      {canEdit && onNewTag ? (
         <>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onNewTag()}>

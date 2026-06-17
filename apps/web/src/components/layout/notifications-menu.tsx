@@ -1,4 +1,5 @@
 import { useUnreadNotificationsCount } from "@/hooks/use-map-access";
+import { formatTimeAgo } from "@/lib/format-time-ago";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 import type { AppNotification } from "@/types/database";
@@ -105,6 +106,11 @@ export function NotificationsMenu() {
                   unread={!notification.read_at}
                   title={notification.title}
                   body={notification.body ?? undefined}
+                  meta={
+                    <time dateTime={notification.created_at}>
+                      {formatTimeAgo(notification.created_at)}
+                    </time>
+                  }
                   onClick={() => void openOne(notification)}
                 />
               ))}

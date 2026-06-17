@@ -210,7 +210,9 @@ export type Database = {
           cover_url: string | null;
           created_at: string;
           created_by_user_id: string;
+          default_map_view: Database["public"]["Enums"]["map_view_segment"];
           description: string | null;
+          enabled_map_views: Json;
           icon_emoji: string | null;
           id: string;
           is_public: boolean;
@@ -230,7 +232,9 @@ export type Database = {
           cover_url?: string | null;
           created_at?: string;
           created_by_user_id: string;
+          default_map_view?: Database["public"]["Enums"]["map_view_segment"];
           description?: string | null;
+          enabled_map_views?: Json;
           icon_emoji?: string | null;
           id?: string;
           is_public?: boolean;
@@ -250,7 +254,9 @@ export type Database = {
           cover_url?: string | null;
           created_at?: string;
           created_by_user_id?: string;
+          default_map_view?: Database["public"]["Enums"]["map_view_segment"];
           description?: string | null;
+          enabled_map_views?: Json;
           icon_emoji?: string | null;
           id?: string;
           is_public?: boolean;
@@ -1411,6 +1417,7 @@ export type Database = {
       map_invitation_status: "pending" | "accepted" | "declined" | "cancelled";
       map_member_role: "owner" | "editor" | "viewer";
       map_style: "auto" | "street" | "satellite";
+      map_view_segment: "map" | "blog" | "gallery";
       notification_type:
         | "map_invitation"
         | "map_invitation_accepted"
@@ -1557,6 +1564,7 @@ export const Constants = {
       map_invitation_status: ["pending", "accepted", "declined", "cancelled"],
       map_member_role: ["owner", "editor", "viewer"],
       map_style: ["auto", "street", "satellite"],
+      map_view_segment: ["map", "blog", "gallery"],
       notification_type: [
         "map_invitation",
         "map_invitation_accepted",

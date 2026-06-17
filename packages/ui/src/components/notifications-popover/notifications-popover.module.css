@@ -70,10 +70,28 @@
 .itemBody {
   min-width: 0;
   flex: 1;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.itemHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .itemTitle {
+  min-width: 0;
+  flex: 1;
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  color: var(--foreground);
+}
+
+.itemButtonUnread .itemTitle {
+  font-weight: var(--font-weight-semibold);
 }
 
 .itemSubtitle {
@@ -81,8 +99,16 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--muted-foreground);
+}
+
+.itemMeta {
+  flex-shrink: 0;
   font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-snug);
   color: var(--muted-foreground);
 }
 

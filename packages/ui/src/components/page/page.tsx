@@ -314,6 +314,18 @@ export function PageAvatarHint({ children }: { children: React.ReactNode }) {
   return <p className={styles.avatarHint}>{children}</p>;
 }
 
+export function PageTextLink({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"a">) {
+  return (
+    <a className={cn(styles.externalLink, className)} {...props}>
+      {children}
+    </a>
+  );
+}
+
 export function PageExternalLink({
   href,
   children,
@@ -322,14 +334,9 @@ export function PageExternalLink({
   children: React.ReactNode;
 }) {
   return (
-    <a
-      className={styles.externalLink}
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-    >
+    <PageTextLink href={href} target="_blank" rel="noreferrer">
       {children}
-    </a>
+    </PageTextLink>
   );
 }
 

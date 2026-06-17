@@ -6,6 +6,7 @@ import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
+import { useMapViewAccess } from "@/hooks/use-map-view-access";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
@@ -43,6 +44,7 @@ export function BlogPage() {
     mapSlug: string;
   }>();
   useMapSlugRouteSync(profileSlug, mapSlug);
+  useMapViewAccess();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     activeMapId,

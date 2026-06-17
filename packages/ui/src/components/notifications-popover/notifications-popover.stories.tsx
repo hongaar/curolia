@@ -44,12 +44,14 @@ export const Default: Story = {
               unread
               title="Map invitation"
               body='Alex invited you to "Summer 2025".'
+              meta="2h ago"
               onClick={() => undefined}
             />
             <NotificationsPopoverItem
               unread={false}
               title="Pin comment"
               body="Sam mentioned you on Café de Flore."
+              meta="4d ago"
               onClick={() => undefined}
             />
           </NotificationsPopoverList>

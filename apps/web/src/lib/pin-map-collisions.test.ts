@@ -364,6 +364,46 @@ describe("resolveCollisionGroupZoomTarget", () => {
       }),
     ).toBe(3);
   });
+
+  it("opens the picker when separation needs zoom past maxSeparationZoom", () => {
+    const pins = pinsAt(0.00012);
+    const tightCapTuning = {
+      ...tuning,
+      maxSeparationZoom: 11,
+    };
+    expect(
+      resolveCollisionGroupZoomTarget({
+        pins,
+        currentZoom: 10,
+        tuning: tightCapTuning,
+        ...viewport,
+      }),
+    ).toBeNull();
+    expect(
+      canZoomCollisionGroup({
+        pins,
+        currentZoom: 10,
+        tuning: tightCapTuning,
+        ...viewport,
+      }),
+    ).toBe(false);
+  });
+
+  it("still zooms when separation fits within maxSeparationZoom", () => {
+    const pins = pinsAt(0.00012);
+    const looseCapTuning = {
+      ...tuning,
+      maxSeparationZoom: 20,
+    };
+    expect(
+      resolveCollisionGroupZoomTarget({
+        pins,
+        currentZoom: 10,
+        tuning: looseCapTuning,
+        ...viewport,
+      }),
+    ).not.toBeNull();
+  });
 });
 
 describe("collisionGroupLikelyZoomable", () => {

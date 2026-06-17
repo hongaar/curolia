@@ -89,6 +89,22 @@ export function MapBlogSidePanelGallery({
   return <div className={styles.blogSidePanelGallery}>{children}</div>;
 }
 
+/** Keep in sync with `mapPanelPinHighlightRing` in map.module.css */
+export const MAP_PANEL_PIN_HIGHLIGHT_DURATION_MS = 5_000;
+
+/** Match `--map-panel-pin-highlight-bleed` (space-4 − 2px @ 16px root). */
+export const MAP_PANEL_PIN_HIGHLIGHT_BLEED_PX = 10;
+
+/** Match `--map-panel-pin-highlight-scroll-gap` (space-10 @ 16px root). */
+export const MAP_PANEL_PIN_HIGHLIGHT_SCROLL_GAP_PX = 20;
+
+export const MAP_PANEL_PIN_SCROLL_TOP_MARGIN_PX =
+  MAP_PANEL_PIN_HIGHLIGHT_BLEED_PX + MAP_PANEL_PIN_HIGHLIGHT_SCROLL_GAP_PX;
+
+export function mapPanelPinHighlightRingClassName(): string {
+  return styles.mapPanelPinHighlightRing;
+}
+
 const BLOG_SIDE_PANEL_SCRIM_MS = 220;
 
 export function MapBlogSidePanelScrim({

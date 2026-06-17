@@ -26,6 +26,9 @@ export type PinCardProps = {
   tags?: React.ReactNode;
   pinEntryRef?: React.Ref<HTMLElement>;
   lineAnchorRef?: React.Ref<HTMLHeadingElement>;
+  /** When set on embedded gallery cards, used to scroll/highlight from search. */
+  pinId?: string;
+  entryClassName?: string;
   onMouseEnter?: React.MouseEventHandler<HTMLElement>;
   onMouseLeave?: React.MouseEventHandler<HTMLElement>;
 };
@@ -95,6 +98,8 @@ export function PinCard({
   tags,
   pinEntryRef,
   lineAnchorRef,
+  pinId,
+  entryClassName,
   onMouseEnter,
   onMouseLeave,
 }: PinCardProps) {
@@ -143,7 +148,8 @@ export function PinCard({
   return (
     <article
       ref={pinEntryRef}
-      className={styles.itemWrap}
+      className={[styles.itemWrap, entryClassName].filter(Boolean).join(" ")}
+      data-gallery-pin-id={pinId}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >

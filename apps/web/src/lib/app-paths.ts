@@ -3,6 +3,10 @@ import {
   MAP_VIEW_PARAM,
   stripMapCameraFromSearchParams,
 } from "@/lib/map-view-params";
+import {
+  normalizeMapViewSettings,
+  resolveAccessibleMapView,
+} from "@/lib/map-view-settings";
 import type { CuroliaMap } from "@/types/database";
 
 export type MapViewSegment = "map" | "blog" | "gallery";
@@ -18,8 +22,12 @@ export function publicMapLinkHref(route: MapRoute): string {
   return `/${route.profileSlug.trim()}/${route.mapSlug.trim()}`;
 }
 
-export function publicMapShortcutRedirectHref(route: MapRoute): string {
-  return mapViewHref("map", route);
+export function publicMapShortcutRedirectHref(
+  route: MapRoute,
+  map?: Pick<MapWithOwnerSlug, "default_map_view" | "enabled_map_views"> | null,
+): string {
+  const view = normalizeMapViewSettings(map ?? null).defaultView;
+  return mapViewHref(view, route);
 }
 
 export function resolvePublicMapShortcutRedirect(
@@ -88,6 +96,8 @@ export function mapSwitchHref(
   currentSearch: string,
 ): string {
   const segment = mapViewSegmentFromPathname(currentPathname);
+  const settings = normalizeMapViewSettings(nextMap);
+  const view = resolveAccessibleMapView(settings, segment);
   const route = {
     profileSlug: nextMap.owner_profile_slug,
     mapSlug: nextMap.slug,
@@ -100,7 +110,7 @@ export function mapSwitchHref(
   p.delete("tags");
   p.delete(MAP_VIEW_PARAM.pin);
   const q = p.toString();
-  const base = mapViewHref(segment, route);
+  const base = mapViewHref(view, route);
   return q ? `${base}?${q}` : base;
 }
 
@@ -118,12 +128,20 @@ export function mapHrefWithSearch(
   route: MapRoute,
   searchParamsStr: string,
 ): string {
+  return mapViewHrefWithSearch("map", route, searchParamsStr);
+}
+
+export function mapViewHrefWithSearch(
+  view: MapViewSegment,
+  route: MapRoute,
+  searchParamsStr: string,
+): string {
   const p = new URLSearchParams(
     searchParamsStr.startsWith("?")
       ? searchParamsStr.slice(1)
       : searchParamsStr,
   );
   const q = p.toString();
-  const base = mapViewHref("map", route);
+  const base = mapViewHref(view, route);
   return q ? `${base}?${q}` : base;
 }

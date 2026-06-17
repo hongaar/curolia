@@ -57,7 +57,8 @@ export const Notifications: Story = {
         <NotificationListButton
           unread={false}
           title="Weekly digest"
-          meta="Mon 9:00"
+          body="Your maps had 3 updates this week."
+          meta="1w ago"
           onClick={() => undefined}
         />
       </BorderedList>

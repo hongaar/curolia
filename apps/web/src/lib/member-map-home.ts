@@ -1,5 +1,6 @@
 import { mapViewHref, type MapWithOwnerSlug } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
+import { normalizeMapViewSettings } from "@/lib/map-view-settings";
 
 /** Home map view for the signed-in user (stored preference, else first owned map). */
 export function resolveMemberMapHomeHref(
@@ -11,7 +12,8 @@ export function resolveMemberMapHomeHref(
     : null;
   const target = fromPreferred ?? memberMaps[0] ?? null;
   if (target?.owner_profile_slug && target.slug.trim()) {
-    return mapViewHref("map", mapRouteForMap(target));
+    const { defaultView } = normalizeMapViewSettings(target);
+    return mapViewHref(defaultView, mapRouteForMap(target));
   }
   return "/";
 }

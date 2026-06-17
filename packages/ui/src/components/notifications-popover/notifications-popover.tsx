@@ -105,11 +105,13 @@ export function NotificationsPopoverItem({
   onClick,
   title,
   body,
+  meta,
 }: {
   unread: boolean;
   onClick: () => void;
   title: React.ReactNode;
   body?: React.ReactNode;
+  meta?: React.ReactNode;
 }) {
   return (
     <li className={styles.itemBorder}>
@@ -129,7 +131,10 @@ export function NotificationsPopoverItem({
             <span className={styles.unreadSpacer} aria-hidden />
           )}
           <span className={styles.itemBody}>
-            <span className={styles.itemTitle}>{title}</span>
+            <span className={styles.itemHeader}>
+              <span className={styles.itemTitle}>{title}</span>
+              {meta ? <span className={styles.itemMeta}>{meta}</span> : null}
+            </span>
             {body ? <span className={styles.itemSubtitle}>{body}</span> : null}
           </span>
         </span>

@@ -6,6 +6,7 @@ import {
   mapShowMetadataForSave,
 } from "@/components/map-collection/map-show-metadata";
 import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
+import { MapViewsSettingsField } from "@/components/map-collection/map-views-settings-field";
 import { useActivePageSection } from "@/hooks/use-active-page-section";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMinMd } from "@/hooks/use-min-md";
@@ -30,6 +31,12 @@ import {
   type MapStylePreset,
 } from "@/lib/map-style";
 import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
+import {
+  enabledMapViewsForSave,
+  mapViewSettingsDirty,
+  normalizeMapViewSettings,
+  type MapViewSettings,
+} from "@/lib/map-view-settings";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
@@ -105,6 +112,9 @@ export function MapSettingsPage() {
     resolveMapPinMetadataShow(null),
   );
   const [showPinRoute, setShowPinRoute] = useState(false);
+  const [mapViewSettings, setMapViewSettings] = useState<MapViewSettings>(
+    normalizeMapViewSettings(null),
+  );
   const [description, setDescription] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [coverUploading, setCoverUploading] = useState(false);
@@ -241,6 +251,7 @@ export function MapSettingsPage() {
     setStyleOptions(normalizeMapStyleOptions(map));
     setShowPinMetadata(resolveMapPinMetadataShow(map.show_pin_metadata));
     setShowPinRoute(normalizeShowPinRoute(map.show_pin_route));
+    setMapViewSettings(normalizeMapViewSettings(map));
     setDescription(map.description ?? "");
     setCoverUrl(map.cover_url ?? "");
   }, [map]);
@@ -297,6 +308,8 @@ export function MapSettingsPage() {
         style_satellite_labels: styleOptions.satelliteLabels,
         show_pin_metadata: mapShowMetadataForSave(showPinMetadata),
         show_pin_route: showPinRoute,
+        default_map_view: mapViewSettings.defaultView,
+        enabled_map_views: enabledMapViewsForSave(mapViewSettings.enabled),
         description: description.trim() || null,
         updated_at: new Date().toISOString(),
       })
@@ -377,6 +390,7 @@ export function MapSettingsPage() {
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
   const metadataDirty = mapShowMetadataDirty(map, showPinMetadata);
   const routeDirty = showPinRoute !== normalizeShowPinRoute(map.show_pin_route);
+  const viewsDirty = mapViewSettingsDirty(map, mapViewSettings);
   const descriptionDirty =
     description.trim() !== (map.description ?? "").trim();
   const controlsDisabled = !isOwner || roleQuery.isLoading;
@@ -389,6 +403,7 @@ export function MapSettingsPage() {
       styleDirty ||
       metadataDirty ||
       routeDirty ||
+      viewsDirty ||
       descriptionDirty) &&
     !saving;
 
@@ -578,18 +593,22 @@ export function MapSettingsPage() {
                 </ChoiceCards>
               </Field>
               <Field>
-                <FieldLabel>Map view</FieldLabel>
+                <MapViewsSettingsField
+                  value={mapViewSettings}
+                  onChange={setMapViewSettings}
+                  disabled={controlsDisabled}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>Route lines</FieldLabel>
                 <Label>
                   <Checkbox
                     checked={showPinRoute}
                     disabled={controlsDisabled}
                     onCheckedChange={(value) => setShowPinRoute(value === true)}
                   />
-                  Route lines
+                  Connect dated pins in chronological order on the map
                 </Label>
-                <PageMuted>
-                  Connect dated pins in chronological order on the map.
-                </PageMuted>
               </Field>
               <MapShowMetadataField
                 mapId={map.id}
@@ -602,17 +621,6 @@ export function MapSettingsPage() {
                 <Button disabled={!canSave} onClick={() => void save()}>
                   Save
                 </Button>
-                {map.owner_profile_slug && map.slug.trim() ? (
-                  <Button
-                    variant="outline"
-                    type="button"
-                    render={
-                      <Link to={mapViewHref("blog", mapRouteForMap(map))} />
-                    }
-                  >
-                    View blog
-                  </Button>
-                ) : null}
                 {activeMapId !== map.id ? (
                   <Button
                     variant="secondary"

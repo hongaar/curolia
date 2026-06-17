@@ -1,7 +1,20 @@
+import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
+import { normalizeMapViewSettings } from "@/lib/map-view-settings";
+import { useMap } from "@/providers/map-provider";
 import { Navigate, useLocation } from "react-router-dom";
 
-/** `/:profileSlug/:mapSlug` → `/:profileSlug/:mapSlug/map` (preserves query). */
+/** `/:profileSlug/:mapSlug` → default map view (preserves query). */
 export function PublicMapShortcutRedirect() {
   const { search } = useLocation();
-  return <Navigate to={`map${search}`} replace />;
+  const { activeMap, loading } = useMap();
+
+  if (loading) {
+    return <MapViewInitialLoader />;
+  }
+
+  const view = activeMap
+    ? normalizeMapViewSettings(activeMap).defaultView
+    : "map";
+
+  return <Navigate to={`${view}${search}`} replace />;
 }

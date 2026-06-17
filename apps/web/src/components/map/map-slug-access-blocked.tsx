@@ -42,7 +42,7 @@ export function MapSlugAccessBlocked() {
               size="sm"
               render={<Link to={fallbackHref} />}
             >
-              {fallbackMap?.slug ? "Back to your maps" : "Go home"}
+              {fallbackMap?.slug ? "Back to my maps" : "Go home"}
             </Button>
           )}
         </PageInlineActions>

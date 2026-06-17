@@ -39,7 +39,7 @@ export const Layout: Story = {
   render: () => (
     <HomeFeedLayout>
       <HomeFeedAside>
-        <HomeFeedMapList title="Your maps">
+        <HomeFeedMapList title="My maps">
           <HomeFeedMapListItem
             to="/alex/europe"
             title="Europe 2025"
@@ -129,7 +129,7 @@ export const Layout: Story = {
 export const MapList: Story = {
   render: () => (
     <div style={{ maxWidth: "14rem" }}>
-      <HomeFeedMapList title="Your maps">
+      <HomeFeedMapList title="My maps">
         <HomeFeedMapListItem
           to="/alex/europe"
           title="Europe 2025"
@@ -155,7 +155,7 @@ export const MapListEmpty: Story = {
   render: () => (
     <div style={{ maxWidth: "14rem" }}>
       <HomeFeedMapList
-        title="Your maps"
+        title="My maps"
         empty={
           <HomeFeedMapListEmpty>
             Maps you can edit will appear here after changes.

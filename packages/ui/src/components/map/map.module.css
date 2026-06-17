@@ -160,6 +160,12 @@
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  --map-panel-pin-highlight-bleed: calc(var(--space-4) - 2px);
+  --map-panel-pin-highlight-scroll-gap: var(--space-10);
+  scroll-padding-top: calc(
+    var(--map-panel-pin-highlight-bleed) +
+      var(--map-panel-pin-highlight-scroll-gap)
+  );
   --blog-panel-pad-inline-start: calc(var(--space-4) + var(--safe-left));
   --blog-panel-pad-inline-end: calc(var(--space-4) + var(--safe-right));
   padding: var(--space-4) var(--blog-panel-pad-inline-end)
@@ -262,6 +268,43 @@
 @media (prefers-reduced-motion: reduce) {
   .blogSidePanelScrim {
     transition: none;
+  }
+}
+
+.mapPanelPinHighlightRing {
+  position: fixed;
+  pointer-events: none;
+  z-index: 18;
+  --map-panel-pin-highlight-radius: calc(
+    var(--radius-2xl) + var(--space-3) - 2px
+  );
+  --map-panel-pin-highlight-duration: 5s;
+  border-radius: var(--map-panel-pin-highlight-radius);
+  animation: mapPanelPinHighlightFade var(--map-panel-pin-highlight-duration)
+    ease-out forwards;
+}
+
+@keyframes mapPanelPinHighlightFade {
+  0%,
+  30% {
+    background: color-mix(in oklch, var(--accent-strong) 18%, transparent);
+    box-shadow:
+      0 0 0 2px color-mix(in oklch, var(--accent-strong) 32%, transparent),
+      0 0 28px color-mix(in oklch, var(--accent-strong) 20%, transparent);
+  }
+
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapPanelPinHighlightRing {
+    animation: none;
+    background: color-mix(in oklch, var(--accent-strong) 14%, transparent);
+    box-shadow: 0 0 0 2px
+      color-mix(in oklch, var(--accent-strong) 26%, transparent);
   }
 }
 
