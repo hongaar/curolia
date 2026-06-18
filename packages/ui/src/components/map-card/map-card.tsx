@@ -11,6 +11,7 @@ import {
 import { Link } from "react-router-dom";
 
 import { AuthorRow } from "../author-row";
+import { CardMeta, CardMetaItem } from "../card-meta";
 import { loadCoverAccentFromUrl } from "./map-card-cover-accent";
 import {
   coverAspectRatioCss,
@@ -292,17 +293,16 @@ export function MapCard({
             <p className={styles.description}>{description}</p>
           ) : null}
           {hasMeta ? (
-            <div className={styles.meta}>
+            <CardMeta>
               {pinCountLabel ? (
-                <span className={styles.metaItem}>
-                  <MapPin className={styles.metaIcon} aria-hidden />
+                <CardMetaItem icon={<MapPin aria-hidden />}>
                   {pinCountLabel}
-                </span>
+                </CardMetaItem>
               ) : null}
               {updatedLabel ? (
-                <span className={styles.metaItem}>{updatedLabel}</span>
+                <CardMetaItem>{updatedLabel}</CardMetaItem>
               ) : null}
-            </div>
+            </CardMeta>
           ) : null}
         </div>
       </Link>

@@ -2,6 +2,7 @@ import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { ReactionsIcon } from "./icon";
 import { ReactionsMapSettingsPanel } from "./map-settings-panel";
 import { ReactionsPinInteractionSection } from "./pin-interaction-section";
+import { ReactionsPinMetaSummary } from "./pin-meta-summary";
 import { reactionsPluginMeta } from "./plugin-meta";
 
 export const reactionsPluginManifest: PluginPackageManifest = {
@@ -15,6 +16,7 @@ export const reactionsPluginManifest: PluginPackageManifest = {
   pinInteractionOrder: 10,
   pinInteractionPlain: true,
   PinInteractionSection: ReactionsPinInteractionSection,
+  PinMetaSummary: ReactionsPinMetaSummary,
   MapSettingsPanel: ReactionsMapSettingsPanel,
   contributions: {
     mapSettings: {

@@ -297,6 +297,12 @@
   margin-top: 1.25rem;
 }
 
+.pinMeta {
+  &:not(:empty) {
+    margin-top: 1.25rem;
+  }
+}
+
 .pinActions {
   margin-top: 1.25rem;
 }

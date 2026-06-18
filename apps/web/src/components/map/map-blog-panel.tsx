@@ -1,5 +1,6 @@
 import { FloatingPanel } from "@/components/layout/floating-panel";
 import { BlogPinListSortLead } from "@/components/map/blog-pin-list-sort-lead";
+import { PinBlogMetaSummaries } from "@/components/map/pin-blog-meta-summaries";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { useBlogPinListSort } from "@/hooks/use-blog-pin-list-order";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
@@ -44,6 +45,7 @@ import { PinPhotoGallery } from "@curolia/ui/pin-photo-gallery";
 import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { TagBadge } from "@curolia/ui/tag-badge";
 import { useQuery } from "@tanstack/react-query";
+import { PanelRight } from "lucide-react";
 import { useMemo, useRef, useState, type RefObject } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -327,27 +329,32 @@ function BlogPinEntry({
   );
 
   const actionsBlock = (
-    <BlogPinActions>
-      {embedded && onViewPin ? (
-        <Button variant="secondary" onClick={() => onViewPin(t.id)}>
-          Pin details
-        </Button>
-      ) : (
-        <Button
-          variant="secondary"
-          render={
-            <Link
-              to={detailHref}
-              onClick={(e) => {
-                if (detailHref === "#") e.preventDefault();
-              }}
-            />
-          }
-        >
-          Pin details
-        </Button>
-      )}
-    </BlogPinActions>
+    <>
+      <PinBlogMetaSummaries mapId={t.map_id} pinId={t.id} />
+      <BlogPinActions>
+        {embedded && onViewPin ? (
+          <Button variant="secondary" onClick={() => onViewPin(t.id)}>
+            Pin details
+            <PanelRight aria-hidden />
+          </Button>
+        ) : (
+          <Button
+            variant="secondary"
+            render={
+              <Link
+                to={detailHref}
+                onClick={(e) => {
+                  if (detailHref === "#") e.preventDefault();
+                }}
+              />
+            }
+          >
+            Pin details
+            <PanelRight aria-hidden />
+          </Button>
+        )}
+      </BlogPinActions>
+    </>
   );
 
   const galleryBlock =

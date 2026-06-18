@@ -3,6 +3,7 @@ import type * as React from "react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { CardMeta, CardMetaItem } from "../card-meta";
 import {
   coverAspectRatioCss,
   normalizeCoverAspectRatio,
@@ -164,20 +165,18 @@ export function PinCard({
             <p className={styles.description}>{description}</p>
           ) : null}
           {hasMeta ? (
-            <div className={styles.meta}>
+            <CardMeta>
               {dateLabel ? (
-                <span className={styles.metaItem}>
-                  <Calendar className={styles.metaIcon} aria-hidden />
+                <CardMetaItem icon={<Calendar aria-hidden />}>
                   {dateLabel}
-                </span>
+                </CardMetaItem>
               ) : null}
               {photoCountLabel ? (
-                <span className={styles.metaItem}>
-                  <Images className={styles.metaIcon} aria-hidden />
+                <CardMetaItem icon={<Images aria-hidden />}>
                   {photoCountLabel}
-                </span>
+                </CardMetaItem>
               ) : null}
-            </div>
+            </CardMeta>
           ) : null}
         </div>
       </PinCardShell>

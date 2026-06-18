@@ -2,6 +2,7 @@ import type { PluginPackageManifest } from "@curolia/plugin-contract";
 import { CommentsIcon } from "./icon";
 import { CommentsMapSettingsPanel } from "./map-settings-panel";
 import { CommentsPinInteractionSection } from "./pin-interaction-section";
+import { CommentsPinMetaSummary } from "./pin-meta-summary";
 import { commentsPluginMeta } from "./plugin-meta";
 
 export const commentsPluginManifest: PluginPackageManifest = {
@@ -14,6 +15,7 @@ export const commentsPluginManifest: PluginPackageManifest = {
   pinOutputScope: "map",
   pinInteractionOrder: 20,
   PinInteractionSection: CommentsPinInteractionSection,
+  PinMetaSummary: CommentsPinMetaSummary,
   MapSettingsPanel: CommentsMapSettingsPanel,
   contributions: {
     mapSettings: {

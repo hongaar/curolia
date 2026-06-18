@@ -1,7 +1,8 @@
-import type * as React from "react";
+import * as React from "react";
 import { Link } from "react-router";
 
 import { cn } from "../../lib/utils";
+import { CardMeta } from "../card-meta";
 import { MarkdownContent } from "../markdown-content";
 import styles from "./blog.module.css";
 
@@ -194,6 +195,14 @@ export function BlogPinDescription({ markdown }: { markdown: string }) {
 
 export function BlogPinGallery({ children }: { children: React.ReactNode }) {
   return <div className={styles.pinGallery}>{children}</div>;
+}
+
+export function BlogPinCardMeta({ children }: { children: React.ReactNode }) {
+  return (
+    <CardMeta inset={false} className={styles.pinMeta}>
+      {children}
+    </CardMeta>
+  );
 }
 
 export function BlogPinActions({ children }: { children: React.ReactNode }) {

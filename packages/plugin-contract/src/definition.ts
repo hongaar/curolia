@@ -95,6 +95,9 @@ export type PinDetailActionProps = PinContextProps & {
  */
 export type PinInteractionSectionProps = PinContextProps;
 
+/** Props for compact pin metadata rows on blog entries and list cards. */
+export type PinMetaSummaryProps = PinContextProps;
+
 /**
  * Props for pin interaction composers (comment form, reaction picker, …).
  * Gated on map role / interaction policy, not on account `user_plugins`.
@@ -176,6 +179,12 @@ export type PluginDefinition = {
    */
   PinInteractionSection?: ComponentType<PinInteractionSectionProps>;
   /**
+   * Compact read-only metadata for blog pin entries and list rows (comment
+   * counts, reaction tallies, enrichment hints, …). Returns null when there is
+   * nothing to show.
+   */
+  PinMetaSummary?: ComponentType<PinMetaSummaryProps>;
+  /**
    * Composer for pin interactions (comment form, reaction picker). Shown when the
    * viewer may interact per map policy; not gated on account plugin enablement.
    * Prefer a single {@link PinInteractionSection} when list and composer share one
@@ -186,6 +195,11 @@ export type PluginDefinition = {
    * Sort order on pin detail (lower first). Reactions typically precede comments.
    */
   pinInteractionOrder?: number;
+  /**
+   * Sort order for {@link PinMetaSummary} rows (lower first). Falls back to
+   * {@link pinInteractionOrder} when unset.
+   */
+  pinMetaSummaryOrder?: number;
   /**
    * When true, {@link PinInteractionSection} renders without plugin card chrome.
    */

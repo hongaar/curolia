@@ -23,6 +23,7 @@ export type {
   PinEditorFieldSuggestion,
   PinInteractionComposerProps,
   PinInteractionSectionProps,
+  PinMetaSummaryProps,
   PinPhotoImportSlotProps,
   PinSuggestionSlotProps,
   PinSurface,

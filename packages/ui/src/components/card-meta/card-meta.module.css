@@ -1,0 +1,47 @@
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.metaInset {
+  margin-top: var(--space-1);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.metaItem + .metaItem::before {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 0.75rem;
+  margin-right: var(--space-2);
+  background: color-mix(in oklch, var(--foreground) 16%, transparent);
+}
+
+.metaIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.metaIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.emojiIcon {
+  font-size: 0.875rem;
+  line-height: 1;
+}

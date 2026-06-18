@@ -202,32 +202,6 @@
   color: var(--muted-foreground);
 }
 
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  margin-top: var(--space-1);
-  font-size: var(--font-size-sm);
-  line-height: 1.4;
-  color: var(--muted-foreground);
-}
-
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.metaItem + .metaItem::before {
-  content: "";
-  display: inline-block;
-  width: 1px;
-  height: 0.75rem;
-  margin-right: var(--space-3);
-  background: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
-}
-
 .visibilityIcon {
   width: 0.875rem;
   height: 0.875rem;
@@ -265,13 +239,6 @@
   font-weight: var(--font-weight-medium);
   line-height: 1;
   letter-spacing: 0.01em;
-}
-
-.metaIcon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-  opacity: 0.72;
 }
 
 .empty {
