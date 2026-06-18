@@ -44,6 +44,8 @@ packages/supabase/supabase/.temp
 # Synced plugin Edge Functions (source: packages/plugins/*/supabase/functions/*)
 packages/supabase/supabase/functions/google-maps-saved-lists/
 packages/supabase/supabase/functions/google-photos/
+packages/supabase/supabase/functions/commons/
+packages/supabase/supabase/functions/flickr/
 packages/supabase/supabase/functions/ical-feed/
 packages/supabase/supabase/functions/lastfm/
 packages/supabase/supabase/functions/poi/

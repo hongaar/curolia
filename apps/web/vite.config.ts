@@ -99,6 +99,14 @@ export default defineConfig({
         repoRoot,
         "packages/plugins/google-photos/src/index.ts",
       ),
+      "@curolia/plugin-commons": path.resolve(
+        repoRoot,
+        "packages/plugins/commons/src/index.ts",
+      ),
+      "@curolia/plugin-flickr": path.resolve(
+        repoRoot,
+        "packages/plugins/flickr/src/index.ts",
+      ),
       "@curolia/plugin-ical": path.resolve(
         repoRoot,
         "packages/plugins/ical/src/index.ts",

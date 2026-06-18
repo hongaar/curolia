@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@curolia/plugin-commons": "file:../plugins/commons",
     "@curolia/ui": "file:../ui",
     "clsx": "2.1.1",
     "lucide-react": "1.17.0"

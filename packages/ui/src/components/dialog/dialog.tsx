@@ -357,6 +357,11 @@ function DialogMonoBox({ children }: { children: ReactNode }) {
   return <div className={styles.monoBox}>{children}</div>;
 }
 
+/** Plain status line for inline prep (loading, empty, errors). Not monospace. */
+function DialogInlinePrepStatus({ children }: { children: ReactNode }) {
+  return <p className={styles.inlinePrepStatus}>{children}</p>;
+}
+
 function DialogFooterRow({ children }: { children: ReactNode }) {
   return <div className={styles.footerRow}>{children}</div>;
 }
@@ -450,6 +455,7 @@ export {
   DialogHeaderClose,
   DialogImportButton,
   DialogInlinePrep,
+  DialogInlinePrepStatus,
   DialogMonoBox,
   DialogOverlay,
   DialogPortal,

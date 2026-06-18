@@ -268,15 +268,17 @@ export function PluginsPage() {
     enabled: Boolean(user),
   });
 
+  const implementedPlugins = useMemo(
+    () => pluginList.filter((plugin) => plugin.implemented),
+    [],
+  );
+
   const oauthPluginIds = useMemo(
     () =>
-      pluginList
-        .filter(
-          (plugin) =>
-            plugin.implemented && Boolean(plugin.contributions?.oauth?.length),
-        )
+      implementedPlugins
+        .filter((plugin) => Boolean(plugin.contributions?.oauth?.length))
         .map((plugin) => plugin.id),
-    [],
+    [implementedPlugins],
   );
 
   const oauthStatusQueries = useQueries({
@@ -374,7 +376,7 @@ export function PluginsPage() {
             </PageHeaderLead>
           </PageHeader>
           <PluginGrid>
-            {pluginList.map((plugin) => {
+            {implementedPlugins.map((plugin) => {
               const up = userPluginsQuery.data?.find(
                 (c) => c.plugin_type_id === plugin.id,
               );

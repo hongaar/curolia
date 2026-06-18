@@ -77,6 +77,14 @@
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false
     },
+    "@curolia/plugin-flickr#test": {
+      "dependsOn": ["@curolia/supabase#functions:sync"],
+      "cache": false
+    },
+    "@curolia/plugin-commons#test": {
+      "dependsOn": ["@curolia/supabase#functions:sync"],
+      "cache": false
+    },
     "@curolia/plugin-google-maps-saved-lists#typecheck": {
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false

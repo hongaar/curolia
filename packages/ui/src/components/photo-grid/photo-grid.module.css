@@ -195,3 +195,94 @@
   font-size: var(--font-size-xs);
   color: var(--muted-foreground);
 }
+
+.pickerTile {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  box-shadow: 0 0 0 1px var(--accent);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.pickerTile:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.pickerTile:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pickerTileSelected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.pickerImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pickerCheckbox {
+  position: absolute;
+  top: 0.3125rem;
+  left: 0.3125rem;
+  z-index: 2;
+  display: flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid rgb(255 255 255 / 0.92);
+  background: rgb(0 0 0 / 0.42);
+  color: white;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.pickerTile:hover .pickerCheckbox,
+.pickerTile:focus-visible .pickerCheckbox,
+.pickerTileSelected .pickerCheckbox {
+  opacity: 1;
+}
+
+.pickerTileSelected .pickerCheckbox {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.pickerCheckboxIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.pickerFooter {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.25rem;
+  z-index: 1;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  pointer-events: none;
+}

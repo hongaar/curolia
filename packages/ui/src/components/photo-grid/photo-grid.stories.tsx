@@ -5,6 +5,7 @@ import { StoryFrame } from "../../storybook/story-frame";
 import {
   PhotoGrid,
   PhotoGridCoverButton,
+  PhotoGridPickerTile,
   PhotoGridRemoveButton,
   PhotoGridThumb,
 } from "./photo-grid";
@@ -86,6 +87,51 @@ export const Sortable: Story = {
             </PhotoGridThumb>
           )}
         />
+      </StoryFrame>
+    );
+  },
+};
+
+export const PickerTiles: Story = {
+  parameters: storyDocs(
+    "Selectable picker tiles — checkbox on hover, accent border by default, primary when selected.",
+  ),
+  render: function Render() {
+    const [selected, setSelected] = useState(new Set(["b", "d"]));
+
+    const items = [
+      { id: "a", label: "Sunset", color: "#f4a261", distance: "42 m" },
+      { id: "b", label: "Harbor", color: "#2a9d8f", distance: "120 m" },
+      { id: "c", label: "Street", color: "#264653", distance: "0.8 km" },
+      { id: "d", label: "Cafe", color: "#e9c46a", distance: "210 m" },
+      { id: "e", label: "Park", color: "#457b9d", distance: "95 m" },
+    ];
+
+    function toggle(id: string) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
+
+    return (
+      <StoryFrame width="md">
+        <PhotoGrid>
+          {items.map((item) => (
+            <PhotoGridPickerTile
+              key={item.id}
+              src={`data:image/svg+xml,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="${item.color}"/></svg>`,
+              )}`}
+              alt={item.label}
+              selected={selected.has(item.id)}
+              onSelect={() => toggle(item.id)}
+              footer={item.distance}
+            />
+          ))}
+        </PhotoGrid>
       </StoryFrame>
     );
   },

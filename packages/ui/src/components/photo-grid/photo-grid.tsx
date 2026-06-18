@@ -1,4 +1,4 @@
-import { BookImage, GripVertical, X } from "lucide-react";
+import { BookImage, Check, GripVertical, X } from "lucide-react";
 import type * as React from "react";
 import { useState } from "react";
 
@@ -274,4 +274,52 @@ export function PhotoGridPlaceholder({
   className?: string;
 }) {
   return <div className={cn(styles.placeholder, className)}>{children}</div>;
+}
+
+export type PhotoGridPickerTileProps = {
+  src: string;
+  alt?: string;
+  selected?: boolean;
+  onSelect: () => void;
+  disabled?: boolean;
+  footer?: React.ReactNode;
+  className?: string;
+};
+
+export function PhotoGridPickerTile({
+  src,
+  alt = "",
+  selected = false,
+  onSelect,
+  disabled = false,
+  footer,
+  className,
+}: PhotoGridPickerTileProps) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        styles.pickerTile,
+        selected && styles.pickerTileSelected,
+        className,
+      )}
+      aria-pressed={selected}
+      aria-label={alt || undefined}
+      disabled={disabled}
+      onClick={onSelect}
+    >
+      <img
+        src={src}
+        alt={alt}
+        className={styles.pickerImage}
+        draggable={false}
+      />
+      <span className={styles.pickerCheckbox} aria-hidden>
+        {selected ? (
+          <Check className={styles.pickerCheckboxIcon} strokeWidth={3} />
+        ) : null}
+      </span>
+      {footer ? <span className={styles.pickerFooter}>{footer}</span> : null}
+    </button>
+  );
 }

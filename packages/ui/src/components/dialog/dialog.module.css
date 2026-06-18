@@ -220,6 +220,13 @@
   word-break: break-word;
 }
 
+.inlinePrepStatus {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
 .footerRow {
   display: flex;
   flex-direction: column-reverse;

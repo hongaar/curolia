@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import {
   ApiAccessIcon,
   CommentsIcon,
+  CommonsIcon,
   DirectionsIcon,
   GoogleMapsIcon,
   GooglePhotosIcon,
@@ -41,6 +42,13 @@ export const landingPlugins: LandingPlugin[] = [
     description: "Import library shots onto pins",
     status: "available",
     icon: () => <GooglePhotosIcon size={6} />,
+  },
+  {
+    id: "commons",
+    name: "Wikimedia Commons",
+    description: "Attach nearby openly licensed photos",
+    status: "available",
+    icon: () => <CommonsIcon size={6} />,
   },
   {
     id: "ical",

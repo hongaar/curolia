@@ -10,6 +10,7 @@ export type PinPhotoLightboxItem = {
   id: string;
   url: string;
   originalProductUrl?: string | null;
+  originalProductLabel?: string | null;
 };
 
 type PinPhotoLightboxProps = {
@@ -123,8 +124,16 @@ export function PinPhotoLightbox({
                   size: "icon-sm",
                   className: styles.lightButton,
                 })}
-                aria-label="Open in Google Photos"
-                title="Open in Google Photos — new tab"
+                aria-label={
+                  current.originalProductLabel
+                    ? `Open in ${current.originalProductLabel}`
+                    : "Open original"
+                }
+                title={
+                  current.originalProductLabel
+                    ? `Open in ${current.originalProductLabel} — new tab`
+                    : "Open original — new tab"
+                }
               >
                 <ExternalLink className={styles.iconMd} />
               </a>

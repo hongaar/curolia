@@ -1,3 +1,8 @@
+import {
+  externalPhotoDisplayUrl,
+  mergePhotoDisplayUrls,
+  photoIdsKey,
+} from "@/lib/photo-display-url";
 import { supabase } from "@/lib/supabase";
 import type { Photo } from "@/types/database";
 import {
@@ -6,10 +11,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useMemo } from "react";
-
-function photoIdsKey(photos: Photo[]) {
-  return photos.map((p) => `${p.id}:${p.storage_path ?? ""}`).join("|");
-}
 
 export function usePinPhotosSignedUrls(pinId: string | undefined) {
   const qc = useQueryClient();
@@ -63,6 +64,11 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
         if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
         else if (row?.error) console.error(paths[i]!.path, row.error);
       }
+      for (const photo of photos) {
+        if (out[photo.id]) continue;
+        const external = externalPhotoDisplayUrl(photo.external_ref);
+        if (external) out[photo.id] = external;
+      }
       return out;
     },
     placeholderData: keepPreviousData,
@@ -73,7 +79,10 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
 
   return {
     photos,
-    signedUrlByPhotoId: signedUrlsQuery.data ?? {},
+    signedUrlByPhotoId: mergePhotoDisplayUrls(
+      photos,
+      signedUrlsQuery.data ?? {},
+    ),
     isLoading:
       photosQuery.isLoading || (photos.length > 0 && signedUrlsQuery.isLoading),
   };
@@ -133,6 +142,11 @@ export function useMapAllPhotosSignedUrls(mapId: string | undefined) {
         if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
         else if (row?.error) console.error(paths[i]!.path, row.error);
       }
+      for (const photo of photos) {
+        if (out[photo.id]) continue;
+        const external = externalPhotoDisplayUrl(photo.external_ref);
+        if (external) out[photo.id] = external;
+      }
       return out;
     },
     placeholderData: keepPreviousData,
@@ -141,7 +155,10 @@ export function useMapAllPhotosSignedUrls(mapId: string | undefined) {
 
   return {
     photos,
-    signedUrlByPhotoId: signedUrlsQuery.data ?? {},
+    signedUrlByPhotoId: mergePhotoDisplayUrls(
+      photos,
+      signedUrlsQuery.data ?? {},
+    ),
     isLoading:
       photosQuery.isLoading || (photos.length > 0 && signedUrlsQuery.isLoading),
   };
@@ -209,6 +226,11 @@ export function useMapPinsPhotosSignedUrls(
         if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
         else if (row?.error) console.error(paths[i]!.path, row.error);
       }
+      for (const photo of photos) {
+        if (out[photo.id]) continue;
+        const external = externalPhotoDisplayUrl(photo.external_ref);
+        if (external) out[photo.id] = external;
+      }
       return out;
     },
     placeholderData: keepPreviousData,
@@ -227,7 +249,10 @@ export function useMapPinsPhotosSignedUrls(
 
   return {
     photosByPinId,
-    signedUrlByPhotoId: signedUrlsQuery.data ?? {},
+    signedUrlByPhotoId: mergePhotoDisplayUrls(
+      photos,
+      signedUrlsQuery.data ?? {},
+    ),
     isLoading:
       photosQuery.isLoading || (photos.length > 0 && signedUrlsQuery.isLoading),
   };

@@ -1073,7 +1073,7 @@ export function PinFormDialog({
                       dragHandle={dragHandle}
                       isCover={isCover}
                       coverButton={
-                        isMapOwner ? (
+                        isMapOwner && p.storage_path ? (
                           <PhotoGridCoverButton
                             active={isCover}
                             disabled={settingCover || isCover}

@@ -15,10 +15,9 @@ import {
 import { PageMuted } from "@curolia/ui/page";
 import {
   PhotoGrid,
+  PhotoGridPickerTile,
   PhotoGridPlaceholder,
-  PhotoGridThumb,
 } from "@curolia/ui/photo-grid";
-import { PinPhotoThumb } from "@curolia/ui/pin-photo-lightbox";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -47,9 +46,10 @@ export function MapCoverPinPhotoPicker({
   const { photos, signedUrlByPhotoId, isLoading } = useMapAllPhotosSignedUrls(
     open ? mapId : undefined,
   );
+  const storedPhotos = photos.filter((photo) => photo.storage_path?.trim());
 
   const working = Boolean(selectingId);
-  const hasPhotos = photos.length > 0;
+  const hasPhotos = storedPhotos.length > 0;
 
   async function selectPhoto(photo: Photo) {
     if (selectingId || coverPhotoId === photo.id) return;
@@ -98,21 +98,22 @@ export function MapCoverPinPhotoPicker({
               <PageMuted>No pin photos on this map yet.</PageMuted>
             ) : (
               <PhotoGrid>
-                {photos.map((photo) => {
+                {storedPhotos.map((photo) => {
                   const url = signedUrlByPhotoId[photo.id];
                   const isCover = coverPhotoId === photo.id;
                   return url ? (
-                    <PhotoGridThumb key={photo.id} isCover={isCover}>
-                      <PinPhotoThumb
-                        url={url}
-                        size="square"
-                        onOpen={() => void selectPhoto(photo)}
-                      />
-                    </PhotoGridThumb>
+                    <PhotoGridPickerTile
+                      key={photo.id}
+                      src={url}
+                      alt=""
+                      selected={isCover}
+                      disabled={working}
+                      onSelect={() => void selectPhoto(photo)}
+                    />
                   ) : (
-                    <PhotoGridThumb key={photo.id}>
-                      <PhotoGridPlaceholder>…</PhotoGridPlaceholder>
-                    </PhotoGridThumb>
+                    <PhotoGridPlaceholder key={photo.id}>
+                      …
+                    </PhotoGridPlaceholder>
                   );
                 })}
               </PhotoGrid>
