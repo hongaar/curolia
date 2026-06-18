@@ -34,6 +34,7 @@ import {
 } from "@/lib/map-view-params";
 import { pinDetailSideSheetTitle } from "@/lib/pin-detail-side-sheet-title";
 import type { PinWithTags } from "@/lib/pin-with-tags";
+import { isStackRoute } from "@/lib/stack-routes";
 import { BottomSheet } from "@curolia/ui/bottom-sheet";
 import {
   MapHost,
@@ -51,7 +52,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 
 const PANEL_RIGHT_WIDTH_CSS = "clamp(24rem, 35%, 40rem)";
 
@@ -68,6 +69,7 @@ function pinsOnSameMap(pins: DiscoverPin[], mapId: string): PinWithTags[] {
 
 export function DiscoverPage() {
   const isWideEnough = useMinMd();
+  const { pathname } = useLocation();
   const mapRef = useRef<PinMapHandle>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const bboxFromUrl = useMemo(
@@ -185,13 +187,19 @@ export function DiscoverPage() {
     cameraFromUrlRef.current = cameraFromUrl;
   }, [cameraFromUrl]);
 
+  const clearCameraIdleTimer = useCallback(() => {
+    clearTimeout(cameraIdleTimerRef.current);
+  }, []);
+
   useEffect(() => {
     return () => clearTimeout(cameraIdleTimerRef.current);
   }, []);
 
-  const clearCameraIdleTimer = useCallback(() => {
-    clearTimeout(cameraIdleTimerRef.current);
-  }, []);
+  const stackCoversDiscover = isStackRoute(pathname);
+
+  useEffect(() => {
+    if (stackCoversDiscover) clearCameraIdleTimer();
+  }, [stackCoversDiscover, clearCameraIdleTimer]);
 
   const [pinCollisionPicker, setPinCollisionPicker] =
     useState<PinMapCollisionPickerState | null>(null);
@@ -206,6 +214,7 @@ export function DiscoverPage() {
     bottomSheetDismissRef,
     bottomSheetOpen,
     bottomSheetPinId,
+    setBottomSheetOpen,
     collisionPopupRef,
     userDismissedRef,
     beginPanelDismiss,
@@ -311,6 +320,9 @@ export function DiscoverPage() {
     (c: MapCamera) => {
       clearTimeout(cameraIdleTimerRef.current);
       cameraIdleTimerRef.current = setTimeout(() => {
+        // Discover stays mounted under stack routes; skip URL sync while a stack
+        // screen is active so we do not navigate back to /discover?….
+        if (isStackRoute(window.location.pathname)) return;
         const normalized = normalizeCameraForUrl(c);
         const pinTok = sidebarPinTokenRef.current;
         const urlCam = cameraFromUrlRef.current;
@@ -408,17 +420,20 @@ export function DiscoverPage() {
 
       {!isWideEnough ? (
         <BottomSheet
-          open={bottomSheetOpen}
+          open={bottomSheetOpen && !stackCoversDiscover}
           popupRef={panelPopupRef}
           dismissRef={bottomSheetDismissRef}
           title={bottomSheetTitle}
           overlay="none"
           modal={false}
           partialHeight="min(85dvh, 40rem)"
-          syncHistoryBack
-          onDismissStart={beginPanelDismiss}
+          syncHistoryBack={!stackCoversDiscover}
+          onDismissStart={() => {
+            if (!stackCoversDiscover) beginPanelDismiss();
+          }}
           onOpenChange={(open) => {
             if (!open) {
+              setBottomSheetOpen(false);
               onClosePinMapPopover();
             }
           }}

@@ -4,6 +4,7 @@ export {
   HomeFeedMain,
   HomeFeedMapList,
   HomeFeedMapListEmpty,
+  HomeFeedMapLink,
   HomeFeedMapListItem,
   HomeFeedNewMapAction,
   HomeFeedShortcutActions,

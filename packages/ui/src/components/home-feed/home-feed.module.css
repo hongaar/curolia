@@ -107,13 +107,24 @@
   gap: var(--space-2);
   min-width: 0;
   padding-block: var(--space-1);
-  padding-inline: 0;
+  padding-inline: var(--space-2);
   border-radius: var(--radius-md);
   color: var(--foreground);
   text-decoration: none;
   transition:
     background 150ms ease,
     color 150ms ease;
+}
+
+.mapListLinkInline {
+  display: inline-flex;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.mapListLinkInline .mapListBody {
+  flex: 0 1 auto;
 }
 
 .mapListLink:hover {

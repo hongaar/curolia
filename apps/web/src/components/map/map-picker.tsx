@@ -1,6 +1,7 @@
 import { MapPickerMenuContent } from "@/components/map/map-picker-menu-content";
 import { useNavigateToMapSettings } from "@/hooks/use-navigate-to-map-settings";
 import { mapViewHref } from "@/lib/app-paths";
+import { isDiscoverPathname } from "@/lib/discover-routes";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { mapRouteForMap } from "@/lib/map-route";
 import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
@@ -25,7 +26,7 @@ export function MapPicker() {
   const { memberMaps, activeMap } = useMap();
   const { openNewMapDialog } = useNavigationShell();
   const [open, setOpen] = useState(false);
-  const onMapBase = isBaseRoute(pathname);
+  const onMapBase = isBaseRoute(pathname) && !isDiscoverPathname(pathname);
 
   const viewingForeignMap = useMemo(
     () =>

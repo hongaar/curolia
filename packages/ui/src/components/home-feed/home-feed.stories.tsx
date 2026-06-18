@@ -15,6 +15,7 @@ import {
   HomeFeedAside,
   HomeFeedLayout,
   HomeFeedMain,
+  HomeFeedMapLink,
   HomeFeedMapList,
   HomeFeedMapListEmpty,
   HomeFeedMapListItem,
@@ -165,4 +166,22 @@ export const MapListEmpty: Story = {
     </div>
   ),
   ...storyDocs("Empty sidebar map list placeholder."),
+};
+
+export const MapLinkInline: Story = {
+  render: () => (
+    <div style={{ maxWidth: "24rem" }}>
+      <HomeFeedMapLink
+        to="/alex/europe"
+        title="Wereldreis"
+        coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
+        iconEmoji="🗺️"
+        meta="16 pins · 9h ago"
+        inline
+      />
+    </div>
+  ),
+  ...storyDocs(
+    "Compact inline map link for pin detail headers — fits content width with inset padding.",
+  ),
 };

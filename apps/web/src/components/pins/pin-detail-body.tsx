@@ -80,6 +80,8 @@ interface PinDetailBodyProps {
   signedUrlByPhotoId: Record<string, string>;
   /** Extra elements rendered inside PinDetailActions alongside the Edit button. */
   extraActions?: ReactNode;
+  /** Between title/actions and subtitle (e.g. discover source map link). */
+  headerBelowActions?: ReactNode;
   /** Content rendered at the top of the content section (e.g. inset map). */
   topContent?: ReactNode;
   /**
@@ -101,6 +103,7 @@ export function PinDetailBody({
   photos,
   signedUrlByPhotoId,
   extraActions,
+  headerBelowActions,
   topContent,
   permalinkMapRoute,
   mapPins,
@@ -257,6 +260,7 @@ export function PinDetailBody({
         {overflowPinActions ? (
           <PinDetailActionRow>{pinToolbarActions}</PinDetailActionRow>
         ) : null}
+        {headerBelowActions}
         {pinDateLocationRows.length > 0 || showTripSequence ? (
           <PinDetailSubtitleNavRow
             trailing={

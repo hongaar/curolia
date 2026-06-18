@@ -71,7 +71,7 @@ export function PinDetailSideSheet({
       onNavigateSequencePin={(target) => onNavigatePin(target.id)}
       sideSheet
       bottomSheet={bottomSheet}
-      topContent={
+      headerBelowActions={
         sourceMap ? <PinSourceMapLink sourceMap={sourceMap} /> : undefined
       }
       extraActions={
