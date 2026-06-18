@@ -4,6 +4,7 @@ import {
   buildCollisionLayout,
   canZoomCollisionGroup,
   collisionGroupCentroid,
+  collisionGroupClickWillZoom,
   collisionGroupLikelyZoomable,
   collisionRepresentativePinId,
   DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
@@ -487,5 +488,55 @@ describe("collisionGroupLikelyZoomable", () => {
         { pinId: "b", lng: 4.901, lat: 52.371 },
       ]),
     ).toBe(true);
+  });
+});
+
+describe("collisionGroupClickWillZoom", () => {
+  const viewport = {
+    width: 800,
+    height: 600,
+    maxZoom: 20,
+    paddingPx: 48,
+    currentCenterLng: 4.9,
+    currentCenterLat: 52.37,
+  };
+
+  const tuning = {
+    ...DEFAULT_COLLISION_GROUP_ZOOM_TUNING,
+    minZoomDelta: 0.05,
+  };
+
+  it("returns false for identical coordinates without running the zoom search", () => {
+    const pins = [
+      { pinId: "a", lng: 4.9, lat: 52.37 },
+      { pinId: "b", lng: 4.9, lat: 52.37 },
+    ];
+    expect(
+      collisionGroupClickWillZoom({
+        pins,
+        currentZoom: 10,
+        tuning,
+        ...viewport,
+      }),
+    ).toBe(false);
+  });
+
+  it("matches canZoomCollisionGroup when separation exceeds maxSeparationZoom", () => {
+    const pins = [
+      { pinId: "a", lng: 4.9, lat: 52.37 },
+      { pinId: "b", lng: 4.90012, lat: 52.37 },
+    ];
+    const tightCapTuning = {
+      ...tuning,
+      maxSeparationZoom: 11,
+    };
+    const options = {
+      pins,
+      currentZoom: 10,
+      tuning: tightCapTuning,
+      ...viewport,
+    };
+    expect(collisionGroupClickWillZoom(options)).toBe(false);
+    expect(canZoomCollisionGroup(options)).toBe(false);
   });
 });

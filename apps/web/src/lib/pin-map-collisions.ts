@@ -696,8 +696,8 @@ export function resolveCollisionGroupZoomTarget(
 }
 
 /**
- * Fast UI hint: identical coordinates cannot be separated by zoom alone.
- * Full separation is resolved on click via {@link canZoomCollisionGroup}.
+ * Fast precheck: identical coordinates cannot be separated by zoom alone.
+ * Prefer {@link collisionGroupClickWillZoom} for hover labels and tooltips.
  */
 export function collisionGroupLikelyZoomable(
   pins: ReadonlyArray<PinLngLat>,
@@ -712,6 +712,19 @@ export function canZoomCollisionGroup(
   options: CollisionGroupZoomOptions,
 ): boolean {
   return resolveCollisionGroupZoomTarget(options) !== null;
+}
+
+/**
+ * Hover/label hint aligned with collision click behavior (including
+ * `maxSeparationZoom`). Skips the expensive zoom search when coordinates are
+ * identical.
+ */
+export function collisionGroupClickWillZoom(
+  options: CollisionGroupZoomOptions,
+): boolean {
+  if (options.pins.length <= 1) return false;
+  if (!collisionGroupLikelyZoomable(options.pins)) return false;
+  return canZoomCollisionGroup(options);
 }
 
 export type ResolveCollisionClickCameraOptions = {
