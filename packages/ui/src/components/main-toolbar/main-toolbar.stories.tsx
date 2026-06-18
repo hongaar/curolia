@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Search } from "lucide-react";
+import { Compass, Search } from "lucide-react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
 import { DropdownMenu } from "../dropdown-menu";
@@ -19,7 +19,7 @@ import {
   SearchToolbarField,
 } from "../search";
 import { UserAvatar } from "../user-avatar";
-import { MainToolbar } from "./main-toolbar";
+import { MainToolbar, MainToolbarNavCurrent } from "./main-toolbar";
 
 const meta = {
   title: "Main Toolbar",
@@ -123,6 +123,19 @@ export const MapPickerOnly: Story = {
     <MainToolbar
       {...args}
       mapPicker={<DemoMapPicker />}
+      accountMenu={<DemoAccountMenu />}
+    />
+  ),
+};
+
+export const DiscoverPage: Story = {
+  parameters: storyDocs(
+    "Discover page: brand, current-page Discover label, and account slot only.",
+  ),
+  render: (args) => (
+    <MainToolbar
+      {...args}
+      navCurrent={<MainToolbarNavCurrent icon={<Compass />} label="Discover" />}
       accountMenu={<DemoAccountMenu />}
     />
   ),

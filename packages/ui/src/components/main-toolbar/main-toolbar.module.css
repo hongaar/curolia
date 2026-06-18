@@ -81,6 +81,29 @@
   min-width: 0;
 }
 
+.navCurrent {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent-strong);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.navCurrentIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.navCurrentIcon > svg {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
 @media (min-width: 40rem) {
   .inner {
     box-sizing: border-box;

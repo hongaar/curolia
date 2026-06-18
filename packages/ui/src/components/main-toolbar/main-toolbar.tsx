@@ -7,6 +7,8 @@ export type MainToolbarProps = {
   mapPicker?: React.ReactNode;
   /** Search slot beside map picker (hidden on small viewports via CSS). */
   search?: React.ReactNode;
+  /** Current-page nav label after the brand (e.g. Discover on the discover page). Always visible. */
+  navCurrent?: React.ReactNode;
   /** Promo nav control after the brand (e.g. Discover for signed-out users). Hidden below 40rem. */
   leftPromo?: React.ReactNode;
   /** Promo nav control before notifications (e.g. Discover for signed-in users). Hidden below 40rem. */
@@ -55,6 +57,24 @@ export function MainToolbarBrand({
   );
 }
 
+/** Non-interactive current-page nav item (icon + label in accent color). */
+export function MainToolbarNavCurrent({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <span className={styles.navCurrent} aria-current="page">
+      <span className={styles.navCurrentIcon} aria-hidden>
+        {icon}
+      </span>
+      <span>{label}</span>
+    </span>
+  );
+}
+
 /** Pass `className` to a client router link wrapping `MainToolbarBrand`. */
 export function MainToolbarBrandAnchor({
   children,
@@ -67,6 +87,7 @@ export function MainToolbarBrandAnchor({
 export function MainToolbar({
   mapPicker,
   search,
+  navCurrent,
   leftPromo,
   rightPromo,
   notifications,
@@ -84,6 +105,7 @@ export function MainToolbar({
               <MainToolbarBrand logoSrc={logoSrc} label={brandLabel} />
             </div>
           )}
+          {navCurrent}
           {leftPromo ? <div className={styles.promo}>{leftPromo}</div> : null}
           {mapPicker}
           {search ? (
