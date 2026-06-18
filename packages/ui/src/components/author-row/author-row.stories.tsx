@@ -49,3 +49,16 @@ export const NameOnly: Story = {
   ),
   ...storyDocs("Display name without an avatar."),
 };
+
+export const Linked: Story = {
+  args: {
+    name: "Joram van den Boezem",
+    nameHref: "/joram",
+  },
+  render: (args) => (
+    <StoryFrame width="sm">
+      <AuthorRow {...args} />
+    </StoryFrame>
+  ),
+  ...storyDocs("Display name links to the author's public profile."),
+};

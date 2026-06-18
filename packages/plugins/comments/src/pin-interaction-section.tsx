@@ -21,6 +21,7 @@ import { Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CommentAuthorAvatar } from "./comment-author-avatar";
+import { commentAuthorProfileHref } from "./comment-author-profile-href";
 import {
   getStoredCommentDisplayName,
   setStoredCommentDisplayName,
@@ -168,6 +169,7 @@ export function CommentsPinInteractionSection({
                       <PluginPinItemByline
                         avatar={<CommentAuthorAvatar comment={comment} />}
                         title={comment.author_display_name}
+                        titleHref={commentAuthorProfileHref(comment)}
                         meta={
                           <time dateTime={comment.created_at}>
                             {formatCommentDate(comment.created_at)}

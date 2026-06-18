@@ -188,16 +188,19 @@ export function PluginPinItemMain({ children }: { children: React.ReactNode }) {
 export function PluginPinItemByline({
   avatar,
   title,
+  titleHref,
   meta,
 }: {
   /** Small avatar beside the author name (map-card author row style). */
   avatar?: React.ReactNode;
   title: React.ReactNode;
+  /** When set, the author name links to their public profile. */
+  titleHref?: string;
   meta?: React.ReactNode;
 }) {
   return (
     <div className={styles.itemByline}>
-      <AuthorRow avatar={avatar} name={title} />
+      <AuthorRow avatar={avatar} name={title} nameHref={titleHref} />
       {meta != null && meta !== "" ? (
         <span className={styles.itemBylineMeta}>{meta}</span>
       ) : null}

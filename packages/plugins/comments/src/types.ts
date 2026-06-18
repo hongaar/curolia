@@ -1,6 +1,7 @@
 export type PinCommentAuthorProfile = {
   avatar_url: string | null;
   gravatar_hash: string | null;
+  slug: string | null;
 };
 
 export type PinCommentRow = {

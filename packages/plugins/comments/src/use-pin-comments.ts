@@ -11,7 +11,7 @@ async function fetchCommentAuthorProfiles(
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, avatar_url, gravatar_hash")
+    .select("id, avatar_url, gravatar_hash, slug")
     .in("id", authorUserIds);
   if (error) throw error;
 
@@ -21,6 +21,7 @@ async function fetchCommentAuthorProfiles(
       {
         avatar_url: profile.avatar_url?.trim() || null,
         gravatar_hash: profile.gravatar_hash?.trim() || null,
+        slug: profile.slug?.trim() || null,
       },
     ]),
   );

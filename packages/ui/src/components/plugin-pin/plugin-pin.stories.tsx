@@ -121,6 +121,7 @@ export const CommentByline: Story = {
                     />
                   }
                   title="Joram van den Boezem"
+                  titleHref="/joram"
                   meta={<time dateTime="2026-06-12T10:00:00Z">3d ago</time>}
                 />
                 <p>Looks great — thanks for sharing!</p>
