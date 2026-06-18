@@ -28,17 +28,19 @@
 - Shared **manifest / contribution types** live in **`@curolia/plugin-contract`** (`packages/plugin-contract`). Use that for declaring global settings, per-map settings, app hooks, and Edge Function metadata.
 - **`@curolia/brand`** and **plugin registry** (`apps/web/scripts/generate-plugin-registry.mjs`, **`npm run plugins:sync -w @curolia/web`**) must not run from **`apps/web` lifecycle hooks**. Run them via Turbo **`codegen`** (or the two workspace commands directly) before builds/typechecks in **CI**, before **`vercel build`** in the deploy workflow, or locally—never from chained root **`package.json`** scripts.
 
-- **Supabase Edge Functions** for a plugin live under `packages/plugins/<id>/supabase/functions/<slug>/`. After changing plugin-owned function sources, copy them into the Supabase CLI project with:
+- **Supabase Edge Functions** for a plugin live under `packages/plugins/<id>/supabase/functions/<slug>/`. After changing plugin-owned function sources, sync into the Supabase CLI project (before `npm run functions:start -w @curolia/supabase` or remote `supabase functions deploy`):
 
   ```bash
   npx turbo run functions:sync
   ```
 
-  before `npm run functions:start -w @curolia/supabase` / remote `supabase functions deploy`.
+- **`functions:sync`** also:
+  - copies each plugin’s `supabase/functions/<slug>/` into `packages/supabase/supabase/functions/` (those copies are gitignored)
+  - runs `packages/supabase/scripts/extract-plugin-oauth-registry.ts` (via `tsx`) so `scopes-registry.gen.ts` is built from each plugin’s `src/oauth-registry.ts` (preferred; no React/CSS) or `pluginManifest.contributions.oauth` in `src/index.ts`
+  - merges companion scopes at authorize time (e.g. Google OIDC `openid` / `email` / `profile`) via `@curolia/plugin-oauth` (`oauth-companion-scopes.ts`); the extractor’s strip step must match that module
+  - keeps shared Edge helpers in each function’s own `lib/` (not a cross-function `_shared/` folder)
 
-  **`functions:sync`** copies each plugin’s `supabase/functions/<slug>/` into `packages/supabase/supabase/functions/` (those copies are gitignored). It also runs **`packages/supabase/scripts/extract-plugin-oauth-registry.ts`** (via **`tsx`**) so **`scopes-registry.gen.ts`** is built from each plugin’s **`src/oauth-registry.ts`** (preferred; no React/CSS) or **`pluginManifest.contributions.oauth`** in **`src/index.ts`**. Companion scopes merged at authorize time (e.g. Google OIDC `openid` / `email` / `profile`) live in **`@curolia/plugin-oauth`** (**`oauth-companion-scopes.ts`**); the extractor’s strip step must match that module. Shared Edge helpers belong in each function’s own **`lib/`** (not a cross-function **`_shared/`** folder).
-
-- **Web UI** may stay in `apps/web` initially; packages should still export **manifest + config parsers** so behavior and declarations stay with the plugin. Prefer moving React panels into the plugin package when they stabilize (with `react` as a `peerDependency`).
+- **Plugin UI** belongs in `packages/plugins/<id>/`: manifest, config parsers, and React surfaces (`PinFormSection`, `PinDetailSection`, `PinPhotoImportSlot`, …) stay with the plugin (`react` and other host libs as `peerDependencies`). `apps/web` is the host—it wires routes, mounts contribution slots from the generated registry, and composes `@curolia/ui` primitives; it does not own plugin-specific panels. See `packages/plugin-contract/README.md` for pin surfaces and output scopes.
 
 ## Static pages (`@curolia/site`)
 
