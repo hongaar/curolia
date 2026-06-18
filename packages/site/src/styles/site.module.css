@@ -84,6 +84,12 @@
   margin-left: var(--space-2);
 }
 
+@media (max-width: 39.99rem) {
+  .discoverHeaderLink {
+    display: none;
+  }
+}
+
 .brand {
   display: inline-flex;
   align-items: center;

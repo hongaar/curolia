@@ -104,6 +104,10 @@
 }
 
 @media (max-width: 39.99rem) {
+  .promo {
+    display: none;
+  }
+
   .inner {
     position: relative;
     min-height: 0;
