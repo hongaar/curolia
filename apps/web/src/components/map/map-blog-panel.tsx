@@ -365,6 +365,7 @@ function BlogPinEntry({
             items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
             rowPreset="blog-panel"
+            rowAlign="pin-content"
             onOpen={onOpenPhoto}
           />
         </MapBlogSidePanelGallery>

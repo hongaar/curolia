@@ -203,6 +203,7 @@
   width: 100%;
   margin-top: 1.25rem;
   box-sizing: border-box;
+  --pin-content-max: 40rem;
 }
 
 .blogSidePanelGalleryHeader {

@@ -9,6 +9,8 @@ import {
   columnsForContainerWidth,
   computeColumnsLayout,
   computeRowsLayout,
+  pinContentRowMargin,
+  pinPhotoGalleryRowWidth,
   stripThumbSize,
   targetRowHeightForBlogPanel,
   targetRowHeightForWidth,
@@ -51,6 +53,11 @@ export type PinPhotoGalleryProps = {
   columnPreset?: "default" | "blog-panel";
   /** Rows layout only: `blog-panel` uses shorter target rows in map blog side sheets. */
   rowPreset?: "default" | "blog-panel";
+  /**
+   * Rows layout only: align sparse rows with the pin content column (`pin-content`)
+   * or center wider rows when the gallery exceeds that column.
+   */
+  rowAlign?: "default" | "pin-content";
 };
 
 function useContainerWidth() {
@@ -72,6 +79,55 @@ function useContainerWidth() {
   }, []);
 
   return { ref, width };
+}
+
+function parseCssLengthPx(value: string, rootFontSizePx: number): number {
+  const trimmed = value.trim();
+  if (!trimmed) return 0;
+  if (trimmed.endsWith("rem")) {
+    return parseFloat(trimmed) * rootFontSizePx;
+  }
+  if (trimmed.endsWith("px")) {
+    return parseFloat(trimmed);
+  }
+  const numeric = parseFloat(trimmed);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function usePinContentMaxWidth(
+  enabled: boolean,
+  albumRef: React.RefObject<HTMLDivElement | null>,
+) {
+  const [width, setWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    if (!enabled) return;
+    const album = albumRef.current;
+    if (!album) return;
+
+    const sync = () => {
+      const host = album.parentElement;
+      if (!host) return;
+      const hostStyles = getComputedStyle(host);
+      const rootFontSize = parseFloat(
+        getComputedStyle(document.documentElement).fontSize,
+      );
+      const parsed = parseCssLengthPx(
+        hostStyles.getPropertyValue("--pin-content-max"),
+        rootFontSize,
+      );
+      setWidth(parsed > 0 ? parsed : album.clientWidth);
+    };
+
+    sync();
+    const host = album.parentElement;
+    const ro = new ResizeObserver(sync);
+    ro.observe(album);
+    if (host) ro.observe(host);
+    return () => ro.disconnect();
+  }, [enabled, albumRef]);
+
+  return width;
 }
 
 function PinPhotoCell({
@@ -174,13 +230,26 @@ function RowsGallery({
   onOpen,
   loadingPlaceholders,
   rowPreset = "default",
+  rowAlign = "default",
+  albumRef,
 }: {
   items: PinPhotoGalleryItem[];
   containerWidth: number;
   onOpen: (photoId: string) => void;
   loadingPlaceholders: number;
   rowPreset?: "default" | "blog-panel";
+  rowAlign?: "default" | "pin-content";
+  albumRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  const pinContentMaxWidth = usePinContentMaxWidth(
+    rowAlign === "pin-content",
+    albumRef,
+  );
+  const contentMaxWidth =
+    rowAlign === "pin-content" && pinContentMaxWidth > 0
+      ? pinContentMaxWidth
+      : containerWidth;
+
   const rows = useMemo(
     () =>
       computeRowsLayout(
@@ -195,19 +264,35 @@ function RowsGallery({
 
   return (
     <div className={styles.rows}>
-      {rows.map((row, rowIndex) => (
-        <div key={`row-${rowIndex}`} className={styles.row}>
-          {row.map(({ item, width, height }) => (
-            <PinPhotoCell
-              key={item.id}
-              item={item}
-              width={width}
-              height={height}
-              onOpen={onOpen}
-            />
-          ))}
-        </div>
-      ))}
+      {rows.map((row, rowIndex) => {
+        const rowWidth = pinPhotoGalleryRowWidth(row);
+        const isFullWidth = rowWidth >= containerWidth - 1;
+        const rowMargin = pinContentRowMargin(
+          rowWidth,
+          containerWidth,
+          contentMaxWidth,
+        );
+
+        return (
+          <div
+            key={`row-${rowIndex}`}
+            className={
+              isFullWidth ? styles.row : `${styles.row} ${styles.rowSparse}`
+            }
+            style={rowMargin}
+          >
+            {row.map(({ item, width, height }) => (
+              <PinPhotoCell
+                key={item.id}
+                item={item}
+                width={width}
+                height={height}
+                onOpen={onOpen}
+              />
+            ))}
+          </div>
+        );
+      })}
       {loadingPlaceholders > 0 ? (
         <div className={styles.row}>
           <LoadingPlaceholders count={loadingPlaceholders} />
@@ -436,6 +521,7 @@ export function PinPhotoGallery({
   columnCount,
   columnPreset = "default",
   rowPreset = "default",
+  rowAlign = "default",
 }: PinPhotoGalleryProps) {
   const { ref, width } = useContainerWidth();
 
@@ -483,6 +569,8 @@ export function PinPhotoGallery({
           onOpen={onOpen}
           loadingPlaceholders={loadingPlaceholders}
           rowPreset={rowPreset}
+          rowAlign={rowAlign}
+          albumRef={ref}
         />
       ) : (
         <MasonryGallery

@@ -58,10 +58,56 @@ function sizeRow<T extends PinPhotoGalleryLayoutItem>(
   containerWidth: number,
 ): SizedGalleryItem<T>[] {
   const height = rowHeightAtWidth(photos, containerWidth);
+  return sizeRowAtHeight(photos, height);
+}
+
+function sizeRowAtHeight<T extends PinPhotoGalleryLayoutItem>(
+  photos: T[],
+  height: number,
+): SizedGalleryItem<T>[] {
   return photos.map((item) => {
     const aspect = photoAspect(item);
     return { item, width: aspect * height, height };
   });
+}
+
+export function rowWidthAtHeight<T extends PinPhotoGalleryLayoutItem>(
+  photos: T[],
+  height: number,
+): number {
+  if (photos.length === 0) return 0;
+  const gaps = GAP_PX * Math.max(0, photos.length - 1);
+  return (
+    photos.reduce((sum, item) => sum + photoAspect(item) * height, 0) + gaps
+  );
+}
+
+export function pinPhotoGalleryRowWidth<T extends PinPhotoGalleryLayoutItem>(
+  row: SizedGalleryItem<T>[],
+): number {
+  if (row.length === 0) return 0;
+  return (
+    row.reduce((sum, cell) => sum + cell.width, 0) +
+    GAP_PX * Math.max(0, row.length - 1)
+  );
+}
+
+/** Justified to container width, or capped at `maxHeight` for sparse galleries/rows. */
+function sizeRowCapped<T extends PinPhotoGalleryLayoutItem>(
+  photos: T[],
+  containerWidth: number,
+  maxHeight: number,
+  isMultiRowGallery: boolean,
+): SizedGalleryItem<T>[] {
+  if (isMultiRowGallery && photos.length >= 3) {
+    return sizeRow(photos, containerWidth);
+  }
+
+  const naturalAtCap = rowWidthAtHeight(photos, maxHeight);
+  if (naturalAtCap <= containerWidth + 0.5) {
+    return sizeRowAtHeight(photos, maxHeight);
+  }
+  return sizeRow(photos, containerWidth);
 }
 
 function partitionRowsForHeight<T extends PinPhotoGalleryLayoutItem>(
@@ -149,7 +195,7 @@ export function computeRowsLayout<T extends PinPhotoGalleryLayoutItem>(
   if (containerWidth <= 0 || items.length === 0) return [];
 
   if (items.length === 1) {
-    return [sizeRow(items, containerWidth)];
+    return [sizeRowCapped(items, containerWidth, targetRowHeight, false)];
   }
 
   const heightCandidates = [
@@ -177,10 +223,29 @@ export function computeRowsLayout<T extends PinPhotoGalleryLayoutItem>(
   }
 
   if (bestRows.length === 0) {
-    return [sizeRow(items, containerWidth)];
+    return [sizeRowCapped(items, containerWidth, targetRowHeight, false)];
   }
 
-  return bestRows.map((row) => sizeRow(row, containerWidth));
+  const isMultiRowGallery = bestRows.length > 1;
+  return bestRows.map((row) =>
+    sizeRowCapped(row, containerWidth, targetRowHeight, isMultiRowGallery),
+  );
+}
+
+export function pinContentRowMargin(
+  rowWidth: number,
+  containerWidth: number,
+  contentMaxWidth: number,
+): { marginInlineStart?: number; marginInline?: string } {
+  const tolerance = 1;
+  if (rowWidth >= containerWidth - tolerance) {
+    return {};
+  }
+  const contentOffset = Math.max(0, (containerWidth - contentMaxWidth) / 2);
+  if (rowWidth <= contentMaxWidth + tolerance) {
+    return { marginInlineStart: contentOffset };
+  }
+  return { marginInline: "auto" };
 }
 
 export function columnsForContainerWidth(containerWidth: number): number {
