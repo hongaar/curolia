@@ -1,6 +1,7 @@
+import { isDiscoverPathname } from "@/lib/discover-routes";
 import type { Location } from "react-router-dom";
 
-/** Map / blog / gallery — kept mounted under the stack. */
+/** Fullscreen map views — base layer; stack screens mount above these. */
 const BASE_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/[^/]+\/[^/]+\/map\/?$/,
   /^\/[^/]+\/[^/]+\/blog\/?$/,
@@ -14,7 +15,7 @@ const STACK_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/plugins\/?$/,
   /^\/notifications\/?$/,
   /^\/invitations\/?$/,
-  /^\/(?!profile$|settings$|plugins$|notifications$|invitations$)[^/]+\/?$/,
+  /^\/(?!profile$|settings$|plugins$|notifications$|invitations$|discover$)[^/]+\/?$/,
   /^\/[^/]+\/[^/]+\/settings\/?$/,
   /^\/[^/]+\/[^/]+\/pin\//,
 ];
@@ -27,11 +28,14 @@ function normalizePathname(pathname: string): string {
 }
 
 export function isBaseRoute(pathname: string): boolean {
-  return BASE_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
+  const normalized = normalizePathname(pathname);
+  if (isDiscoverPathname(normalized)) return true;
+  return BASE_ROUTE_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 export function isStackRoute(pathname: string): boolean {
-  return STACK_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
+  const normalized = normalizePathname(pathname);
+  return STACK_ROUTE_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 export function getStackChain(pathname: string): readonly string[] {

@@ -1,4 +1,5 @@
 import { mapViewSwitchHref } from "@/lib/app-paths";
+import { isDiscoverPathname } from "@/lib/discover-routes";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   countEnabledMapViews,
@@ -33,7 +34,8 @@ export function MapViewSwitcher() {
   if (
     !activeMap?.owner_profile_slug ||
     !activeMap.slug ||
-    !isBaseRoute(pathname)
+    !isBaseRoute(pathname) ||
+    isDiscoverPathname(pathname)
   ) {
     return null;
   }

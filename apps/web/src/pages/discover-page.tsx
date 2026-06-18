@@ -260,8 +260,10 @@ export function DiscoverPage() {
     (id: string) => {
       setPinCollisionPicker(null);
       const row = pins.find((pin) => pin.id === id);
+      const token = row?.slug ?? id;
+
       onPinSelectFromMap(id, row);
-      setSearchParams((prev) => applySelectedPinToSearchParams(prev, id), {
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, token), {
         replace: true,
       });
     },

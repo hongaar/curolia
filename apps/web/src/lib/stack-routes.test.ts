@@ -21,25 +21,33 @@ describe("isStackRoute", () => {
     expect(isStackRoute("/joram/trip/pin/my-pin")).toBe(true);
   });
 
-  it("does not match primary map views", () => {
+  it("matches public profile routes", () => {
+    expect(isStackRoute("/joram")).toBe(true);
+  });
+
+  it("does not match primary map views or discover", () => {
     expect(isStackRoute("/joram/summer-2024/map")).toBe(false);
     expect(isStackRoute("/joram/summer-2024/blog")).toBe(false);
     expect(isStackRoute("/joram/summer-2024/gallery")).toBe(false);
     expect(isStackRoute("/settings/plugins")).toBe(false);
+    expect(isStackRoute("/discover")).toBe(false);
   });
 });
 
 describe("isBaseRoute", () => {
-  it("matches profile-scoped map, blog, and gallery routes", () => {
+  it("matches profile-scoped map, blog, gallery, and discover", () => {
     expect(isBaseRoute("/joram/trip/map")).toBe(true);
     expect(isBaseRoute("/joram/trip/blog")).toBe(true);
     expect(isBaseRoute("/joram/trip/gallery")).toBe(true);
+    expect(isBaseRoute("/discover")).toBe(true);
+    expect(isBaseRoute("/discover/")).toBe(true);
   });
 
   it("does not match stack screens", () => {
     expect(isBaseRoute("/settings")).toBe(false);
     expect(isBaseRoute("/plugins")).toBe(false);
     expect(isBaseRoute("/joram/trip/pin/a")).toBe(false);
+    expect(isBaseRoute("/joram")).toBe(false);
   });
 });
 
@@ -48,6 +56,10 @@ describe("getStackChain", () => {
     expect(getStackChain("/profile")).toEqual(["/profile"]);
     expect(getStackChain("/plugins")).toEqual(["/plugins"]);
     expect(getStackChain("/joram/trip/pin/j")).toEqual(["/joram/trip/pin/j"]);
+  });
+
+  it("returns empty for discover base map", () => {
+    expect(getStackChain("/discover")).toEqual([]);
   });
 });
 
@@ -71,11 +83,17 @@ describe("shouldAnimateStackTransition", () => {
     expect(
       shouldAnimateStackTransition("/settings", "/joram/trip/map", "POP"),
     ).toBe(true);
+    expect(shouldAnimateStackTransition("/discover", "/settings", "PUSH")).toBe(
+      true,
+    );
   });
 
   it("skips base-to-base and REPLACE", () => {
     expect(
       shouldAnimateStackTransition("/joram/a/map", "/joram/b/map", "PUSH"),
+    ).toBe(false);
+    expect(
+      shouldAnimateStackTransition("/joram/trip/map", "/discover", "PUSH"),
     ).toBe(false);
     expect(
       shouldAnimateStackTransition("/settings", "/plugins", "REPLACE"),
