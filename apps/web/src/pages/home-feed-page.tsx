@@ -1,5 +1,6 @@
 import { HomeSidebar } from "@/components/home/home-sidebar";
 import { UserAvatar } from "@/components/user-avatar";
+import { featureFlags } from "@/lib/feature-flags";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
 import {
   fetchDiscoverRecentPublicMaps,
@@ -123,7 +124,9 @@ export function HomeFeedPage() {
     queryKey: ["home_feed", user?.id],
     queryFn: async () => {
       const [visited, edited, followed, discover] = await Promise.all([
-        fetchRecentlyVisitedMaps(),
+        featureFlags.homeRecentlyVisited
+          ? fetchRecentlyVisitedMaps()
+          : Promise.resolve([]),
         fetchRecentlyEditedMaps(),
         fetchFollowedRecentPublicMaps(),
         fetchDiscoverRecentPublicMaps(),
@@ -185,11 +188,13 @@ export function HomeFeedPage() {
               )}
             </Stack>
 
-            <HomeFeedStreamSection
-              title="Recently visited"
-              maps={visited}
-              emptyLabel="Maps you open will show up here."
-            />
+            {featureFlags.homeRecentlyVisited ? (
+              <HomeFeedStreamSection
+                title="Recently visited"
+                maps={visited}
+                emptyLabel="Maps you open will show up here."
+              />
+            ) : null}
           </Stack>
         </HomeFeedMain>
       </HomeFeedLayout>

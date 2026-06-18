@@ -1,3 +1,4 @@
+import { featureFlags } from "@/lib/feature-flags";
 import { recordMapVisit } from "@/lib/home-feed";
 import { useAuth } from "@/providers/auth-provider";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,7 +16,9 @@ export function useRecordMapVisit(mapId: string | null | undefined) {
 
     void recordMapVisit(mapId)
       .then(() => {
-        void qc.invalidateQueries({ queryKey: ["home_feed", user.id] });
+        if (featureFlags.homeRecentlyVisited) {
+          void qc.invalidateQueries({ queryKey: ["home_feed", user.id] });
+        }
       })
       .catch((error: unknown) => {
         console.error("Failed to record map visit", error);
