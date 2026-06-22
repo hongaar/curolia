@@ -37,3 +37,46 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report auto-merge decision
+        if: steps.metadata.outcome == 'success'
+        run: |
+          update_type="${{ steps.metadata.outputs.update-type }}"
+          deps="${{ steps.metadata.outputs.dependency-names }}"
+          group="${{ steps.metadata.outputs.dependency-group }}"
+          eligible=false
+          if [ "$update_type" = "version-update:semver-patch" ] || [ "$update_type" = "version-update:semver-minor" ]; then
+            eligible=true
+          fi
+
+          if [ "$eligible" = true ]; then
+            {
+              echo "## Auto-merge: enabled"
+              echo ""
+              echo "Approved this PR and enabled squash auto-merge. It will merge once required checks pass."
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| Update type | \`$update_type\` |"
+              echo "| Dependencies | $deps |"
+              if [ -n "$group" ]; then
+                echo "| Group | \`$group\` |"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## Auto-merge: skipped"
+              echo ""
+              echo "This PR was **not** approved or auto-merged."
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| Update type | \`$update_type\` |"
+              echo "| Dependencies | $deps |"
+              if [ -n "$group" ]; then
+                echo "| Group | \`$group\` |"
+              fi
+              echo ""
+              echo "Only patch and minor version updates are auto-merged. Major updates and grouped PRs that include a major bump require manual review."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
