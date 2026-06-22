@@ -28,7 +28,10 @@ import {
   type CollisionLayout,
   type PinLngLat,
 } from "@/lib/pin-map-collisions";
-import { syncExploreLayer } from "@/lib/pin-map-explore-layer";
+import {
+  syncExploreLayer,
+  type ExploreLayerSyncInput,
+} from "@/lib/pin-map-explore-layer";
 import {
   syncPlaceHighlightLayer,
   type PlaceMapHighlight,
@@ -233,8 +236,8 @@ type PinMapProps = {
   showPinRoute?: boolean;
   /** Circle overlay for a place picked from global search. */
   placeHighlight?: PlaceMapHighlight | null;
-  /** Active explore POI categories (placeholder — rendering follows later). */
-  exploreCategories?: readonly string[];
+  /** Active explore categories and filters for synthetic map layers. */
+  exploreLayer?: ExploreLayerSyncInput;
   /** Signed first-photo URL per pin id, for photo markers. */
   photoUrlByPinId?: Record<string, string>;
   /** Blog scroll focus — marker hover styling without map tooltip. */
@@ -516,7 +519,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
     showPinRoute = false,
     placeHighlight = null,
-    exploreCategories = [],
+    exploreLayer = { activeCategories: [], filterValuesByCategory: {} },
     photoUrlByPinId = EMPTY_PHOTO_URLS,
     scrollHoverPinId = null,
     suspendBlogScrollPanRef,
@@ -614,7 +617,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const routeAnimationPhaseRef = useRef(0);
   const showPinRouteRef = useRef(showPinRoute);
   const placeHighlightRef = useRef(placeHighlight);
-  const exploreCategoriesRef = useRef(exploreCategories);
+  const exploreLayerRef = useRef(exploreLayer);
   const routeSegmentsRef = useRef(buildPinRouteSegments([]));
   const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
   const syncMapOverlaysRef = useRef<() => void>(() => {});
@@ -1262,7 +1265,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         darkBasemap: darkBasemapRef.current,
       });
       syncPlaceHighlightLayer(map, () => placeHighlightRef.current);
-      syncExploreLayer(map, exploreCategoriesRef.current);
+      syncExploreLayer(map, exploreLayerRef.current);
       return true;
     });
   }, [syncVisibleMarkers]);
@@ -2203,13 +2206,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   useLayoutEffect(() => {
     showPinRouteRef.current = showPinRoute;
     placeHighlightRef.current = placeHighlight;
-    exploreCategoriesRef.current = exploreCategories;
+    exploreLayerRef.current = exploreLayer;
     routeSegmentsRef.current = routeSegments;
     darkBasemapRef.current = isDarkBasemap(mapStylePreset, resolvedTheme);
   }, [
     showPinRoute,
     placeHighlight,
-    exploreCategories,
+    exploreLayer,
     routeSegments,
     mapStylePreset,
     resolvedTheme,
@@ -2220,7 +2223,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   }, [
     showPinRoute,
     placeHighlight,
-    exploreCategories,
+    exploreLayer,
     routeSegments,
     selectedPinId,
     mapStylePreset,

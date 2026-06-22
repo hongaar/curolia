@@ -163,6 +163,22 @@ export function MapPage() {
   const showBlogPanel = isBlogView && isWideEnough;
   const showGalleryPanel = isGalleryView && isWideEnough;
   const showContentSidePanel = showBlogPanel || showGalleryPanel;
+  const contentPanelViewRef = useRef<"blog" | "gallery" | null>(null);
+  const [contentPanelLayoutActive, setContentPanelLayoutActive] =
+    useState(showContentSidePanel);
+  if (showBlogPanel) contentPanelViewRef.current = "blog";
+  if (showGalleryPanel) contentPanelViewRef.current = "gallery";
+  const contentPanelView = showGalleryPanel
+    ? "gallery"
+    : showBlogPanel
+      ? "blog"
+      : contentPanelLayoutActive
+        ? contentPanelViewRef.current
+        : null;
+  useLayoutEffect(() => {
+    if (showContentSidePanel) setContentPanelLayoutActive(true);
+  }, [showContentSidePanel]);
+
   const contentSidePanelRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const connectorAnchorRef = useRef<MapPanelPinConnectorAnchor | null>(null);
@@ -202,8 +218,11 @@ export function MapPage() {
   const {
     expanded: exploreExpanded,
     activeCategories: exploreActiveCategories,
+    focusedCategoryId: exploreFocusedCategoryId,
+    filterValuesByCategory: exploreFilterValuesByCategory,
     toggleExpanded: toggleExploreExpanded,
     toggleCategory: toggleExploreCategory,
+    selectCategory: selectExploreCategory,
   } = useExplore();
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
@@ -622,10 +641,10 @@ export function MapPage() {
     setSearchParams,
     clearCameraIdleTimer,
     activeMapId,
-    panelInsetMeasureRef: showContentSidePanel
+    panelInsetMeasureRef: contentPanelLayoutActive
       ? contentSidePanelRef
       : undefined,
-    persistentPanelOpen: showContentSidePanel,
+    persistentPanelOpen: contentPanelLayoutActive,
   });
 
   const { hoverPinId, onPinHover, onPinHoverEnd } = useMapPanelPinHoverSync({
@@ -665,6 +684,10 @@ export function MapPage() {
     [pins, hoverPinId],
   );
 
+  const onContentPanelClosed = useCallback(() => {
+    setContentPanelLayoutActive(false);
+  }, []);
+
   const showQuickSettingsPanel =
     quickSettingsOpen &&
     !showSidePanel &&
@@ -673,7 +696,7 @@ export function MapPage() {
     !publicView &&
     Boolean(activeMap);
 
-  const mapPanelRightWidth = showContentSidePanel
+  const mapPanelRightWidth = contentPanelLayoutActive
     ? BLOG_PANEL_WIDTH_CSS
     : showSidePanel && !showQuickSettingsPanel
       ? PANEL_RIGHT_WIDTH_CSS
@@ -707,7 +730,7 @@ export function MapPage() {
   }, [onClosePinMapPopover, sidebarPinId]);
 
   useLayoutEffect(() => {
-    if (!showContentSidePanel) {
+    if (!contentPanelLayoutActive) {
       mapRef.current?.clearPanelPadding();
       return;
     }
@@ -718,7 +741,7 @@ export function MapPage() {
       mapRef.current?.panForPanel(camera.lng, camera.lat, { right: width });
     };
     requestAnimationFrame(applyContentPanelInset);
-  }, [showContentSidePanel]);
+  }, [contentPanelLayoutActive]);
 
   useLayoutEffect(() => {
     if (!showQuickSettingsPanel) return;
@@ -1245,7 +1268,10 @@ export function MapPage() {
             mapStyleOptions={pinMapStyleOptions}
             showPinRoute={showPinRoute}
             placeHighlight={globalSearchPlaceHighlight}
-            exploreCategories={exploreActiveCategories}
+            exploreLayer={{
+              activeCategories: exploreActiveCategories,
+              filterValuesByCategory: exploreFilterValuesByCategory,
+            }}
             onSelectPin={onSelectPin}
             onPinCollisionClick={onPinCollisionClick}
             initialCamera={resolvedInitialCamera}
@@ -1295,8 +1321,10 @@ export function MapPage() {
           }}
           exploreExpanded={exploreExpanded}
           exploreActiveCategories={exploreActiveCategories}
+          exploreFocusedCategoryId={exploreFocusedCategoryId}
           onToggleExploreExpanded={toggleExploreExpanded}
           onToggleExploreCategory={toggleExploreCategory}
+          onSelectExploreCategory={selectExploreCategory}
         />
         {showContentSidePanel &&
         hoverPin &&
@@ -1320,33 +1348,32 @@ export function MapPage() {
             scrollRootRef={contentScrollRef}
           />
         ) : null}
-        {showGalleryPanel ? (
-          <MapBlogSidePanel ref={contentSidePanelRef}>
-            <MapGalleryPanel
-              mapSlug={mapSlug}
-              embedded
-              onViewPin={onSelectPin}
-              scrollRootRef={contentScrollRef}
-              onPinHover={handlePanelPinHover}
-              onPinHoverEnd={handlePanelPinHoverEnd}
-              gridColumns={3}
-            />
-            <MapBlogSidePanelScrim
-              show={showSidePanel}
-              onDismiss={onClosePinMapPopover}
-            />
-          </MapBlogSidePanel>
-        ) : null}
-        {showBlogPanel ? (
-          <MapBlogSidePanel ref={contentSidePanelRef}>
-            <MapBlogPanel
-              mapSlug={mapSlug}
-              embedded
-              onViewPin={onSelectPin}
-              scrollRootRef={contentScrollRef}
-              onPinHover={handlePanelPinHover}
-              onPinHoverEnd={handlePanelPinHoverEnd}
-            />
+        {isWideEnough && contentPanelView ? (
+          <MapBlogSidePanel
+            ref={contentSidePanelRef}
+            show={showContentSidePanel}
+            onClosed={onContentPanelClosed}
+          >
+            {contentPanelView === "gallery" ? (
+              <MapGalleryPanel
+                mapSlug={mapSlug}
+                embedded
+                onViewPin={onSelectPin}
+                scrollRootRef={contentScrollRef}
+                onPinHover={handlePanelPinHover}
+                onPinHoverEnd={handlePanelPinHoverEnd}
+                gridColumns={3}
+              />
+            ) : (
+              <MapBlogPanel
+                mapSlug={mapSlug}
+                embedded
+                onViewPin={onSelectPin}
+                scrollRootRef={contentScrollRef}
+                onPinHover={handlePanelPinHover}
+                onPinHoverEnd={handlePanelPinHoverEnd}
+              />
+            )}
             <MapBlogSidePanelScrim
               show={showSidePanel}
               onDismiss={onClosePinMapPopover}

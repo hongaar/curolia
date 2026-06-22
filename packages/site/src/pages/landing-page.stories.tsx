@@ -17,14 +17,15 @@ import {
   TermsPageContent,
 } from "./landing-page";
 import { OpenSourceLicensesPageContent } from "./licenses-page";
-import { OpenSourceMindsetPageContent } from "./open-source-page";
 import { NativeAppLandingPage } from "./native-app-landing-page";
+import { OpenSourceMindsetPageContent } from "./open-source-page";
+import { PluginsOverviewPageContent } from "./plugins-overview-page";
 
 const meta = {
   title: "Site",
   ...componentStoryMeta(
     "Marketing homepage, campaign landings, and public legal pages for signed-out sessions.",
-    "Mounted at `/`, `/for/*`, `/contact`, `/privacy`, `/terms`, `/open-source`, and `/licenses` from apps/web via `@curolia/site/pages`. Preview uses fullscreen layout and the same display font as apps/web.",
+    "Mounted at `/`, `/for/*`, `/contact`, `/privacy`, `/terms`, `/open-source`, `/plugins-overview`, and `/licenses` from apps/web via `@curolia/site/pages`. Preview uses fullscreen layout and the same display font as apps/web.",
   ),
   component: LandingPage,
   parameters: {
@@ -109,6 +110,13 @@ export const OpenSource: Story = {
     "Open source philosophy and third-party choices at `/open-source`.",
   ),
   render: () => <OpenSourceMindsetPageContent />,
+};
+
+export const Plugins: Story = {
+  parameters: storyDocs(
+    "Public plugin overview at `/plugins-overview` (linked as Plugins in the footer).",
+  ),
+  render: () => <PluginsOverviewPageContent />,
 };
 
 export const Licenses: Story = {

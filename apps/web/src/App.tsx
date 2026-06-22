@@ -18,6 +18,7 @@ import {
   HeritageLandingPage,
   HikingLandingPage,
   OpenSourceMindsetPageContent,
+  PluginsOverviewPageContent,
   PrivacyPolicyPageContent,
   TermsPageContent,
   TravelLandingPage,
@@ -44,6 +45,10 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPolicyPageContent />} />
         <Route path="/terms" element={<TermsPageContent />} />
         <Route path="/open-source" element={<OpenSourceMindsetPageContent />} />
+        <Route
+          path="/plugins-overview"
+          element={<PluginsOverviewPageContent />}
+        />
         <Route path="/licenses" element={<OpenSourceLicensesPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

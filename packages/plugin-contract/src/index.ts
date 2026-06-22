@@ -28,10 +28,29 @@ export type {
   PinSuggestionSlotProps,
   PinSurface,
   PluginDefinition,
+  PluginIconComponent,
   PluginPackageManifest,
   PluginPinOutputScope,
   PluginRegistry,
 } from "./definition";
+export {
+  exploreDefaultFilterValues,
+  exploreOffsetDistanceMeters,
+  exploreOffsetToLngLat,
+  filterExploreResults,
+  formatExploreDistanceMeters,
+  resolveExploreFilterValues,
+} from "./explore";
+export type {
+  ExploreCategoryContribution,
+  ExploreChipVariant,
+  ExploreFetchContext,
+  ExploreFilterDef,
+  ExploreFilterValues,
+  ExploreOffsetMeters,
+  ExploreResultEntry,
+  ExploreResultGeometry,
+} from "./explore";
 export {
   MAP_PLUGIN_CONFIG_ALLOW_ANONYMOUS_COMMENTS,
   MAP_PLUGIN_CONFIG_ALLOW_ANONYMOUS_REACTIONS,

@@ -823,6 +823,26 @@
   background: color-mix(in oklch, var(--muted) 80%, transparent);
 }
 
+.pluginsOverviewIntro {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: var(--line-height-relaxed);
+  color: var(--muted-foreground);
+}
+
+.pluginsOverviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: 2rem;
+}
+
+.pluginsOverviewUpdated {
+  margin: 2rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--muted-foreground);
+}
+
 .photoCredits {
   max-width: 72rem;
   margin: 0 auto;

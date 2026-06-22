@@ -15,6 +15,7 @@ const PUBLIC_PROFILE_SKIP_SLUGS = new Set([
   "privacy",
   "terms",
   "open-source",
+  "plugins-overview",
   "licenses",
 ]);
 

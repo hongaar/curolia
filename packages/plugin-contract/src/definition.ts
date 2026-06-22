@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ComponentType } from "react";
 import type { PluginAccountSettingsComponent } from "./account-panel";
 import type { PluginContributions } from "./contributions";
+import type { ExploreCategoryContribution } from "./explore";
 import type { MapPluginLike } from "./map-config";
 
 /** Props for optional pin editor UI next to native photo upload (cloud library importers). */
@@ -191,6 +192,11 @@ export type PluginDefinition = {
    * surface.
    */
   PinInteractionComposer?: ComponentType<PinInteractionComposerProps>;
+  /**
+   * Map-scoped explore categories (places, routes, …). A plugin may contribute
+   * multiple categories with filters, fetch logic, and map rendering metadata.
+   */
+  exploreCategories?: readonly ExploreCategoryContribution[];
   /**
    * Sort order on pin detail (lower first). Reactions typically precede comments.
    */

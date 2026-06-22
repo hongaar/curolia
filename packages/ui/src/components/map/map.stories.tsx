@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { useStoryArgs } from "../../storybook/args";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { storyFrameStyles } from "../../storybook/story-frame";
 import { Badge } from "../badge";
@@ -37,6 +38,7 @@ import {
   MapBlogSidePanelScrim,
   MapBlogSidePanelScroll,
   MapCanvas,
+  MapControlsBottomCenter,
   MapControlsBottomRight,
   MapControlsLayer,
   MapControlsTopLeftStack,
@@ -193,6 +195,52 @@ export const BlogSidePanel: Story = {
   ),
 };
 
+export const BlogSidePanelAnimated: Story = {
+  parameters: storyDocs(
+    "Blog/gallery panel slides in from the right when opened and slides out when closed (240ms, same easing as pin detail).",
+  ),
+  render: function Render() {
+    const [{ open }, updateArgs] = useStoryArgs<{ open: boolean }>({
+      open: true,
+    });
+
+    return (
+      <div style={{ height: "28rem", width: "100%", position: "relative" }}>
+        <MapPageRoot>
+          <MapLayer panelRightWidth={open ? "66.67%" : undefined}>
+            <MapHost>
+              <MockMapSurface />
+            </MapHost>
+            <MapVignette />
+            <div
+              style={{
+                position: "absolute",
+                top: "1rem",
+                left: "1rem",
+                zIndex: 10,
+              }}
+            >
+              <Button onClick={() => updateArgs({ open: !open })}>
+                {open ? "Close blog panel" : "Open blog panel"}
+              </Button>
+            </div>
+            <MapBlogSidePanel show={open}>
+              <MapBlogSidePanelScroll>
+                <MapBlogSidePanelContent>
+                  <h1 style={{ margin: 0, fontSize: "1.5rem" }}>Summer 2025</h1>
+                  <p style={{ color: "var(--muted-foreground)" }}>
+                    Toggle with the button to preview the slide animation.
+                  </p>
+                </MapBlogSidePanelContent>
+              </MapBlogSidePanelScroll>
+            </MapBlogSidePanel>
+          </MapLayer>
+        </MapPageRoot>
+      </div>
+    );
+  },
+};
+
 export const BlogSidePanelWithPinScrim: Story = {
   parameters: storyDocs(
     "Blog panel dimmed behind an open pin detail sheet; click the scrim to dismiss.",
@@ -333,6 +381,40 @@ export const TopLeftStack: Story = {
             </MapControlsBottomRight>
           </MapControlsLayer>
         </MapLayer>
+      </MapPageRoot>
+    </div>
+  ),
+};
+
+export const ContentBottomNav: Story = {
+  parameters: storyDocs(
+    "Fullscreen blog/gallery: map picker and view switcher centered at the bottom, icon-only when condensed.",
+  ),
+  render: () => (
+    <div style={{ height: "20rem", width: "100%", position: "relative" }}>
+      <MapPageRoot>
+        <MapControlsLayer>
+          <MapControlsBottomCenter>
+            <MapSecondaryToolbarNav placement="bottom-center">
+              <MapPickerTrigger
+                mapEmoji="🐻‍❄️"
+                mapName="From Polarsteps"
+                density="compact"
+              />
+              <SegmentedSwitcher aria-label="Map view" size="default">
+                <SegmentedSwitcherLink to="#" end icon={<span>🗺</span>}>
+                  Map
+                </SegmentedSwitcherLink>
+                <SegmentedSwitcherLink to="#" icon={<span>📖</span>}>
+                  Blog
+                </SegmentedSwitcherLink>
+                <SegmentedSwitcherLink to="#" icon={<span>🖼</span>}>
+                  Gallery
+                </SegmentedSwitcherLink>
+              </SegmentedSwitcher>
+            </MapSecondaryToolbarNav>
+          </MapControlsBottomCenter>
+        </MapControlsLayer>
       </MapPageRoot>
     </div>
   ),

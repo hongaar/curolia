@@ -4,6 +4,7 @@ export type StaticSsrRouteId =
   | "privacy"
   | "terms"
   | "openSource"
+  | "pluginsOverview"
   | "licenses"
   | "campaign";
 
@@ -14,6 +15,7 @@ export const SSR_STATIC_PATHS: Record<string, StaticSsrRouteId> = {
   "/privacy": "privacy",
   "/terms": "terms",
   "/open-source": "openSource",
+  "/plugins-overview": "pluginsOverview",
   "/licenses": "licenses",
 };
 

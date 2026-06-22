@@ -1,6 +1,6 @@
 import { CommonsLogoMark } from "@curolia/plugin-commons";
 import { PluginIconFrame } from "@curolia/ui/plugin-icon-frame";
-import { MessageCircle, Smile } from "lucide-react";
+import { MessageCircle, Route, Smile } from "lucide-react";
 import type { ReactNode } from "react";
 
 import styles from "./plugin-marketing-icons.module.css";
@@ -282,6 +282,15 @@ export function PoiIcon({ size = 5 }: IconProps) {
         />
         <circle cx="12" cy="9" r="2.5" fill="#fff" />
       </svg>
+    </MarketingPluginIcon>
+  );
+}
+
+/** Hiking and cycling route layers. */
+export function RouteIcon({ size = 5 }: IconProps) {
+  return (
+    <MarketingPluginIcon size={size}>
+      <Route aria-hidden width="100%" height="100%" strokeWidth={2} />
     </MarketingPluginIcon>
   );
 }

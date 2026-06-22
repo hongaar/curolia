@@ -8,7 +8,8 @@ export type LegalNavTarget =
   | "privacy"
   | "terms"
   | "licenses"
-  | "openSource";
+  | "openSource"
+  | "pluginsOverview";
 
 export type LegalContentProps = {
   contactEmail?: string;
@@ -24,6 +25,7 @@ const LEGAL_PATHS: Record<LegalNavTarget, string> = {
   terms: "/terms",
   licenses: "/licenses",
   openSource: "/open-source",
+  pluginsOverview: "/plugins-overview",
 };
 
 export function LegalEmbed({ children }: { children: React.ReactNode }) {
@@ -776,6 +778,21 @@ export function OpenSourceMindsetContent({
             crashes without profiling you.
           </li>
         </LegalList>
+      </LegalSection>
+
+      <LegalSection title="Plugins and integrations">
+        <LegalParagraph>
+          Curolia connects to external apps and data sources through optional
+          plugins. Browse the full list on our{" "}
+          <LegalNavLink
+            target="pluginsOverview"
+            embedded={embedded}
+            onNavigate={onNavigate}
+          >
+            plugins overview
+          </LegalNavLink>
+          .
+        </LegalParagraph>
       </LegalSection>
 
       <LegalSection title="Licences and attribution">

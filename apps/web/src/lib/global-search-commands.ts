@@ -1,5 +1,10 @@
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import { mapSettingsHref, mapViewSwitchHref } from "@/lib/app-paths";
+import type { ExploreCategoryId } from "@/lib/explore-categories";
+import {
+  EXPLORE_COMMAND_PREFIX,
+  exploreCategoryFromCommandId,
+} from "@/lib/explore-search-commands";
 import type { GlobalSearchSelectedPin } from "@/lib/global-search-selected-pin";
 import type { ShortcutBinding } from "@/lib/keyboard-shortcut";
 import {
@@ -37,6 +42,7 @@ export type GlobalSearchCommandContext = {
   moveSelectedPin: () => void;
   deleteSelectedPin: () => void;
   signOut: () => Promise<void>;
+  activateExploreCategory?: (categoryId: ExploreCategoryId) => void;
 };
 
 export function resolveGlobalSearchMapViewContext(
@@ -232,6 +238,9 @@ export const GLOBAL_SEARCH_COMMANDS: readonly GlobalSearchCommandDef[] = [
   },
 ] as const;
 
+export const GLOBAL_SEARCH_COMMANDS_WITH_PAGES: readonly GlobalSearchCommandDef[] =
+  GLOBAL_SEARCH_COMMANDS;
+
 const DEFAULT_EMPTY_ACTION_IDS = new Set([
   "new-map",
   "map-settings",
@@ -273,6 +282,13 @@ export function filterGlobalSearchCommands(
     if (!matchesGlobalSearchCommand(command, q)) return false;
     if (!q && command.section === "actions" && command.id === "sign-out") {
       return false;
+    }
+    if (
+      !q &&
+      command.section === "actions" &&
+      command.id.startsWith(EXPLORE_COMMAND_PREFIX)
+    ) {
+      return ctx.mapViewContext != null;
     }
     if (
       !q &&
@@ -365,8 +381,14 @@ export function runGlobalSearchCommand(
     case "licenses":
       ctx.navigate("/licenses");
       return;
-    default:
+    default: {
+      const categoryId = exploreCategoryFromCommandId(id);
+      if (categoryId) {
+        ctx.activateExploreCategory?.(categoryId);
+        return;
+      }
       return;
+    }
   }
 }
 

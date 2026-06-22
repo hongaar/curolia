@@ -87,10 +87,51 @@ export function CategoryChip({
         variant === "route" && styles.chipRoute,
         active && styles.chipActive,
       )}
+      aria-label={label}
       onClick={onClick}
     >
       {icon ? <span className={styles.chipIcon}>{icon}</span> : null}
-      <span>{label}</span>
+      <span className={styles.chipLabel} aria-hidden>
+        {label}
+      </span>
+    </button>
+  );
+}
+
+export function CategoryChipControl({
+  children,
+  onClick,
+  active,
+  title,
+  "aria-label": ariaLabel,
+  "aria-expanded": ariaExpanded,
+  "aria-pressed": ariaPressed,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  active?: boolean;
+  title?: string;
+  "aria-label": string;
+  "aria-expanded"?: boolean;
+  "aria-pressed"?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        styles.chipControl,
+        active && styles.chipControlActive,
+        className,
+      )}
+      title={title}
+      aria-label={ariaLabel}
+      aria-expanded={ariaExpanded}
+      aria-pressed={ariaPressed}
+      onClick={onClick}
+    >
+      {children}
     </button>
   );
 }
@@ -103,15 +144,14 @@ export function CategoryChipMore({
   "aria-label"?: string;
 }) {
   return (
-    <button
-      type="button"
-      className={cn(styles.chipControl, styles.chipMore)}
-      aria-expanded={false}
+    <CategoryChipControl
+      className={styles.chipMore}
       aria-label={ariaLabel}
+      aria-expanded={false}
       onClick={onClick}
     >
       <span aria-hidden>⋯</span>
-    </button>
+    </CategoryChipControl>
   );
 }
 
@@ -123,14 +163,12 @@ export function CategoryChipCollapse({
   "aria-label"?: string;
 }) {
   return (
-    <button
-      type="button"
-      className={styles.chipControl}
-      aria-expanded={true}
+    <CategoryChipControl
       aria-label={ariaLabel}
+      aria-expanded={true}
       onClick={onClick}
     >
       <ChevronLeft aria-hidden />
-    </button>
+    </CategoryChipControl>
   );
 }

@@ -32,6 +32,7 @@
     "./dropdown-menu-list": "./src/components/dropdown-menu-list/index.ts",
     "./emoji-picker": "./src/components/emoji-picker/index.ts",
     "./entity-label-input": "./src/components/entity-label-input/index.ts",
+    "./explore-panel": "./src/components/explore-panel/index.ts",
     "./error-boundary": "./src/components/error-boundary/index.ts",
     "./floating-nav-bar": "./src/components/floating-nav-bar/index.ts",
     "./floating-panel": "./src/components/floating-panel/index.ts",

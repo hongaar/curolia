@@ -1,4 +1,5 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
+import { poiExploreCategories } from "./explore";
 import { PoiIcon } from "./icon";
 import { PoiMapSettingsPanel } from "./map-settings-panel";
 import { PoiPinFormSection } from "./pin-form-section";
@@ -16,6 +17,7 @@ export const poiPluginManifest: PluginPackageManifest = {
   PinFormSection: PoiPinFormSection,
   PinSuggestionSlot: PoiPinSuggestionSlot,
   MapSettingsPanel: PoiMapSettingsPanel,
+  exploreCategories: poiExploreCategories,
   contributions: {
     edgeFunctions: [
       {

@@ -8,9 +8,14 @@ import {
   mapViewHrefWithSearch,
   pinDetailHref,
 } from "@/lib/app-paths";
+import { useExploreCategories } from "@/hooks/use-explore-categories";
 import {
-  filterGlobalSearchCommands,
+  buildExploreSearchCommands,
+  exploreCategoryForCommand,
+} from "@/lib/explore-search-commands";
+import {
   GLOBAL_SEARCH_COMMANDS,
+  filterGlobalSearchCommands,
   globalSearchCommandsWithShortcuts,
   resolveGlobalSearchMapViewContext,
   runGlobalSearchCommand,
@@ -54,6 +59,7 @@ import {
   type ProfileSearchRow,
 } from "@/lib/profile-text-search";
 import { useAuth } from "@/providers/auth-provider";
+import { useExplore } from "@/providers/explore-provider";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
@@ -170,6 +176,21 @@ const PinFormDialog = lazy(() =>
 
 type PinDialogAction = "edit" | "move" | "delete";
 
+function searchCommandIcon(
+  command: GlobalSearchCommandDef,
+  exploreCategories: ReturnType<typeof useExploreCategories>["categories"],
+): ReactNode {
+  const exploreCategory = exploreCategoryForCommand(
+    command.id,
+    exploreCategories,
+  );
+  if (exploreCategory) {
+    const Icon = exploreCategory.icon;
+    return <Icon aria-hidden />;
+  }
+  return COMMAND_ICONS[command.id] ?? <SearchGlyph />;
+}
+
 const COMMAND_ICONS: Record<string, ReactNode> = {
   "new-map": <MapPlus />,
   "map-settings": <Settings />,
@@ -285,6 +306,15 @@ export function Search() {
     requestPanelPinFocus,
   } = useGlobalSearchPlace();
   const { signOut } = useAuth();
+  const { activateCategory: activateExploreCategory } = useExplore();
+  const { categories: exploreCategories } = useExploreCategories();
+  const searchCommands = useMemo(
+    () => [
+      ...GLOBAL_SEARCH_COMMANDS,
+      ...buildExploreSearchCommands(exploreCategories),
+    ],
+    [exploreCategories],
+  );
   const { openNewMapDialog, openAboutDialog } = useNavigationShell();
   const isMobile = useMaxSm();
 
@@ -392,6 +422,7 @@ export function Search() {
       moveSelectedPin,
       deleteSelectedPin,
       signOut,
+      activateExploreCategory,
     }),
     [
       navigate,
@@ -408,6 +439,7 @@ export function Search() {
       moveSelectedPin,
       deleteSelectedPin,
       signOut,
+      activateExploreCategory,
     ],
   );
 
@@ -512,7 +544,7 @@ export function Search() {
 
   useEffect(() => {
     const shortcutCommands = globalSearchCommandsWithShortcuts(
-      GLOBAL_SEARCH_COMMANDS,
+      searchCommands,
       commandContext,
     );
 
@@ -538,7 +570,7 @@ export function Search() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [clearSearch, commandContext]);
+  }, [clearSearch, commandContext, searchCommands]);
 
   const mapIds = useMemo(() => maps.map((j) => j.id), [maps]);
   const mapIdsKey = useMemo(() => [...mapIds].sort().join(","), [mapIds]);
@@ -714,13 +746,8 @@ export function Search() {
   );
 
   const commandMatches = useMemo(
-    () =>
-      filterGlobalSearchCommands(
-        GLOBAL_SEARCH_COMMANDS,
-        commandContext,
-        debounced,
-      ),
-    [commandContext, debounced],
+    () => filterGlobalSearchCommands(searchCommands, commandContext, debounced),
+    [searchCommands, commandContext, debounced],
   );
   const actionMatches = useMemo(
     () => commandMatches.filter((command) => command.section === "actions"),
@@ -869,7 +896,7 @@ export function Search() {
               return (
                 <ResultRow
                   key={command.id}
-                  icon={COMMAND_ICONS[command.id] ?? <SearchGlyph />}
+                  icon={searchCommandIcon(command, exploreCategories)}
                   title={command.title}
                   subtitle={command.subtitle}
                   shortcutKeys={

@@ -11,7 +11,7 @@ import type * as React from "react";
 import { Link } from "react-router-dom";
 
 import { landingAudiences } from "../content/landing-audiences";
-import { landingPlugins } from "../content/landing-plugins";
+import { PluginsOverviewGrid } from "../content/plugins-overview";
 import type { UnsplashImage } from "../content/unsplash-images";
 import { unsplashImages, unsplashProfileUrl } from "../content/unsplash-images";
 import { MarketingButtonLink } from "../shell/marketing-shell";
@@ -208,27 +208,13 @@ export function LandingPlugins() {
         </p>
       </div>
 
-      <ul className={styles.pluginGrid}>
-        {[...landingPlugins]
-          .sort((a, b) => {
-            if (a.status === b.status) return 0;
-            return a.status === "coming-soon" ? 1 : -1;
-          })
-          .map((plugin) => (
-            <li key={plugin.id} className={styles.pluginCard}>
-              <span className={styles.pluginIcon}>{plugin.icon()}</span>
-              <div className={styles.pluginBody}>
-                <div className={styles.pluginNameRow}>
-                  <h3 className={styles.pluginName}>{plugin.name}</h3>
-                  {plugin.status === "coming-soon" ? (
-                    <span className={styles.pluginBadge}>Coming soon</span>
-                  ) : null}
-                </div>
-                <p className={styles.pluginDescription}>{plugin.description}</p>
-              </div>
-            </li>
-          ))}
-      </ul>
+      <PluginsOverviewGrid />
+
+      <div className={styles.pluginsOverviewActions}>
+        <MarketingButtonLink to="/plugins-overview" variant="outline" size="lg">
+          Browse all plugins
+        </MarketingButtonLink>
+      </div>
     </section>
   );
 }

@@ -30,12 +30,56 @@ export function MapLayer({
   );
 }
 
+const BLOG_SIDE_PANEL_SCRIM_MS = 220;
+export const MAP_BLOG_SIDE_PANEL_ANIMATION_MS = 240;
+
 export const MapBlogSidePanel = React.forwardRef<
   HTMLDivElement,
-  { children: React.ReactNode }
->(function MapBlogSidePanel({ children }, ref) {
+  {
+    children: React.ReactNode;
+    /** When false, plays slide-out then unmounts. Defaults to true for static layouts. */
+    show?: boolean;
+    /** Called after the slide-out animation completes. */
+    onClosed?: () => void;
+  }
+>(function MapBlogSidePanel({ children, show = true, onClosed }, ref) {
+  const [mounted, setMounted] = useState(show);
+  const [entering, setEntering] = useState(false);
+  const [exiting, setExiting] = useState(false);
+
+  useLayoutEffect(() => {
+    if (show) {
+      setMounted(true);
+      setExiting(false);
+      setEntering(true);
+      const timer = window.setTimeout(
+        () => setEntering(false),
+        MAP_BLOG_SIDE_PANEL_ANIMATION_MS,
+      );
+      return () => clearTimeout(timer);
+    }
+    if (!mounted) return;
+    setEntering(false);
+    setExiting(true);
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+      setExiting(false);
+      onClosed?.();
+    }, MAP_BLOG_SIDE_PANEL_ANIMATION_MS);
+    return () => clearTimeout(timer);
+  }, [show, mounted, onClosed]);
+
+  if (!mounted) return null;
+
   return (
-    <div ref={ref} className={styles.blogSidePanel}>
+    <div
+      ref={ref}
+      className={cn(
+        styles.blogSidePanel,
+        entering && styles.blogSidePanelEnter,
+        exiting && styles.blogSidePanelExit,
+      )}
+    >
       {children}
     </div>
   );
@@ -104,8 +148,6 @@ export const MAP_PANEL_PIN_SCROLL_TOP_MARGIN_PX =
 export function mapPanelPinHighlightRingClassName(): string {
   return styles.mapPanelPinHighlightRing;
 }
-
-const BLOG_SIDE_PANEL_SCRIM_MS = 220;
 
 export function MapBlogSidePanelScrim({
   onDismiss,
@@ -213,10 +255,16 @@ export function MapSecondaryToolbarShell({
 
 export function MapSecondaryToolbarNav({
   children,
+  placement = "top-left",
 }: {
   children: React.ReactNode;
+  placement?: "top-left" | "bottom-center";
 }) {
-  return <div className={styles.secondaryToolbarNav}>{children}</div>;
+  return (
+    <div className={styles.secondaryToolbarNav} data-placement={placement}>
+      {children}
+    </div>
+  );
 }
 
 export function MapSecondaryToolbarExplore({

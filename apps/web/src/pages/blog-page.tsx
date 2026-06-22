@@ -54,8 +54,10 @@ export function BlogPage() {
   const {
     expanded: exploreExpanded,
     activeCategories: exploreActiveCategories,
+    focusedCategoryId: exploreFocusedCategoryId,
     toggleExpanded: toggleExploreExpanded,
     toggleCategory: toggleExploreCategory,
+    selectCategory: selectExploreCategory,
   } = useExplore();
 
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
@@ -184,8 +186,10 @@ export function BlogPage() {
         canEdit={canEdit}
         exploreExpanded={exploreExpanded}
         exploreActiveCategories={exploreActiveCategories}
+        exploreFocusedCategoryId={exploreFocusedCategoryId}
         onToggleExploreExpanded={toggleExploreExpanded}
         onToggleExploreCategory={toggleExploreCategory}
+        onSelectExploreCategory={selectExploreCategory}
       />
 
       <MapBlogPanel mapSlug={mapSlug} />

@@ -10,6 +10,7 @@ import {
   LandingPage,
   OpenSourceLicensesPageContent,
   OpenSourceMindsetPageContent,
+  PluginsOverviewPageContent,
   PrivacyPolicyPageContent,
   TermsPageContent,
   TravelLandingPage,
@@ -54,6 +55,11 @@ const STATIC_META: Record<Exclude<StaticSsrRouteId, "campaign">, PageMeta> = {
     title: "Open Source at Curolia",
     description:
       "How Curolia builds in the open and chooses privacy-respecting, open source services.",
+  },
+  pluginsOverview: {
+    title: "Plugins — Curolia",
+    description:
+      "Connect Curolia maps to photos, music, calendars, points of interest, routes, and more.",
   },
   licenses: {
     title: "Open Source Licenses — Curolia",
@@ -110,6 +116,8 @@ export function renderStaticPage(
       return <TermsPageContent />;
     case "openSource":
       return <OpenSourceMindsetPageContent />;
+    case "pluginsOverview":
+      return <PluginsOverviewPageContent />;
     case "licenses":
       return <OpenSourceLicensesPageContent />;
     case "campaign": {

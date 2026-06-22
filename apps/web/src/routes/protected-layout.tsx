@@ -4,6 +4,7 @@ import {
   consumeSkipLoginNextRedirect,
   useAuth,
 } from "@/providers/auth-provider";
+import { ExploreProvider } from "@/providers/explore-provider";
 import { GlobalSearchPlaceProvider } from "@/providers/global-search-place-provider";
 import { MapProvider } from "@/providers/map-provider";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
@@ -31,9 +32,11 @@ export function ProtectedLayout() {
 
   return (
     <MapProvider publicView={publicMapView}>
-      <GlobalSearchPlaceProvider>
-        <Outlet />
-      </GlobalSearchPlaceProvider>
+      <ExploreProvider>
+        <GlobalSearchPlaceProvider>
+          <Outlet />
+        </GlobalSearchPlaceProvider>
+      </ExploreProvider>
     </MapProvider>
   );
 }

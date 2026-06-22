@@ -30,6 +30,7 @@
     "@curolia/plugin-commons": "file:../../packages/plugins/commons",
     "@curolia/plugin-contract": "file:../../packages/plugin-contract",
     "@curolia/plugin-directions": "file:../../packages/plugins/directions",
+    "@curolia/plugin-route": "file:../../packages/plugins/route",
     "@curolia/plugin-flickr": "file:../../packages/plugins/flickr",
     "@curolia/plugin-google-maps-saved-lists": "file:../../packages/plugins/google-maps-saved-lists",
     "@curolia/plugin-google-photos": "file:../../packages/plugins/google-photos",

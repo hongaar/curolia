@@ -8,14 +8,17 @@ import styles from "./map-picker.module.css";
 export function MapPickerTrigger({
   mapEmoji,
   mapName,
+  density = "auto",
   ...props
 }: Omit<React.ComponentProps<typeof DropdownMenuTrigger>, "children"> & {
   mapEmoji?: React.ReactNode;
   mapName?: string | null;
+  density?: "auto" | "compact";
 }) {
   return (
     <DropdownMenuTrigger
       className={cn(styles.trigger, !mapEmoji && styles.triggerNoEmoji)}
+      data-density={density}
       {...props}
     >
       {mapEmoji ? (
@@ -127,14 +130,17 @@ export function PublicMapToolbarInfo({
   mapEmoji,
   mapName,
   ownerName,
+  density = "auto",
 }: {
   mapEmoji?: React.ReactNode;
   mapName: string;
   ownerName?: string | null;
+  density?: "auto" | "compact";
 }) {
   return (
     <div
       className={styles.publicInfo}
+      data-density={density}
       aria-label={`${mapName}${ownerName ? ` by ${ownerName}` : ""}`}
     >
       {mapEmoji ? (

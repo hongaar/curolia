@@ -1,18 +1,23 @@
 .row {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   padding-block: var(--space-1);
-  max-width: min(100vw - 2rem - var(--safe-left) - var(--safe-right), 42rem);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .panel {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-2);
   padding-block: var(--space-1);
-  max-width: min(100vw - 2rem - var(--safe-left) - var(--safe-right), 42rem);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .panelBody {
@@ -103,6 +108,49 @@
   height: 1rem;
 }
 
+.chipLabel {
+  white-space: nowrap;
+}
+
+@media (max-width: 39.99rem) {
+  .row .chip {
+    gap: 0;
+    padding-inline: var(--space-2);
+    justify-content: center;
+    min-width: 2.25rem;
+  }
+
+  .row .chipLabel {
+    display: none;
+  }
+}
+
+@container map-controls-top-left (max-width: 26rem) {
+  .row .chip {
+    gap: 0;
+    padding-inline: var(--space-2);
+    justify-content: center;
+    min-width: 2.25rem;
+  }
+
+  .row .chipLabel {
+    display: none;
+  }
+}
+
+@container map-controls-bottom-center (max-width: 36rem) {
+  .row .chip {
+    gap: 0;
+    padding-inline: var(--space-2);
+    justify-content: center;
+    min-width: 2.25rem;
+  }
+
+  .row .chipLabel {
+    display: none;
+  }
+}
+
 .chipControl {
   flex-shrink: 0;
   display: inline-flex;
@@ -125,6 +173,11 @@
 
 .chipControl:hover {
   background: color-mix(in oklch, var(--muted) 50%, var(--panel-bg-solid));
+}
+
+.chipControl svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .chipControlActive {

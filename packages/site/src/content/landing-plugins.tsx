@@ -13,6 +13,7 @@ import {
   PoiIcon,
   PolarstepsIcon,
   ReactionsIcon,
+  RouteIcon,
   SpotifyIcon,
   StravaIcon,
   WikipediaIcon,
@@ -91,6 +92,13 @@ export const landingPlugins: LandingPlugin[] = [
     description: "Nearby place metadata—cafés, accessibility, campsites",
     status: "available",
     icon: () => <PoiIcon size={6} />,
+  },
+  {
+    id: "route",
+    name: "Routes",
+    description: "Hiking trails and cycling paths on the map",
+    status: "available",
+    icon: () => <RouteIcon size={6} />,
   },
   {
     id: "strava",

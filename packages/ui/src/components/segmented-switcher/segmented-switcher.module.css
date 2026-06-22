@@ -140,6 +140,22 @@
   max-width: 100%;
 }
 
+@container map-controls-top-left (min-width: 36rem) {
+  .root[data-label-mode="container"][data-size="default"] .link {
+    min-width: 4.25rem;
+    padding-inline: var(--space-3);
+  }
+
+  .root[data-label-mode="container"][data-size="lg"] .link {
+    padding-inline: var(--space-4);
+    font-size: var(--font-size-base);
+  }
+
+  .root[data-label-mode="container"] .label {
+    display: inline;
+  }
+}
+
 @container map-controls-bottom-center (min-width: 36rem) {
   .root[data-label-mode="container"][data-size="default"] .link {
     min-width: 4.25rem;

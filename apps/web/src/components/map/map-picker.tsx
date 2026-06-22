@@ -1,5 +1,4 @@
 import { MapPickerMenuContent } from "@/components/map/map-picker-menu-content";
-import { useNavigateToMapSettings } from "@/hooks/use-navigate-to-map-settings";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
 import { getStoredActiveMapId } from "@/providers/auth-provider";
@@ -10,8 +9,11 @@ import { MapPickerContent, MapPickerTrigger } from "@curolia/ui/map-picker";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export function MapPicker() {
-  const navigateToMapSettings = useNavigateToMapSettings();
+export function MapPicker({
+  density = "auto",
+}: {
+  density?: "auto" | "compact";
+} = {}) {
   const navigate = useNavigate();
   const { memberMaps, activeMap } = useMap();
   const { openNewMapDialog } = useNavigationShell();
@@ -35,6 +37,7 @@ export function MapPicker() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <MapPickerTrigger
+        density={density}
         mapEmoji={mapEmoji}
         mapName={activeMap?.name}
         aria-label={viewingForeignMap ? "Map menu" : "Select map"}
@@ -53,10 +56,6 @@ export function MapPicker() {
             variant="member"
             maps={memberMaps}
             activeMapId={activeMap?.id}
-            onOpenMapSettings={(route) => {
-              navigateToMapSettings(route);
-              setOpen(false);
-            }}
             onNewMap={() => openNewMapDialog()}
           />
         )}

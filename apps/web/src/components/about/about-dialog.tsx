@@ -65,7 +65,15 @@ export function AboutDialog({
         navigate("/open-source");
         return;
       }
-      const map: Record<Exclude<LegalNavTarget, "openSource">, AboutView> = {
+      if (target === "pluginsOverview") {
+        handleOpenChange(false);
+        navigate("/plugins-overview");
+        return;
+      }
+      const map: Record<
+        Exclude<LegalNavTarget, "openSource" | "pluginsOverview">,
+        AboutView
+      > = {
         contact: "contact",
         privacy: "privacy",
         terms: "terms",

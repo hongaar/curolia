@@ -1,5 +1,4 @@
 import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
-import { MapQuickSettingsTrigger } from "@/components/map/map-quick-settings-trigger";
 import { MapSecondaryToolbar } from "@/components/map/map-secondary-toolbar";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import type { PinMapHandle } from "@/components/map/pin-map";
@@ -33,8 +32,10 @@ export function MapPageControls({
   onQuickSettingsClick,
   exploreExpanded,
   exploreActiveCategories,
+  exploreFocusedCategoryId,
   onToggleExploreExpanded,
   onToggleExploreCategory,
+  onSelectExploreCategory,
   variant = "map",
 }: {
   mapRef?: RefObject<PinMapHandle | null>;
@@ -53,37 +54,64 @@ export function MapPageControls({
   onQuickSettingsClick?: () => void;
   exploreExpanded: boolean;
   exploreActiveCategories: readonly ExploreCategoryId[];
+  exploreFocusedCategoryId: ExploreCategoryId | null;
   onToggleExploreExpanded: () => void;
   onToggleExploreCategory: (categoryId: ExploreCategoryId) => void;
+  onSelectExploreCategory: (categoryId: ExploreCategoryId) => void;
   variant?: "map" | "content";
 }) {
   const isMapVariant = variant === "map";
+  const isContentVariant = variant === "content";
 
   return (
     <MapControlsLayer>
-      <MapControlsTopLeftStack>
-        <MapSecondaryToolbar
-          activeCategories={exploreActiveCategories}
-          exploreExpanded={exploreExpanded}
-          onToggleExploreExpanded={onToggleExploreExpanded}
-          onToggleCategory={onToggleExploreCategory}
-        />
-        {isMapVariant && showOwnerCard && ownerProfile ? (
-          <PublicMapOwnerCard
-            profile={ownerProfile}
-            surface="floating"
-            showBio={false}
+      {isContentVariant ? (
+        <MapControlsBottomCenter>
+          <MapSecondaryToolbar
+            placement="bottom-center"
+            activeCategories={exploreActiveCategories}
+            focusedCategoryId={exploreFocusedCategoryId}
+            exploreExpanded={exploreExpanded}
+            onToggleExploreExpanded={onToggleExploreExpanded}
+            onToggleCategory={onToggleExploreCategory}
+            onSelectCategory={onSelectExploreCategory}
           />
-        ) : null}
-      </MapControlsTopLeftStack>
+        </MapControlsBottomCenter>
+      ) : (
+        <>
+          <MapControlsTopLeftStack>
+            <MapSecondaryToolbar
+              placement="top-left"
+              activeCategories={exploreActiveCategories}
+              focusedCategoryId={exploreFocusedCategoryId}
+              exploreExpanded={exploreExpanded}
+              onToggleExploreExpanded={onToggleExploreExpanded}
+              onToggleCategory={onToggleExploreCategory}
+              onSelectCategory={onSelectExploreCategory}
+              showQuickSettings={
+                isMapVariant && Boolean(isOwner) && !publicView
+              }
+              quickSettingsOpen={quickSettingsOpen}
+              onQuickSettingsClick={onQuickSettingsClick}
+            />
+            {isMapVariant && showOwnerCard && ownerProfile ? (
+              <PublicMapOwnerCard
+                profile={ownerProfile}
+                surface="floating"
+                showBio={false}
+              />
+            ) : null}
+          </MapControlsTopLeftStack>
 
-      <MapControlsBottomCenter>
-        {isMapVariant && activeRelocatePinId ? (
-          <MapPlacementHint>
-            Click the map to move this pin · Esc to cancel
-          </MapPlacementHint>
-        ) : null}
-      </MapControlsBottomCenter>
+          {activeRelocatePinId ? (
+            <MapControlsBottomCenter>
+              <MapPlacementHint>
+                Click the map to move this pin · Esc to cancel
+              </MapPlacementHint>
+            </MapControlsBottomCenter>
+          ) : null}
+        </>
+      )}
 
       <MapControlsBottomStack>
         <MapTagFiltersControl
@@ -94,12 +122,6 @@ export function MapPageControls({
           onEditTag={onEditTag}
           canEdit={canEdit}
         />
-        {isMapVariant && isOwner && !publicView ? (
-          <MapQuickSettingsTrigger
-            open={Boolean(quickSettingsOpen)}
-            onClick={onQuickSettingsClick ?? (() => undefined)}
-          />
-        ) : null}
         {isMapVariant && mapRef ? <MapControlsToolbar mapRef={mapRef} /> : null}
       </MapControlsBottomStack>
     </MapControlsLayer>
