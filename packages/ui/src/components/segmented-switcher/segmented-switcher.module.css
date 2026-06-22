@@ -25,7 +25,7 @@
 
 .link {
   display: inline-flex;
-  flex: 1;
+  flex: 0 0 auto;
   align-self: stretch;
   align-items: center;
   justify-content: center;
@@ -111,63 +111,132 @@
   height: var(--icon-size-lg);
 }
 
-.root[data-label-mode="viewport"] .label {
-  display: none;
+.label {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-@media (min-width: 40rem) {
-  .root[data-label-mode="viewport"][data-size="default"] .link {
-    min-width: 4.25rem;
-    padding-inline: var(--space-3);
-  }
-
-  .root[data-label-mode="viewport"][data-size="lg"] .link {
-    min-width: 5rem;
-    padding-inline: var(--space-4);
-    font-size: var(--font-size-base);
-  }
-
-  .root[data-label-mode="viewport"] .label {
-    display: inline;
-  }
-}
-
-.root[data-label-mode="container"] .label {
-  display: none;
+.root[data-label-mode="viewport"] .link,
+.root[data-label-mode="container"] .link {
+  gap: 0;
 }
 
 .root[data-label-mode="container"] {
   max-width: 100%;
 }
 
+@media (min-width: 40rem) {
+  .root[data-label-mode="viewport"][data-size="default"] .link {
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+      gap 240ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .root[data-label-mode="viewport"][data-size="lg"] .link {
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+    font-size: var(--font-size-base);
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+      gap 240ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .root[data-label-mode="viewport"] .label {
+    max-width: 12ch;
+    opacity: 1;
+    transition:
+      max-width 240ms cubic-bezier(0.2, 0, 0, 1),
+      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
 @container map-controls-top-left (min-width: 36rem) {
   .root[data-label-mode="container"][data-size="default"] .link {
-    min-width: 4.25rem;
+    gap: var(--space-2);
     padding-inline: var(--space-3);
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"][data-size="lg"] .link {
+    gap: var(--space-2);
     padding-inline: var(--space-4);
     font-size: var(--font-size-base);
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"] .label {
-    display: inline;
+    max-width: 12ch;
+    opacity: 1;
+    transition:
+      max-width 240ms cubic-bezier(0.2, 0, 0, 1),
+      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 }
 
 @container map-controls-bottom-center (min-width: 36rem) {
   .root[data-label-mode="container"][data-size="default"] .link {
-    min-width: 4.25rem;
+    gap: var(--space-2);
     padding-inline: var(--space-3);
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"][data-size="lg"] .link {
+    gap: var(--space-2);
     padding-inline: var(--space-4);
     font-size: var(--font-size-base);
+    transition:
+      color 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease,
+      border-color 150ms ease,
+      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"] .label {
-    display: inline;
+    max-width: 12ch;
+    opacity: 1;
+    transition:
+      max-width 240ms cubic-bezier(0.2, 0, 0, 1),
+      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label,
+  .link {
+    transition: none;
   }
 }

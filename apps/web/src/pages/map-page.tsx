@@ -164,8 +164,10 @@ export function MapPage() {
   const showGalleryPanel = isGalleryView && isWideEnough;
   const showContentSidePanel = showBlogPanel || showGalleryPanel;
   const contentPanelViewRef = useRef<"blog" | "gallery" | null>(null);
-  const [contentPanelLayoutActive, setContentPanelLayoutActive] =
+  const [contentPanelLayoutPersist, setContentPanelLayoutPersist] =
     useState(showContentSidePanel);
+  const contentPanelLayoutActive =
+    showContentSidePanel || contentPanelLayoutPersist;
   if (showBlogPanel) contentPanelViewRef.current = "blog";
   if (showGalleryPanel) contentPanelViewRef.current = "gallery";
   const contentPanelView = showGalleryPanel
@@ -176,7 +178,7 @@ export function MapPage() {
         ? contentPanelViewRef.current
         : null;
   useLayoutEffect(() => {
-    if (showContentSidePanel) setContentPanelLayoutActive(true);
+    if (showContentSidePanel) setContentPanelLayoutPersist(true);
   }, [showContentSidePanel]);
 
   const contentSidePanelRef = useRef<HTMLDivElement>(null);
@@ -685,7 +687,7 @@ export function MapPage() {
   );
 
   const onContentPanelClosed = useCallback(() => {
-    setContentPanelLayoutActive(false);
+    setContentPanelLayoutPersist(false);
   }, []);
 
   const showQuickSettingsPanel =

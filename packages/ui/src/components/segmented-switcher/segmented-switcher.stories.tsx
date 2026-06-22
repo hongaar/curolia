@@ -124,7 +124,7 @@ export const Large: Story = {
 
 export const ContainerLabels: Story = {
   parameters: storyDocs(
-    '`labelMode="container"` — labels appear only when the host container is at least 36rem wide; slight overflow is allowed.',
+    '`labelMode="container"` — labels expand and collapse smoothly when the host container crosses ~36rem; resize the box to preview.',
   ),
   decorators: [
     (Story) => (
