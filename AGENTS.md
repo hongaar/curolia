@@ -64,6 +64,12 @@
 - **Keep `@curolia/ui` generic; put product behavior in `apps/web`.** **`@curolia/ui`** exports reusable primitives and layout (buttons, search field chrome, result rows, map panels, …) with neutral names and no Curolia domain logic. **`apps/web`** composes those primitives into features (toolbar search, map page, pin flows, routing). Do not name ui components after app features (e.g. avoid **`GlobalSearch`** in ui—use **`search`** primitives; the app feature is **`Search`** in **`apps/web`**). Prefer **`SearchCombobox`** (or **`useSearchListKeyboard`**) for simple autocomplete pickers; use richer **`search`** primitives when the app needs custom sections, trailing toolbar actions, or non-standard dismiss/select behavior.
 - After changing plugin-owned UI, no `functions:sync` change is needed; run **`npx turbo run typecheck`** / **`build`** as usual.
 
+## Backwards compatibility
+
+The app is in production for only two users (owner + one test user). **Do not** add backwards-compatibility code: no runtime migration paths, deprecated URL redirects, dual parsers, deprecation shims, or “support both formats” logic. Prefer clean breaks—update routes, APIs, and types directly and remove old code in the same change.
+
+The **only** acceptable migration path is a **one-off Supabase SQL migration** to transform existing data at deploy time. Application code should assume the new shape only; no ongoing runtime compatibility layer.
+
 ## Git commits
 
 - Use **[Conventional Commits](https://www.conventionalcommits.org/)**: `type(scope): short imperative summary` (e.g. `feat(web): add profile-scoped map URLs`, `fix(supabase): …`, `refactor(ui): …`).
