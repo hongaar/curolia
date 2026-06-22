@@ -14,10 +14,16 @@ updates:
         dependency-type: development
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
       npm-production:
         dependency-type: production
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
 
   # actions/checkout, setup-node, cache, upload-artifact, setup-java, etc.
   - package-ecosystem: github-actions
@@ -26,6 +32,10 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   # Capacitor Android project (apps/mobile/android).
   - package-ecosystem: gradle
@@ -34,3 +44,7 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    groups:
+      gradle:
+        patterns:
+          - "*"
