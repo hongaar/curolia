@@ -6,6 +6,7 @@ const PUBLIC_PROFILE_SKIP_SLUGS = new Set([
   "plugins",
   "notifications",
   "invitations",
+  "whats-new",
   "map",
   "pins",
   "login",

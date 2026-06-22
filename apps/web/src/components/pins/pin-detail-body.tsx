@@ -80,7 +80,7 @@ interface PinDetailBodyProps {
   signedUrlByPhotoId: Record<string, string>;
   /** Extra elements rendered inside PinDetailActions alongside the Edit button. */
   extraActions?: ReactNode;
-  /** Between title/actions and subtitle (e.g. discover source map link). */
+  /** Between title/actions and subtitle. */
   headerBelowActions?: ReactNode;
   /** Content rendered at the top of the content section (e.g. inset map). */
   topContent?: ReactNode;

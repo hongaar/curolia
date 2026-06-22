@@ -1,9 +1,9 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
-import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { MapBlogPanel } from "@/components/map/map-blog-panel";
+import { MapPageControls } from "@/components/map/map-page-controls";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
-import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
+import { useExplore } from "@/hooks/use-explore";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
 import { useMapViewAccess } from "@/hooks/use-map-view-access";
@@ -23,11 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@curolia/ui/dialog";
-import {
-  MapControlsBottomCenter,
-  MapControlsBottomStack,
-  MapControlsLayer,
-} from "@curolia/ui/map";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState, type SetStateAction } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -56,6 +51,12 @@ export function BlogPage() {
   const { canEdit: memberCanEdit } = useMapMemberRole(activeMapId);
   const canEdit = !publicView && memberCanEdit;
   usePublicMapCrawlerBlockMeta(activeMap, publicView);
+  const {
+    expanded: exploreExpanded,
+    activeCategories: exploreActiveCategories,
+    toggleExpanded: toggleExploreExpanded,
+    toggleCategory: toggleExploreCategory,
+  } = useExplore();
 
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
@@ -174,20 +175,18 @@ export function BlogPage() {
 
   return (
     <BlogPageRoot>
-      <MapControlsLayer>
-        <MapControlsBottomCenter>
-          <MapViewSwitcher />
-        </MapControlsBottomCenter>
-        <MapControlsBottomStack>
-          <MapTagFiltersControl
-            tags={tags}
-            filterTagIds={filterTagIds}
-            setFilterTagIds={setFilterTagIds}
-            onEditTag={openEditTagDialog}
-            canEdit={canEdit}
-          />
-        </MapControlsBottomStack>
-      </MapControlsLayer>
+      <MapPageControls
+        variant="content"
+        tags={tags}
+        filterTagIds={filterTagIds}
+        setFilterTagIds={setFilterTagIds}
+        onEditTag={openEditTagDialog}
+        canEdit={canEdit}
+        exploreExpanded={exploreExpanded}
+        exploreActiveCategories={exploreActiveCategories}
+        onToggleExploreExpanded={toggleExploreExpanded}
+        onToggleExploreCategory={toggleExploreCategory}
+      />
 
       <MapBlogPanel mapSlug={mapSlug} />
 

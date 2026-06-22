@@ -193,6 +193,40 @@ export function MapControlsTopLeft({
   return <div className={styles.controlsTopLeft}>{children}</div>;
 }
 
+/** Vertical stack of map controls (map picker, explore) at top-left. */
+export function MapControlsTopLeftStack({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.controlsTopLeftStack}>{children}</div>;
+}
+
+/** Two-row shell for map picker + view switcher, and explore categories. */
+export function MapSecondaryToolbarShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.secondaryToolbar}>{children}</div>;
+}
+
+export function MapSecondaryToolbarNav({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.secondaryToolbarNav}>{children}</div>;
+}
+
+export function MapSecondaryToolbarExplore({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.secondaryToolbarExplore}>{children}</div>;
+}
+
 export function MapControlsTopRight({
   children,
 }: {

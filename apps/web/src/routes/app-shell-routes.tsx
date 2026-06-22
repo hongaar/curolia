@@ -1,7 +1,5 @@
 import { AppSettingsPage } from "@/pages/app-settings-page";
-import { DiscoverPage } from "@/pages/discover-page";
 import { InvitationsPage } from "@/pages/invitations-page";
-import { MapPage } from "@/pages/map-page";
 import { MapSettingsPage } from "@/pages/map-settings-page";
 import { NotificationsPage } from "@/pages/notifications-page";
 import { PinDetailPage } from "@/pages/pin-detail-page";
@@ -9,8 +7,8 @@ import { PinEditPage } from "@/pages/pin-edit-page";
 import { PluginsPage } from "@/pages/plugins-page";
 import { ProfilePage } from "@/pages/profile-page";
 import { PublicProfilePage } from "@/pages/public-profile-page";
-import { BlogRoute } from "@/routes/blog-route";
-import { GalleryRoute } from "@/routes/gallery-route";
+import { WhatsNewPage } from "@/pages/whats-new-page";
+import { MapViewRoute } from "@/routes/map-view-route";
 import { PublicMapShortcutRedirect } from "@/routes/public-map-shortcut-redirect";
 import { Navigate, Route } from "react-router-dom";
 
@@ -21,9 +19,11 @@ export const appShellRouteElements = (
       path=":profileSlug/:mapSlug"
       element={<PublicMapShortcutRedirect />}
     />
-    <Route path=":profileSlug/:mapSlug/map" element={<MapPage />} />
-    <Route path=":profileSlug/:mapSlug/blog" element={<BlogRoute />} />
-    <Route path=":profileSlug/:mapSlug/gallery" element={<GalleryRoute />} />
+    <Route path=":profileSlug/:mapSlug" element={<MapViewRoute />}>
+      <Route path="map" />
+      <Route path="blog" />
+      <Route path="gallery" />
+    </Route>
     <Route
       path=":profileSlug/:mapSlug/pin/:pinSlug/edit"
       element={<PinEditPage />}
@@ -49,7 +49,7 @@ export const appShellRouteElements = (
     />
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
-    <Route path="discover" element={<DiscoverPage />} />
+    <Route path="whats-new" element={<WhatsNewPage />} />
     <Route path=":profileSlug" element={<PublicProfilePage />} />
   </>
 );

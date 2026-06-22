@@ -7,11 +7,11 @@ export type MainToolbarProps = {
   mapPicker?: React.ReactNode;
   /** Search slot beside map picker (hidden on small viewports via CSS). */
   search?: React.ReactNode;
-  /** Current-page nav label after the brand (e.g. Discover on the discover page). Always visible. */
+  /** Current-page nav label after the brand. Always visible. */
   navCurrent?: React.ReactNode;
-  /** Promo nav control after the brand (e.g. Discover for signed-out users). Hidden below 40rem. */
+  /** Promo nav control after the brand. Hidden below 40rem. */
   leftPromo?: React.ReactNode;
-  /** Promo nav control before notifications (e.g. Discover for signed-in users). Hidden below 40rem. */
+  /** Promo nav control before notifications (e.g. What's new). Hidden below 40rem. */
   rightPromo?: React.ReactNode;
   /** Notifications control shown left of the account menu. */
   notifications?: React.ReactNode;

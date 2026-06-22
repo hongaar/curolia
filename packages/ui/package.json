@@ -22,6 +22,7 @@
     "./button": "./src/components/button/index.ts",
     "./card": "./src/components/card/index.ts",
     "./card-meta": "./src/components/card-meta/index.ts",
+    "./category-chips": "./src/components/category-chips/index.ts",
     "./caution-panel": "./src/components/caution-panel/index.ts",
     "./checkbox": "./src/components/checkbox/index.ts",
     "./choice-cards": "./src/components/choice-cards/index.ts",

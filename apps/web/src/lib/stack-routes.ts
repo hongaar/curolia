@@ -1,4 +1,3 @@
-import { isDiscoverPathname } from "@/lib/discover-routes";
 import type { Location } from "react-router-dom";
 
 /** Fullscreen map views — base layer; stack screens mount above these. */
@@ -15,7 +14,8 @@ const STACK_ROUTE_PATTERNS: readonly RegExp[] = [
   /^\/plugins\/?$/,
   /^\/notifications\/?$/,
   /^\/invitations\/?$/,
-  /^\/(?!profile$|settings$|plugins$|notifications$|invitations$|discover$)[^/]+\/?$/,
+  /^\/whats-new\/?$/,
+  /^\/(?!profile$|settings$|plugins$|notifications$|invitations$|whats-new$)[^/]+\/?$/,
   /^\/[^/]+\/[^/]+\/settings\/?$/,
   /^\/[^/]+\/[^/]+\/pin\//,
 ];
@@ -29,7 +29,6 @@ function normalizePathname(pathname: string): string {
 
 export function isBaseRoute(pathname: string): boolean {
   const normalized = normalizePathname(pathname);
-  if (isDiscoverPathname(normalized)) return true;
   return BASE_ROUTE_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 

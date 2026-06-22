@@ -15,6 +15,7 @@ describe("parsePublicProfilePathname", () => {
     expect(parsePublicProfilePathname("/profile")).toBeNull();
     expect(parsePublicProfilePathname("/settings")).toBeNull();
     expect(parsePublicProfilePathname("/plugins")).toBeNull();
+    expect(parsePublicProfilePathname("/whats-new")).toBeNull();
     expect(parsePublicProfilePathname("/for/travel")).toBeNull();
   });
 });

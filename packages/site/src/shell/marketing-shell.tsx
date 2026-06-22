@@ -1,4 +1,3 @@
-import { Compass } from "lucide-react";
 import type * as React from "react";
 import { Link } from "react-router-dom";
 
@@ -79,16 +78,6 @@ export function MarketingHeader({
             />
             <p className={styles.brandName}>Curolia</p>
           </MarketingLink>
-          <MarketingButtonLink
-            to="/discover"
-            variant="accent"
-            rounded
-            size="default"
-            className={styles.discoverHeaderLink}
-          >
-            <Compass />
-            Discover
-          </MarketingButtonLink>
         </div>
 
         <div className={styles.headerActions}>

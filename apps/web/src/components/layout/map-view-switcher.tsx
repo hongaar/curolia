@@ -1,5 +1,4 @@
 import { mapViewSwitchHref } from "@/lib/app-paths";
-import { isDiscoverPathname } from "@/lib/discover-routes";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
   countEnabledMapViews,
@@ -27,15 +26,20 @@ const VIEW_LABELS = {
   gallery: "Gallery",
 } as const;
 
-export function MapViewSwitcher() {
+export function MapViewSwitcher({
+  size = "lg",
+  labelMode = "container",
+}: {
+  size?: "default" | "lg";
+  labelMode?: "viewport" | "container";
+} = {}) {
   const { pathname, search } = useLocation();
   const { activeMap } = useMap();
 
   if (
     !activeMap?.owner_profile_slug ||
     !activeMap.slug ||
-    !isBaseRoute(pathname) ||
-    isDiscoverPathname(pathname)
+    !isBaseRoute(pathname)
   ) {
     return null;
   }
@@ -51,7 +55,7 @@ export function MapViewSwitcher() {
   const route = mapRouteForMap(activeMap);
 
   return (
-    <SegmentedSwitcher aria-label="Map view" size="lg" labelMode="container">
+    <SegmentedSwitcher aria-label="Map view" size={size} labelMode={labelMode}>
       {enabledViews.map((view) => (
         <SegmentedSwitcherLink
           key={view}

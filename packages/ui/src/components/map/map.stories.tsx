@@ -5,6 +5,11 @@ import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { storyFrameStyles } from "../../storybook/story-frame";
 import { Badge } from "../badge";
 import { Button } from "../button";
+import {
+  CategoryChip,
+  CategoryChipMore,
+  CategoryChipRow,
+} from "../category-chips";
 import { FloatingPanel } from "../floating-panel";
 import { MapFloatingAnchor, MapFloatingPanel } from "../map-floating";
 import {
@@ -18,7 +23,12 @@ import {
   MapMarkerPopoverStatus,
   MapMarkerPopoverTagRow,
 } from "../map-marker-popover";
+import { MapPickerTrigger } from "../map-picker";
 import { MapToolbar, MapToolbarButton } from "../map-toolbar";
+import {
+  SegmentedSwitcher,
+  SegmentedSwitcherLink,
+} from "../segmented-switcher";
 import {
   MapBlogPinConnector,
   MapBlogPinConnectorMap,
@@ -29,11 +39,15 @@ import {
   MapCanvas,
   MapControlsBottomRight,
   MapControlsLayer,
+  MapControlsTopLeftStack,
   MapControlsTopRight,
   MapHost,
   MapLayer,
   MapPageRoot,
   MapPlacementHint,
+  MapSecondaryToolbarExplore,
+  MapSecondaryToolbarNav,
+  MapSecondaryToolbarShell,
   MapVignette,
 } from "./map";
 
@@ -262,6 +276,64 @@ export const BlogPinConnector: Story = {
       >
         <MapBlogPinConnectorMap x1={380} y1={118} x2={180} y2={96} />
       </div>
+    </div>
+  ),
+};
+
+export const TopLeftStack: Story = {
+  parameters: storyDocs(
+    "Top-left secondary toolbar: map picker beside view switcher, explore row below.",
+  ),
+  render: () => (
+    <div style={{ height: "24rem", width: "100%", position: "relative" }}>
+      <MapPageRoot>
+        <MapLayer>
+          <MapHost>
+            <MockMapSurface />
+          </MapHost>
+          <MapVignette />
+          <MapControlsLayer>
+            <MapControlsTopLeftStack>
+              <MapSecondaryToolbarShell>
+                <MapSecondaryToolbarNav>
+                  <MapPickerTrigger mapEmoji="🗺️" mapName="Summer trip" />
+                  <SegmentedSwitcher aria-label="Map view" size="default">
+                    <SegmentedSwitcherLink to="#" end icon={<span>🗺</span>}>
+                      Map
+                    </SegmentedSwitcherLink>
+                    <SegmentedSwitcherLink to="#" icon={<span>📖</span>}>
+                      Blog
+                    </SegmentedSwitcherLink>
+                  </SegmentedSwitcher>
+                </MapSecondaryToolbarNav>
+                <MapSecondaryToolbarExplore>
+                  <CategoryChipRow>
+                    <CategoryChip
+                      icon={<span aria-hidden>☕</span>}
+                      label="Coffee"
+                      onClick={() => undefined}
+                    />
+                    <CategoryChipMore onClick={() => undefined} />
+                  </CategoryChipRow>
+                </MapSecondaryToolbarExplore>
+              </MapSecondaryToolbarShell>
+            </MapControlsTopLeftStack>
+            <MapControlsBottomRight>
+              <MapToolbar>
+                <MapToolbarButton
+                  icon={
+                    <span className={storyFrameStyles.iconSm} aria-hidden>
+                      +
+                    </span>
+                  }
+                  label="Zoom in"
+                  onClick={() => undefined}
+                />
+              </MapToolbar>
+            </MapControlsBottomRight>
+          </MapControlsLayer>
+        </MapLayer>
+      </MapPageRoot>
     </div>
   ),
 };

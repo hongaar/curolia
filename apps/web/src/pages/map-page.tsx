@@ -1,8 +1,7 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
-import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { MapBlogPanel } from "@/components/map/map-blog-panel";
-import { MapControlsToolbar } from "@/components/map/map-controls-toolbar";
 import { MapGalleryPanel } from "@/components/map/map-gallery-panel";
+import { MapPageControls } from "@/components/map/map-page-controls";
 import {
   MapPanelPinConnectorOverlay,
   type MapPanelPinConnectorAnchor,
@@ -13,9 +12,7 @@ import {
   type MapPointerContextMenuTarget,
 } from "@/components/map/map-pointer-context-menu";
 import { MapQuickSettingsSideSheet } from "@/components/map/map-quick-settings-side-sheet";
-import { MapQuickSettingsTrigger } from "@/components/map/map-quick-settings-trigger";
 import { MapSlugAccessBlocked } from "@/components/map/map-slug-access-blocked";
-import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import { PinDetailSideSheet } from "@/components/map/pin-detail-side-sheet";
 import {
   PinMap,
@@ -26,9 +23,9 @@ import {
   PinMapCollisionPicker,
   type PinMapCollisionPickerState,
 } from "@/components/map/pin-map-collision-picker";
-import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
+import { useExplore } from "@/hooks/use-explore";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapPanelPinFocus } from "@/hooks/use-map-panel-pin-focus";
@@ -113,14 +110,9 @@ import {
 import {
   MapBlogSidePanel,
   MapBlogSidePanelScrim,
-  MapControlsBottomCenter,
-  MapControlsBottomStack,
-  MapControlsLayer,
-  MapControlsTopLeft,
   MapHost,
   MapLayer,
   MapPageRoot,
-  MapPlacementHint,
   MapSidePanel,
   MapVignette,
 } from "@curolia/ui/map";
@@ -207,6 +199,12 @@ export function MapPage() {
   useRecordMapVisit(activeMapId);
   usePublicMapCrawlerBlockMeta(activeMap, publicView);
   const { profile: ownerProfile, show: showOwnerCard } = useMapOwnerCard();
+  const {
+    expanded: exploreExpanded,
+    activeCategories: exploreActiveCategories,
+    toggleExpanded: toggleExploreExpanded,
+    toggleCategory: toggleExploreCategory,
+  } = useExplore();
   const mapStyleOptions = useMemo(
     () => normalizeMapStyleOptions(activeMap),
     [activeMap],
@@ -1247,6 +1245,7 @@ export function MapPage() {
             mapStyleOptions={pinMapStyleOptions}
             showPinRoute={showPinRoute}
             placeHighlight={globalSearchPlaceHighlight}
+            exploreCategories={exploreActiveCategories}
             onSelectPin={onSelectPin}
             onPinCollisionClick={onPinCollisionClick}
             initialCamera={resolvedInitialCamera}
@@ -1276,45 +1275,29 @@ export function MapPage() {
             }}
           />
         </MapHost>
-        <MapControlsLayer>
-          {showOwnerCard && ownerProfile ? (
-            <MapControlsTopLeft>
-              <PublicMapOwnerCard
-                profile={ownerProfile}
-                surface="floating"
-                showBio={false}
-              />
-            </MapControlsTopLeft>
-          ) : null}
-          <MapControlsBottomCenter>
-            {activeRelocatePinId ? (
-              <MapPlacementHint>
-                Click the map to move this pin · Esc to cancel
-              </MapPlacementHint>
-            ) : null}
-            <MapViewSwitcher />
-          </MapControlsBottomCenter>
-          <MapControlsBottomStack>
-            <MapTagFiltersControl
-              tags={tags}
-              filterTagIds={filterTagIds}
-              setFilterTagIds={setFilterTagIds}
-              onNewTag={openNewTagDialog}
-              onEditTag={openEditTagDialog}
-              canEdit={canEdit}
-            />
-            {isOwner && !publicView ? (
-              <MapQuickSettingsTrigger
-                open={quickSettingsOpen}
-                onClick={() => {
-                  if (quickSettingsOpen) closeQuickSettings();
-                  else openQuickSettings();
-                }}
-              />
-            ) : null}
-            <MapControlsToolbar mapRef={mapRef} />
-          </MapControlsBottomStack>
-        </MapControlsLayer>
+        <MapPageControls
+          mapRef={mapRef}
+          showOwnerCard={showOwnerCard}
+          ownerProfile={ownerProfile}
+          activeRelocatePinId={activeRelocatePinId}
+          tags={tags}
+          filterTagIds={filterTagIds}
+          setFilterTagIds={setFilterTagIds}
+          onNewTag={openNewTagDialog}
+          onEditTag={openEditTagDialog}
+          canEdit={canEdit}
+          isOwner={isOwner}
+          publicView={publicView}
+          quickSettingsOpen={quickSettingsOpen}
+          onQuickSettingsClick={() => {
+            if (quickSettingsOpen) closeQuickSettings();
+            else openQuickSettings();
+          }}
+          exploreExpanded={exploreExpanded}
+          exploreActiveCategories={exploreActiveCategories}
+          onToggleExploreExpanded={toggleExploreExpanded}
+          onToggleExploreCategory={toggleExploreCategory}
+        />
         {showContentSidePanel &&
         hoverPin &&
         typeof hoverPin.lat === "number" &&

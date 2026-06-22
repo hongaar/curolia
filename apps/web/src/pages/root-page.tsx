@@ -2,7 +2,7 @@ import {
   AppShellFrame,
   SignedInAppProviders,
 } from "@/components/layout/app-shell";
-import { HomeFeedPage } from "@/pages/home-feed-page";
+import { RootMapRedirect } from "@/components/root/root-map-redirect";
 import { useAuth } from "@/providers/auth-provider";
 import { GlobalSearchPlaceProvider } from "@/providers/global-search-place-provider";
 import { MapProvider } from "@/providers/map-provider";
@@ -10,7 +10,7 @@ import { Capacitor } from "@capacitor/core";
 import { LandingPage, NativeAppLandingPage } from "@curolia/site/pages";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 
-/** `/` — marketing landing for guests; home feed for signed-in users. */
+/** `/` — marketing landing for guests; active map redirect for signed-in users. */
 export function RootPage() {
   const { user, loading } = useAuth();
 
@@ -24,7 +24,7 @@ export function RootPage() {
         <GlobalSearchPlaceProvider>
           <SignedInAppProviders>
             <AppShellFrame>
-              <HomeFeedPage />
+              <RootMapRedirect />
             </AppShellFrame>
           </SignedInAppProviders>
         </GlobalSearchPlaceProvider>
