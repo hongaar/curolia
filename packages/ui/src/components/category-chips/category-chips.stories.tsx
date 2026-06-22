@@ -20,6 +20,7 @@ import {
   CategoryChipPanel,
   CategoryChipPanelBody,
   CategoryChipRow,
+  CategoryChipTransition,
 } from "./category-chips";
 
 const poiCategories = [
@@ -39,8 +40,8 @@ const routeCategories = [
 const meta = {
   title: "Category Chips",
   ...componentStoryMeta(
-    "Category chips for map explore filters — collapsed teaser row and expanded multi-row panel.",
-    "Use `CategoryChipRow` when collapsed; `CategoryChipPanel` with `CategoryChipGrid` when expanded.",
+    "Frosted category chips for map explore filters — collapsed teaser row and expanded multi-row panel.",
+    "Use `CategoryChipTransition` to crossfade between collapsed and expanded layouts.",
   ),
   component: CategoryChipRow,
 } satisfies Meta;
@@ -109,14 +110,10 @@ export const ExpandedPanel: Story = {
     "Expanded explore panel: collapse control and wrapping chips (route variants use a distinct fill).",
   ),
   render: function Render() {
-    const [activeIds, setActiveIds] = useState<string[]>(["coffee"]);
+    const [activeId, setActiveId] = useState<string | null>("coffee");
 
     const toggle = (id: string) => {
-      setActiveIds((current) =>
-        current.includes(id)
-          ? current.filter((item) => item !== id)
-          : [...current, id],
-      );
+      setActiveId((current) => (current === id ? null : id));
     };
 
     const allCategories = [...poiCategories, ...routeCategories];
@@ -136,13 +133,73 @@ export const ExpandedPanel: Story = {
                 }
                 icon={category.icon}
                 label={category.label}
-                active={activeIds.includes(category.id)}
+                active={activeId === category.id}
                 onClick={() => toggle(category.id)}
               />
             ))}
           </CategoryChipGrid>
         </CategoryChipPanelBody>
       </CategoryChipPanel>
+    );
+  },
+};
+
+export const ExpandCollapse: Story = {
+  parameters: storyDocs(
+    "Crossfade between collapsed teaser row and expanded panel — click more or collapse to preview.",
+  ),
+  render: function Render() {
+    const [expanded, setExpanded] = useState(false);
+    const [activeId, setActiveId] = useState<string | null>(null);
+
+    const toggle = (id: string) => {
+      setActiveId((current) => (current === id ? null : id));
+    };
+
+    const allCategories = [...poiCategories, ...routeCategories];
+    const teaser = poiCategories.slice(0, 3);
+
+    return (
+      <CategoryChipTransition
+        expanded={expanded}
+        collapsed={
+          <CategoryChipRow>
+            {teaser.map((category) => (
+              <CategoryChip
+                key={category.id}
+                icon={category.icon}
+                label={category.label}
+                active={activeId === category.id}
+                onClick={() => toggle(category.id)}
+              />
+            ))}
+            <CategoryChipMore onClick={() => setExpanded(true)} />
+          </CategoryChipRow>
+        }
+        expandedPane={
+          <CategoryChipPanel>
+            <CategoryChipCollapse onClick={() => setExpanded(false)} />
+            <CategoryChipPanelBody>
+              <CategoryChipGrid>
+                {allCategories.map((category) => (
+                  <CategoryChip
+                    key={category.id}
+                    variant={
+                      category.id === "hiking" || category.id === "cycling"
+                        ? "route"
+                        : "poi"
+                    }
+                    icon={category.icon}
+                    label={category.label}
+                    active={activeId === category.id}
+                    onClick={() => toggle(category.id)}
+                  />
+                ))}
+              </CategoryChipGrid>
+            </CategoryChipPanelBody>
+          </CategoryChipPanel>
+        }
+      />
     );
   },
 };

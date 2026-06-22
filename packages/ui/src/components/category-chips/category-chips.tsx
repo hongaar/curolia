@@ -64,6 +64,41 @@ export function CategoryChipGrid({
   return <div className={cn(styles.grid, className)}>{children}</div>;
 }
 
+export function CategoryChipTransition({
+  expanded,
+  collapsed,
+  expandedPane,
+}: {
+  expanded: boolean;
+  collapsed: React.ReactNode;
+  expandedPane: React.ReactNode;
+}) {
+  return (
+    <div className={styles.transition}>
+      <div
+        className={cn(
+          styles.transitionPane,
+          !expanded && styles.transitionPaneActive,
+        )}
+        aria-hidden={expanded}
+        inert={expanded}
+      >
+        {collapsed}
+      </div>
+      <div
+        className={cn(
+          styles.transitionPane,
+          expanded && styles.transitionPaneActive,
+        )}
+        aria-hidden={!expanded}
+        inert={!expanded}
+      >
+        {expandedPane}
+      </div>
+    </div>
+  );
+}
+
 export function CategoryChip({
   icon,
   label,

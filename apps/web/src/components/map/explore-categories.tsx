@@ -10,19 +10,16 @@ import {
   CategoryChipPanel,
   CategoryChipPanelBody,
   CategoryChipRow,
+  CategoryChipTransition,
 } from "@curolia/ui/category-chips";
 
 function ExploreCategoryChip({
   category,
   active,
-  focused,
-  onSelect,
   onToggle,
 }: {
   category: ExploreCategory;
   active: boolean;
-  focused: boolean;
-  onSelect: () => void;
   onToggle: () => void;
 }) {
   const Icon = category.icon;
@@ -32,28 +29,18 @@ function ExploreCategoryChip({
       icon={<Icon aria-hidden />}
       label={category.label}
       active={active}
-      onClick={() => {
-        if (active && !focused) {
-          onSelect();
-          return;
-        }
-        onToggle();
-      }}
+      onClick={onToggle}
     />
   );
 }
 
 function ExploreTeaserChip({
   category,
-  activeCategories,
-  focusedCategoryId,
-  onSelectCategory,
+  activeCategoryId,
   onToggleCategory,
 }: {
   category: ExploreCategory;
-  activeCategories: readonly ExploreCategoryId[];
-  focusedCategoryId: ExploreCategoryId | null;
-  onSelectCategory: (categoryId: ExploreCategoryId) => void;
+  activeCategoryId: ExploreCategoryId | null;
   onToggleCategory: (categoryId: ExploreCategoryId) => void;
 }) {
   const Icon = category.icon;
@@ -62,17 +49,8 @@ function ExploreTeaserChip({
       variant={category.chipVariant}
       icon={<Icon aria-hidden />}
       label={category.label}
-      active={activeCategories.includes(category.id)}
-      onClick={() => {
-        if (
-          activeCategories.includes(category.id) &&
-          focusedCategoryId !== category.id
-        ) {
-          onSelectCategory(category.id);
-          return;
-        }
-        onToggleCategory(category.id);
-      }}
+      active={activeCategoryId === category.id}
+      onClick={() => onToggleCategory(category.id)}
     />
   );
 }
@@ -85,7 +63,6 @@ export function ExploreToolbar({
   expanded,
   onToggleExpanded,
   onToggleCategory,
-  onSelectCategory,
 }: {
   categories: readonly ExploreCategory[];
   teaserCategories: readonly ExploreCategory[];
@@ -100,43 +77,43 @@ export function ExploreToolbar({
     return null;
   }
 
-  if (!expanded) {
-    return (
-      <CategoryChipRow aria-label="Explore categories">
-        {teaserCategories.map((category) => (
-          <ExploreTeaserChip
-            key={category.id}
-            category={category}
-            activeCategories={activeCategories}
-            focusedCategoryId={focusedCategoryId}
-            onSelectCategory={onSelectCategory}
-            onToggleCategory={onToggleCategory}
-          />
-        ))}
-        {categories.length > teaserCategories.length ? (
-          <CategoryChipMore onClick={onToggleExpanded} />
-        ) : null}
-      </CategoryChipRow>
-    );
-  }
+  const activeCategoryId = focusedCategoryId ?? activeCategories[0] ?? null;
 
   return (
-    <CategoryChipPanel aria-label="Explore categories">
-      <CategoryChipCollapse onClick={onToggleExpanded} />
-      <CategoryChipPanelBody>
-        <CategoryChipGrid>
-          {categories.map((category) => (
-            <ExploreCategoryChip
+    <CategoryChipTransition
+      expanded={expanded}
+      collapsed={
+        <CategoryChipRow aria-label="Explore categories">
+          {teaserCategories.map((category) => (
+            <ExploreTeaserChip
               key={category.id}
               category={category}
-              active={activeCategories.includes(category.id)}
-              focused={focusedCategoryId === category.id}
-              onSelect={() => onSelectCategory(category.id)}
-              onToggle={() => onToggleCategory(category.id)}
+              activeCategoryId={activeCategoryId}
+              onToggleCategory={onToggleCategory}
             />
           ))}
-        </CategoryChipGrid>
-      </CategoryChipPanelBody>
-    </CategoryChipPanel>
+          {categories.length > teaserCategories.length ? (
+            <CategoryChipMore onClick={onToggleExpanded} />
+          ) : null}
+        </CategoryChipRow>
+      }
+      expandedPane={
+        <CategoryChipPanel aria-label="Explore categories">
+          <CategoryChipCollapse onClick={onToggleExpanded} />
+          <CategoryChipPanelBody>
+            <CategoryChipGrid>
+              {categories.map((category) => (
+                <ExploreCategoryChip
+                  key={category.id}
+                  category={category}
+                  active={activeCategoryId === category.id}
+                  onToggle={() => onToggleCategory(category.id)}
+                />
+              ))}
+            </CategoryChipGrid>
+          </CategoryChipPanelBody>
+        </CategoryChipPanel>
+      }
+    />
   );
 }

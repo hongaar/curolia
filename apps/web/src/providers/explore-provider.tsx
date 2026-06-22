@@ -43,14 +43,6 @@ type ExploreContextValue = ExploreState & {
 
 const ExploreContext = createContext<ExploreContextValue | null>(null);
 
-function nextFocusedCategory(
-  active: ExploreCategoryId[],
-  removed: ExploreCategoryId,
-): ExploreCategoryId | null {
-  const remaining = active.filter((id) => id !== removed);
-  return remaining.length > 0 ? remaining[remaining.length - 1]! : null;
-}
-
 export function ExploreProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { plugins, userPluginsQuery } = useEnabledPlugins();
@@ -83,7 +75,7 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
       const next = current.filter((id) => allowedCategoryIds.has(id));
       setFocusedCategoryId((focused) => {
         if (focused && allowedCategoryIds.has(focused)) return focused;
-        return next.length > 0 ? next[next.length - 1]! : null;
+        return next.length > 0 ? next[0]! : null;
       });
       return next;
     });
@@ -98,9 +90,7 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
       if (!allowedCategoryIds.has(categoryId)) return;
       setExpanded(true);
       setFocusedCategoryId(categoryId);
-      setActiveCategories((current) =>
-        current.includes(categoryId) ? current : [...current, categoryId],
-      );
+      setActiveCategories([categoryId]);
       setFilterValuesByCategory((filters) =>
         filters[categoryId]
           ? filters
@@ -117,17 +107,12 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
 
   const toggleCategory = useCallback(
     (categoryId: ExploreCategoryId) => {
+      if (!allowedCategoryIds.has(categoryId)) return;
       setActiveCategories((current) => {
         if (current.includes(categoryId)) {
-          const next = current.filter((id) => id !== categoryId);
-          setFocusedCategoryId((focused) =>
-            focused === categoryId
-              ? nextFocusedCategory(current, categoryId)
-              : focused,
-          );
-          return next;
+          setFocusedCategoryId(null);
+          return [];
         }
-        if (!allowedCategoryIds.has(categoryId)) return current;
         setExpanded(true);
         setFocusedCategoryId(categoryId);
         setFilterValuesByCategory((filters) =>
@@ -138,7 +123,7 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
                 [categoryId]: defaultExploreFilterValues(categoryId),
               },
         );
-        return [...current, categoryId];
+        return [categoryId];
       });
     },
     [allowedCategoryIds],

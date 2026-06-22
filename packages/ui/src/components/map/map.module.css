@@ -54,7 +54,7 @@
 }
 
 .controlsTopLeftStack {
-  pointer-events: auto;
+  pointer-events: none;
   position: absolute;
   top: calc(var(--toolbar-offset) + 1rem);
   left: calc(1rem + var(--safe-left));
@@ -78,6 +78,10 @@
   );
   container-type: inline-size;
   container-name: map-controls-top-left;
+}
+
+.controlsTopLeftStack > * {
+  pointer-events: auto;
 }
 
 @media (min-width: 40rem) {
