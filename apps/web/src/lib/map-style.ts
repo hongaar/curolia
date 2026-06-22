@@ -8,6 +8,17 @@ import {
 
 export type MapStylePreset = "auto" | "street" | "satellite";
 
+export const MAP_STYLE_PRESET_LABELS: Record<
+  MapStylePreset,
+  { label: string; description: string }
+> = {
+  auto: { label: "Minimal", description: "Light or dark" },
+  street: { label: "Street", description: "Detailed streets" },
+  satellite: { label: "Satellite", description: "Aerial imagery" },
+};
+
+export const DEFAULT_MAP_STYLE_PRESET: MapStylePreset = "street";
+
 export type MapStyleOptions = {
   hillshades: boolean;
   satelliteLabels: boolean;

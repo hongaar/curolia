@@ -26,6 +26,7 @@ import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import { mapRouteForMap } from "@/lib/map-route";
 import { MAP_SETTINGS_SECTION } from "@/lib/map-settings-sections";
 import {
+  MAP_STYLE_PRESET_LABELS,
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
   type MapStyleOptions,
@@ -468,7 +469,7 @@ export function MapSettingsPage() {
               <Field>
                 <EntityLabelInput
                   id="jn-name"
-                  label="Map"
+                  label="Map name"
                   name={name}
                   onNameChange={setName}
                   placeholder="Map name"
@@ -477,6 +478,61 @@ export function MapSettingsPage() {
                   onEmojiChange={setIconEmoji}
                   emojiFallback={defaultMapIcon()}
                 />
+              </Field>
+              <Field>
+                <FieldLabel id="map-style-label">Map style</FieldLabel>
+                <ChoiceCards<MapStylePreset>
+                  name="map-style"
+                  value={mapStyle}
+                  onValueChange={setMapStyle}
+                  disabled={controlsDisabled}
+                  aria-labelledby="map-style-label"
+                >
+                  <ChoiceCard
+                    value="street"
+                    label={MAP_STYLE_PRESET_LABELS.street.label}
+                    description={MAP_STYLE_PRESET_LABELS.street.description}
+                    previewSrc={MAP_STYLE_PREVIEW_SRC.street}
+                    footer={
+                      <MapStyleOptionCheckbox
+                        label="Terrain"
+                        checked={styleOptions.hillshades}
+                        disabled={controlsDisabled || mapStyle !== "street"}
+                        onCheckedChange={(checked) =>
+                          setStyleOptions((prev) => ({
+                            ...prev,
+                            hillshades: checked,
+                          }))
+                        }
+                      />
+                    }
+                  />
+                  <ChoiceCard
+                    value="auto"
+                    label={MAP_STYLE_PRESET_LABELS.auto.label}
+                    description={MAP_STYLE_PRESET_LABELS.auto.description}
+                    previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
+                  />
+                  <ChoiceCard
+                    value="satellite"
+                    label={MAP_STYLE_PRESET_LABELS.satellite.label}
+                    description={MAP_STYLE_PRESET_LABELS.satellite.description}
+                    previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
+                    footer={
+                      <MapStyleOptionCheckbox
+                        label="Labels"
+                        checked={styleOptions.satelliteLabels}
+                        disabled={controlsDisabled || mapStyle !== "satellite"}
+                        onCheckedChange={(checked) =>
+                          setStyleOptions((prev) => ({
+                            ...prev,
+                            satelliteLabels: checked,
+                          }))
+                        }
+                      />
+                    }
+                  />
+                </ChoiceCards>
               </Field>
               <Field>
                 <FieldLabel htmlFor="map-description">Description</FieldLabel>
@@ -552,61 +608,6 @@ export function MapSettingsPage() {
                 <FieldDescription>
                   Optional. Shown on your public profile map card.
                 </FieldDescription>
-              </Field>
-              <Field>
-                <FieldLabel id="map-style-label">Map style</FieldLabel>
-                <ChoiceCards<MapStylePreset>
-                  name="map-style"
-                  value={mapStyle}
-                  onValueChange={setMapStyle}
-                  disabled={controlsDisabled}
-                  aria-labelledby="map-style-label"
-                >
-                  <ChoiceCard
-                    value="auto"
-                    label="Auto"
-                    description="Light or dark"
-                    previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
-                  />
-                  <ChoiceCard
-                    value="street"
-                    label="Street"
-                    description="Detailed streets"
-                    previewSrc={MAP_STYLE_PREVIEW_SRC.street}
-                    footer={
-                      <MapStyleOptionCheckbox
-                        label="Terrain"
-                        checked={styleOptions.hillshades}
-                        disabled={controlsDisabled || mapStyle !== "street"}
-                        onCheckedChange={(checked) =>
-                          setStyleOptions((prev) => ({
-                            ...prev,
-                            hillshades: checked,
-                          }))
-                        }
-                      />
-                    }
-                  />
-                  <ChoiceCard
-                    value="satellite"
-                    label="Satellite"
-                    description="Aerial imagery"
-                    previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
-                    footer={
-                      <MapStyleOptionCheckbox
-                        label="Labels"
-                        checked={styleOptions.satelliteLabels}
-                        disabled={controlsDisabled || mapStyle !== "satellite"}
-                        onCheckedChange={(checked) =>
-                          setStyleOptions((prev) => ({
-                            ...prev,
-                            satelliteLabels: checked,
-                          }))
-                        }
-                      />
-                    }
-                  />
-                </ChoiceCards>
               </Field>
               <Field>
                 <MapViewsSettingsField

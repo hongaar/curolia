@@ -9,6 +9,7 @@ import {
 } from "@/lib/map-display-icon";
 import type { MapRoute } from "@/lib/map-route";
 import {
+  MAP_STYLE_PRESET_LABELS,
   normalizeMapStyleOptions,
   normalizeMapStylePreset,
   type MapStyleOptions,
@@ -371,7 +372,7 @@ export function MapQuickSettingsPanel({
           <Field>
             <EntityLabelInput
               id="map-quick-name"
-              label="Map"
+              label="Map name"
               name={name}
               onNameChange={setName}
               onNameBlur={saveTextFieldsIfDirty}
@@ -383,6 +384,60 @@ export function MapQuickSettingsPanel({
               }}
               emojiFallback={defaultMapIcon()}
             />
+          </Field>
+          <Field>
+            <FieldLabel id="map-quick-style-label">Map style</FieldLabel>
+            <ChoiceCards<MapStylePreset>
+              name="map-quick-style"
+              value={mapStyle}
+              onValueChange={setMapStyle}
+              aria-labelledby="map-quick-style-label"
+            >
+              <ChoiceCard
+                value="street"
+                label={MAP_STYLE_PRESET_LABELS.street.label}
+                description={MAP_STYLE_PRESET_LABELS.street.description}
+                previewSrc={MAP_STYLE_PREVIEW_SRC.street}
+                footer={
+                  <MapStyleOptionCheckbox
+                    label="Terrain"
+                    checked={styleOptions.hillshades}
+                    disabled={mapStyle !== "street"}
+                    onCheckedChange={(checked) =>
+                      setStyleOptions((prev) => ({
+                        ...prev,
+                        hillshades: checked,
+                      }))
+                    }
+                  />
+                }
+              />
+              <ChoiceCard
+                value="auto"
+                label={MAP_STYLE_PRESET_LABELS.auto.label}
+                description={MAP_STYLE_PRESET_LABELS.auto.description}
+                previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
+              />
+              <ChoiceCard
+                value="satellite"
+                label={MAP_STYLE_PRESET_LABELS.satellite.label}
+                description={MAP_STYLE_PRESET_LABELS.satellite.description}
+                previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
+                footer={
+                  <MapStyleOptionCheckbox
+                    label="Labels"
+                    checked={styleOptions.satelliteLabels}
+                    disabled={mapStyle !== "satellite"}
+                    onCheckedChange={(checked) =>
+                      setStyleOptions((prev) => ({
+                        ...prev,
+                        satelliteLabels: checked,
+                      }))
+                    }
+                  />
+                }
+              />
+            </ChoiceCards>
           </Field>
           <Field>
             <div className={styles.visibilityRow}>
@@ -472,60 +527,6 @@ export function MapQuickSettingsPanel({
                 </Button>
               </PageInlineActions>
             </PageAvatarActions>
-          </Field>
-          <Field>
-            <FieldLabel id="map-quick-style-label">Map style</FieldLabel>
-            <ChoiceCards<MapStylePreset>
-              name="map-quick-style"
-              value={mapStyle}
-              onValueChange={setMapStyle}
-              aria-labelledby="map-quick-style-label"
-            >
-              <ChoiceCard
-                value="auto"
-                label="Auto"
-                description="Light or dark"
-                previewSrc={MAP_STYLE_PREVIEW_SRC.auto}
-              />
-              <ChoiceCard
-                value="street"
-                label="Street"
-                description="Detailed streets"
-                previewSrc={MAP_STYLE_PREVIEW_SRC.street}
-                footer={
-                  <MapStyleOptionCheckbox
-                    label="Terrain"
-                    checked={styleOptions.hillshades}
-                    disabled={mapStyle !== "street"}
-                    onCheckedChange={(checked) =>
-                      setStyleOptions((prev) => ({
-                        ...prev,
-                        hillshades: checked,
-                      }))
-                    }
-                  />
-                }
-              />
-              <ChoiceCard
-                value="satellite"
-                label="Satellite"
-                description="Aerial imagery"
-                previewSrc={MAP_STYLE_PREVIEW_SRC.satellite}
-                footer={
-                  <MapStyleOptionCheckbox
-                    label="Labels"
-                    checked={styleOptions.satelliteLabels}
-                    disabled={mapStyle !== "satellite"}
-                    onCheckedChange={(checked) =>
-                      setStyleOptions((prev) => ({
-                        ...prev,
-                        satelliteLabels: checked,
-                      }))
-                    }
-                  />
-                }
-              />
-            </ChoiceCards>
           </Field>
         </div>
       </div>

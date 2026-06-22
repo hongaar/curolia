@@ -1,4 +1,4 @@
-import { MapToolbar, MapToolbarIconButton } from "@curolia/ui/map-toolbar";
+import { CategoryChipControl } from "@curolia/ui/category-chips";
 import { Settings } from "lucide-react";
 
 export function MapQuickSettingsTrigger({
@@ -9,14 +9,14 @@ export function MapQuickSettingsTrigger({
   onClick: () => void;
 }) {
   return (
-    <MapToolbar>
-      <MapToolbarIconButton
-        icon={<Settings aria-hidden />}
-        label="Map settings"
-        title="Map settings"
-        active={open}
-        onClick={onClick}
-      />
-    </MapToolbar>
+    <CategoryChipControl
+      aria-label="Map settings"
+      title="Map settings"
+      active={open}
+      aria-pressed={open}
+      onClick={onClick}
+    >
+      <Settings aria-hidden />
+    </CategoryChipControl>
   );
 }
