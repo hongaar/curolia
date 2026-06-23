@@ -179,6 +179,46 @@
   );
   --card-colored-accent: oklch(0.48 0.11 235);
 
+  /* Explore map category chips (POI neutral + route tint) */
+  --explore-chip-fill-opacity: 80%;
+  --explore-chip-poi-tone: oklch(0.93 0 0);
+  --explore-chip-poi-bg: color-mix(
+    in oklch,
+    var(--explore-chip-poi-tone) var(--explore-chip-fill-opacity),
+    transparent
+  );
+  --explore-chip-poi-bg-hover: color-mix(
+    in oklch,
+    var(--explore-chip-poi-tone) 88%,
+    transparent
+  );
+  --explore-chip-poi-bg-active: color-mix(
+    in oklch,
+    var(--explore-chip-poi-tone) 94%,
+    transparent
+  );
+  --explore-chip-route-tone: oklch(0.96 0.038 142);
+  --explore-chip-route-tone-hover: oklch(0.945 0.048 142);
+  --explore-chip-route-tone-active: oklch(0.925 0.058 142);
+  --explore-chip-route-border: oklch(0.88 0.042 142 / 0.35);
+  --explore-chip-route-border-active: oklch(0.82 0.065 142 / 0.55);
+  --explore-chip-route-fg-active: oklch(0.38 0.1 142);
+  --explore-chip-route-bg: color-mix(
+    in oklch,
+    var(--explore-chip-route-tone) var(--explore-chip-fill-opacity),
+    transparent
+  );
+  --explore-chip-route-bg-hover: color-mix(
+    in oklch,
+    var(--explore-chip-route-tone-hover) var(--explore-chip-fill-opacity),
+    transparent
+  );
+  --explore-chip-route-bg-active: color-mix(
+    in oklch,
+    var(--explore-chip-route-tone-active) 92%,
+    transparent
+  );
+
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display:
     "Faculty Glyphic", ui-serif, Georgia, "Times New Roman", serif;
@@ -262,4 +302,11 @@ html.stack-chrome {
     oklch(0.58 0.09 235)
   );
   --card-colored-accent: oklch(0.72 0.1 235);
+  --explore-chip-poi-tone: oklch(0.34 0.02 260);
+  --explore-chip-route-tone: oklch(0.3 0.042 142);
+  --explore-chip-route-tone-hover: oklch(0.33 0.05 142);
+  --explore-chip-route-tone-active: oklch(0.36 0.058 142);
+  --explore-chip-route-border: oklch(0.52 0.055 142 / 0.35);
+  --explore-chip-route-border-active: oklch(0.58 0.075 142 / 0.55);
+  --explore-chip-route-fg-active: oklch(0.76 0.085 142);
 }

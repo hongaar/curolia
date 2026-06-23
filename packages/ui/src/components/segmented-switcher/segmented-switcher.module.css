@@ -118,11 +118,21 @@
   opacity: 0;
   overflow: hidden;
   white-space: nowrap;
+  transition:
+    max-width 240ms cubic-bezier(0.2, 0, 0, 1),
+    opacity 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .root[data-label-mode="viewport"] .link,
 .root[data-label-mode="container"] .link {
   gap: 0;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease,
+    padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
+    gap 240ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .root[data-label-mode="container"] {
@@ -133,34 +143,17 @@
   .root[data-label-mode="viewport"][data-size="default"] .link {
     gap: var(--space-2);
     padding-inline: var(--space-3);
-    transition:
-      color 150ms ease,
-      background 150ms ease,
-      box-shadow 150ms ease,
-      border-color 150ms ease,
-      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
-      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="viewport"][data-size="lg"] .link {
     gap: var(--space-2);
     padding-inline: var(--space-4);
     font-size: var(--font-size-base);
-    transition:
-      color 150ms ease,
-      background 150ms ease,
-      box-shadow 150ms ease,
-      border-color 150ms ease,
-      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
-      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="viewport"] .label {
     max-width: 12ch;
     opacity: 1;
-    transition:
-      max-width 240ms cubic-bezier(0.2, 0, 0, 1),
-      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 }
 
@@ -168,34 +161,17 @@
   .root[data-label-mode="container"][data-size="default"] .link {
     gap: var(--space-2);
     padding-inline: var(--space-3);
-    transition:
-      color 150ms ease,
-      background 150ms ease,
-      box-shadow 150ms ease,
-      border-color 150ms ease,
-      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
-      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"][data-size="lg"] .link {
     gap: var(--space-2);
     padding-inline: var(--space-4);
     font-size: var(--font-size-base);
-    transition:
-      color 150ms ease,
-      background 150ms ease,
-      box-shadow 150ms ease,
-      border-color 150ms ease,
-      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
-      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"] .label {
     max-width: 12ch;
     opacity: 1;
-    transition:
-      max-width 240ms cubic-bezier(0.2, 0, 0, 1),
-      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 }
 
@@ -203,34 +179,17 @@
   .root[data-label-mode="container"][data-size="default"] .link {
     gap: var(--space-2);
     padding-inline: var(--space-3);
-    transition:
-      color 150ms ease,
-      background 150ms ease,
-      box-shadow 150ms ease,
-      border-color 150ms ease,
-      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
-      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"][data-size="lg"] .link {
     gap: var(--space-2);
     padding-inline: var(--space-4);
     font-size: var(--font-size-base);
-    transition:
-      color 150ms ease,
-      background 150ms ease,
-      box-shadow 150ms ease,
-      border-color 150ms ease,
-      padding-inline 240ms cubic-bezier(0.2, 0, 0, 1),
-      gap 240ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .root[data-label-mode="container"] .label {
     max-width: 12ch;
     opacity: 1;
-    transition:
-      max-width 240ms cubic-bezier(0.2, 0, 0, 1),
-      opacity 200ms cubic-bezier(0.2, 0, 0, 1);
   }
 }
 

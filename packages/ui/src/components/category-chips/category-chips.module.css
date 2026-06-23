@@ -74,7 +74,7 @@
   padding-inline: var(--space-3);
   border-radius: var(--radius-full);
   border: 1px solid color-mix(in oklch, var(--panel-border) 55%, transparent);
-  background: color-mix(in oklch, var(--muted) 60%, transparent);
+  background: var(--explore-chip-poi-bg);
   color: var(--foreground);
   font-family: inherit;
   font-size: var(--text-sm);
@@ -95,12 +95,12 @@
 
 .chip:hover:not(.chipActive) {
   border-color: color-mix(in oklch, var(--panel-border) 80%, transparent);
-  background: color-mix(in oklch, var(--muted) 72%, transparent);
+  background: var(--explore-chip-poi-bg-hover);
 }
 
 .chipActive {
   border-color: color-mix(in oklch, var(--foreground) 24%, var(--panel-border));
-  background: color-mix(in oklch, var(--muted) 94%, transparent);
+  background: var(--explore-chip-poi-bg-active);
   box-shadow:
     inset 0 1px 0 color-mix(in oklch, var(--foreground) 10%, transparent),
     0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent),
@@ -108,39 +108,28 @@
 }
 
 .chipRoute {
-  --route-chip-bg: oklch(0.96 0.038 142);
-  --route-chip-bg-hover: oklch(0.945 0.048 142);
-  --route-chip-bg-active: oklch(0.925 0.058 142);
-  --route-chip-border: oklch(0.88 0.042 142 / 0.35);
-  --route-chip-border-active: oklch(0.82 0.065 142 / 0.55);
-  --route-chip-fg-active: oklch(0.38 0.1 142);
-  border-color: var(--route-chip-border);
-  background: color-mix(in oklch, var(--route-chip-bg) 58%, transparent);
+  border-color: var(--explore-chip-route-border);
+  background: var(--explore-chip-route-bg);
 }
 
 .chipRoute:hover:not(.chipActive) {
-  background: color-mix(in oklch, var(--route-chip-bg-hover) 68%, transparent);
+  background: var(--explore-chip-route-bg-hover);
 }
 
 .chipRoute.chipActive {
-  border-color: var(--route-chip-border-active);
-  background: color-mix(in oklch, var(--route-chip-bg-active) 92%, transparent);
-  color: var(--route-chip-fg-active);
+  border-color: var(--explore-chip-route-border-active);
+  background: var(--explore-chip-route-bg-active);
+  color: var(--explore-chip-route-fg-active);
   box-shadow:
     inset 0 1px 0
-      color-mix(in oklch, var(--route-chip-fg-active) 12%, transparent),
+      color-mix(in oklch, var(--explore-chip-route-fg-active) 12%, transparent),
     0 0 0 1px
-      color-mix(in oklch, var(--route-chip-border-active) 70%, transparent),
+      color-mix(
+        in oklch,
+        var(--explore-chip-route-border-active) 70%,
+        transparent
+      ),
     0 1px 3px color-mix(in oklch, var(--shadow-tint) 12%, transparent);
-}
-
-:global(.dark) .chipRoute {
-  --route-chip-bg: oklch(0.3 0.042 142);
-  --route-chip-bg-hover: oklch(0.33 0.05 142);
-  --route-chip-bg-active: oklch(0.36 0.058 142);
-  --route-chip-border: oklch(0.52 0.055 142 / 0.35);
-  --route-chip-border-active: oklch(0.58 0.075 142 / 0.55);
-  --route-chip-fg-active: oklch(0.76 0.085 142);
 }
 
 .chipIcon {
@@ -209,7 +198,7 @@
   padding: 0;
   border-radius: var(--radius-full);
   border: 1px solid color-mix(in oklch, var(--panel-border) 55%, transparent);
-  background: color-mix(in oklch, var(--muted) 60%, transparent);
+  background: var(--explore-chip-poi-bg);
   color: var(--foreground);
   font-family: inherit;
   cursor: pointer;
@@ -227,7 +216,7 @@
 
 .chipControl:hover:not(.chipControlActive) {
   border-color: color-mix(in oklch, var(--panel-border) 80%, transparent);
-  background: color-mix(in oklch, var(--muted) 72%, transparent);
+  background: var(--explore-chip-poi-bg-hover);
 }
 
 .chipControl svg {
@@ -237,7 +226,7 @@
 
 .chipControlActive {
   border-color: color-mix(in oklch, var(--foreground) 24%, var(--panel-border));
-  background: color-mix(in oklch, var(--muted) 94%, transparent);
+  background: var(--explore-chip-poi-bg-active);
   box-shadow:
     inset 0 1px 0 color-mix(in oklch, var(--foreground) 10%, transparent),
     0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent),
