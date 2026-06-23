@@ -24,7 +24,7 @@
 ## E2E tests (`@curolia/e2e`)
 
 - **Playwright** critical-path suite in **`tests/e2e`**: map load, pin detail (desktop side panel + mobile bottom sheet), pan/zoom, collision, search, explore, settings, auth, plugins, marketing hydration. Asserts **no errors**, **UI behavior**, and **perf budgets** (counter probe + baseline timing deltas).
-- **Not** part of the default **`turbo run test`** graph — run explicitly via **`npx turbo run e2e --filter=@curolia/e2e`** or **`npm run e2e -w @curolia/e2e`**. CI has a separate **`e2e`** job in **`.github/workflows/test.yml`**.
+- **Not** part of the default **`turbo run test`** graph — run explicitly via **`npx turbo run e2e --filter=@curolia/e2e --log-order=stream --ui=stream`** or **`npm run e2e -w @curolia/e2e`**. CI has a separate **`e2e`** job in **`.github/workflows/test.yml`**.
 - **Prerequisites:** local Supabase running (`npm run db:start -w @curolia/supabase`). Seed the namespaced E2E user/map (**additive**, never **`db:reset`**):
 
   ```bash

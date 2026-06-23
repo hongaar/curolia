@@ -74,6 +74,10 @@ npm run compare-baseline -w @curolia/e2e -- --refresh-baseline
 
 ## CI
 
-The `e2e` job in `.github/workflows/test.yml` starts Supabase, seeds data, runs
-Playwright (Chromium desktop + mobile), posts a delta table to the job summary,
-and refreshes the baseline on pushes to `main`.
+The `e2e` job in `.github/workflows/test.yml` runs `functions:sync` before
+`supabase start` (so edge function sources exist before the CLI boots), seeds
+data, runs Playwright (Chromium desktop + mobile), posts a delta table to the job
+summary, and refreshes the baseline on pushes to `main`.
+
+Turbo runs with `--log-order=stream` so seed, Vite, and per-test `line` reporter
+output appear in the GitHub log as they happen (not buffered until the job ends).

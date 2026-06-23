@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 
 import { applyLocalSupabaseEnv } from "./load-local-supabase-env.mjs";
 
@@ -18,15 +18,24 @@ try {
   process.exit(1);
 }
 
-const result = spawnSync(command, args, {
+const label = [command, ...args].join(" ");
+console.log(`[e2e] ${label}`);
+
+const child = spawn(command, args, {
   stdio: "inherit",
   env: process.env,
   shell: process.platform === "win32",
 });
 
-if (result.error) {
-  console.error(result.error);
+child.on("error", (error) => {
+  console.error(error);
   process.exit(1);
-}
+});
 
-process.exit(result.status ?? 1);
+child.on("close", (code, signal) => {
+  if (signal) {
+    process.exit(1);
+    return;
+  }
+  process.exit(code ?? 1);
+});

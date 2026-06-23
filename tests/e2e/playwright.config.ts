@@ -27,17 +27,26 @@ function requireEnv(name: string): string {
 const viteSupabaseUrl = requireEnv("VITE_SUPABASE_URL");
 const viteSupabaseKey = requireEnv("VITE_SUPABASE_PUBLISHABLE_KEY");
 
+const isCi = Boolean(process.env.CI);
+
 export default defineConfig({
   testDir: "./specs",
   fullyParallel: false,
-  forbidOnly: Boolean(process.env.CI),
-  retries: process.env.CI ? 1 : 0,
+  forbidOnly: isCi,
+  retries: isCi ? 1 : 0,
   workers: 1,
-  reporter: [
-    ["list"],
-    ["html", { open: "never", outputFolder: "playwright-report" }],
-    ["./reporters/metrics-reporter.ts"],
-  ],
+  reporter: isCi
+    ? [
+        ["github"],
+        ["line"],
+        ["html", { open: "never", outputFolder: "playwright-report" }],
+        ["./reporters/metrics-reporter.ts"],
+      ]
+    : [
+        ["list"],
+        ["html", { open: "never", outputFolder: "playwright-report" }],
+        ["./reporters/metrics-reporter.ts"],
+      ],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173",
     trace: "on-first-retry",

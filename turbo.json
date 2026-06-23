@@ -27,6 +27,7 @@
     },
     "@curolia/e2e#e2e": {
       "cache": false,
+      "outputLogs": "full",
       "env": [
         "CI",
         "E2E_BASE_URL",

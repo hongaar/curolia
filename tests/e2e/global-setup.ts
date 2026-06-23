@@ -13,12 +13,14 @@ const authFile = path.join(authDir, "user.json");
 const authUnavailableFile = path.join(authDir, "unavailable");
 
 async function globalSetup(config: FullConfig): Promise<void> {
+  console.log("[e2e] Global setup: seeding database…");
   try {
     execSync("npm run db:seed:e2e -w @curolia/supabase", {
       cwd: repoRoot,
       stdio: "inherit",
       env: process.env,
     });
+    console.log("[e2e] Global setup: seed complete");
   } catch (error) {
     console.warn("E2E seed failed — using committed seed.json fixture", error);
   }
@@ -28,6 +30,7 @@ async function globalSetup(config: FullConfig): Promise<void> {
   fs.rmSync(authUnavailableFile, { force: true });
 
   const baseURL = config.projects[0]?.use?.baseURL ?? "http://127.0.0.1:5173";
+  console.log(`[e2e] Global setup: signing in at ${baseURL}/login…`);
   const browser = await chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
