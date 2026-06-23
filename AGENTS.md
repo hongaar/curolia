@@ -24,13 +24,13 @@
 ## E2E tests (`@curolia/e2e`)
 
 - **Playwright** critical-path suite in **`tests/e2e`**: map load, pin detail (desktop side panel + mobile bottom sheet), pan/zoom, collision, search, explore, settings, auth, plugins, marketing hydration. Asserts **no errors**, **UI behavior**, and **perf budgets** (counter probe + baseline timing deltas).
-- **Not** part of the default **`turbo run test`** graph — run explicitly via **`npx turbo run e2e --filter=@curolia/e2e --log-order=stream --ui=stream`** or **`npm run e2e -w @curolia/e2e`**. CI has a separate **`e2e`** job in **`.github/workflows/test.yml`**.
+- **Not** part of the default **`turbo run test`** graph — run via **`npx turbo run e2e --filter=@curolia/e2e`** (Turbo runs **`@curolia/web#codegen`** first per **`turbo.json`**). CI uses the same Turbo task in **`.github/workflows/test.yml`**. The workspace scripts **`npm run e2e -w @curolia/e2e`** invoke Playwright only; use Turbo unless you have already run codegen.
 - **Prerequisites:** local Supabase running (`npm run db:start -w @curolia/supabase`). Seed the namespaced E2E user/map (**additive**, never **`db:reset`**):
 
   ```bash
   npm run db:seed:e2e -w @curolia/supabase
-  npm run e2e -w @curolia/e2e              # full suite
-  npm run e2e:smoke -w @curolia/e2e       # @smoke happy paths (~1 min)
+  npx turbo run e2e --filter=@curolia/e2e   # full suite
+  npx turbo run e2e --filter=@curolia/e2e -- --grep @smoke   # smoke subset
   ```
 
 - **Supabase credentials** are **not** hardcoded. **`db:seed:e2e`** and **`e2e`** scripts load **`SUPABASE_URL`**, **`SUPABASE_SERVICE_ROLE_KEY`**, and Vite publishable key from **`supabase status -o env`** via **`packages/supabase/scripts/run-with-local-supabase-env.mjs`**. Override by exporting those vars yourself; seed fails fast if they are missing.

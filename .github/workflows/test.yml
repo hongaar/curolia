@@ -47,9 +47,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Codegen web assets
-        run: npx turbo run codegen --filter=@curolia/web --log-order=stream --ui=stream
-
       - uses: supabase/setup-cli@v1
         with:
           version: latest

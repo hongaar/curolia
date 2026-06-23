@@ -16,27 +16,26 @@ Playwright suite that runs the real app against local Supabase and asserts:
 ## Quick start
 
 ```bash
-# From repo root
+# From repo root (Turbo runs @curolia/web#codegen before Playwright)
 npm run db:start -w @curolia/supabase
 npm run db:seed:e2e -w @curolia/supabase   # additive — never wipes your data
-npm run e2e -w @curolia/e2e
+npx turbo run e2e --filter=@curolia/e2e --log-order=stream --ui=stream
 ```
 
 Lazy smoke subset (~1 min):
 
 ```bash
-npm run e2e:smoke -w @curolia/e2e
+npx turbo run e2e --filter=@curolia/e2e -- --grep @smoke
 ```
 
-Interactive UI:
+Interactive UI (run codegen first if needed: `npx turbo run codegen --filter=@curolia/web`):
 
 ```bash
 npm run e2e:ui -w @curolia/e2e
 ```
 
 Playwright always starts its own Vite dev server on port 5173 with `VITE_E2E=1` and
-local Supabase credentials — stop any other dev server on that port first. The
-server runs `@curolia/web` codegen (plugin registry + licenses) before `vite`.
+local Supabase credentials — stop any other dev server on that port first.
 
 ## Seed data
 
