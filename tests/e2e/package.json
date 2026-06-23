@@ -1,0 +1,17 @@
+{
+  "name": "@curolia/e2e",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "e2e": "node ../../packages/supabase/scripts/run-with-local-supabase-env.mjs playwright test && npm run compare-baseline",
+    "e2e:smoke": "node ../../packages/supabase/scripts/run-with-local-supabase-env.mjs playwright test --grep @smoke && npm run compare-baseline",
+    "e2e:ui": "node ../../packages/supabase/scripts/run-with-local-supabase-env.mjs playwright test --ui",
+    "compare-baseline": "tsx reporters/compare-baseline.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0",
+    "@supabase/supabase-js": "2.105.1",
+    "tsx": "4.21.0"
+  }
+}

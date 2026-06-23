@@ -1,0 +1,18 @@
+{
+  "userId": "c9154258-9c04-4d60-a8c3-b010265b97e5",
+  "userEmail": "e2e+seed@curolia.test",
+  "userPassword": "e2e-test-password-secure",
+  "profileSlug": "e2e-seed",
+  "mapId": "00000000-0000-4000-a000-000000000002",
+  "mapSlug": "e2e-dense",
+  "mapUrl": "/e2e-seed/e2e-dense/map",
+  "targetPinId": "00000000-0000-4000-a000-000000000003",
+  "targetPinSlug": "e2e-target-pin",
+  "clusterPinId": "00000000-0000-4000-a000-000000000004",
+  "pinCount": 750,
+  "mapCenter": {
+    "lat": 52.3676,
+    "lng": 4.9041
+  },
+  "mapZoom": 12
+}

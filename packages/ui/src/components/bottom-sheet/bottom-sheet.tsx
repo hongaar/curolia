@@ -3,6 +3,7 @@
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import * as React from "react";
 
+import { perfProbeCount } from "../../lib/perf-probe-hook";
 import { cn } from "../../lib/utils";
 import { Sheet, SheetOverlay, SheetPortal, SheetTitle } from "../sheet";
 import { BottomSheetDismissContext } from "./bottom-sheet-dismiss-context";
@@ -172,6 +173,7 @@ export function BottomSheet({
   );
 
   const startEnterAnimation = React.useCallback(() => {
+    perfProbeCount("sheetAnimationReset");
     clearEnterRaf();
     setEnterPhase("offscreen");
     enterRafRef.current = requestAnimationFrame(() => {

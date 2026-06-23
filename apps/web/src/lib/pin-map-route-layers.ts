@@ -65,7 +65,8 @@ function segmentsGeoJson(
 }
 
 export function isMapStyleReady(map: MaplibreMap): boolean {
-  return map.isStyleLoaded() === true && map.getStyle() != null;
+  if (!map.style) return false;
+  return map.isStyleLoaded() === true;
 }
 
 /** Retry `tryRun` until it returns true or the 1s cap elapses (style swap, tab restore). */

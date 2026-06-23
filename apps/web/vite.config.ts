@@ -18,9 +18,12 @@ const appAssetsConfig = JSON.parse(
   ),
 );
 
+const e2eMode = process.env.VITE_E2E === "1";
+
 export default defineConfig({
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
+    "import.meta.env.VITE_E2E": JSON.stringify(e2eMode ? "1" : ""),
   },
   plugins: [
     react(),

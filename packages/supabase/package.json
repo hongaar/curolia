@@ -12,12 +12,14 @@
     "db:migrate": "supabase migration up",
     "db:sync-dispatch-secret": "node scripts/sync-dispatch-secret.mjs",
     "db:types": "supabase gen types typescript --local > ../../apps/web/src/lib/database.types.ts",
+    "db:seed:e2e": "node scripts/run-with-local-supabase-env.mjs tsx scripts/seed-e2e.ts",
     "functions:sync": "node scripts/sync-plugins.mjs",
     "functions:start": "supabase functions serve",
     "functions:stop": "pkill -f 'supabase functions serve' || true",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "2.105.1",
     "supabase": "2.104.0",
     "tsx": "4.21.0",
     "vitest": "3.2.4"

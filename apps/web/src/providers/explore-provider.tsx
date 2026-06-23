@@ -113,7 +113,6 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
           setFocusedCategoryId(null);
           return [];
         }
-        setExpanded(true);
         setFocusedCategoryId(categoryId);
         setFilterValuesByCategory((filters) =>
           filters[categoryId]

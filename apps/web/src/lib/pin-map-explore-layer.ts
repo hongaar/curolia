@@ -149,12 +149,15 @@ function upsertExploreLayers(
   }
 }
 
+import { perfCount } from "@/lib/perf-probe";
+
 export function syncExploreLayer(
   map: MaplibreMap,
   input: ExploreLayerSyncInput,
 ): void {
   scheduleWhenMapStyleReady(map, () => {
     if (!isMapStyleReady(map)) return false;
+    perfCount("exploreLayerSync");
 
     const { activeCategories, filterValuesByCategory } = input;
     if (activeCategories.length === 0) {

@@ -27,16 +27,12 @@ export function ExplorePanelCard({
   const { cardExpanded, focusedCategoryId, getFilterValues, setFilterValue } =
     useExplore();
 
-  if (!cardExpanded || !focusedCategoryId) {
-    return null;
-  }
-
-  const category = categoryById(focusedCategoryId);
-  if (!category) return null;
-
-  const filters = category.contribution.filters;
-  const filterValues = getFilterValues(focusedCategoryId);
-  const Icon = category.icon;
+  const category = focusedCategoryId
+    ? categoryById(focusedCategoryId)
+    : undefined;
+  const filterValues = focusedCategoryId
+    ? getFilterValues(focusedCategoryId)
+    : {};
 
   const resultsQuery = useQuery({
     queryKey: [
@@ -47,9 +43,16 @@ export function ExplorePanelCard({
       mapCenter?.lat,
     ],
     queryFn: () =>
-      fetchExploreCategoryResults(focusedCategoryId, filterValues, mapCenter),
+      fetchExploreCategoryResults(focusedCategoryId!, filterValues, mapCenter),
+    enabled: Boolean(cardExpanded && focusedCategoryId && category),
   });
 
+  if (!cardExpanded || !focusedCategoryId || !category) {
+    return null;
+  }
+
+  const filters = category.contribution.filters;
+  const Icon = category.icon;
   const entries = resultsQuery.data ?? [];
 
   return (

@@ -21,6 +21,23 @@
 
 - Use `npm run db:reset -w @curolia/supabase` only when you intentionally want a full local reset, not as the default after routine schema changes.
 
+## E2E tests (`@curolia/e2e`)
+
+- **Playwright** critical-path suite in **`tests/e2e`**: map load, pin detail (desktop side panel + mobile bottom sheet), pan/zoom, collision, search, explore, settings, auth, plugins, marketing hydration. Asserts **no errors**, **UI behavior**, and **perf budgets** (counter probe + baseline timing deltas).
+- **Not** part of the default **`turbo run test`** graph — run explicitly via **`npx turbo run e2e --filter=@curolia/e2e`** or **`npm run e2e -w @curolia/e2e`**. CI has a separate **`e2e`** job in **`.github/workflows/test.yml`**.
+- **Prerequisites:** local Supabase running (`npm run db:start -w @curolia/supabase`). Seed the namespaced E2E user/map (**additive**, never **`db:reset`**):
+
+  ```bash
+  npm run db:seed:e2e -w @curolia/supabase
+  npm run e2e -w @curolia/e2e              # full suite
+  npm run e2e:smoke -w @curolia/e2e       # @smoke happy paths (~1 min)
+  ```
+
+- **Supabase credentials** are **not** hardcoded. **`db:seed:e2e`** and **`e2e`** scripts load **`SUPABASE_URL`**, **`SUPABASE_SERVICE_ROLE_KEY`**, and Vite publishable key from **`supabase status -o env`** via **`packages/supabase/scripts/run-with-local-supabase-env.mjs`**. Override by exporting those vars yourself; seed fails fast if they are missing.
+- **Perf probe:** when **`VITE_E2E=1`** (set by Playwright `webServer`), **`apps/web`** exposes **`window.__curoliaPerf`** counters on hot paths (`markerRestack`, `collisionZoomSearch`, `sheetAnimationReset`, …). Prod-stripped; instrument with **`perfCount()`** / **`perfProbeCount()`** only behind that gate.
+- **Baselines:** each run writes **`tests/e2e/.metrics/metrics.json`**; compare with **`npm run compare-baseline -w @curolia/e2e`** against **`tests/e2e/baselines/main.json`** (counters fail on any increase; timings fail beyond +25%). See **`tests/e2e/README.md`** for full docs.
+- When adding map-critical flows or perf-sensitive paths, extend specs in **`tests/e2e/specs/`** and tighten budgets in **`tests/e2e/lib/budgets.ts`** after observing real numbers locally.
+
 ## Plugin packages
 
 - Implementations live under **`packages/plugins/<plugin-id>/`** (e.g. `@curolia/plugin-ical`). The root `package.json` **workspaces** list must include **`packages/plugins/*`** so nested plugin packages participate in the monorepo install.

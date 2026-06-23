@@ -1,0 +1,135 @@
+{
+  "generatedAt": "2026-06-22T21:47:44.894Z",
+  "tests": {
+    "existing user can sign in": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "signup tab renders": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "cluster click opens pin UI": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "toggling explore category updates map": {
+      "counters": {},
+      "timings": {
+        "explore.explore-toggle": 1808
+      },
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "public dense map loads without errors": {
+      "counters": {},
+      "timings": {
+        "map-load.map-load": 995
+      },
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "dense map pan and zoom stay within perf budgets": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "owner can open quick settings and change basemap": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates / without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates /privacy without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates /terms without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates /contact without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates /open-source without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates /plugins-overview without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "hydrates /for/travel without console errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "desktop opens side panel and sets pin URL": {
+      "counters": {},
+      "timings": {
+        "pin-detail.pin-open": 1634
+      },
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "owner can open target pin from map": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "pin detail renders without plugin errors": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "cmd+k pin search navigates to map with pin": {
+      "counters": {},
+      "timings": {
+        "search.search-pick": 1382
+      },
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "tag filter control is reachable on map": {
+      "counters": {},
+      "timings": {},
+      "longTasks": 0,
+      "layoutShifts": 0
+    },
+    "mobile opens bottom sheet": {
+      "counters": {},
+      "timings": {
+        "pin-detail.pin-open": 1492
+      },
+      "longTasks": 0,
+      "layoutShifts": 0
+    }
+  }
+}

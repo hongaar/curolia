@@ -131,7 +131,7 @@ export function mapStyleCacheKey(
     return `auto:${resolvedTheme === "dark" ? "dark" : "light"}`;
   }
   if (preset === "street") {
-    return `street:${options.hillshades ? "hill" : "flat"}`;
+    return "street";
   }
   if (preset === "satellite") {
     return `satellite:${options.satelliteLabels ? "labels" : "plain"}`;

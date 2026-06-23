@@ -4,6 +4,7 @@ import {
 } from "@/components/layout/app-shell";
 import { RootMapRedirect } from "@/components/root/root-map-redirect";
 import { useAuth } from "@/providers/auth-provider";
+import { ExploreProvider } from "@/providers/explore-provider";
 import { GlobalSearchPlaceProvider } from "@/providers/global-search-place-provider";
 import { MapProvider } from "@/providers/map-provider";
 import { Capacitor } from "@capacitor/core";
@@ -21,13 +22,15 @@ export function RootPage() {
   if (user) {
     return (
       <MapProvider>
-        <GlobalSearchPlaceProvider>
-          <SignedInAppProviders>
-            <AppShellFrame>
-              <RootMapRedirect />
-            </AppShellFrame>
-          </SignedInAppProviders>
-        </GlobalSearchPlaceProvider>
+        <ExploreProvider>
+          <GlobalSearchPlaceProvider>
+            <SignedInAppProviders>
+              <AppShellFrame>
+                <RootMapRedirect />
+              </AppShellFrame>
+            </SignedInAppProviders>
+          </GlobalSearchPlaceProvider>
+        </ExploreProvider>
       </MapProvider>
     );
   }

@@ -6,6 +6,7 @@ import {
 import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import "@/lib/maplibre-worker";
 import { installNativeShareReceiver } from "@/lib/native-share";
+import { initPerfProbe } from "@/lib/perf-probe";
 import { syncStackChromeDocumentClass } from "@/lib/stack-chrome";
 import { initUmami } from "@/lib/umami";
 import { AuthProvider } from "@/providers/auth-provider";
@@ -41,6 +42,7 @@ const queryClient = new QueryClient({
 registerSW({ immediate: true });
 initBugsink();
 initUmami();
+initPerfProbe();
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {

@@ -7,6 +7,7 @@ import {
   type MapStyleOptions,
   type MapStylePreset,
 } from "@/lib/map-style";
+import { isMapStyleReady } from "@/lib/pin-map-route-layers";
 import {
   createMapMarkerMount,
   type MapMarkerMount,
@@ -115,14 +116,37 @@ export function PinDetailInsetMapView({
     if (!map) return;
     const key = mapStyleCacheKey(mapStylePreset, resolvedTheme, mapStyleOpts);
     if (appliedMapStyleKeyRef.current === key) return;
-    appliedMapStyleKeyRef.current = key;
-    map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
+
+    const applyStyle = () => {
+      if (!mapRef.current) return;
+      appliedMapStyleKeyRef.current = key;
+      const style = resolveMapStyle(
+        mapStylePreset,
+        resolvedTheme,
+        mapStyleOpts,
+      );
+      const onStyleLoad = () => {
+        syncMapStyleOverlays(
+          map,
+          mapStylePresetRef.current,
+          mapStyleOptsRef.current,
+        );
+      };
+      map.once("style.load", onStyleLoad);
+      map.setStyle(style);
+    };
+
+    if (map.style && map.isStyleLoaded()) {
+      applyStyle();
+    } else {
+      map.once("load", applyStyle);
+    }
   }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    if (!map.isStyleLoaded()) return;
+    if (!isMapStyleReady(map)) return;
     syncMapStyleOverlays(map, mapStylePreset, mapStyleOpts);
   }, [mapStylePreset, mapStyleOpts]);
 

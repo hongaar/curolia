@@ -16,6 +16,7 @@ import {
   type MapCamera,
 } from "@/lib/map-view-params";
 import { ensureNativeLocationPermission } from "@/lib/native-geolocation";
+import { perfCount } from "@/lib/perf-probe";
 import {
   buildCollisionLayout,
   collisionGroupClickWillZoom,
@@ -837,6 +838,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       const selectedId = selectedPinIdRef.current;
       const collisionFocus = collisionFocusRef.current;
       const hasFocus = mapHasMarkerFocus(selectedId, collisionFocus);
+      let restacked = false;
       for (const [pinId, mount] of markerMountByPinIdRef.current) {
         const t = filteredByIdRef.current.get(pinId);
         if (!t) continue;
@@ -885,7 +887,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           interactive: true,
           ariaLabel: collisionMarkerAriaLabel(t, group, hovered || focused),
         });
+        restacked = true;
       }
+      if (restacked) perfCount("markerRestack");
     },
     [collisionMarkerAriaLabel],
   );
@@ -1122,7 +1126,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const syncVisibleMarkers = useCallback(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map || !isMapStyleReady(map)) return;
 
     const gen = ++markerSyncGenerationRef.current;
     let bounds: maplibregl.LngLatBounds | null = null;
@@ -1476,6 +1480,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         const target = resolveCollisionGroupZoomTarget(cameraOptions);
         if (target === null) return false;
 
+        perfCount("collisionZoomSearch");
         invalidateMarkerViewportCullingRef.current();
         map.flyTo({
           center: [target.centerLng, target.centerLat],
@@ -1742,16 +1747,39 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     if (!map) return;
     const key = mapStyleCacheKey(mapStylePreset, resolvedTheme, mapStyleOpts);
     if (appliedMapStyleKeyRef.current === key) return;
-    appliedMapStyleKeyRef.current = key;
-    mapHasIdledRef.current = false;
-    map.setStyle(resolveMapStyle(mapStylePreset, resolvedTheme, mapStyleOpts));
-    syncMapOverlaysRef.current();
+
+    const applyStyle = () => {
+      if (!mapRef.current) return;
+      const style = resolveMapStyle(
+        mapStylePreset,
+        resolvedTheme,
+        mapStyleOpts,
+      );
+      appliedMapStyleKeyRef.current = key;
+      mapHasIdledRef.current = false;
+      const onStyleLoad = () => {
+        syncMapStyleOverlays(
+          map,
+          mapStylePresetRef.current,
+          mapStyleOptsRef.current,
+        );
+        syncMapOverlaysRef.current();
+      };
+      map.once("style.load", onStyleLoad);
+      map.setStyle(style);
+    };
+
+    if (map.style && map.isStyleLoaded()) {
+      applyStyle();
+    } else {
+      map.once("load", applyStyle);
+    }
   }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    if (!map.isStyleLoaded()) return;
+    if (!isMapStyleReady(map)) return;
     syncMapStyleOverlays(map, mapStylePreset, mapStyleOpts);
   }, [mapStylePreset, mapStyleOpts]);
 
@@ -1883,7 +1911,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     };
 
     const placeOrMoveDraft = (lngLat: maplibregl.LngLatLike) => {
-      if (!map.isStyleLoaded()) return;
+      if (!isMapStyleReady(map)) return;
       if (placementDraftMarkerRef.current) {
         placementDraftMarkerRef.current.setLngLat(lngLat);
         return;
@@ -2062,7 +2090,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         map.on("mousemove", onPlacementMouseMove);
         canvas.addEventListener("mouseleave", onPlacementMouseLeave);
       };
-      if (map.isStyleLoaded()) {
+      if (isMapStyleReady(map)) {
         attachPlacementMove();
       } else {
         map.once("load", attachPlacementMove);
@@ -2105,6 +2133,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         zoom: map.getZoom(),
       });
       lastEmittedCameraKeyRef.current = cameraToSyncKey(normalized);
+      perfCount("cameraIdleSync");
       const fn = onCameraIdleRef.current;
       if (fn) fn(normalized);
     };
@@ -2150,6 +2179,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     const onIdle = () => {
       mapHasIdledRef.current = true;
       syncMapOverlaysRef.current();
+      if (import.meta.env.VITE_E2E === "1") {
+        window.__curoliaMapIdle = (window.__curoliaMapIdle ?? 0) + 1;
+      }
     };
 
     map.on("movestart", onMoveStart);
@@ -2252,7 +2284,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       routeAnimationPhaseRef.current = (now / 2200) % 1;
       const map = mapRef.current;
       const selectedPinId = selectedPinIdRef.current;
-      if (map?.isStyleLoaded() && selectedPinId) {
+      if (map && isMapStyleReady(map) && selectedPinId) {
         updatePinRouteAnimation(
           map,
           routeSegmentsRef.current,

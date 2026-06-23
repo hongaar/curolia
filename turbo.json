@@ -25,6 +25,18 @@
     "@curolia/web#ssr:smoke": {
       "dependsOn": ["@curolia/web#build"]
     },
+    "@curolia/e2e#e2e": {
+      "cache": false,
+      "env": [
+        "CI",
+        "E2E_BASE_URL",
+        "E2E_ENFORCE_BASELINE",
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_PUBLISHABLE_KEY"
+      ]
+    },
     "@curolia/supabase#stack": {
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false
