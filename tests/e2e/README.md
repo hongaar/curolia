@@ -35,7 +35,8 @@ npm run e2e:ui -w @curolia/e2e
 ```
 
 Playwright always starts its own Vite dev server on port 5173 with `VITE_E2E=1` and
-local Supabase credentials — stop any other dev server on that port first.
+local Supabase credentials — stop any other dev server on that port first. The
+server runs `@curolia/web` codegen (plugin registry + licenses) before `vite`.
 
 ## Seed data
 
