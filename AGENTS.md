@@ -35,7 +35,7 @@
 
 - **Supabase credentials** are **not** hardcoded. **`db:seed:e2e`** and **`e2e`** scripts load **`SUPABASE_URL`**, **`SUPABASE_SERVICE_ROLE_KEY`**, and Vite publishable key from **`supabase status -o env`** via **`packages/supabase/scripts/run-with-local-supabase-env.mjs`**. Override by exporting those vars yourself; seed fails fast if they are missing.
 - **Perf probe:** when **`VITE_E2E=1`** (set by Playwright `webServer`), **`apps/web`** exposes **`window.__curoliaPerf`** counters on hot paths (`markerRestack`, `collisionZoomSearch`, `sheetAnimationReset`, …). Prod-stripped; instrument with **`perfCount()`** / **`perfProbeCount()`** only behind that gate.
-- **Baselines:** each run writes **`tests/e2e/.metrics/metrics.json`**; compare with **`npm run compare-baseline -w @curolia/e2e`** against **`tests/e2e/baselines/main.json`** (counters fail on any increase; timings fail beyond +25%). See **`tests/e2e/README.md`** for full docs.
+- **Baselines:** each run writes **`tests/.metrics/metrics.json`** (gitignored); compare with **`npm run compare-baseline -w @curolia/e2e`** against **`tests/baselines/main.json`** (counters fail on any increase; timings fail beyond +25%). CI refreshes the baseline on pushes to `main`. See **`tests/e2e/README.md`** for full docs.
 - When adding map-critical flows or perf-sensitive paths, extend specs in **`tests/e2e/specs/`** and tighten budgets in **`tests/e2e/lib/budgets.ts`** after observing real numbers locally.
 
 ## Plugin packages

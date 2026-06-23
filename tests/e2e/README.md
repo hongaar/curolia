@@ -56,8 +56,8 @@ The probe is stripped from production builds.
 
 ## Baselines
 
-Each run writes `tests/e2e/.metrics/metrics.json`. Compare against
-`tests/e2e/baselines/main.json`:
+Each run writes `tests/.metrics/metrics.json` (gitignored). Compare against
+`tests/baselines/main.json`:
 
 ```bash
 npm run compare-baseline -w @curolia/e2e
