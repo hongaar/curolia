@@ -11,3 +11,9 @@ ios
 packages/ui/storybook-static
 apps/web/dist-ssr
 apps/web/api/_ssr
+
+# E2E runtime artifacts
+tests/.metrics
+tests/e2e/.auth
+tests/e2e/playwright-report
+tests/e2e/test-results

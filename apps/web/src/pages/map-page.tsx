@@ -163,23 +163,32 @@ export function MapPage() {
   const showBlogPanel = isBlogView && isWideEnough;
   const showGalleryPanel = isGalleryView && isWideEnough;
   const showContentSidePanel = showBlogPanel || showGalleryPanel;
-  const contentPanelViewRef = useRef<"blog" | "gallery" | null>(null);
-  const [contentPanelLayoutPersist, setContentPanelLayoutPersist] =
-    useState(showContentSidePanel);
-  const contentPanelLayoutActive =
-    showContentSidePanel || contentPanelLayoutPersist;
-  if (showBlogPanel) contentPanelViewRef.current = "blog";
-  if (showGalleryPanel) contentPanelViewRef.current = "gallery";
-  const contentPanelView = showGalleryPanel
+  const visibleContentPanelView: "blog" | "gallery" | null = showGalleryPanel
     ? "gallery"
     : showBlogPanel
       ? "blog"
-      : contentPanelLayoutActive
-        ? contentPanelViewRef.current
-        : null;
-  useLayoutEffect(() => {
-    if (showContentSidePanel) setContentPanelLayoutPersist(true);
-  }, [showContentSidePanel]);
+      : null;
+  const [contentPanelLayoutPersist, setContentPanelLayoutPersist] =
+    useState(showContentSidePanel);
+  const [stashedContentPanelView, setStashedContentPanelView] = useState<
+    "blog" | "gallery" | null
+  >(visibleContentPanelView);
+
+  if (showContentSidePanel && !contentPanelLayoutPersist) {
+    setContentPanelLayoutPersist(true);
+  }
+  if (
+    visibleContentPanelView !== null &&
+    visibleContentPanelView !== stashedContentPanelView
+  ) {
+    setStashedContentPanelView(visibleContentPanelView);
+  }
+
+  const contentPanelLayoutActive =
+    showContentSidePanel || contentPanelLayoutPersist;
+  const contentPanelView =
+    visibleContentPanelView ??
+    (contentPanelLayoutActive ? stashedContentPanelView : null);
 
   const contentSidePanelRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);

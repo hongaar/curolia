@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect -- prune explore categories when enabled plugins load */
+/* eslint-disable react-refresh/only-export-components -- Provider module also exports useExplore */
 import type { ExploreCategoryId } from "@/lib/explore-registry";
 import { exploreCategoriesForEnabledPlugins } from "@/lib/explore-registry";
 import {
