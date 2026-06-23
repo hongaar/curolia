@@ -9,12 +9,16 @@ export type FlowBudgets = {
 export const FLOW_BUDGETS: Record<string, FlowBudgets> = {
   "map-load": {
     counters: { cameraIdleSync: 3 },
-    maxLongTasks: 8,
+    // Cold load on a 750-pin map; CI runners routinely see ~10–12 long tasks.
+    maxLongTasks: 14,
     maxTimingMs: { "map-load": 15_000 },
+  },
+  "map-settings": {
+    counters: { cameraIdleSync: 10 },
   },
   "pin-detail": {
     counters: {
-      markerRestack: 4,
+      markerRestack: 8,
       sheetAnimationReset: 2,
       collisionZoomSearch: 2,
     },

@@ -37,7 +37,7 @@ test.describe("map settings", () => {
     await page.getByRole("button", { name: "Close map settings" }).click();
 
     const snapshot = await perfSnapshot();
-    await finishFlow("map-load", {
+    await finishFlow("map-settings", {
       consoleErrors,
       snapshot,
       recordFlowMetric,

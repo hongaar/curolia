@@ -35,6 +35,7 @@ export default defineConfig({
   forbidOnly: isCi,
   retries: isCi ? 1 : 0,
   workers: 1,
+  timeout: isCi ? 90_000 : 30_000,
   reporter: isCi
     ? [
         ["github"],

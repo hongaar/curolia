@@ -125,7 +125,7 @@ export class MapPage {
     await this.page.mouse.down();
     await this.page.mouse.move(startX + deltaX, startY + deltaY, { steps });
     await this.page.mouse.up();
-    await this.page.waitForTimeout(400);
+    await this.waitForMapStable();
   }
 
   async zoomMap(deltaY: number): Promise<void> {
@@ -138,7 +138,7 @@ export class MapPage {
       0,
       deltaY,
     );
-    await this.page.waitForTimeout(400);
+    await this.waitForMapStable();
   }
 }
 

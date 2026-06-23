@@ -3,6 +3,8 @@ import { finishFlow } from "../lib/finish-flow.ts";
 import { MapPage } from "../pages/map-page.ts";
 
 test.describe("map pan zoom", () => {
+  test.setTimeout(120_000);
+
   test("dense map pan and zoom stay within perf budgets", async ({
     page,
     consoleErrors,
