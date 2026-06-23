@@ -82,6 +82,6 @@
     "vercel": "48.12.1",
     "vite": "8.0.10",
     "vite-plugin-pwa": "1.2.0",
-    "vitest": "3.2.4"
+    "vitest": "4.1.9"
   }
 }
