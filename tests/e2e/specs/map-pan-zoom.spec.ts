@@ -23,7 +23,7 @@ test.describe("map pan zoom", () => {
       await map.zoomMap(-200);
       await map.zoomMap(200);
     }
-    await page.waitForTimeout(600);
+    await map.waitForMapStable();
 
     const snapshot = await perfSnapshot();
     await finishFlow("map-pan-zoom", {

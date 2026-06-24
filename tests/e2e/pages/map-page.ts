@@ -115,6 +115,11 @@ export class MapPage {
     return this.page.locator('[data-slot="bottom-sheet"]');
   }
 
+  /** Brief pause after a camera gesture (avoid per-idle perf churn from full settle). */
+  private async waitAfterMapGesture(): Promise<void> {
+    await this.page.waitForTimeout(process.env.CI ? 700 : 400);
+  }
+
   async panMap(deltaX: number, deltaY: number, steps = 8): Promise<void> {
     const map = this.page.locator("[data-curolia-pin-map]");
     const box = await map.boundingBox();
@@ -125,7 +130,7 @@ export class MapPage {
     await this.page.mouse.down();
     await this.page.mouse.move(startX + deltaX, startY + deltaY, { steps });
     await this.page.mouse.up();
-    await this.waitForMapStable();
+    await this.waitAfterMapGesture();
   }
 
   async zoomMap(deltaY: number): Promise<void> {
@@ -138,7 +143,7 @@ export class MapPage {
       0,
       deltaY,
     );
-    await this.waitForMapStable();
+    await this.waitAfterMapGesture();
   }
 }
 

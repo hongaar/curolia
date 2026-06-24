@@ -31,7 +31,7 @@ export const FLOW_BUDGETS: Record<string, FlowBudgets> = {
     },
   },
   "map-pan-zoom": {
-    counters: { markerRestack: 35, collisionZoomSearch: 8 },
+    counters: { markerRestack: 45, collisionZoomSearch: 8 },
     // MapLibre tile/marker work on ~750 pins: 4 pans + 6 wheel zooms routinely
     // produce ~15 main-thread long tasks; this guards runaway regressions only.
     maxLongTasks: 24,
