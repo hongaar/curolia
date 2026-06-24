@@ -1733,9 +1733,22 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     map.on("style.load", onStyleLoad);
 
     mapRef.current = map;
+    if (import.meta.env.VITE_E2E === "1") {
+      window.__curoliaMapWhenSettled = () =>
+        new Promise<void>((resolve) => {
+          if (!map.isMoving()) {
+            resolve();
+            return;
+          }
+          map.once("idle", () => resolve());
+        });
+    }
     return () => {
       map.off("style.load", onStyleLoad);
       geolocateControlRef.current = null;
+      if (import.meta.env.VITE_E2E === "1") {
+        delete window.__curoliaMapWhenSettled;
+      }
       map.remove();
       mapRef.current = null;
     };

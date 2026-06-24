@@ -13,6 +13,7 @@ declare global {
       snapshot: () => CuroliaPerfSnapshot;
     };
     __curoliaMapIdle?: number;
+    __curoliaMapWhenSettled?: () => Promise<void>;
   }
 }
 

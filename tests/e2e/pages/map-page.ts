@@ -26,17 +26,36 @@ export class MapPage {
     await this.waitForMapReady();
   }
 
-  async readMapIdleCount(): Promise<number> {
-    return this.page.evaluate(() => window.__curoliaMapIdle ?? 0);
-  }
-
-  /** Wait for the next MapLibre `idle` (increments `window.__curoliaMapIdle`). */
-  async waitForNextMapIdle(timeout = 60_000): Promise<void> {
-    const previous = await this.readMapIdleCount();
+  /** Wait until MapLibre reports the camera is not moving. */
+  async waitForMapStable(timeout = 60_000): Promise<void> {
     await this.page.waitForFunction(
-      (prev) => (window.__curoliaMapIdle ?? 0) > prev,
-      previous,
+      () => typeof window.__curoliaMapWhenSettled === "function",
       { timeout },
+    );
+    await this.page.evaluate(
+      ({ timeoutMs }) => {
+        const settle = window.__curoliaMapWhenSettled;
+        if (!settle) {
+          throw new Error("__curoliaMapWhenSettled is not available");
+        }
+        return new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(
+            () => reject(new Error("Map settle timeout")),
+            timeoutMs,
+          );
+          void settle().then(
+            () => {
+              clearTimeout(timer);
+              resolve();
+            },
+            (error: unknown) => {
+              clearTimeout(timer);
+              reject(error);
+            },
+          );
+        });
+      },
+      { timeoutMs: timeout },
     );
   }
 
@@ -52,12 +71,10 @@ export class MapPage {
       state: "visible",
       timeout: 60_000,
     });
-    await this.waitForNextMapIdle();
-  }
-
-  /** Wait for map camera/marker work to finish after the latest gesture. */
-  async waitForMapStable(): Promise<void> {
-    await this.waitForNextMapIdle();
+    await this.page.waitForFunction(() => (window.__curoliaMapIdle ?? 0) >= 1, {
+      timeout: 60_000,
+    });
+    await this.waitForMapStable();
   }
 
   async resetPerfAfterSettle(perfReset: () => Promise<void>): Promise<void> {
@@ -120,7 +137,7 @@ export class MapPage {
         return;
       }
 
-      await this.waitForNextMapIdle(10_000);
+      await this.waitForMapStable(10_000);
     }
 
     throw new Error("Cluster click did not open pin UI after zoom attempts");

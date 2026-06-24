@@ -20,6 +20,8 @@ declare global {
     __curoliaPerf?: CuroliaPerfProbe;
     /** Incremented on each MapLibre `idle` when `VITE_E2E=1` (E2E map settle detection). */
     __curoliaMapIdle?: number;
+    /** Resolves when the map camera is not moving (E2E settle helper). */
+    __curoliaMapWhenSettled?: () => Promise<void>;
   }
 }
 
