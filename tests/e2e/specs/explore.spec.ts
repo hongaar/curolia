@@ -38,10 +38,10 @@ test.describe("explore", () => {
     const chip = explore;
     const start = Date.now();
     await chip.click();
-    await page.waitForTimeout(800);
+    await expect(chip).toHaveAttribute("aria-selected", "true", {
+      timeout: 10_000,
+    });
     const wallMs = Date.now() - start;
-
-    await expect(chip).toHaveAttribute("aria-selected", "true");
 
     const snapshot = await perfSnapshot();
     await finishFlow("explore", {

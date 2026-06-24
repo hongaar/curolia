@@ -26,6 +26,20 @@ export class MapPage {
     await this.waitForMapReady();
   }
 
+  async readMapIdleCount(): Promise<number> {
+    return this.page.evaluate(() => window.__curoliaMapIdle ?? 0);
+  }
+
+  /** Wait for the next MapLibre `idle` (increments `window.__curoliaMapIdle`). */
+  async waitForNextMapIdle(timeout = 60_000): Promise<void> {
+    const previous = await this.readMapIdleCount();
+    await this.page.waitForFunction(
+      (prev) => (window.__curoliaMapIdle ?? 0) > prev,
+      previous,
+      { timeout },
+    );
+  }
+
   async waitForMapReady(): Promise<void> {
     await this.page
       .getByText("Loading", { exact: false })
@@ -38,17 +52,12 @@ export class MapPage {
       state: "visible",
       timeout: 60_000,
     });
-    await this.waitForMapStable();
+    await this.waitForNextMapIdle();
   }
 
-  /** Wait for MapLibre idle + brief settle (E2E probe signal). */
+  /** Wait for map camera/marker work to finish after the latest gesture. */
   async waitForMapStable(): Promise<void> {
-    await this.page
-      .waitForFunction(() => (window.__curoliaMapIdle ?? 0) >= 1, {
-        timeout: 60_000,
-      })
-      .catch(() => undefined);
-    await this.page.waitForTimeout(400);
+    await this.waitForNextMapIdle();
   }
 
   async resetPerfAfterSettle(perfReset: () => Promise<void>): Promise<void> {
@@ -92,20 +101,26 @@ export class MapPage {
       });
       await clusterBtn.waitFor({ state: "visible", timeout: 10_000 });
       await clusterBtn.click();
-      await this.page.waitForTimeout(800);
 
       const picker = this.page.getByRole("listbox").first();
       const closeButton = this.page.getByRole("button", {
         name: "Close pin details",
       });
       const bottomSheet = this.bottomSheet();
-      if (
-        (await picker.isVisible().catch(() => false)) ||
-        (await closeButton.isVisible().catch(() => false)) ||
-        (await bottomSheet.isVisible().catch(() => false))
-      ) {
+      const pinUiOpened = await Promise.race([
+        picker.waitFor({ state: "visible", timeout: 10_000 }).then(() => true),
+        closeButton
+          .waitFor({ state: "visible", timeout: 10_000 })
+          .then(() => true),
+        bottomSheet
+          .waitFor({ state: "visible", timeout: 10_000 })
+          .then(() => true),
+      ]).catch(() => false);
+      if (pinUiOpened) {
         return;
       }
+
+      await this.waitForNextMapIdle(10_000);
     }
 
     throw new Error("Cluster click did not open pin UI after zoom attempts");
@@ -113,11 +128,6 @@ export class MapPage {
 
   bottomSheet() {
     return this.page.locator('[data-slot="bottom-sheet"]');
-  }
-
-  /** Brief pause after a camera gesture (avoid per-idle perf churn from full settle). */
-  private async waitAfterMapGesture(): Promise<void> {
-    await this.page.waitForTimeout(process.env.CI ? 700 : 400);
   }
 
   async panMap(deltaX: number, deltaY: number, steps = 8): Promise<void> {
@@ -130,7 +140,6 @@ export class MapPage {
     await this.page.mouse.down();
     await this.page.mouse.move(startX + deltaX, startY + deltaY, { steps });
     await this.page.mouse.up();
-    await this.waitAfterMapGesture();
   }
 
   async zoomMap(deltaY: number): Promise<void> {
@@ -143,7 +152,6 @@ export class MapPage {
       0,
       deltaY,
     );
-    await this.waitAfterMapGesture();
   }
 }
 

@@ -12,6 +12,7 @@ declare global {
       reset: () => void;
       snapshot: () => CuroliaPerfSnapshot;
     };
+    __curoliaMapIdle?: number;
   }
 }
 
