@@ -14,11 +14,11 @@
     "dev:ios": "cap run ios -l --port 5173 --host localhost"
   },
   "dependencies": {
-    "@capacitor/app": "8.1.0",
-    "@capacitor/core": "8.3.4",
-    "@capacitor/device": "8.0.2",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/core": "8.4.2",
+    "@capacitor/device": "8.0.3",
     "@capacitor/geolocation": "8.2.0",
-    "@capacitor/push-notifications": "8.1.1"
+    "@capacitor/push-notifications": "8.1.2"
   },
   "devDependencies": {
     "@capacitor/android": "8.3.4",
