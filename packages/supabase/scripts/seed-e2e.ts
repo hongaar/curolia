@@ -15,6 +15,8 @@ import {
   E2E_MAP_SLUG,
   E2E_PIN_COUNT,
   E2E_PROFILE_SLUG,
+  E2E_SECONDARY_MAP_ID,
+  E2E_SECONDARY_MAP_SLUG,
   E2E_TAG_A_ID,
   E2E_TAG_B_ID,
   E2E_TARGET_PIN_ID,
@@ -89,25 +91,39 @@ async function ensureProfile(userId: string): Promise<void> {
 
 async function ensureMap(userId: string): Promise<void> {
   const { error: mapError } = await admin.from("maps").upsert(
-    {
-      id: E2E_MAP_ID,
-      name: "E2E Dense Map",
-      slug: E2E_MAP_SLUG,
-      created_by_user_id: userId,
-      is_public: true,
-      description: "Automated E2E performance and behavior tests",
-      icon_emoji: "🧪",
-    },
+    [
+      {
+        id: E2E_MAP_ID,
+        name: "E2E Dense Map",
+        slug: E2E_MAP_SLUG,
+        created_by_user_id: userId,
+        is_public: true,
+        description: "Automated E2E performance and behavior tests",
+        icon_emoji: "🧪",
+        style: "street",
+      },
+      {
+        id: E2E_SECONDARY_MAP_ID,
+        name: "E2E Secondary Map",
+        slug: E2E_SECONDARY_MAP_SLUG,
+        created_by_user_id: userId,
+        is_public: true,
+        description: "Second map for map-switch E2E flows",
+        icon_emoji: "🗺️",
+        style: "satellite",
+      },
+    ],
     { onConflict: "id" },
   );
   if (mapError) throw mapError;
 
-  const { error: memberError } = await admin
-    .from("map_members")
-    .upsert(
+  const { error: memberError } = await admin.from("map_members").upsert(
+    [
       { map_id: E2E_MAP_ID, user_id: userId, role: "owner" },
-      { onConflict: "map_id,user_id" },
-    );
+      { map_id: E2E_SECONDARY_MAP_ID, user_id: userId, role: "owner" },
+    ],
+    { onConflict: "map_id,user_id" },
+  );
   if (memberError) throw memberError;
 }
 

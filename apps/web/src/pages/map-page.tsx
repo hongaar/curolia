@@ -735,6 +735,10 @@ export function MapPage() {
     }
   }, [showSidePanel]);
 
+  useEffect(() => {
+    setQuickSettingsStylePreview(null);
+  }, [activeMapId]);
+
   const openQuickSettings = useCallback(() => {
     if (sidebarPinId) onClosePinMapPopover();
     setQuickSettingsOpen(true);
@@ -1410,6 +1414,7 @@ export function MapPage() {
         {showQuickSettingsPanel && activeMap && activeMapRoute ? (
           <MapSidePanel ref={quickSettingsPanelRef} animateIn containBody>
             <MapQuickSettingsSideSheet
+              key={activeMap.id}
               map={activeMap}
               mapRoute={activeMapRoute}
               onClose={closeQuickSettings}
@@ -1437,6 +1442,7 @@ export function MapPage() {
           modal={false}
         >
           <MapQuickSettingsSideSheet
+            key={activeMap.id}
             map={activeMap}
             mapRoute={activeMapRoute}
             onClose={closeQuickSettings}

@@ -10,6 +10,10 @@ export type E2eSeedFixture = {
   mapId: string;
   mapSlug: string;
   mapUrl: string;
+  secondaryMapId: string;
+  secondaryMapSlug: string;
+  secondaryMapUrl: string;
+  secondaryMapName: string;
   targetPinId: string;
   targetPinSlug: string;
   clusterPinId: string;

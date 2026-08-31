@@ -150,6 +150,8 @@ export function MapQuickSettingsPanel({
   );
   const mapRef = useRef(map);
   const syncedMapIdRef = useRef(map.id);
+  /** Null while local form state is being reset after a map switch. */
+  const formSyncedMapIdRef = useRef<string | null>(map.id);
 
   const [name, setName] = useState(map.name);
   const [iconEmoji, setIconEmoji] = useState(
@@ -189,6 +191,7 @@ export function MapQuickSettingsPanel({
     const switchedMap = syncedMapIdRef.current !== map.id;
     if (switchedMap) {
       syncedMapIdRef.current = map.id;
+      formSyncedMapIdRef.current = null;
       setSaveStatus("idle");
       setSaveError(null);
     }
@@ -202,6 +205,20 @@ export function MapQuickSettingsPanel({
     setStyleOptions(normalizeMapStyleOptions(map));
     setIsPublic(map.is_public);
   }, [map]);
+
+  useEffect(() => {
+    const savedStyleOptions = normalizeMapStyleOptions(map);
+    const inSync =
+      name === map.name &&
+      iconEmoji === (map.icon_emoji ?? defaultMapIcon()) &&
+      description === (map.description ?? "") &&
+      mapStyle === normalizeMapStylePreset(map.style) &&
+      styleOptions.hillshades === savedStyleOptions.hillshades &&
+      styleOptions.satelliteLabels === savedStyleOptions.satelliteLabels;
+    if (inSync) {
+      formSyncedMapIdRef.current = map.id;
+    }
+  }, [map, name, iconEmoji, description, mapStyle, styleOptions]);
 
   useEffect(() => {
     onStylePreviewChange?.({ preset: mapStyle, options: styleOptions });
@@ -235,6 +252,8 @@ export function MapQuickSettingsPanel({
       options?: { textOnly?: boolean },
     ) => {
       const currentMap = mapRef.current;
+      if (formSyncedMapIdRef.current !== currentMap.id) return;
+
       const trimmedName = (fields.name ?? name).trim();
       if (!trimmedName) return;
 
@@ -318,11 +337,12 @@ export function MapQuickSettingsPanel({
 
   useEffect(() => {
     if (!styleDirty) return;
+    if (formSyncedMapIdRef.current !== map.id) return;
     void persistMapFields({
       mapStyle,
       styleOptions,
     });
-  }, [mapStyle, styleOptions, styleDirty, persistMapFields]);
+  }, [map.id, mapStyle, styleOptions, styleDirty, persistMapFields]);
 
   async function uploadCover(file: File) {
     setCoverUploading(true);
