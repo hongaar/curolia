@@ -115,9 +115,6 @@ export async function placesExploreStatic(
 > {
   let continuation: string | undefined;
   let merged: ExploreResultEntry[] = [];
-  let page = 0;
-  let source: "cache" | "upstream" = "cache";
-  let hasMore = false;
 
   const first = await placesExploreStaticPage(
     supabase,
@@ -137,9 +134,9 @@ export async function placesExploreStatic(
 
   merged = mergeExploreEntries(merged, first.entries);
   args.onUpdate?.(merged);
-  page = first.page;
-  source = first.source;
-  hasMore = first.hasMore;
+  let page = first.page;
+  let source = first.source;
+  let hasMore = first.hasMore;
   continuation = first.continuation;
 
   if (!args.fetchUpstreamPages || !hasMore || !continuation) {

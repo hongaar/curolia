@@ -1,5 +1,6 @@
 export {
   PlaceDetailActions,
+  PlaceDetailBodyText,
   PlaceDetailFactList,
   PlaceDetailHeader,
   PlaceDetailRoot,

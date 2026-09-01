@@ -9,6 +9,7 @@ import {
 import { Button } from "@curolia/ui/button";
 import {
   PlaceDetailActions,
+  PlaceDetailBodyText,
   PlaceDetailFactList,
   PlaceDetailHeader,
   PlaceDetailRoot,
@@ -149,10 +150,10 @@ export function ExploreDetailSideSheet({
       ) : null}
       {isExplorePlaceEntry(entry) && entry.detail?.metadata ? (
         <PlaceDetailSection title="From the world map">
-          <p className="text-sm text-muted-foreground">
+          <PlaceDetailBodyText>
             This place is part of Curolia&apos;s shared dataset and updates as
             more travelers explore it.
-          </p>
+          </PlaceDetailBodyText>
         </PlaceDetailSection>
       ) : null}
       <PlaceDetailActions>

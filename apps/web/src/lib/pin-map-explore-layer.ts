@@ -1,10 +1,10 @@
+import { exploreCategoryById } from "@/lib/explore-categories";
 import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import {
   isExploreClusterEntry,
   isExplorePlaceEntry,
   isExploreRouteEntry,
 } from "@curolia/plugin-contract";
-import { exploreCategoryById } from "@/lib/explore-categories";
 import type { GeoJSONSource, Map as MaplibreMap, PointLike } from "maplibre-gl";
 
 export const EXPLORE_POI_SOURCE_ID = "curolia-explore-poi";
@@ -206,7 +206,7 @@ import {
   scheduleWhenMapStyleReady,
 } from "@/lib/pin-map-route-layers";
 
-let exploreClickHandlersByMap = new WeakMap<
+const exploreClickHandlersByMap = new WeakMap<
   MaplibreMap,
   (entryId: string) => void
 >();

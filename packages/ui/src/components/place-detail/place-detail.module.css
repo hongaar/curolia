@@ -50,6 +50,13 @@
   line-height: 1.45;
 }
 
+.bodyText {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+
 .factList {
   display: flex;
   flex-direction: column;

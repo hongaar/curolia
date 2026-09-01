@@ -39,6 +39,14 @@ export function PlaceDetailSection({
   );
 }
 
+export function PlaceDetailBodyText({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <p className={styles.bodyText}>{children}</p>;
+}
+
 export function PlaceDetailFactList({
   items,
 }: {

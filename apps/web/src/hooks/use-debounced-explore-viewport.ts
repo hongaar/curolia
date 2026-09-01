@@ -1,8 +1,8 @@
+import type { ExploreViewport } from "@/lib/explore-results";
 import {
   exploreViewportSyncKey,
   quantizeExploreViewport,
 } from "@/lib/explore-viewport";
-import type { ExploreViewport } from "@/lib/explore-results";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 /** Delay after last viewport change before explore places refetch. */
@@ -16,42 +16,28 @@ export function useDebouncedExploreViewport(
   viewport: ExploreViewport | null,
   delayMs = EXPLORE_VIEWPORT_DEBOUNCE_MS,
 ): ExploreViewport | null {
-  const viewportKey = viewport ? exploreViewportSyncKey(viewport) : "";
+  const syncKey = viewport ? exploreViewportSyncKey(viewport) : "";
   const quantized = useMemo((): ExploreViewport | null => {
     if (!viewport) return null;
     return quantizeExploreViewport(viewport);
-  }, [viewport, viewportKey]);
-  const syncKey = viewportKey;
+  }, [viewport, syncKey]);
+
   const [debounced, setDebounced] = useState<ExploreViewport | null>(quantized);
-  const pendingRef = useRef(quantized);
-  pendingRef.current = quantized;
-  const appliedKeyRef = useRef(syncKey);
-  const initialSetRef = useRef(false);
+  const skipDebounceRef = useRef(true);
 
   useEffect(() => {
     if (!syncKey) {
-      initialSetRef.current = false;
-      appliedKeyRef.current = "";
-      setDebounced(null);
-      return;
+      skipDebounceRef.current = true;
+      const id = window.setTimeout(() => setDebounced(null), 0);
+      return () => window.clearTimeout(id);
     }
 
-    if (!initialSetRef.current) {
-      initialSetRef.current = true;
-      appliedKeyRef.current = syncKey;
-      setDebounced(quantized);
-      return;
-    }
+    const delay = skipDebounceRef.current ? 0 : delayMs;
+    skipDebounceRef.current = false;
 
-    if (syncKey === appliedKeyRef.current) return;
-
-    const timer = setTimeout(() => {
-      appliedKeyRef.current = syncKey;
-      setDebounced(pendingRef.current);
-    }, delayMs);
-
-    return () => clearTimeout(timer);
-  }, [delayMs, quantized, syncKey]);
+    const id = window.setTimeout(() => setDebounced(quantized), delay);
+    return () => window.clearTimeout(id);
+  }, [syncKey, quantized, delayMs]);
 
   return debounced;
 }

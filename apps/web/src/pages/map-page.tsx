@@ -273,6 +273,8 @@ export function MapPage() {
   const quickSettingsPanelRef = useRef<HTMLDivElement>(null);
   const prevMapIdRef = useRef<string | null>(null);
   const mapFitGenerationRef = useRef(0);
+  const [mapFitGeneration, setMapFitGeneration] = useState(0);
+  const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -282,8 +284,6 @@ export function MapPage() {
       prev && mapCameraWithBoundsEqual(prev, vp) ? prev : vp,
     );
   }, [activeMapId, mapFitResolvedGeneration]);
-  const [mapFitGeneration, setMapFitGeneration] = useState(0);
-  const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
   useLayoutEffect(() => {
     mapFitGenerationRef.current = mapFitGeneration;
   }, [mapFitGeneration]);
@@ -883,13 +883,6 @@ export function MapPage() {
     },
     [onSelectPin, onCollisionPinPick],
   );
-
-  const vp = mapRef.current?.getExploreViewport();
-  if (vp) {
-    setExploreViewport((prev) =>
-      prev && mapCameraWithBoundsEqual(prev, vp) ? prev : vp,
-    );
-  }
 
   const onCameraIdle = useCallback(
     (c: MapCamera) => {
