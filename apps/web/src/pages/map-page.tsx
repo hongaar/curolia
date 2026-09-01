@@ -28,10 +28,6 @@ import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useExplore } from "@/hooks/use-explore";
 import { useExploreMapResults } from "@/hooks/use-explore-results";
-import {
-  resolvePinMapBasemap,
-  useQuickSettingsBasemapDraft,
-} from "@/hooks/use-quick-settings-basemap-draft";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapPanelPinFocus } from "@/hooks/use-map-panel-pin-focus";
@@ -43,6 +39,10 @@ import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMinMd } from "@/hooks/use-min-md";
 import { useNativeShareLink } from "@/hooks/use-native-share-link";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
+import {
+  resolvePinMapBasemap,
+  useQuickSettingsBasemapDraft,
+} from "@/hooks/use-quick-settings-basemap-draft";
 import { useRecordMapVisit } from "@/hooks/use-record-map-visit";
 import { mapViewSegmentFromPathname, pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
