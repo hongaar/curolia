@@ -4,6 +4,10 @@ import { expect, test } from "../fixtures/test.ts";
 import { finishFlow } from "../lib/finish-flow.ts";
 import { MapPage } from "../pages/map-page.ts";
 
+const STREET_STYLE_KEY = "street";
+const SATELLITE_STYLE_KEY = "satellite:labels";
+const PRIMARY_MAP_NAME = "E2E Dense Map";
+
 test.describe("map settings", () => {
   test.beforeEach(() => {
     if (!authAvailable()) test.skip();
@@ -100,6 +104,79 @@ test.describe("map settings", () => {
       page.getByRole("button", { name: "Close map settings" }),
     ).toBeVisible();
     await expect(page.getByRole("radio", { name: /Minimal/i })).toBeChecked();
+
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test("switching maps updates basemap tiles with settings closed", async ({
+    page,
+    consoleErrors,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chromium",
+      "desktop map switcher",
+    );
+
+    const map = new MapPage(page);
+    await page.goto(`/${seed.profileSlug}/${seed.mapSlug}/map`);
+    await map.waitForMapReady();
+    await map.waitForMapStyleKey(STREET_STYLE_KEY);
+
+    await map.switchToMap(seed.secondaryMapName, seed.secondaryMapSlug);
+    await expect(
+      page.getByRole("button", { name: "Select map" }),
+    ).toContainText(seed.secondaryMapName);
+    await map.waitForMapStyleKey(SATELLITE_STYLE_KEY);
+
+    await map.switchToMap(PRIMARY_MAP_NAME, seed.mapSlug);
+    await expect(
+      page.getByRole("button", { name: "Select map" }),
+    ).toContainText(PRIMARY_MAP_NAME);
+    await map.waitForMapStyleKey(STREET_STYLE_KEY);
+
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test("switching maps updates basemap tiles with settings open", async ({
+    page,
+    consoleErrors,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chromium",
+      "desktop quick settings side panel",
+    );
+
+    const map = new MapPage(page);
+    await page.goto(`/${seed.profileSlug}/${seed.mapSlug}/map`);
+    await map.waitForMapReady();
+    await map.waitForMapStyleKey(STREET_STYLE_KEY);
+
+    await page.getByRole("button", { name: "Map settings" }).click();
+    await expect(
+      page.getByRole("button", { name: "Close map settings" }),
+    ).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Street/i })).toBeChecked();
+
+    await map.switchToMap(seed.secondaryMapName, seed.secondaryMapSlug);
+    await expect(
+      page.getByRole("button", { name: "Select map" }),
+    ).toContainText(seed.secondaryMapName);
+    await expect(
+      page.getByRole("button", { name: "Close map settings" }),
+    ).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Satellite/i })).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Labels" })).toBeChecked();
+    await map.waitForMapStyleKey(SATELLITE_STYLE_KEY);
+
+    await map.switchToMap(PRIMARY_MAP_NAME, seed.mapSlug);
+    await expect(
+      page.getByRole("button", { name: "Select map" }),
+    ).toContainText(PRIMARY_MAP_NAME);
+    await expect(
+      page.getByRole("button", { name: "Close map settings" }),
+    ).toBeVisible();
+    await expect(page.getByRole("radio", { name: /Street/i })).toBeChecked();
+    await map.waitForMapStyleKey(STREET_STYLE_KEY);
 
     expect(consoleErrors).toEqual([]);
   });

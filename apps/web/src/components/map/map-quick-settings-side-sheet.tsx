@@ -1,6 +1,6 @@
+import type { MapBasemap } from "@/hooks/use-quick-settings-basemap-draft";
 import { MapQuickSettingsPanel } from "@/components/map/map-quick-settings-panel";
 import type { MapRoute } from "@/lib/map-route";
-import type { MapStyleOptions, MapStylePreset } from "@/lib/map-style";
 import type { CuroliaMap } from "@/types/database";
 import { useBottomSheetDismiss } from "@curolia/ui/bottom-sheet";
 import { Button } from "@curolia/ui/button";
@@ -18,16 +18,13 @@ export function MapQuickSettingsSideSheet({
   map,
   mapRoute,
   onClose,
-  onStylePreviewChange,
+  onBasemapDraftChange,
   bottomSheet = false,
 }: {
   map: CuroliaMap;
   mapRoute: MapRoute;
   onClose: () => void;
-  onStylePreviewChange?: (style: {
-    preset: MapStylePreset;
-    options: MapStyleOptions;
-  }) => void;
+  onBasemapDraftChange?: (basemap: MapBasemap) => void;
   bottomSheet?: boolean;
 }) {
   const dismissBottomSheet = useBottomSheetDismiss();
@@ -62,7 +59,7 @@ export function MapQuickSettingsSideSheet({
         map={map}
         mapRoute={mapRoute}
         onClose={close}
-        onStylePreviewChange={onStylePreviewChange}
+        onBasemapDraftChange={onBasemapDraftChange}
       />
     </>
   );

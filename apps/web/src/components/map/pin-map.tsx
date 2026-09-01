@@ -6,6 +6,7 @@ import {
   normalizeMapStylePreset,
   resolveMapStyle,
   syncMapStyleOverlays,
+  whenMapStyleReady,
   type MapStyleOptions,
   type MapStylePreset,
 } from "@/lib/map-style";
@@ -1689,6 +1690,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       resolvedTheme,
       mapStyleOpts,
     );
+    if (import.meta.env.VITE_E2E === "1") {
+      window.__curoliaMapStyleKey = appliedMapStyleKeyRef.current;
+    }
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: initialStyle,
@@ -1769,6 +1773,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         mapStyleOpts,
       );
       appliedMapStyleKeyRef.current = key;
+      if (import.meta.env.VITE_E2E === "1") {
+        window.__curoliaMapStyleKey = key;
+      }
       mapHasIdledRef.current = false;
       const onStyleLoad = () => {
         syncMapStyleOverlays(
@@ -1782,11 +1789,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       map.setStyle(style);
     };
 
-    if (map.style && map.isStyleLoaded()) {
-      applyStyle();
-    } else {
-      map.once("load", applyStyle);
-    }
+    whenMapStyleReady(map, applyStyle);
   }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {

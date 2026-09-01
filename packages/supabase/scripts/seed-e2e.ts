@@ -101,6 +101,7 @@ async function ensureMap(userId: string): Promise<void> {
         description: "Automated E2E performance and behavior tests",
         icon_emoji: "🧪",
         style: "street",
+        style_satellite_labels: false,
       },
       {
         id: E2E_SECONDARY_MAP_ID,
@@ -111,6 +112,7 @@ async function ensureMap(userId: string): Promise<void> {
         description: "Second map for map-switch E2E flows",
         icon_emoji: "🗺️",
         style: "satellite",
+        style_satellite_labels: true,
       },
     ],
     { onConflict: "id" },

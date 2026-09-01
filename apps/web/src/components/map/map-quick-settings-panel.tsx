@@ -8,6 +8,7 @@ import {
   normalizeMapIconForPersist,
 } from "@/lib/map-display-icon";
 import type { MapRoute } from "@/lib/map-route";
+import type { MapBasemap } from "@/hooks/use-quick-settings-basemap-draft";
 import {
   MAP_STYLE_PRESET_LABELS,
   normalizeMapStyleOptions,
@@ -130,15 +131,12 @@ export function MapQuickSettingsPanel({
   map,
   mapRoute,
   onClose,
-  onStylePreviewChange,
+  onBasemapDraftChange,
 }: {
   map: CuroliaMap;
   mapRoute: MapRoute;
   onClose?: () => void;
-  onStylePreviewChange?: (style: {
-    preset: MapStylePreset;
-    options: MapStyleOptions;
-  }) => void;
+  onBasemapDraftChange?: (basemap: MapBasemap) => void;
 }) {
   const { user } = useAuth();
   const { refetch: refetchMaps } = useMap();
@@ -219,10 +217,6 @@ export function MapQuickSettingsPanel({
       formSyncedMapIdRef.current = map.id;
     }
   }, [map, name, iconEmoji, description, mapStyle, styleOptions]);
-
-  useEffect(() => {
-    onStylePreviewChange?.({ preset: mapStyle, options: styleOptions });
-  }, [mapStyle, styleOptions, onStylePreviewChange]);
 
   useEffect(
     () => () => {
@@ -410,7 +404,10 @@ export function MapQuickSettingsPanel({
             <ChoiceCards<MapStylePreset>
               name="map-quick-style"
               value={mapStyle}
-              onValueChange={setMapStyle}
+              onValueChange={(preset) => {
+                setMapStyle(preset);
+                onBasemapDraftChange?.({ preset, options: styleOptions });
+              }}
               aria-labelledby="map-quick-style-label"
             >
               <ChoiceCard
@@ -424,10 +421,14 @@ export function MapQuickSettingsPanel({
                     checked={styleOptions.hillshades}
                     disabled={mapStyle !== "street"}
                     onCheckedChange={(checked) =>
-                      setStyleOptions((prev) => ({
-                        ...prev,
-                        hillshades: checked,
-                      }))
+                      setStyleOptions((prev) => {
+                        const next = { ...prev, hillshades: checked };
+                        onBasemapDraftChange?.({
+                          preset: mapStyle,
+                          options: next,
+                        });
+                        return next;
+                      })
                     }
                   />
                 }
@@ -449,10 +450,14 @@ export function MapQuickSettingsPanel({
                     checked={styleOptions.satelliteLabels}
                     disabled={mapStyle !== "satellite"}
                     onCheckedChange={(checked) =>
-                      setStyleOptions((prev) => ({
-                        ...prev,
-                        satelliteLabels: checked,
-                      }))
+                      setStyleOptions((prev) => {
+                        const next = { ...prev, satelliteLabels: checked };
+                        onBasemapDraftChange?.({
+                          preset: mapStyle,
+                          options: next,
+                        });
+                        return next;
+                      })
                     }
                   />
                 }

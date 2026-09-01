@@ -22,6 +22,8 @@ declare global {
     __curoliaMapIdle?: number;
     /** Resolves when the map camera is not moving (E2E settle helper). */
     __curoliaMapWhenSettled?: () => Promise<void>;
+    /** Current PinMap basemap cache key when `VITE_E2E=1`. */
+    __curoliaMapStyleKey?: string;
   }
 }
 

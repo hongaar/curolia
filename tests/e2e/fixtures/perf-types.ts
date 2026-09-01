@@ -14,6 +14,7 @@ declare global {
     };
     __curoliaMapIdle?: number;
     __curoliaMapWhenSettled?: () => Promise<void>;
+    __curoliaMapStyleKey?: string;
   }
 }
 

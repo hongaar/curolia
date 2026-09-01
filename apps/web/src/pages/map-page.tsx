@@ -26,6 +26,10 @@ import {
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useExplore } from "@/hooks/use-explore";
+import {
+  resolvePinMapBasemap,
+  useQuickSettingsBasemapDraft,
+} from "@/hooks/use-quick-settings-basemap-draft";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapPanelPinFocus } from "@/hooks/use-map-panel-pin-focus";
@@ -48,12 +52,6 @@ import {
 import { measureMapPanelInset } from "@/lib/map-panel-inset";
 import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import { mapRouteForMap } from "@/lib/map-route";
-import {
-  normalizeMapStyleOptions,
-  normalizeMapStylePreset,
-  type MapStyleOptions,
-  type MapStylePreset,
-} from "@/lib/map-style";
 import {
   applyFilterTagsToSearchParams,
   applyMapCameraToSearchParams,
@@ -235,15 +233,11 @@ export function MapPage() {
     toggleCategory: toggleExploreCategory,
     selectCategory: selectExploreCategory,
   } = useExplore();
-  const mapStyleOptions = useMemo(
-    () => normalizeMapStyleOptions(activeMap),
-    [activeMap],
-  );
   const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
-  const [quickSettingsStylePreview, setQuickSettingsStylePreview] = useState<{
-    preset: MapStylePreset;
-    options: MapStyleOptions;
-  } | null>(null);
+  const {
+    draft: quickSettingsBasemapDraft,
+    setDraft: setQuickSettingsBasemapDraft,
+  } = useQuickSettingsBasemapDraft(activeMap, activeMapId);
   const quickSettingsPanelRef = useRef<HTMLDivElement>(null);
   const prevMapIdRef = useRef<string | null>(null);
   const mapFitGenerationRef = useRef(0);
@@ -716,28 +710,19 @@ export function MapPage() {
         : undefined;
 
   const quickSettingsStyleActive = quickSettingsOpen && !showSidePanel;
-  const previewMapStyle = quickSettingsStyleActive
-    ? quickSettingsStylePreview?.preset
-    : undefined;
-  const previewMapStyleOptions = quickSettingsStyleActive
-    ? quickSettingsStylePreview?.options
-    : undefined;
-  const pinMapStyle = previewMapStyle
-    ? previewMapStyle
-    : normalizeMapStylePreset(activeMap?.style);
-  const pinMapStyleOptions = previewMapStyleOptions ?? mapStyleOptions;
+  const { preset: pinMapStyle, options: pinMapStyleOptions } =
+    resolvePinMapBasemap({
+      activeMap,
+      quickSettingsStyleActive,
+      draft: quickSettingsBasemapDraft,
+    });
 
   const closeQuickSettings = useCallback(() => {
     setQuickSettingsOpen(false);
-    setQuickSettingsStylePreview(null);
     if (!showSidePanel) {
       mapRef.current?.clearPanelPadding();
     }
   }, [showSidePanel]);
-
-  useEffect(() => {
-    setQuickSettingsStylePreview(null);
-  }, [activeMapId]);
 
   const openQuickSettings = useCallback(() => {
     if (sidebarPinId) onClosePinMapPopover();
@@ -1418,7 +1403,7 @@ export function MapPage() {
               map={activeMap}
               mapRoute={activeMapRoute}
               onClose={closeQuickSettings}
-              onStylePreviewChange={setQuickSettingsStylePreview}
+              onBasemapDraftChange={setQuickSettingsBasemapDraft}
             />
           </MapSidePanel>
         ) : null}
@@ -1446,7 +1431,7 @@ export function MapPage() {
             map={activeMap}
             mapRoute={activeMapRoute}
             onClose={closeQuickSettings}
-            onStylePreviewChange={setQuickSettingsStylePreview}
+            onBasemapDraftChange={setQuickSettingsBasemapDraft}
             bottomSheet
           />
         </BottomSheet>

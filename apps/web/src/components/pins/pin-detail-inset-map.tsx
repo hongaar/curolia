@@ -4,6 +4,7 @@ import {
   normalizeMapStylePreset,
   resolveMapStyle,
   syncMapStyleOverlays,
+  whenMapStyleReady,
   type MapStyleOptions,
   type MapStylePreset,
 } from "@/lib/map-style";
@@ -136,11 +137,7 @@ export function PinDetailInsetMapView({
       map.setStyle(style);
     };
 
-    if (map.style && map.isStyleLoaded()) {
-      applyStyle();
-    } else {
-      map.once("load", applyStyle);
-    }
+    whenMapStyleReady(map, applyStyle);
   }, [mapStylePreset, resolvedTheme, mapStyleOpts]);
 
   useEffect(() => {

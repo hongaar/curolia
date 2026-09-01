@@ -77,6 +77,26 @@ export class MapPage {
     await this.waitForMapStable();
   }
 
+  async getMapStyleKey(): Promise<string> {
+    return this.page.evaluate(() => window.__curoliaMapStyleKey ?? "");
+  }
+
+  async waitForMapStyleKey(expected: string, timeout = 60_000): Promise<void> {
+    await this.page.waitForFunction(
+      (key) => window.__curoliaMapStyleKey === key,
+      expected,
+      { timeout },
+    );
+    await this.waitForMapStable();
+  }
+
+  async switchToMap(mapName: string, mapSlug: string): Promise<void> {
+    await this.page.getByRole("button", { name: "Select map" }).click();
+    await this.page.getByRole("menuitem", { name: mapName }).click();
+    await this.page.waitForURL(`**/${mapSlug}/map`);
+    await this.waitForMapReady();
+  }
+
   async resetPerfAfterSettle(perfReset: () => Promise<void>): Promise<void> {
     await this.waitForMapStable();
     await perfReset();

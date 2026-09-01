@@ -122,6 +122,22 @@ export function isDarkBasemap(
   return false;
 }
 
+/** Wait until MapLibre can accept `setStyle` (handles mid-transition styles). */
+export function whenMapStyleReady(map: MaplibreMap, apply: () => void): void {
+  const run = () => {
+    if (map.isStyleLoaded()) {
+      apply();
+      return;
+    }
+    map.once("style.load", apply);
+  };
+  if (map.loaded()) {
+    run();
+  } else {
+    map.once("load", run);
+  }
+}
+
 export function mapStyleCacheKey(
   preset: MapStylePreset,
   resolvedTheme: string | undefined,
