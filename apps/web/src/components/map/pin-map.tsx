@@ -1,3 +1,7 @@
+import {
+  boundsFromMapLibre,
+  type MapCameraWithBounds,
+} from "@/lib/explore-viewport";
 import { mapFloatingViewportPadding } from "@/lib/map-anchor-floating-ui";
 import {
   DEFAULT_MAP_STYLE_OPTIONS,
@@ -31,6 +35,9 @@ import {
   type PinLngLat,
 } from "@/lib/pin-map-collisions";
 import {
+  attachExploreLayerClickHandler,
+  dispatchExploreEntryClick,
+  pickExploreEntryAtPoint,
   syncExploreLayer,
   type ExploreLayerSyncInput,
 } from "@/lib/pin-map-explore-layer";
@@ -119,6 +126,8 @@ export type PinMapHandle = {
   triggerGeolocate: () => void;
   /** Return the current map center + zoom (normalized for URL/storage). */
   getCurrentCamera: () => MapCamera | null;
+  /** Current viewport for explore queries (center, zoom, bounds). */
+  getExploreViewport: () => MapCameraWithBounds | null;
   /** Map canvas element (for layering overlays under markers). */
   getMapContainer: () => HTMLElement | null;
   /**
@@ -238,8 +247,10 @@ type PinMapProps = {
   showPinRoute?: boolean;
   /** Circle overlay for a place picked from global search. */
   placeHighlight?: PlaceMapHighlight | null;
-  /** Active explore categories and filters for synthetic map layers. */
+  /** Active explore entries for synthetic map layers. */
   exploreLayer?: ExploreLayerSyncInput;
+  /** Click on an explore place/route/cluster feature. */
+  onExploreEntryClick?: (entryId: string) => void;
   /** Signed first-photo URL per pin id, for photo markers. */
   photoUrlByPinId?: Record<string, string>;
   /** Blog scroll focus — marker hover styling without map tooltip. */
@@ -521,7 +532,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
     showPinRoute = false,
     placeHighlight = null,
-    exploreLayer = { activeCategories: [], filterValuesByCategory: {} },
+    exploreLayer = { entries: [] },
+    onExploreEntryClick,
     photoUrlByPinId = EMPTY_PHOTO_URLS,
     scrollHoverPinId = null,
     suspendBlogScrollPanRef,
@@ -620,6 +632,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const showPinRouteRef = useRef(showPinRoute);
   const placeHighlightRef = useRef(placeHighlight);
   const exploreLayerRef = useRef(exploreLayer);
+  const onExploreEntryClickRef = useRef(onExploreEntryClick);
   const routeSegmentsRef = useRef(buildPinRouteSegments([]));
   const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
   const syncMapOverlaysRef = useRef<() => void>(() => {});
@@ -1531,6 +1544,20 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           zoom: map.getZoom(),
         });
       },
+      getExploreViewport() {
+        const map = mapRef.current;
+        if (!map) return null;
+        const c = map.getCenter();
+        const camera = normalizeCameraForUrl({
+          lat: c.lat,
+          lng: c.lng,
+          zoom: map.getZoom(),
+        });
+        return {
+          ...camera,
+          bounds: boundsFromMapLibre(map.getBounds()),
+        };
+      },
       panForPanel(
         lng: number,
         lat: number,
@@ -1737,6 +1764,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     map.on("style.load", onStyleLoad);
 
     mapRef.current = map;
+    attachExploreLayerClickHandler(map, (entryId) => {
+      onExploreEntryClickRef.current?.(entryId);
+    });
     if (import.meta.env.VITE_E2E === "1") {
       window.__curoliaMapWhenSettled = () =>
         new Promise<void>((resolve) => {
@@ -1979,6 +2009,13 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       onMapContextMenuRef.current?.(lng, lat, map.getZoom(), clientX, clientY);
     };
 
+    const clickHitExploreFeature = (e: maplibregl.MapMouseEvent) => {
+      const entryId = pickExploreEntryAtPoint(map, e.point);
+      if (!entryId) return false;
+      dispatchExploreEntryClick(map, entryId);
+      return true;
+    };
+
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (suppressNextMapClickRef.current) {
         suppressNextMapClickRef.current = false;
@@ -1996,6 +2033,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
         return;
       }
       if (clickHitPinMarker(e)) return;
+      if (clickHitExploreFeature(e)) return;
       onMapBackgroundClickRef.current?.();
     };
 
@@ -2255,12 +2293,14 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     showPinRouteRef.current = showPinRoute;
     placeHighlightRef.current = placeHighlight;
     exploreLayerRef.current = exploreLayer;
+    onExploreEntryClickRef.current = onExploreEntryClick;
     routeSegmentsRef.current = routeSegments;
     darkBasemapRef.current = isDarkBasemap(mapStylePreset, resolvedTheme);
   }, [
     showPinRoute,
     placeHighlight,
     exploreLayer,
+    onExploreEntryClick,
     routeSegments,
     mapStylePreset,
     resolvedTheme,
