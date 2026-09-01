@@ -47,3 +47,13 @@ verify_jwt = false
 [functions.google-maps-saved-lists]
 verify_jwt = false
 
+# pg_cron invokes with PLUGIN_SYNC_DISPATCH_SECRET (not a Supabase JWT).
+[functions.place-enrichment-dispatch]
+verify_jwt = false
+
+[functions.places]
+verify_jwt = false
+
+[functions.route]
+verify_jwt = false
+

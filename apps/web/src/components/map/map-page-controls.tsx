@@ -5,7 +5,9 @@ import type { PinMapHandle } from "@/components/map/pin-map";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
 import type { PublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import type { ExploreCategoryId } from "@/lib/explore-categories";
+import type { ExploreViewport } from "@/lib/explore-results";
 import type { Tag } from "@/types/database";
+import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import {
   MapControlsBottomCenter,
   MapControlsBottomStack,
@@ -36,6 +38,11 @@ export function MapPageControls({
   onToggleExploreExpanded,
   onToggleExploreCategory,
   onSelectExploreCategory,
+  exploreViewport,
+  exploreEntries,
+  exploreResultsFetching,
+  onGenerateExploreRoutes,
+  onSelectExploreEntry,
   variant = "map",
 }: {
   mapRef?: RefObject<PinMapHandle | null>;
@@ -58,6 +65,11 @@ export function MapPageControls({
   onToggleExploreExpanded: () => void;
   onToggleExploreCategory: (categoryId: ExploreCategoryId) => void;
   onSelectExploreCategory: (categoryId: ExploreCategoryId) => void;
+  exploreViewport?: ExploreViewport | null;
+  exploreEntries?: readonly ExploreResultEntry[];
+  exploreResultsFetching?: boolean;
+  onGenerateExploreRoutes?: () => void;
+  onSelectExploreEntry?: (entry: ExploreResultEntry) => void;
   variant?: "map" | "content";
 }) {
   const isMapVariant = variant === "map";
@@ -75,6 +87,11 @@ export function MapPageControls({
             onToggleExploreExpanded={onToggleExploreExpanded}
             onToggleCategory={onToggleExploreCategory}
             onSelectCategory={onSelectExploreCategory}
+            exploreViewport={exploreViewport}
+            exploreEntries={exploreEntries}
+            exploreResultsFetching={exploreResultsFetching}
+            onGenerateExploreRoutes={onGenerateExploreRoutes}
+            onSelectExploreEntry={onSelectExploreEntry}
           />
         </MapControlsBottomCenter>
       ) : (
@@ -88,6 +105,11 @@ export function MapPageControls({
               onToggleExploreExpanded={onToggleExploreExpanded}
               onToggleCategory={onToggleExploreCategory}
               onSelectCategory={onSelectExploreCategory}
+              exploreViewport={exploreViewport}
+              exploreEntries={exploreEntries}
+              exploreResultsFetching={exploreResultsFetching}
+              onGenerateExploreRoutes={onGenerateExploreRoutes}
+              onSelectExploreEntry={onSelectExploreEntry}
               showQuickSettings={
                 isMapVariant && Boolean(isOwner) && !publicView
               }

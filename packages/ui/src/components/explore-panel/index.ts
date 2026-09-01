@@ -1,6 +1,8 @@
 export {
   ExplorePanel,
+  ExplorePanelActionButton,
   ExplorePanelBody,
+  ExplorePanelDistanceFilter,
   ExplorePanelEntryButton,
   ExplorePanelEntryList,
   ExplorePanelEntryMeta,

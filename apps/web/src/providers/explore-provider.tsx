@@ -26,6 +26,7 @@ export type ExploreState = {
   filterValuesByCategory: Partial<
     Record<ExploreCategoryId, ExploreFilterValues>
   >;
+  selectedEntry: import("@curolia/plugin-contract").ExploreResultEntry | null;
 };
 
 type ExploreContextValue = ExploreState & {
@@ -38,7 +39,11 @@ type ExploreContextValue = ExploreState & {
   setFilterValue: (
     categoryId: ExploreCategoryId,
     filterId: string,
-    value: string | readonly string[],
+    value: string | readonly string[] | number,
+  ) => void;
+  selectedEntry: import("@curolia/plugin-contract").ExploreResultEntry | null;
+  setSelectedEntry: (
+    entry: import("@curolia/plugin-contract").ExploreResultEntry | null,
   ) => void;
   getFilterValues: (categoryId: ExploreCategoryId) => ExploreFilterValues;
 };
@@ -57,6 +62,9 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
   const [filterValuesByCategory, setFilterValuesByCategory] = useState<
     Partial<Record<ExploreCategoryId, ExploreFilterValues>>
   >({});
+  const [selectedEntry, setSelectedEntry] = useState<
+    import("@curolia/plugin-contract").ExploreResultEntry | null
+  >(null);
 
   const allowedCategoryIds = useMemo(() => {
     if (user && userPluginsQuery.isPending) return new Set<string>();
@@ -134,7 +142,7 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
     (
       categoryId: ExploreCategoryId,
       filterId: string,
-      value: string | readonly string[],
+      value: string | readonly string[] | number,
     ) => {
       setFilterValuesByCategory((current) => {
         const base = resolveCategoryFilterValues(
@@ -178,6 +186,8 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
       setFocusedCategory: setFocusedCategoryId,
       setFilterValue,
       getFilterValues,
+      selectedEntry,
+      setSelectedEntry,
     }),
     [
       expanded,
@@ -191,6 +201,7 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
       activateCategory,
       setFilterValue,
       getFilterValues,
+      selectedEntry,
     ],
   );
 

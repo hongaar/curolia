@@ -82,6 +82,7 @@
 
 .controlsTopLeftStack > * {
   pointer-events: auto;
+  max-width: 100%;
 }
 
 @media (min-width: 40rem) {
@@ -122,8 +123,10 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  width: 100%;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
+  pointer-events: none;
 }
 
 .secondaryToolbarNav {
@@ -131,9 +134,10 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  width: 100%;
+  width: max-content;
   max-width: 100%;
   min-width: 0;
+  pointer-events: auto;
 }
 
 .secondaryToolbarNav[data-placement="bottom-center"] {
@@ -145,9 +149,14 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  width: 100%;
+  width: max-content;
   max-width: 100%;
   min-width: 0;
+  pointer-events: none;
+}
+
+.secondaryToolbarExplore > * {
+  pointer-events: auto;
 }
 
 .controlsTopRight {

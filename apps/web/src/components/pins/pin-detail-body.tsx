@@ -1,4 +1,5 @@
 import { PinFormDialogTrigger } from "@/components/pins/pin-form-dialog-trigger";
+import { PinLinkedPlaceSection } from "@/components/pins/pin-linked-place-section";
 import { PinLinksList } from "@/components/pins/pin-links-list";
 import { PinMetadataFooter } from "@/components/pins/pin-metadata-footer";
 import { PinPlaceMetadataList } from "@/components/pins/pin-place-metadata-list";
@@ -348,6 +349,7 @@ export function PinDetailBody({
               );
             })
           : null}
+        {pin.place_id ? <PinLinkedPlaceSection placeId={pin.place_id} /> : null}
         {mapOutputPlugins.map((p) => {
           const Section = p.PinDetailSection;
           if (!Section) return null;

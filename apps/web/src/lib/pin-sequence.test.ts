@@ -25,6 +25,7 @@ function pin(id: string, date: string | null, title?: string): PinWithTags {
     geocode: null,
     location_label_detail: "city_country",
     slug: id,
+    place_id: null,
   };
 }
 

@@ -114,6 +114,28 @@
   color: var(--foreground);
 }
 
+.distanceRange {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.actionButton {
+  align-self: flex-start;
+  border: 1px solid color-mix(in oklch, var(--primary) 40%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  padding: 0.375rem 0.75rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .entryList {
   display: flex;
   min-height: 0;

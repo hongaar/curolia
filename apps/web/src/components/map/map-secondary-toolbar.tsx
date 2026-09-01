@@ -5,9 +5,11 @@ import { MapPicker } from "@/components/map/map-picker";
 import { MapQuickSettingsTrigger } from "@/components/map/map-quick-settings-trigger";
 import { useExploreCategories } from "@/hooks/use-explore-categories";
 import type { ExploreCategoryId } from "@/lib/explore-categories";
+import type { ExploreViewport } from "@/lib/explore-results";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-provider";
+import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import {
   MapSecondaryToolbarExplore,
   MapSecondaryToolbarNav,
@@ -23,6 +25,11 @@ export function MapSecondaryToolbar({
   onToggleExploreExpanded,
   onToggleCategory,
   onSelectCategory,
+  exploreViewport,
+  exploreEntries,
+  exploreResultsFetching,
+  onGenerateExploreRoutes,
+  onSelectExploreEntry,
   quickSettingsOpen,
   onQuickSettingsClick,
   showQuickSettings,
@@ -34,6 +41,11 @@ export function MapSecondaryToolbar({
   onToggleExploreExpanded: () => void;
   onToggleCategory: (categoryId: ExploreCategoryId) => void;
   onSelectCategory: (categoryId: ExploreCategoryId) => void;
+  exploreViewport?: ExploreViewport | null;
+  exploreEntries?: readonly ExploreResultEntry[];
+  exploreResultsFetching?: boolean;
+  onGenerateExploreRoutes?: () => void;
+  onSelectExploreEntry?: (entry: ExploreResultEntry) => void;
   quickSettingsOpen?: boolean;
   onQuickSettingsClick?: () => void;
   showQuickSettings?: boolean;
@@ -89,7 +101,14 @@ export function MapSecondaryToolbar({
             onToggleCategory={onToggleCategory}
             onSelectCategory={onSelectCategory}
           />
-          <ExplorePanelCard categoryById={categoryById} />
+          <ExplorePanelCard
+            categoryById={categoryById}
+            viewport={exploreViewport}
+            entries={exploreEntries}
+            isFetching={exploreResultsFetching}
+            onGenerateRoutes={onGenerateExploreRoutes}
+            onSelectEntry={onSelectExploreEntry}
+          />
         </MapSecondaryToolbarExplore>
       ) : null}
     </MapSecondaryToolbarShell>

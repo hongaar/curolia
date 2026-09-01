@@ -1,4 +1,5 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
+import { ExploreDetailSideSheet } from "@/components/map/explore-detail-side-sheet";
 import { MapBlogPanel } from "@/components/map/map-blog-panel";
 import { MapGalleryPanel } from "@/components/map/map-gallery-panel";
 import { MapPageControls } from "@/components/map/map-page-controls";
@@ -26,6 +27,7 @@ import {
 import { PinMapQuickAddDialog } from "@/components/pins/pin-map-quick-add-dialog";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useExplore } from "@/hooks/use-explore";
+import { useExploreMapResults } from "@/hooks/use-explore-results";
 import {
   resolvePinMapBasemap,
   useQuickSettingsBasemapDraft,
@@ -44,6 +46,11 @@ import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-blo
 import { useRecordMapVisit } from "@/hooks/use-record-map-visit";
 import { mapViewSegmentFromPathname, pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
+import {
+  mapCameraWithBoundsEqual,
+  viewportFromCamera,
+  type MapCameraWithBounds,
+} from "@/lib/explore-viewport";
 import { invalidateHomeFeed } from "@/lib/home-feed";
 import {
   readStoredMapCamera,
@@ -94,6 +101,7 @@ import { useMapPinsPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
 import { useMap } from "@/providers/map-provider";
 import type { Pin, Tag } from "@/types/database";
+import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import { BottomSheet } from "@curolia/ui/bottom-sheet";
 import { Button } from "@curolia/ui/button";
 import {
@@ -232,7 +240,31 @@ export function MapPage() {
     toggleExpanded: toggleExploreExpanded,
     toggleCategory: toggleExploreCategory,
     selectCategory: selectExploreCategory,
+    selectedEntry: exploreSelectedEntry,
+    setSelectedEntry: setExploreSelectedEntry,
   } = useExplore();
+  const [exploreViewport, setExploreViewport] =
+    useState<MapCameraWithBounds | null>(null);
+  const exploreViewportQuery = useMemo(
+    () =>
+      exploreViewport
+        ? viewportFromCamera(exploreViewport, exploreViewport.bounds)
+        : null,
+    [exploreViewport],
+  );
+  const exploreMapResultsQuery = useExploreMapResults(
+    exploreActiveCategories,
+    exploreFilterValuesByCategory,
+    exploreViewportQuery,
+  );
+  const exploreMapEntries =
+    exploreActiveCategories.length > 0
+      ? (exploreMapResultsQuery.data ?? [])
+      : [];
+  const exploreResultsFetching = exploreMapResultsQuery.isFetching;
+  const onGenerateExploreRoutes = useCallback(() => {
+    void exploreMapResultsQuery.refetch();
+  }, [exploreMapResultsQuery]);
   const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
   const {
     draft: quickSettingsBasemapDraft,
@@ -241,6 +273,15 @@ export function MapPage() {
   const quickSettingsPanelRef = useRef<HTMLDivElement>(null);
   const prevMapIdRef = useRef<string | null>(null);
   const mapFitGenerationRef = useRef(0);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const vp = map.getExploreViewport();
+    if (!vp) return;
+    setExploreViewport((prev) =>
+      prev && mapCameraWithBoundsEqual(prev, vp) ? prev : vp,
+    );
+  }, [activeMapId, mapFitResolvedGeneration]);
   const [mapFitGeneration, setMapFitGeneration] = useState(0);
   const [mapFitResolvedGeneration, setMapFitResolvedGeneration] = useState(0);
   useLayoutEffect(() => {
@@ -785,6 +826,7 @@ export function MapPage() {
     [setSearchParams, onCollisionOpen, setSidePanelAnimateIn],
   );
 
+  setExploreSelectedEntry(null);
   const onSelectPin = useCallback(
     (id: string) => {
       setPinCollisionPicker(null);
@@ -798,7 +840,40 @@ export function MapPage() {
         replace: true,
       });
     },
-    [setSearchParams, pins, onPinSelectFromMap],
+    [setSearchParams, pins, onPinSelectFromMap, setExploreSelectedEntry],
+  );
+
+  const onSelectExploreEntry = useCallback(
+    (entry: ExploreResultEntry) => {
+      setExploreSelectedEntry(entry);
+      onClosePinMapPopover();
+      setSearchParams((prev) => applySelectedPinToSearchParams(prev, null), {
+        replace: true,
+      });
+      if (entry.geometry.kind === "point") {
+        mapRef.current?.panForPanel(
+          entry.geometry.lng,
+          entry.geometry.lat,
+          isWideEnough ? { right: 360 } : { bottom: 280 },
+        );
+      }
+    },
+    [
+      setExploreSelectedEntry,
+      onClosePinMapPopover,
+      setSearchParams,
+      isWideEnough,
+    ],
+  );
+
+  const onExploreEntryClick = useCallback(
+    (entryId: string) => {
+      const entry =
+        exploreMapEntries.find((item) => item.id === entryId) ??
+        (exploreSelectedEntry?.id === entryId ? exploreSelectedEntry : null);
+      if (entry) onSelectExploreEntry(entry);
+    },
+    [exploreMapEntries, exploreSelectedEntry, onSelectExploreEntry],
   );
 
   const onPickCollisionPin = useCallback(
@@ -808,6 +883,13 @@ export function MapPage() {
     },
     [onSelectPin, onCollisionPinPick],
   );
+
+  const vp = mapRef.current?.getExploreViewport();
+  if (vp) {
+    setExploreViewport((prev) =>
+      prev && mapCameraWithBoundsEqual(prev, vp) ? prev : vp,
+    );
+  }
 
   const onCameraIdle = useCallback(
     (c: MapCamera) => {
@@ -1269,9 +1351,10 @@ export function MapPage() {
             showPinRoute={showPinRoute}
             placeHighlight={globalSearchPlaceHighlight}
             exploreLayer={{
-              activeCategories: exploreActiveCategories,
-              filterValuesByCategory: exploreFilterValuesByCategory,
+              entries: exploreMapEntries,
+              selectedEntryId: exploreSelectedEntry?.id ?? null,
             }}
+            onExploreEntryClick={onExploreEntryClick}
             onSelectPin={onSelectPin}
             onPinCollisionClick={onPinCollisionClick}
             initialCamera={resolvedInitialCamera}
@@ -1323,6 +1406,11 @@ export function MapPage() {
           exploreActiveCategories={exploreActiveCategories}
           exploreFocusedCategoryId={exploreFocusedCategoryId}
           onToggleExploreExpanded={toggleExploreExpanded}
+          exploreViewport={exploreViewportQuery}
+          exploreEntries={exploreMapEntries}
+          exploreResultsFetching={exploreResultsFetching}
+          onGenerateExploreRoutes={onGenerateExploreRoutes}
+          onSelectExploreEntry={onSelectExploreEntry}
           onToggleExploreCategory={toggleExploreCategory}
           onSelectExploreCategory={selectExploreCategory}
         />
@@ -1380,7 +1468,7 @@ export function MapPage() {
             />
           </MapBlogSidePanel>
         ) : null}
-        {showSidePanel ? (
+        {showSidePanel && sidebarPinId ? (
           <MapSidePanel
             ref={sidePanelRef}
             animateIn={showSidePanel && sidePanelAnimateIn}
@@ -1393,6 +1481,17 @@ export function MapPage() {
               mapPins={pins}
               onNavigatePin={onSelectPin}
               onClose={onClosePinMapPopover}
+            />
+          </MapSidePanel>
+        ) : null}
+        {exploreSelectedEntry && isWideEnough ? (
+          <MapSidePanel animateIn>
+            <ExploreDetailSideSheet
+              entry={exploreSelectedEntry}
+              mapId={activeMapId!}
+              canEdit={canEdit}
+              onClose={() => setExploreSelectedEntry(null)}
+              onPinSaved={onSelectPin}
             />
           </MapSidePanel>
         ) : null}
@@ -1433,6 +1532,27 @@ export function MapPage() {
             onClose={closeQuickSettings}
             onBasemapDraftChange={setQuickSettingsBasemapDraft}
             bottomSheet
+          />
+        </BottomSheet>
+      ) : null}
+
+      {!isWideEnough && exploreSelectedEntry ? (
+        <BottomSheet
+          open
+          title={exploreSelectedEntry.title}
+          overlay="none"
+          modal={false}
+          partialHeight="min(85dvh, 40rem)"
+          onOpenChange={(open) => {
+            if (!open) setExploreSelectedEntry(null);
+          }}
+        >
+          <ExploreDetailSideSheet
+            entry={exploreSelectedEntry}
+            mapId={activeMapId!}
+            canEdit={canEdit}
+            onClose={() => setExploreSelectedEntry(null)}
+            onPinSaved={onSelectPin}
           />
         </BottomSheet>
       ) : null}

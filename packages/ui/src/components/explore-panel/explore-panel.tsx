@@ -117,6 +117,65 @@ export function ExplorePanelFilterChip({
   );
 }
 
+export function ExplorePanelDistanceFilter({
+  label,
+  valueMeters,
+  minMeters,
+  maxMeters,
+  stepMeters,
+  onChange,
+}: {
+  label: string;
+  valueMeters: number;
+  minMeters: number;
+  maxMeters: number;
+  stepMeters: number;
+  onChange: (valueMeters: number) => void;
+}) {
+  const labelId = React.useId();
+  return (
+    <div className={styles.filterGroup}>
+      <ExplorePanelFilterLabel id={labelId}>
+        {label}:{" "}
+        {valueMeters >= 1000
+          ? `${(valueMeters / 1000).toFixed(1)} km`
+          : `${valueMeters} m`}
+      </ExplorePanelFilterLabel>
+      <input
+        type="range"
+        className={styles.distanceRange}
+        aria-labelledby={labelId}
+        min={minMeters}
+        max={maxMeters}
+        step={stepMeters}
+        value={valueMeters}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  );
+}
+
+export function ExplorePanelActionButton({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={styles.actionButton}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function ExplorePanelEntryList({
   children,
   emptyLabel = "No matches for these filters.",

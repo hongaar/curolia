@@ -654,6 +654,7 @@ export type Database = {
           location_label_detail: string;
           map_id: string;
           modified_by_user_id: string | null;
+          place_id: string | null;
           slug: string;
           title: string | null;
           updated_at: string;
@@ -671,6 +672,7 @@ export type Database = {
           location_label_detail?: string;
           map_id: string;
           modified_by_user_id?: string | null;
+          place_id?: string | null;
           slug?: string;
           title?: string | null;
           updated_at?: string;
@@ -688,6 +690,7 @@ export type Database = {
           location_label_detail?: string;
           map_id?: string;
           modified_by_user_id?: string | null;
+          place_id?: string | null;
           slug?: string;
           title?: string | null;
           updated_at?: string;
@@ -714,7 +717,153 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "pins_place_id_fkey";
+            columns: ["place_id"];
+            isOneToOne: false;
+            referencedRelation: "places";
+            referencedColumns: ["id"];
+          },
         ];
+      };
+      place_enrichment_jobs: {
+        Row: {
+          attempts: number;
+          created_at: string;
+          event: string;
+          id: string;
+          last_error: string | null;
+          payload: Json;
+          place_id: string;
+          plugin_type_id: string;
+          status: Database["public"]["Enums"]["place_enrichment_job_status"];
+          updated_at: string;
+        };
+        Insert: {
+          attempts?: number;
+          created_at?: string;
+          event?: string;
+          id?: string;
+          last_error?: string | null;
+          payload?: Json;
+          place_id: string;
+          plugin_type_id: string;
+          status?: Database["public"]["Enums"]["place_enrichment_job_status"];
+          updated_at?: string;
+        };
+        Update: {
+          attempts?: number;
+          created_at?: string;
+          event?: string;
+          id?: string;
+          last_error?: string | null;
+          payload?: Json;
+          place_id?: string;
+          plugin_type_id?: string;
+          status?: Database["public"]["Enums"]["place_enrichment_job_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "place_enrichment_jobs_place_id_fkey";
+            columns: ["place_id"];
+            isOneToOne: false;
+            referencedRelation: "places";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      place_metadata: {
+        Row: {
+          created_at: string;
+          field_key: string;
+          id: string;
+          place_id: string;
+          source_plugin_id: string;
+          updated_at: string;
+          value: Json;
+        };
+        Insert: {
+          created_at?: string;
+          field_key: string;
+          id?: string;
+          place_id: string;
+          source_plugin_id: string;
+          updated_at?: string;
+          value?: Json;
+        };
+        Update: {
+          created_at?: string;
+          field_key?: string;
+          id?: string;
+          place_id?: string;
+          source_plugin_id?: string;
+          updated_at?: string;
+          value?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "place_metadata_place_id_fkey";
+            columns: ["place_id"];
+            isOneToOne: false;
+            referencedRelation: "places";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      places: {
+        Row: {
+          categories: string[];
+          created_at: string;
+          geom: unknown;
+          id: string;
+          last_enriched_at: string | null;
+          lat: number | null;
+          lng: number | null;
+          name: string | null;
+          osm_tags: Json;
+          pin_count: number;
+          primary_category: string | null;
+          prominence_score: number;
+          source: string;
+          source_ref: string;
+          updated_at: string;
+        };
+        Insert: {
+          categories?: string[];
+          created_at?: string;
+          geom: unknown;
+          id?: string;
+          last_enriched_at?: string | null;
+          lat?: number | null;
+          lng?: number | null;
+          name?: string | null;
+          osm_tags?: Json;
+          pin_count?: number;
+          primary_category?: string | null;
+          prominence_score?: number;
+          source?: string;
+          source_ref: string;
+          updated_at?: string;
+        };
+        Update: {
+          categories?: string[];
+          created_at?: string;
+          geom?: unknown;
+          id?: string;
+          last_enriched_at?: string | null;
+          lat?: number | null;
+          lng?: number | null;
+          name?: string | null;
+          osm_tags?: Json;
+          pin_count?: number;
+          primary_category?: string | null;
+          prominence_score?: number;
+          source?: string;
+          source_ref?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       plugin_entity_data: {
         Row: {
@@ -1343,6 +1492,55 @@ export type Database = {
       };
       pin_detail_path: { Args: { p_pin_id: string }; Returns: string };
       pin_map_id: { Args: { p_pin_id: string }; Returns: string };
+      places_cluster_in_bbox: {
+        Args: {
+          p_cell_deg?: number;
+          p_east: number;
+          p_limit?: number;
+          p_north: number;
+          p_south: number;
+          p_west: number;
+        };
+        Returns: {
+          cluster_lat: number;
+          cluster_lng: number;
+          place_count: number;
+          top_prominence: number;
+        }[];
+      };
+      places_in_bbox: {
+        Args: {
+          p_categories?: string[];
+          p_east: number;
+          p_limit?: number;
+          p_north: number;
+          p_south: number;
+          p_west: number;
+        };
+        Returns: {
+          categories: string[];
+          created_at: string;
+          geom: unknown;
+          id: string;
+          last_enriched_at: string | null;
+          lat: number | null;
+          lng: number | null;
+          name: string | null;
+          osm_tags: Json;
+          pin_count: number;
+          primary_category: string | null;
+          prominence_score: number;
+          source: string;
+          source_ref: string;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "places";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       profile_claim_slug: {
         Args: { p_desired: string; p_profile_id: string };
         Returns: string;
@@ -1356,6 +1554,14 @@ export type Database = {
         Returns: number;
       };
       profile_path: { Args: { p_profile_id: string }; Returns: string };
+      recompute_place_pin_count: {
+        Args: { p_place_id: string };
+        Returns: undefined;
+      };
+      recompute_place_prominence: {
+        Args: { p_place_id: string };
+        Returns: undefined;
+      };
       record_map_visit: { Args: { p_map_id: string }; Returns: undefined };
       register_push_token: {
         Args: {
@@ -1412,6 +1618,18 @@ export type Database = {
         };
         Returns: undefined;
       };
+      upsert_osm_place: {
+        Args: {
+          p_categories: string[];
+          p_lat: number;
+          p_lng: number;
+          p_name: string;
+          p_osm_tags: Json;
+          p_primary_category: string;
+          p_source_ref: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       map_invitation_status: "pending" | "accepted" | "declined" | "cancelled";
@@ -1425,6 +1643,11 @@ export type Database = {
         | "pin_comment"
         | "pin_reaction"
         | "profile_follow";
+      place_enrichment_job_status:
+        | "pending"
+        | "processing"
+        | "completed"
+        | "failed";
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
       plugin_sync_job_status: "pending" | "processing" | "completed" | "failed";
       push_delivery_status: "pending" | "sent" | "failed";
@@ -1572,6 +1795,12 @@ export const Constants = {
         "pin_comment",
         "pin_reaction",
         "profile_follow",
+      ],
+      place_enrichment_job_status: [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
       ],
       plugin_link_status: ["disabled", "pending", "error", "connected"],
       plugin_sync_job_status: ["pending", "processing", "completed", "failed"],

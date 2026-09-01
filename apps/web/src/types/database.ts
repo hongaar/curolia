@@ -100,6 +100,8 @@ export type Pin = {
   created_by_user_id: string | null;
   /** User who last updated this pin. */
   modified_by_user_id: string | null;
+  /** Linked global place from explore (live metadata). */
+  place_id: string | null;
   created_at: string;
   updated_at: string;
 };
