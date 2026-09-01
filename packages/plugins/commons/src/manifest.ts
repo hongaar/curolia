@@ -9,6 +9,7 @@ export const commonsPluginManifest: PluginPackageManifest = {
   description: "Attach nearby openly licensed photos from Wikimedia Commons.",
   icon: CommonsIcon,
   implemented: commonsPluginMeta.implemented,
+  experimental: true,
   PinPhotoImportSlot: CommonsPinPhotoImportSlot,
   contributions: {
     appHooks: [

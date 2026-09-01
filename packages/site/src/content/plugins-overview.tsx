@@ -7,11 +7,14 @@ import {
   type LandingPluginStatus,
 } from "./landing-plugins";
 
+function pluginSortRank(plugin: LandingPlugin): number {
+  if (plugin.status === "coming-soon") return 2;
+  if (plugin.experimental) return 1;
+  return 0;
+}
+
 function sortPlugins(plugins: readonly LandingPlugin[]): LandingPlugin[] {
-  return [...plugins].sort((a, b) => {
-    if (a.status === b.status) return 0;
-    return a.status === "coming-soon" ? 1 : -1;
-  });
+  return [...plugins].sort((a, b) => pluginSortRank(a) - pluginSortRank(b));
 }
 
 export function PluginsOverviewGrid({
@@ -29,6 +32,8 @@ export function PluginsOverviewGrid({
               <h3 className={styles.pluginName}>{plugin.name}</h3>
               {plugin.status === "coming-soon" ? (
                 <span className={styles.pluginBadge}>Coming soon</span>
+              ) : plugin.experimental ? (
+                <span className={styles.pluginBadge}>Experimental</span>
               ) : null}
             </div>
             <p className={styles.pluginDescription}>{plugin.description}</p>

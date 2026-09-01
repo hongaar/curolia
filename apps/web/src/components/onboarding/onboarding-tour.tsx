@@ -109,7 +109,9 @@ export function OnboardingTour() {
     navigate("/plugins");
   };
 
-  const featuredPlugins = pluginList.filter((p) => p.implemented).slice(0, 3);
+  const featuredPlugins = pluginList
+    .filter((p) => p.implemented && !p.experimental)
+    .slice(0, 3);
 
   return (
     <OnboardingDialog

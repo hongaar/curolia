@@ -131,6 +131,11 @@ export type PluginDefinition = {
   icon: PluginIconComponent;
   /** When false, UI shows that sync is not implemented yet */
   implemented: boolean;
+  /**
+   * When true, the plugins catalog hides this plugin until the user opts in
+   * to experimental plugins. Still fully usable once enabled.
+   */
+  experimental?: boolean;
   /** Optional metadata for settings UI, hooks registry, and Edge deploy lists */
   contributions?: PluginContributions;
   /**

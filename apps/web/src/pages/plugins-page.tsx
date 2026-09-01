@@ -11,6 +11,7 @@ import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
 import type { UserPlugin } from "@/types/database";
 import type { PluginDefinition } from "@curolia/plugin-contract";
+import { Badge } from "@curolia/ui/badge";
 import { Button } from "@curolia/ui/button";
 import {
   Dialog,
@@ -41,6 +42,9 @@ import {
   PluginGridCardTitle,
   PluginGridCardToggle,
   PluginGridCardTop,
+  PluginGridSection,
+  PluginGridSectionBody,
+  PluginGridSectionHeader,
 } from "@curolia/ui/plugins";
 import { Stack } from "@curolia/ui/stack";
 import { Switch } from "@curolia/ui/switch";
@@ -88,7 +92,15 @@ function PluginGridItem({
           <Icon size={5} />
         </PluginGridCardIcon>
         <PluginGridCardHeading>
-          <PluginGridCardTitle>{plugin.displayName}</PluginGridCardTitle>
+          <PluginGridCardTitle
+            badge={
+              plugin.experimental ? (
+                <Badge variant="secondary">Experimental</Badge>
+              ) : undefined
+            }
+          >
+            {plugin.displayName}
+          </PluginGridCardTitle>
           <PluginGridCardDescription>
             {plugin.description ?? "Plugin integration."}
           </PluginGridCardDescription>
@@ -212,6 +224,7 @@ export function PluginsPage() {
   const [configurePluginId, setConfigurePluginId] = useState<string | null>(
     null,
   );
+  const [showExperimental, setShowExperimental] = useState(false);
 
   useEffect(() => {
     const status = searchParams.get("plugin_oauth");
@@ -271,6 +284,16 @@ export function PluginsPage() {
   const implementedPlugins = useMemo(
     () => pluginList.filter((plugin) => plugin.implemented),
     [],
+  );
+
+  const stablePlugins = useMemo(
+    () => implementedPlugins.filter((plugin) => !plugin.experimental),
+    [implementedPlugins],
+  );
+
+  const experimentalPlugins = useMemo(
+    () => implementedPlugins.filter((plugin) => plugin.experimental),
+    [implementedPlugins],
   );
 
   const oauthPluginIds = useMemo(
@@ -362,6 +385,28 @@ export function PluginsPage() {
     }
   }
 
+  function renderPluginItems(plugins: readonly PluginDefinition[]) {
+    return plugins.map((plugin) => {
+      const up = userPluginsQuery.data?.find(
+        (c) => c.plugin_type_id === plugin.id,
+      );
+      const oauthQuery = oauthStatusByPluginId.get(plugin.id);
+      return (
+        <PluginGridItem
+          key={plugin.id}
+          plugin={plugin}
+          up={up}
+          onToggle={(enabled) => void toggle(plugin.id, enabled)}
+          toggleDisabled={!user || userPluginsQuery.isLoading}
+          oauthStatus={oauthQuery?.data}
+          oauthLoading={oauthQuery?.isLoading ?? false}
+          onConfigure={() => setConfigurePluginId(plugin.id)}
+          onLinkAccount={() => void onLinkAccount(plugin.id)}
+        />
+      );
+    });
+  }
+
   return (
     <AppPageLayout width="2xl" toolbar={<PageBackButton />}>
       <PagePanel>
@@ -375,27 +420,25 @@ export function PluginsPage() {
               each map&apos;s settings.
             </PageHeaderLead>
           </PageHeader>
-          <PluginGrid>
-            {implementedPlugins.map((plugin) => {
-              const up = userPluginsQuery.data?.find(
-                (c) => c.plugin_type_id === plugin.id,
-              );
-              const oauthQuery = oauthStatusByPluginId.get(plugin.id);
-              return (
-                <PluginGridItem
-                  key={plugin.id}
-                  plugin={plugin}
-                  up={up}
-                  onToggle={(enabled) => void toggle(plugin.id, enabled)}
-                  toggleDisabled={!user || userPluginsQuery.isLoading}
-                  oauthStatus={oauthQuery?.data}
-                  oauthLoading={oauthQuery?.isLoading ?? false}
-                  onConfigure={() => setConfigurePluginId(plugin.id)}
-                  onLinkAccount={() => void onLinkAccount(plugin.id)}
-                />
-              );
-            })}
-          </PluginGrid>
+          <PluginGrid>{renderPluginItems(stablePlugins)}</PluginGrid>
+          {experimentalPlugins.length > 0 ? (
+            <PluginGridSection label="Experimental plugins">
+              <PluginGridSectionHeader
+                expanded={showExperimental}
+                controls="experimental-plugins"
+                onClick={() => setShowExperimental((open) => !open)}
+              >
+                Show experimental plugins
+              </PluginGridSectionHeader>
+              {showExperimental ? (
+                <PluginGridSectionBody id="experimental-plugins">
+                  <PluginGrid>
+                    {renderPluginItems(experimentalPlugins)}
+                  </PluginGrid>
+                </PluginGridSectionBody>
+              ) : null}
+            </PluginGridSection>
+          ) : null}
         </Stack>
       </PagePanel>
 

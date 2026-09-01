@@ -1,4 +1,4 @@
-import { Settings2 } from "lucide-react";
+import { ChevronRight, Settings2 } from "lucide-react";
 import type * as React from "react";
 
 import { Button } from "../button";
@@ -48,10 +48,17 @@ export function PluginGridCardHeading({
 
 export function PluginGridCardTitle({
   children,
+  badge,
 }: {
   children: React.ReactNode;
+  badge?: React.ReactNode;
 }) {
-  return <h3 className={styles.cardTitle}>{children}</h3>;
+  return (
+    <div className={styles.cardTitleRow}>
+      <h3 className={styles.cardTitle}>{children}</h3>
+      {badge}
+    </div>
+  );
 }
 
 export function PluginGridCardDescription({
@@ -106,6 +113,66 @@ export function PluginGridCardConfigureButton({
       <Settings2 aria-hidden />
       {label}
     </Button>
+  );
+}
+
+export function PluginGridSection({
+  children,
+  label,
+}: {
+  children: React.ReactNode;
+  label?: string;
+}) {
+  return (
+    <section className={styles.section} aria-label={label}>
+      {children}
+    </section>
+  );
+}
+
+export function PluginGridSectionHeader({
+  children,
+  expanded = false,
+  controls,
+  onClick,
+}: {
+  children: React.ReactNode;
+  expanded?: boolean;
+  controls?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={styles.sectionHeader}
+      aria-expanded={expanded}
+      aria-controls={controls}
+      onClick={onClick}
+    >
+      <ChevronRight
+        aria-hidden
+        className={
+          expanded
+            ? `${styles.sectionChevron} ${styles.sectionChevronOpen}`
+            : styles.sectionChevron
+        }
+      />
+      {children}
+    </button>
+  );
+}
+
+export function PluginGridSectionBody({
+  children,
+  id,
+}: {
+  children: React.ReactNode;
+  id?: string;
+}) {
+  return (
+    <div id={id} className={styles.sectionBody}>
+      {children}
+    </div>
   );
 }
 

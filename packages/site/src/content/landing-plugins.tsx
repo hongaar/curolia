@@ -26,6 +26,7 @@ export type LandingPlugin = {
   name: string;
   description: string;
   status: LandingPluginStatus;
+  experimental?: boolean;
   icon: () => ReactNode;
 };
 
@@ -49,6 +50,7 @@ export const landingPlugins: LandingPlugin[] = [
     name: "Wikimedia Commons",
     description: "Attach nearby openly licensed photos",
     status: "available",
+    experimental: true,
     icon: () => <CommonsIcon size={6} />,
   },
   {
@@ -77,6 +79,7 @@ export const landingPlugins: LandingPlugin[] = [
     name: "Wikipedia",
     description: "Nearby landmarks with summaries on pins",
     status: "available",
+    experimental: true,
     icon: () => <WikipediaIcon size={6} />,
   },
   {
@@ -91,6 +94,7 @@ export const landingPlugins: LandingPlugin[] = [
     name: "Points of interest",
     description: "Nearby place metadata—cafés, accessibility, campsites",
     status: "available",
+    experimental: true,
     icon: () => <PoiIcon size={6} />,
   },
   {
@@ -98,6 +102,7 @@ export const landingPlugins: LandingPlugin[] = [
     name: "Routes",
     description: "Hiking trails and cycling paths on the map",
     status: "available",
+    experimental: true,
     icon: () => <RouteIcon size={6} />,
   },
   {

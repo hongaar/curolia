@@ -13,6 +13,7 @@ export const poiPluginManifest: PluginPackageManifest = {
     "Enrich pins with nearby place metadata—amenity type, cuisine, wheelchair access, and more.",
   icon: PoiIcon,
   implemented: poiPluginMeta.implemented,
+  experimental: true,
   pinOutputScope: "map",
   PinFormSection: PoiPinFormSection,
   PinSuggestionSlot: PoiPinSuggestionSlot,

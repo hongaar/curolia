@@ -11,6 +11,7 @@ export const routePluginManifest: PluginPackageManifest = {
     "Route layers and outdoor path explore — hiking trails and cycling paths (OpenRouteService planned).",
   icon: RouteIcon,
   implemented: routePluginMeta.implemented,
+  experimental: true,
   PinDetailSection: RoutePinDetailSection,
   exploreCategories: routeExploreCategories,
   contributions: {
