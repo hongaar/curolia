@@ -347,6 +347,12 @@ Production checklist:
 4. After setting Edge Function secrets, update `**private.worker_config**` for plugin sync dispatch (see **Plugin sync jobs**).
 5. Deploy: GitHub workflow runs `**functions:sync**`, `**supabase db push**`, `**supabase functions deploy --use-api**`, then Vercel prebuilt deploy.
 
+## Explore places (map dataset)
+
+Map **Explore** static categories (parks, cafés, etc.) use a global PostGIS `places` catalog and the `places` Edge Function—not the Geoapify POI nearby flow. Page 1 is always a fast DB bbox query; optional continuation pages refresh stale viewport tiles from Overpass and upsert into the catalog. Background wikidata/commons enrichment runs via `place-enrichment-dispatch` and pg_cron.
+
+Technical reference: [`docs/places-explore.md`](docs/places-explore.md) (schema, paginated API, tile cache, web client wiring, local ops).
+
 ## TODO
 
 ### Geoapify Places: multi-category requests
