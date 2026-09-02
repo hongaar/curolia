@@ -89,6 +89,7 @@ jobs:
         run: npm run compare-baseline
         env:
           E2E_ENFORCE_BASELINE: "1"
+          FORCE_COLOR: "1"
 
       - name: Refresh baseline on main
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
