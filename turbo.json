@@ -39,6 +39,19 @@
         "VITE_SUPABASE_PUBLISHABLE_KEY"
       ]
     },
+    "@curolia/e2e#e2e:run": {
+      "dependsOn": ["@curolia/web#codegen"],
+      "cache": false,
+      "outputLogs": "full",
+      "env": [
+        "CI",
+        "E2E_BASE_URL",
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_PUBLISHABLE_KEY"
+      ]
+    },
     "@curolia/supabase#stack": {
       "dependsOn": ["@curolia/supabase#functions:sync"],
       "cache": false

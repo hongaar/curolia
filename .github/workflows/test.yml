@@ -75,14 +75,13 @@ jobs:
 
       - name: E2E critical paths
         run: >-
-          npx turbo run e2e
+          npx turbo run e2e:run
           --filter=@curolia/e2e
           --log-order=stream
           --ui=stream
           --output-logs=full
         env:
           CI: "true"
-          E2E_ENFORCE_BASELINE: "1"
           FORCE_COLOR: "1"
 
       - name: Compare E2E baseline

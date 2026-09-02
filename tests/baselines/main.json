@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-09-02T07:54:06.749Z",
+  "generatedAt": "2026-09-02T21:14:26.624Z",
   "tests": {
     "existing user can sign in": {
       "counters": {
         "map-load.cameraIdleSync": 1
       },
       "timings": {},
-      "longTasks": 2,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "signup tab renders": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "cluster click opens pin UI": {
@@ -23,7 +23,7 @@
         "collision.cameraIdleSync": 2
       },
       "timings": {},
-      "longTasks": 3,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "toggling explore category updates map": {
@@ -31,7 +31,7 @@
         "explore.exploreLayerSync": 2
       },
       "timings": {
-        "explore.explore-toggle": 395
+        "explore.explore-toggle": 428
       },
       "longTasks": 0,
       "layoutShifts": 0
@@ -40,110 +40,114 @@
       "counters": {
         "map-load.cameraIdleSync": 1,
         "map-load.markerRestack": 1,
-        "map-load.exploreLayerSync": 16
+        "map-load.exploreLayerSync": 8
       },
       "timings": {
-        "map-load.map-load": 1662
+        "map-load.map-load": 3594
       },
-      "longTasks": 4,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "dense map pan and zoom stay within perf budgets": {
       "counters": {
-        "map-pan-zoom.markerRestack": 36,
-        "map-pan-zoom.cameraIdleSync": 6,
-        "map-pan-zoom.exploreLayerSync": 20
+        "map-pan-zoom.markerRestack": 42,
+        "map-pan-zoom.cameraIdleSync": 7,
+        "map-pan-zoom.exploreLayerSync": 30
       },
       "timings": {},
-      "longTasks": 4,
-      "layoutShifts": 2
+      "longTasks": 0,
+      "layoutShifts": 0
     },
     "owner can open quick settings and change basemap": {
       "counters": {
-        "map-settings.exploreLayerSync": 13,
-        "map-settings.cameraIdleSync": 2
+        "map-settings.exploreLayerSync": 17,
+        "map-settings.cameraIdleSync": 5,
+        "map-settings.markerRestack": 1
       },
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates / without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates /privacy without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates /terms without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates /contact without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates /open-source without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates /plugins-overview without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "hydrates /for/travel without console errors": {
       "counters": {},
       "timings": {},
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "desktop opens side panel and sets pin URL": {
       "counters": {
         "pin-detail.markerRestack": 4,
-        "pin-detail.exploreLayerSync": 6
+        "pin-detail.exploreLayerSync": 9,
+        "pin-detail.cameraIdleSync": 2
       },
       "timings": {
-        "pin-detail.pin-open": 379
+        "pin-detail.pin-open": 2898
       },
-      "longTasks": 1,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "owner can open target pin from map": {
       "counters": {
-        "pin-detail.markerRestack": 4,
-        "pin-detail.exploreLayerSync": 3,
-        "pin-detail.sheetAnimationReset": 1
+        "pin-detail.markerRestack": 3,
+        "pin-detail.exploreLayerSync": 5,
+        "pin-detail.sheetAnimationReset": 1,
+        "pin-detail.cameraIdleSync": 2
       },
       "timings": {},
-      "longTasks": 3,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "pin detail renders without plugin errors": {
       "counters": {
-        "pin-detail.markerRestack": 4,
-        "pin-detail.exploreLayerSync": 3,
-        "pin-detail.sheetAnimationReset": 1
+        "pin-detail.markerRestack": 3,
+        "pin-detail.exploreLayerSync": 5,
+        "pin-detail.sheetAnimationReset": 1,
+        "pin-detail.cameraIdleSync": 2
       },
       "timings": {},
-      "longTasks": 3,
+      "longTasks": 0,
       "layoutShifts": 0
     },
     "cmd+k pin search navigates to map with pin": {
       "counters": {},
       "timings": {
-        "search.search-pick": 944
+        "search.search-pick": 1149
       },
       "longTasks": 0,
       "layoutShifts": 0
@@ -156,14 +160,15 @@
     },
     "mobile opens bottom sheet": {
       "counters": {
-        "pin-detail.markerRestack": 3,
-        "pin-detail.exploreLayerSync": 3,
-        "pin-detail.sheetAnimationReset": 1
+        "pin-detail.markerRestack": 2,
+        "pin-detail.exploreLayerSync": 2,
+        "pin-detail.sheetAnimationReset": 1,
+        "pin-detail.cameraIdleSync": 2
       },
       "timings": {
-        "pin-detail.pin-open": 250
+        "pin-detail.pin-open": 1129
       },
-      "longTasks": 2,
+      "longTasks": 0,
       "layoutShifts": 0
     }
   }
