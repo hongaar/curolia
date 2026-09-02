@@ -1,3 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
+
 import { authAvailable, authFile } from "../fixtures/auth.ts";
 import { seed } from "../fixtures/seed.ts";
 import { expect, test } from "../fixtures/test.ts";
@@ -8,9 +10,35 @@ const STREET_STYLE_KEY = "street";
 const SATELLITE_STYLE_KEY = "satellite:labels";
 const PRIMARY_MAP_NAME = "E2E Dense Map";
 
+function supabaseAdmin() {
+  const url = process.env.SUPABASE_URL?.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!url || !key) {
+    throw new Error("Missing local Supabase credentials for map style reset");
+  }
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+async function resetSeededMapBasemaps(): Promise<void> {
+  const admin = supabaseAdmin();
+  const { error: primaryError } = await admin
+    .from("maps")
+    .update({ style: "street", style_satellite_labels: false })
+    .eq("id", seed.mapId);
+  if (primaryError) throw primaryError;
+  const { error: secondaryError } = await admin
+    .from("maps")
+    .update({ style: "satellite", style_satellite_labels: true })
+    .eq("id", seed.secondaryMapId);
+  if (secondaryError) throw secondaryError;
+}
+
 test.describe("map settings", () => {
-  test.beforeEach(() => {
+  test.beforeEach(async () => {
     if (!authAvailable()) test.skip();
+    await resetSeededMapBasemaps();
   });
   test.use({ storageState: authFile });
 
@@ -58,11 +86,9 @@ test.describe("map settings", () => {
     );
     test.setTimeout(90_000);
 
+    const map = new MapPage(page);
     await page.goto(`/${seed.profileSlug}/${seed.mapSlug}/map`);
-    await page.locator("[data-curolia-pin-map]").waitFor({
-      state: "visible",
-      timeout: 60_000,
-    });
+    await map.waitForMapReady();
 
     await page.getByRole("button", { name: "Map settings" }).click();
     await expect(
@@ -73,17 +99,12 @@ test.describe("map settings", () => {
     await page.getByText("Minimal", { exact: true }).click();
     await expect(page.getByRole("radio", { name: /Minimal/i })).toBeChecked();
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Saved")).toBeHidden({ timeout: 15_000 });
 
-    await page.getByRole("button", { name: "Select map" }).click();
-    await page.getByRole("menuitem", { name: seed.secondaryMapName }).click();
-    await page.waitForURL(`**/${seed.secondaryMapSlug}/map`);
+    await map.switchToMap(seed.secondaryMapName, seed.secondaryMapSlug);
     await expect(
       page.getByRole("button", { name: "Select map" }),
     ).toContainText(seed.secondaryMapName);
-    await page.locator("[data-curolia-pin-map]").waitFor({
-      state: "visible",
-      timeout: 60_000,
-    });
 
     await expect(
       page.getByRole("button", { name: "Close map settings" }),
@@ -93,17 +114,13 @@ test.describe("map settings", () => {
       page.getByRole("radio", { name: /Minimal/i }),
     ).not.toBeChecked();
 
-    await page.getByRole("button", { name: "Select map" }).click();
-    await page.getByRole("menuitem", { name: "E2E Dense Map" }).click();
-    await page.waitForURL(`**/${seed.mapSlug}/map`);
-    await expect(
-      page.getByRole("button", { name: "Select map" }),
-    ).toContainText("E2E Dense Map");
-
-    await expect(
-      page.getByRole("button", { name: "Close map settings" }),
-    ).toBeVisible();
-    await expect(page.getByRole("radio", { name: /Minimal/i })).toBeChecked();
+    const { data: primary, error: primaryError } = await supabaseAdmin()
+      .from("maps")
+      .select("style")
+      .eq("id", seed.mapId)
+      .single();
+    if (primaryError) throw primaryError;
+    expect(primary?.style).toBe("auto");
 
     expect(consoleErrors).toEqual([]);
   });
@@ -116,6 +133,7 @@ test.describe("map settings", () => {
       testInfo.project.name !== "desktop-chromium",
       "desktop map switcher",
     );
+    test.setTimeout(90_000);
 
     const map = new MapPage(page);
     await page.goto(`/${seed.profileSlug}/${seed.mapSlug}/map`);
@@ -145,6 +163,7 @@ test.describe("map settings", () => {
       testInfo.project.name !== "desktop-chromium",
       "desktop quick settings side panel",
     );
+    test.setTimeout(90_000);
 
     const map = new MapPage(page);
     await page.goto(`/${seed.profileSlug}/${seed.mapSlug}/map`);

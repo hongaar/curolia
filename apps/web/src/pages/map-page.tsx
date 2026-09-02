@@ -826,12 +826,12 @@ export function MapPage() {
     [setSearchParams, onCollisionOpen, setSidePanelAnimateIn],
   );
 
-  setExploreSelectedEntry(null);
   const onSelectPin = useCallback(
     (id: string) => {
       setPinCollisionPicker(null);
       setQuickAddPin(null);
       setQuickAddAnchorScreen(null);
+      setExploreSelectedEntry(null);
       const row = pins.find((x) => x.id === id);
       const token = row?.slug ?? id;
 

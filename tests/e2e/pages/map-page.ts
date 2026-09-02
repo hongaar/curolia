@@ -92,8 +92,16 @@ export class MapPage {
 
   async switchToMap(mapName: string, mapSlug: string): Promise<void> {
     await this.page.getByRole("button", { name: "Select map" }).click();
-    await this.page.getByRole("menuitem", { name: mapName }).click();
-    await this.page.waitForURL(`**/${mapSlug}/map`);
+    await this.page
+      .getByRole("menuitem", { name: mapName, exact: true })
+      .click();
+    await this.page.waitForURL((url) => {
+      try {
+        return new URL(url).pathname.endsWith(`/${mapSlug}/map`);
+      } catch {
+        return false;
+      }
+    });
     await this.waitForMapReady();
   }
 
