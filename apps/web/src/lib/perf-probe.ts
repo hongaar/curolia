@@ -35,17 +35,50 @@ function createProbe(): CuroliaPerfProbe {
   const errors: string[] = [];
   let longTasks = 0;
   let layoutShifts = 0;
+  let longTaskObserver: PerformanceObserver | null = null;
+  let layoutShiftObserver: PerformanceObserver | null = null;
 
   const count = (name: string, delta = 1) => {
     counters.set(name, (counters.get(name) ?? 0) + delta);
+  };
+
+  const restartLongTaskObserver = () => {
+    longTaskObserver?.disconnect();
+    longTasks = 0;
+    if (typeof PerformanceObserver === "undefined") return;
+    try {
+      longTaskObserver = new PerformanceObserver((list) => {
+        longTasks += list.getEntries().length;
+      });
+      longTaskObserver.observe({ type: "longtask", buffered: false });
+    } catch {
+      // longtask not supported in this browser
+    }
+  };
+
+  const restartLayoutShiftObserver = () => {
+    layoutShiftObserver?.disconnect();
+    layoutShifts = 0;
+    if (typeof PerformanceObserver === "undefined") return;
+    try {
+      layoutShiftObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if ("hadRecentInput" in entry && entry.hadRecentInput) continue;
+          layoutShifts += 1;
+        }
+      });
+      layoutShiftObserver.observe({ type: "layout-shift", buffered: false });
+    } catch {
+      // layout-shift not supported
+    }
   };
 
   const reset = () => {
     counters.clear();
     timings.clear();
     errors.length = 0;
-    longTasks = 0;
-    layoutShifts = 0;
+    restartLongTaskObserver();
+    restartLayoutShiftObserver();
   };
 
   const snapshot = (): CuroliaPerfSnapshot => ({
@@ -95,31 +128,8 @@ function createProbe(): CuroliaPerfProbe {
       );
     });
 
-    if (typeof PerformanceObserver !== "undefined") {
-      try {
-        const longTaskObserver = new PerformanceObserver((list) => {
-          longTasks += list.getEntries().length;
-        });
-        longTaskObserver.observe({ type: "longtask", buffered: true });
-      } catch {
-        // longtask not supported in this browser
-      }
-
-      try {
-        const layoutShiftObserver = new PerformanceObserver((list) => {
-          for (const entry of list.getEntries()) {
-            if ("hadRecentInput" in entry && entry.hadRecentInput) continue;
-            layoutShifts += 1;
-          }
-        });
-        layoutShiftObserver.observe({
-          type: "layout-shift",
-          buffered: true,
-        });
-      } catch {
-        // layout-shift not supported
-      }
-    }
+    restartLongTaskObserver();
+    restartLayoutShiftObserver();
   }
 
   return {
