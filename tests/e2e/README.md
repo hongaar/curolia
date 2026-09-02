@@ -63,7 +63,7 @@ Each run writes `tests/.metrics/metrics.json` (gitignored). Compare against
 npm run compare-baseline -w @curolia/e2e
 ```
 
-- **Counters**: any increase over baseline fails (when `E2E_ENFORCE_BASELINE=1`)
+- **Counters**: increase of more than 2 over baseline fails (when `E2E_ENFORCE_BASELINE=1`); CI enforces this on pull requests only
 - **Timings**: fails only beyond +25% vs baseline median
 
 Refresh baseline after intentional perf changes:

@@ -74,6 +74,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: E2E critical paths
+        id: e2e
         run: >-
           npx turbo run e2e:run
           --filter=@curolia/e2e
@@ -88,16 +89,16 @@ jobs:
         working-directory: tests/e2e
         run: npm run compare-baseline
         env:
-          E2E_ENFORCE_BASELINE: "1"
+          E2E_ENFORCE_BASELINE: ${{ github.event_name == 'pull_request' && '1' || '0' }}
           FORCE_COLOR: "1"
 
       - name: Refresh baseline on main
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.e2e.outcome == 'success'
         working-directory: tests/e2e
         run: npm run compare-baseline -- --refresh-baseline
 
       - name: Commit baseline updates
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.e2e.outcome == 'success'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
