@@ -28,57 +28,52 @@ declare global {
 }
 
 const E2E_ENABLED = import.meta.env.VITE_E2E === "1";
+const RESET_MARK = "curolia-perf-reset";
 
 function createProbe(): CuroliaPerfProbe {
   const counters = new Map<string, number>();
   const timings = new Map<string, number[]>();
   const errors: string[] = [];
-  let longTasks = 0;
-  let layoutShifts = 0;
-  let longTaskObserver: PerformanceObserver | null = null;
-  let layoutShiftObserver: PerformanceObserver | null = null;
+  let resetMarkTime = 0;
 
   const count = (name: string, delta = 1) => {
     counters.set(name, (counters.get(name) ?? 0) + delta);
   };
 
-  const restartLongTaskObserver = () => {
-    longTaskObserver?.disconnect();
-    longTasks = 0;
-    if (typeof PerformanceObserver === "undefined") return;
-    try {
-      longTaskObserver = new PerformanceObserver((list) => {
-        longTasks += list.getEntries().length;
-      });
-      longTaskObserver.observe({ type: "longtask", buffered: false });
-    } catch {
-      // longtask not supported in this browser
+  const setResetMark = () => {
+    if (typeof performance === "undefined") {
+      resetMarkTime = 0;
+      return;
     }
+    performance.clearMarks(RESET_MARK);
+    performance.mark(RESET_MARK);
+    const mark = performance.getEntriesByName(RESET_MARK, "mark")[0];
+    resetMarkTime = mark?.startTime ?? 0;
   };
 
-  const restartLayoutShiftObserver = () => {
-    layoutShiftObserver?.disconnect();
-    layoutShifts = 0;
-    if (typeof PerformanceObserver === "undefined") return;
-    try {
-      layoutShiftObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if ("hadRecentInput" in entry && entry.hadRecentInput) continue;
-          layoutShifts += 1;
-        }
-      });
-      layoutShiftObserver.observe({ type: "layout-shift", buffered: false });
-    } catch {
-      // layout-shift not supported
+  const countLongTasksSinceReset = (): number => {
+    if (typeof performance === "undefined" || resetMarkTime === 0) return 0;
+    return performance
+      .getEntriesByType("longtask")
+      .filter((entry) => entry.startTime >= resetMarkTime).length;
+  };
+
+  const countLayoutShiftsSinceReset = (): number => {
+    if (typeof performance === "undefined" || resetMarkTime === 0) return 0;
+    let shifts = 0;
+    for (const entry of performance.getEntriesByType("layout-shift")) {
+      if (entry.startTime < resetMarkTime) continue;
+      if ("hadRecentInput" in entry && entry.hadRecentInput) continue;
+      shifts += 1;
     }
+    return shifts;
   };
 
   const reset = () => {
     counters.clear();
     timings.clear();
     errors.length = 0;
-    restartLongTaskObserver();
-    restartLayoutShiftObserver();
+    setResetMark();
   };
 
   const snapshot = (): CuroliaPerfSnapshot => ({
@@ -86,8 +81,8 @@ function createProbe(): CuroliaPerfProbe {
     timings: Object.fromEntries(
       [...timings.entries()].map(([key, values]) => [key, [...values]]),
     ),
-    longTasks,
-    layoutShifts,
+    longTasks: countLongTasksSinceReset(),
+    layoutShifts: countLayoutShiftsSinceReset(),
     errors: [...errors],
   });
 
@@ -128,8 +123,7 @@ function createProbe(): CuroliaPerfProbe {
       );
     });
 
-    restartLongTaskObserver();
-    restartLayoutShiftObserver();
+    setResetMark();
   }
 
   return {

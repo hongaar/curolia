@@ -43,7 +43,9 @@ export const test = base.extend<TestFixtures>({
 
   perfReset: async ({ page }, use) => {
     await use(async () => {
-      await page.evaluate(() => window.__curoliaPerf?.reset());
+      await page.evaluate(() => {
+        window.__curoliaPerf?.reset();
+      });
     });
   },
 

@@ -6,13 +6,11 @@ test.describe("map load @smoke", () => {
   test("public dense map loads without errors", async ({
     page,
     consoleErrors,
-    perfReset,
     perfSnapshot,
     recordFlowMetric,
   }) => {
-    await perfReset();
-    const start = Date.now();
     const map = new MapPage(page);
+    const start = Date.now();
     await map.gotoMap();
     const wallMs = Date.now() - start;
 
