@@ -852,6 +852,9 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const applyMarkerHoverStack = useCallback(
     (hoveredId: string | null) => {
+      // Collision badges/z-index change with every animation frame; wait until
+      // the camera is still so restack work (and E2E counts) stay deterministic.
+      if (mapCameraMovingRef.current) return;
       const selectedId = selectedPinIdRef.current;
       const collisionFocus = collisionFocusRef.current;
       const hasFocus = mapHasMarkerFocus(selectedId, collisionFocus);

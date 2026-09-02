@@ -9,8 +9,6 @@ const metricsPath = path.resolve(e2eDir, "../.metrics/metrics.json");
 const baselinePath = path.resolve(e2eDir, "../baselines/main.json");
 
 const TIMING_REGRESSION_MARGIN = 0.25;
-/** Allow tiny CI jitter on hot-path counters (4→6 restacks) without hiding real jumps. */
-const COUNTER_ABS_SLACK = 2;
 const COL_GAP = "  ";
 
 type MetricsFile = {
@@ -71,12 +69,6 @@ function paint(format: Style, text: string): string {
   return styleText(format, text);
 }
 
-function isCounterRegression(baseline: number, current: number): boolean {
-  if (current <= baseline) return false;
-  if (baseline === 0) return current > 0;
-  return current > baseline + COUNTER_ABS_SLACK;
-}
-
 function percentDelta(baseline: number, current: number): number | null {
   if (baseline === 0) return current === 0 ? 0 : null;
   return ((current - baseline) / baseline) * 100;
@@ -123,15 +115,14 @@ function collectRows(
     ])) {
       const b = base.counters[key] ?? 0;
       const c = cur.counters[key] ?? 0;
-      const regression = isCounterRegression(b, c);
       rows.push({
         test: testName,
         metric: key,
         baselineLabel: String(b),
         currentLabel: String(c),
         pct: percentDelta(b, c),
-        regression,
-        regressionKind: regression ? "counter" : undefined,
+        regression: c > b,
+        regressionKind: c > b ? "counter" : undefined,
       });
     }
 
