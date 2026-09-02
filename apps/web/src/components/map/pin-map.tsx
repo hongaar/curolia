@@ -37,6 +37,8 @@ import {
 import {
   attachExploreLayerClickHandler,
   dispatchExploreEntryClick,
+  EMPTY_EXPLORE_LAYER,
+  exploreLayerFingerprint,
   pickExploreEntryAtPoint,
   syncExploreLayer,
   type ExploreLayerSyncInput,
@@ -532,7 +534,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     mapStyleOptions = DEFAULT_MAP_STYLE_OPTIONS,
     showPinRoute = false,
     placeHighlight = null,
-    exploreLayer = { entries: [] },
+    exploreLayer = EMPTY_EXPLORE_LAYER,
     onExploreEntryClick,
     photoUrlByPinId = EMPTY_PHOTO_URLS,
     scrollHoverPinId = null,
@@ -632,6 +634,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   const showPinRouteRef = useRef(showPinRoute);
   const placeHighlightRef = useRef(placeHighlight);
   const exploreLayerRef = useRef(exploreLayer);
+  const exploreLayerKey = exploreLayerFingerprint(exploreLayer);
   const onExploreEntryClickRef = useRef(onExploreEntryClick);
   const routeSegmentsRef = useRef(buildPinRouteSegments([]));
   const darkBasemapRef = useRef(isDarkBasemap(mapStylePreset, resolvedTheme));
@@ -2311,7 +2314,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   }, [
     showPinRoute,
     placeHighlight,
-    exploreLayer,
+    exploreLayerKey,
     routeSegments,
     selectedPinId,
     mapStylePreset,

@@ -88,6 +88,7 @@ import {
 } from "@/lib/pin-form-clipboard";
 import { createPinFromLinkMetadata } from "@/lib/pin-from-link";
 import { fetchLinkMetadata } from "@/lib/pin-links";
+import { EMPTY_EXPLORE_LAYER } from "@/lib/pin-map-explore-layer";
 import type { PlaceMapHighlight } from "@/lib/pin-map-place-highlight";
 import { hasPinTravelSequence } from "@/lib/pin-sequence";
 import type { PinWithTags } from "@/lib/pin-with-tags";
@@ -259,8 +260,15 @@ export function MapPage() {
   );
   const exploreMapEntries =
     exploreActiveCategories.length > 0
-      ? (exploreMapResultsQuery.data ?? [])
-      : [];
+      ? (exploreMapResultsQuery.data ?? EMPTY_EXPLORE_LAYER.entries)
+      : EMPTY_EXPLORE_LAYER.entries;
+  const exploreLayer = useMemo(
+    () => ({
+      entries: exploreMapEntries,
+      selectedEntryId: exploreSelectedEntry?.id ?? null,
+    }),
+    [exploreMapEntries, exploreSelectedEntry?.id],
+  );
   const exploreResultsFetching = exploreMapResultsQuery.isFetching;
   const onGenerateExploreRoutes = useCallback(() => {
     void exploreMapResultsQuery.refetch();
@@ -1343,10 +1351,7 @@ export function MapPage() {
             mapStyleOptions={pinMapStyleOptions}
             showPinRoute={showPinRoute}
             placeHighlight={globalSearchPlaceHighlight}
-            exploreLayer={{
-              entries: exploreMapEntries,
-              selectedEntryId: exploreSelectedEntry?.id ?? null,
-            }}
+            exploreLayer={exploreLayer}
             onExploreEntryClick={onExploreEntryClick}
             onSelectPin={onSelectPin}
             onPinCollisionClick={onPinCollisionClick}

@@ -1,4 +1,6 @@
 import { exploreCategoryById } from "@/lib/explore-categories";
+import { perfCount } from "@/lib/perf-probe";
+import { isMapStyleReady } from "@/lib/pin-map-route-layers";
 import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import {
   isExploreClusterEntry,
@@ -19,6 +21,33 @@ export type ExploreLayerSyncInput = {
   entries: readonly ExploreResultEntry[];
   selectedEntryId?: string | null;
 };
+
+export const EMPTY_EXPLORE_LAYER: ExploreLayerSyncInput = {
+  entries: [],
+  selectedEntryId: null,
+};
+
+const lastAppliedFingerprintByMap = new WeakMap<MaplibreMap, string>();
+
+export function exploreLayerFingerprint(input: ExploreLayerSyncInput): string {
+  const selected = input.selectedEntryId ?? "";
+  if (input.entries.length === 0) return `empty:${selected}`;
+  return `${selected}|${input.entries
+    .map((entry) => {
+      switch (entry.featureKind) {
+        case "place":
+          return `p:${entry.id}:${entry.geometry.lng},${entry.geometry.lat}:${entry.categoryId}`;
+        case "route": {
+          const coords = entry.geometry.coordinates;
+          const last = coords[coords.length - 1];
+          return `r:${entry.id}:${coords.length}:${last?.[0]},${last?.[1]}`;
+        }
+        case "cluster":
+          return `c:${entry.id}:${entry.count}:${entry.geometry.lng},${entry.geometry.lat}`;
+      }
+    })
+    .join(";")}`;
+}
 
 function exploreColor(categoryId: string): string {
   return exploreCategoryById(categoryId)?.color ?? "#64748b";
@@ -97,6 +126,10 @@ function clusterGeoJson(
   };
 }
 
+function hasExploreSources(map: MaplibreMap): boolean {
+  return Boolean(map.getSource(EXPLORE_POI_SOURCE_ID));
+}
+
 function removeExploreLayers(map: MaplibreMap): void {
   for (const layerId of [
     EXPLORE_CLUSTER_LABEL_LAYER_ID,
@@ -113,6 +146,7 @@ function removeExploreLayers(map: MaplibreMap): void {
   ]) {
     if (map.getSource(sourceId)) map.removeSource(sourceId);
   }
+  lastAppliedFingerprintByMap.delete(map);
 }
 
 function upsertExploreLayers(
@@ -200,12 +234,6 @@ function upsertExploreLayers(
   }
 }
 
-import { perfCount } from "@/lib/perf-probe";
-import {
-  isMapStyleReady,
-  scheduleWhenMapStyleReady,
-} from "@/lib/pin-map-route-layers";
-
 const exploreClickHandlersByMap = new WeakMap<
   MaplibreMap,
   (entryId: string) => void
@@ -266,25 +294,31 @@ export function syncExploreLayer(
   map: MaplibreMap,
   input: ExploreLayerSyncInput,
 ): void {
-  scheduleWhenMapStyleReady(map, () => {
-    if (!isMapStyleReady(map)) return false;
+  if (!isMapStyleReady(map)) return;
+
+  const empty = input.entries.length === 0;
+  const hasLayers = hasExploreSources(map);
+  if (empty) {
+    if (!hasLayers) return;
+    removeExploreLayers(map);
     perfCount("exploreLayerSync");
+    return;
+  }
 
-    const { entries, selectedEntryId } = input;
-    if (entries.length === 0) {
-      removeExploreLayers(map);
-      return true;
-    }
+  const fingerprint = exploreLayerFingerprint(input);
+  if (hasLayers && lastAppliedFingerprintByMap.get(map) === fingerprint) {
+    return;
+  }
 
-    upsertExploreLayers(
-      map,
-      poiGeoJson([...entries], selectedEntryId),
-      routeGeoJson([...entries], selectedEntryId),
-      clusterGeoJson([...entries]),
-    );
-    ensureExploreLayerHoverListeners(map);
-    return true;
-  });
+  upsertExploreLayers(
+    map,
+    poiGeoJson([...input.entries], input.selectedEntryId),
+    routeGeoJson([...input.entries], input.selectedEntryId),
+    clusterGeoJson([...input.entries]),
+  );
+  ensureExploreLayerHoverListeners(map);
+  lastAppliedFingerprintByMap.set(map, fingerprint);
+  perfCount("exploreLayerSync");
 }
 
 export const EXPLORE_INTERACTIVE_LAYER_IDS = [
