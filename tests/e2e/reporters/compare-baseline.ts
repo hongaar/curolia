@@ -329,9 +329,20 @@ function main(): void {
     console.error(`\n${regressionList}\n`);
   }
 
+  const { regressions } = summarize(rows);
+  const enforce = process.env.E2E_ENFORCE_BASELINE === "1";
+
+  if (process.env.GITHUB_ACTIONS === "true" && regressions > 0) {
+    const kind = enforce ? "error" : "warning";
+    const scope = enforce ? "this pull request" : "main (non-blocking)";
+    console.log(
+      `::${kind} title=E2E baseline::${regressions} metric${regressions === 1 ? "" : "s"} exceeded tests/baselines/main.json on ${scope}`,
+    );
+  }
+
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (summaryPath) {
-    const { regressions, increased, improved, unchanged } = summarize(rows);
+    const { increased, improved, unchanged } = summarize(rows);
     const md: string[] = [
       "## E2E performance delta",
       "",
@@ -339,9 +350,13 @@ function main(): void {
       "",
     ];
     if (regressions > 0) {
+      const callout = enforce ? "> [!CAUTION]" : "> [!WARNING]";
+      const suffix = enforce ? "" : " Reported on main; does not fail CI.";
       md.push(
-        `> [!WARNING]`,
-        `> ${regressions} metric${regressions === 1 ? "" : "s"} exceeded the baseline.`,
+        callout,
+        `> ${regressions} metric${regressions === 1 ? "" : "s"} exceeded the baseline.${suffix}`,
+        "",
+        baselineUpdateHelp(),
         "",
       );
     }
@@ -349,12 +364,33 @@ function main(): void {
     fs.appendFileSync(summaryPath, `\n${md.join("\n")}\n`);
   }
 
-  if (
-    rows.some((row) => row.regression) &&
-    process.env.E2E_ENFORCE_BASELINE === "1"
-  ) {
+  if (regressions > 0 && enforce) {
     process.exit(1);
   }
+}
+
+function baselineUpdateHelp(): string {
+  const repo = process.env.GITHUB_REPOSITORY;
+  if (!repo) return "";
+  const server = process.env.GITHUB_SERVER_URL ?? "https://github.com";
+  const workflowUrl = `${server}/${repo}/actions/workflows/e2e-baseline.yml`;
+  const runId = process.env.GITHUB_RUN_ID;
+  const branch =
+    process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "";
+  const lines = [
+    "To **accept** this run as the new baseline, open [Update E2E baseline](" +
+      workflowUrl +
+      ") and run the workflow:",
+    "",
+    "1. **Use workflow from** `main`.",
+    branch && branch !== "main"
+      ? `2. Set **branch** to \`${branch}\`.`
+      : "2. Leave **branch** empty to open a baseline PR against `main`.",
+    runId
+      ? `3. Set **from_run_id** to \`${runId}\` so this job’s metrics are reused (no Playwright re-run).`
+      : "3. Paste a Test run ID into **from_run_id**, or leave it empty to re-run Playwright.",
+  ];
+  return lines.join("\n");
 }
 
 main();

@@ -1,0 +1,47 @@
+name: Run Playwright E2E
+description: Start local Supabase, install Chromium, and run the Playwright suite
+
+runs:
+  using: composite
+  steps:
+    - uses: supabase/setup-cli@v1
+      with:
+        version: latest
+
+    - name: Sync plugin functions
+      shell: bash
+      run: npx turbo run functions:sync --log-order=stream --ui=stream
+
+    - name: Start Supabase
+      shell: bash
+      working-directory: packages/supabase
+      run: npx supabase start
+
+    - name: Load local Supabase credentials
+      shell: bash
+      working-directory: packages/supabase
+      run: |
+        set -a
+        eval "$(npx supabase status -o env)"
+        set +a
+        echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+        echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+        echo "VITE_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+        echo "VITE_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+
+    - name: Install Playwright browsers
+      shell: bash
+      working-directory: tests/e2e
+      run: npx playwright install --with-deps chromium
+
+    - name: E2E critical paths
+      shell: bash
+      env:
+        CI: "true"
+        FORCE_COLOR: "1"
+      run: >-
+        npx turbo run e2e:run
+        --filter=@curolia/e2e
+        --log-order=stream
+        --ui=stream
+        --output-logs=full

@@ -63,21 +63,34 @@ Each run writes `tests/.metrics/metrics.json` (gitignored). Compare against
 npm run compare-baseline -w @curolia/e2e
 ```
 
-- **Counters**: any increase over baseline fails (when `E2E_ENFORCE_BASELINE=1`)
-- **Timings**: fails only beyond +25% vs baseline median
+- **Counters**: any increase over baseline is a regression
+- **Timings**: regression only beyond +25% vs baseline
 
-Refresh baseline after intentional perf changes:
+`E2E_ENFORCE_BASELINE=1` makes regressions fail the process (used on pull
+requests). Without it, the same compare still prints the table and GitHub
+annotations but exits 0 (used on `main` so CD is not blocked).
+
+The committed file `tests/baselines/main.json` is **static**. Do not refresh it
+as a side effect of CI. After you decide a regression is acceptable, update it
+deliberately:
 
 ```bash
 npm run compare-baseline -w @curolia/e2e -- --refresh-baseline
 ```
 
+Or from GitHub: **Actions → Update E2E baseline**. Use workflow from `main`, set
+**branch** to the PR head, and paste the failing Test run ID into
+**from_run_id** (reuses that job’s `e2e-metrics` artifact). Leave
+**from_run_id** empty to re-run Playwright on the branch instead. On `main` the
+workflow opens a PR rather than pushing through branch protection.
+
 ## CI
 
 The `e2e` job in `.github/workflows/test.yml` runs `functions:sync` before
 `supabase start` (so edge function sources exist before the CLI boots), seeds
-data, runs Playwright (Chromium desktop + mobile), posts a delta table to the job
-summary, and refreshes the baseline on pushes to `main`.
+data, runs Playwright (Chromium desktop + mobile), and posts a delta table to
+the job summary. Pull requests fail on baseline regressions; pushes to `main`
+report them as warnings.
 
 Turbo runs with `--log-order=stream` so seed, Vite, and per-test `line` reporter
 output appear in the GitHub log as they happen (not buffered until the job ends).

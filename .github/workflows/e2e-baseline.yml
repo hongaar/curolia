@@ -1,0 +1,107 @@
+name: Update E2E baseline
+
+# Manual only. Run from Actions → Update E2E baseline after you decide a
+# compare-baseline regression is acceptable. Prefer reusing the failing Test
+# run’s metrics (from_run_id) so you accept the numbers CI already measured.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to commit the baseline to (PR head). Leave empty to use the ref selected in “Use workflow from”; on main that opens a PR."
+        required: false
+        type: string
+      from_run_id:
+        description: "Test workflow run ID whose e2e-metrics artifact to accept (the number in …/actions/runs/THIS). Leave empty to re-run Playwright on the target branch."
+        required: false
+        type: string
+
+concurrency:
+  group: e2e-baseline-${{ inputs.branch || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  update-baseline:
+    name: Refresh baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TARGET_REF: ${{ inputs.branch != '' && inputs.branch || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_REF }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Reuse metrics from a Test run
+        if: ${{ inputs.from_run_id != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ inputs.from_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/e2e-metrics-art tests/.metrics
+          if ! gh run download "$RUN_ID" -n e2e-metrics -D /tmp/e2e-metrics-art; then
+            gh run download "$RUN_ID" -n playwright-report -D /tmp/e2e-metrics-art
+          fi
+          found="$(find /tmp/e2e-metrics-art -name metrics.json -print -quit)"
+          if [ -z "$found" ]; then
+            echo "No metrics.json in run $RUN_ID (looked for artifacts e2e-metrics and playwright-report)"
+            exit 1
+          fi
+          cp "$found" tests/.metrics/metrics.json
+          echo "Using metrics from run $RUN_ID ($found)"
+
+      - uses: ./.github/actions/run-e2e
+        if: ${{ inputs.from_run_id == '' }}
+
+      - name: Refresh baseline from metrics
+        working-directory: tests/e2e
+        run: npm run compare-baseline -- --refresh-baseline
+
+      - name: Commit baseline
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/baselines/main.json
+          if git diff --staged --quiet; then
+            echo "Baseline unchanged"
+            exit 0
+          fi
+          if [ "${TARGET_REF}" = "main" ]; then
+            branch="chore/e2e-baseline-$(date -u +%Y%m%d-%H%M)"
+            git checkout -b "$branch"
+            git commit -m "chore(e2e): refresh performance baseline"
+            git push -u origin HEAD
+            gh pr create --base main --title "chore(e2e): refresh performance baseline" --body "$(printf '%s\n\n%s' \
+              'Accepts E2E performance metrics as the new `tests/baselines/main.json`.' \
+              'Triggered via **Actions → Update E2E baseline**.')"
+          else
+            git commit -m "chore(e2e): refresh performance baseline"
+            git push origin "HEAD:${TARGET_REF}"
+          fi
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            tests/e2e/playwright-report
+            tests/e2e/test-results
+            tests/.metrics/metrics.json
