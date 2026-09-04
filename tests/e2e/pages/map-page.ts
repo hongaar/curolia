@@ -4,6 +4,7 @@ import {
   clusterCamera,
   mapUrlWithCamera,
   mapUrlWithCameraAt,
+  mapViewUrlWithCameraAt,
   seed,
   targetPinCamera,
 } from "../fixtures/seed.ts";
@@ -18,6 +19,11 @@ export class MapPage {
 
   async gotoTargetPinView(): Promise<void> {
     await this.page.goto(mapUrlWithCameraAt(seed, targetPinCamera()));
+    await this.waitForMapReady();
+  }
+
+  async gotoViewTargetPinView(view: "blog" | "gallery"): Promise<void> {
+    await this.page.goto(mapViewUrlWithCameraAt(view, seed, targetPinCamera()));
     await this.waitForMapReady();
   }
 
@@ -91,17 +97,32 @@ export class MapPage {
   }
 
   async switchToMap(mapName: string, mapSlug: string): Promise<void> {
+    const idleBefore = await this.page.evaluate(
+      () => window.__curoliaMapIdle ?? 0,
+    );
     await this.page.getByRole("button", { name: "Select map" }).click();
     await this.page
       .getByRole("menuitem", { name: mapName, exact: true })
       .click();
-    await this.page.waitForURL((url) => {
-      try {
-        return new URL(url).pathname.endsWith(`/${mapSlug}/map`);
-      } catch {
-        return false;
-      }
-    });
+    await this.page.waitForURL(
+      (url) => {
+        try {
+          return new URL(url).pathname.endsWith(`/${mapSlug}/map`);
+        } catch {
+          return false;
+        }
+      },
+      { timeout: 60_000, waitUntil: "commit" },
+    );
+    await this.page
+      .getByRole("button", { name: "Select map" })
+      .filter({ hasText: mapName })
+      .waitFor({ state: "visible", timeout: 60_000 });
+    await this.page.waitForFunction(
+      (prev) => (window.__curoliaMapIdle ?? 0) > prev,
+      idleBefore,
+      { timeout: 60_000 },
+    );
     await this.waitForMapReady();
   }
 
@@ -118,6 +139,15 @@ export class MapPage {
     const marker = this.page.getByRole("button", { name: title });
     await marker.waitFor({ state: "visible", timeout: 15_000 });
     await marker.click();
+  }
+
+  async clickMapPinMarker(
+    pinId: string,
+    options?: { force?: boolean },
+  ): Promise<void> {
+    const marker = this.pinMarker(pinId);
+    await marker.waitFor({ state: "attached", timeout: 15_000 });
+    await marker.click({ force: options?.force });
   }
 
   async clickPin(pinId: string): Promise<void> {

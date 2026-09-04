@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-02T21:55:52.629Z",
+  "generatedAt": "2026-09-04T07:18:45.926Z",
   "tests": {
     "existing user can sign in": {
       "counters": {
@@ -17,9 +17,9 @@
     },
     "cluster click opens pin UI": {
       "counters": {
-        "collision.markerRestack": 2,
         "collision.sheetAnimationReset": 2,
-        "collision.cameraIdleSync": 2
+        "collision.cameraIdleSync": 2,
+        "collision.markerRestack": 2
       },
       "timings": {},
       "longTasks": 0,
@@ -28,7 +28,7 @@
     "toggling explore category updates map": {
       "counters": {},
       "timings": {
-        "explore.explore-toggle": 366
+        "explore.explore-toggle": 396
       },
       "longTasks": 0,
       "layoutShifts": 0
@@ -39,14 +39,14 @@
         "map-load.markerRestack": 1
       },
       "timings": {
-        "map-load.map-load": 3825
+        "map-load.map-load": 3667
       },
       "longTasks": 0,
       "layoutShifts": 0
     },
     "dense map pan and zoom stay within perf budgets": {
       "counters": {
-        "map-pan-zoom.markerRestack": 40,
+        "map-pan-zoom.markerRestack": 13,
         "map-pan-zoom.cameraIdleSync": 7
       },
       "timings": {},
@@ -55,7 +55,8 @@
     },
     "owner can open quick settings and change basemap": {
       "counters": {
-        "map-settings.cameraIdleSync": 4
+        "map-settings.cameraIdleSync": 3,
+        "map-settings.markerRestack": 1
       },
       "timings": {},
       "longTasks": 0,
@@ -105,11 +106,11 @@
     },
     "desktop opens side panel and sets pin URL": {
       "counters": {
-        "pin-detail.markerRestack": 6,
+        "pin-detail.markerRestack": 4,
         "pin-detail.cameraIdleSync": 2
       },
       "timings": {
-        "pin-detail.pin-open": 1944
+        "pin-detail.pin-open": 1404
       },
       "longTasks": 0,
       "layoutShifts": 0
@@ -137,7 +138,7 @@
     "cmd+k pin search navigates to map with pin": {
       "counters": {},
       "timings": {
-        "search.search-pick": 1108
+        "search.search-pick": 1139
       },
       "longTasks": 0,
       "layoutShifts": 0
@@ -155,7 +156,7 @@
         "pin-detail.cameraIdleSync": 2
       },
       "timings": {
-        "pin-detail.pin-open": 1340
+        "pin-detail.pin-open": 1075
       },
       "longTasks": 0,
       "layoutShifts": 0
