@@ -69,6 +69,24 @@ export function targetPinCamera(fixture: E2eSeedFixture = seed) {
   };
 }
 
+export function mapViewUrlWithCameraAt(
+  view: "map" | "blog" | "gallery",
+  fixture: E2eSeedFixture = seed,
+  opts: {
+    lat: number;
+    lng: number;
+    zoom: number;
+  } = targetPinCamera(fixture),
+): string {
+  const base = fixture.mapUrl.replace(/\/map\/?$/, `/${view}`);
+  const params = new URLSearchParams({
+    lat: String(opts.lat),
+    lng: String(opts.lng),
+    zoom: String(opts.zoom),
+  });
+  return `${base}?${params.toString()}`;
+}
+
 export function clusterCamera(fixture: E2eSeedFixture = seed) {
   return {
     lat: fixture.mapCenter.lat,
