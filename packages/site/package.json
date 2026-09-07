@@ -16,7 +16,7 @@
     "@curolia/plugin-commons": "file:../plugins/commons",
     "@curolia/ui": "file:../ui",
     "clsx": "2.1.1",
-    "lucide-react": "1.37.0"
+    "lucide-react": "1.41.0"
   },
   "peerDependencies": {
     "react": "19.2.8",

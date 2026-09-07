@@ -118,12 +118,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@base-ui/react": "1.7.0",
+    "@base-ui/react": "1.8.0",
     "@fontsource-variable/geist": "5.3.0",
     "@mdxeditor/editor": "3.55.0",
     "clsx": "2.1.1",
     "frimousse": "0.3.0",
-    "lucide-react": "1.37.0",
+    "lucide-react": "1.41.0",
     "react-markdown": "10.1.0",
     "rehype-raw": "7.0.0",
     "rehype-sanitize": "6.0.0",
