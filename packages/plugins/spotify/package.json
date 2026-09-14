@@ -15,9 +15,9 @@
   },
   "peerDependencies": {
     "@curolia/ui": "*",
-    "@supabase/supabase-js": "2.115.0",
+    "@supabase/supabase-js": "2.116.0",
     "@tanstack/react-query": "5.102.8",
-    "react": "19.2.8",
+    "react": "19.3.0",
     "sonner": "2.0.8"
   },
   "scripts": {
