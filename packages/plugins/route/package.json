@@ -14,8 +14,8 @@
   },
   "peerDependencies": {
     "@curolia/ui": "*",
-    "lucide-react": "1.41.0",
-    "react": "19.2.8"
+    "lucide-react": "1.45.0",
+    "react": "19.3.0"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
