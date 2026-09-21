@@ -16,12 +16,12 @@
     "@curolia/plugin-commons": "file:../plugins/commons",
     "@curolia/ui": "file:../ui",
     "clsx": "2.1.1",
-    "lucide-react": "1.45.0"
+    "lucide-react": "1.47.0"
   },
   "peerDependencies": {
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-router-dom": "7.18.3"
+    "react-router-dom": "7.18.4"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "6.9.1",
@@ -36,7 +36,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-docgen-typescript": "2.4.0",
-    "react-router-dom": "7.18.3",
+    "react-router-dom": "7.18.4",
     "storybook": "10.4.1",
     "jsdom": "26.1.0",
     "typescript": "6.0.3",
