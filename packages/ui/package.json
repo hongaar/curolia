@@ -123,7 +123,7 @@
     "@mdxeditor/editor": "3.55.0",
     "clsx": "2.1.1",
     "frimousse": "0.4.0",
-    "lucide-react": "1.48.0",
+    "lucide-react": "1.50.0",
     "react-markdown": "10.1.0",
     "rehype-raw": "7.0.0",
     "rehype-sanitize": "6.0.0",
