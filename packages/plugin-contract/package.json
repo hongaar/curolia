@@ -10,7 +10,7 @@
     }
   },
   "devDependencies": {
-    "@supabase/supabase-js": "2.117.2"
+    "@supabase/supabase-js": "2.117.3"
   },
   "peerDependencies": {
     "react": "19.3.0"
