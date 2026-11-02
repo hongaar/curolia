@@ -10,10 +10,10 @@
     }
   },
   "devDependencies": {
-    "@supabase/supabase-js": "2.117.2"
+    "@supabase/supabase-js": "2.118.0"
   },
   "peerDependencies": {
-    "react": "19.3.0"
+    "react": "19.3.1"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
