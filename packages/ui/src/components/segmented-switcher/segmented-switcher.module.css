@@ -139,6 +139,15 @@
   max-width: 100%;
 }
 
+/* Shrink and clip while labels collapse after the container narrows, so the
+   still-wide switcher never overflows its row mid-transition (pairs with the
+   no-wrap top-left nav in map.module.css). */
+.root[data-label-mode="container"] {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
 @media (min-width: 40rem) {
   .root[data-label-mode="viewport"][data-size="default"] .link {
     gap: var(--space-2);

@@ -140,6 +140,13 @@
   pointer-events: auto;
 }
 
+/* Top-left: picker collapses to an icon on narrow containers, so the row always
+   fits; never wrap, letting the view switcher shrink/clip while its labels
+   animate closed instead of jumping to a second row. */
+.secondaryToolbarNav[data-placement="top-left"] {
+  flex-wrap: nowrap;
+}
+
 .secondaryToolbarNav[data-placement="bottom-center"] {
   justify-content: center;
 }

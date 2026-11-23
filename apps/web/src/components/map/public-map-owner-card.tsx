@@ -7,15 +7,19 @@ export function PublicMapOwnerCard({
   profile,
   surface = "default",
   showBio = true,
+  hidden,
 }: {
   profile: PublicMapOwnerProfile;
   surface?: "default" | "floating";
   /** When false, only avatar and name are shown (e.g. compact map overlay). */
   showBio?: boolean;
+  /** Floating only: slide the card out to the left. */
+  hidden?: boolean;
 }) {
   return (
     <BlogAuthorCard
       surface={surface}
+      hidden={hidden}
       avatar={
         <UserAvatar
           storedAvatarUrl={profile.avatarUrl}

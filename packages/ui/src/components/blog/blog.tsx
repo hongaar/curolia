@@ -46,6 +46,7 @@ export function BlogAuthorCard({
   nameHref,
   bio,
   surface = "default",
+  hidden = false,
 }: {
   avatar: React.ReactNode;
   name: React.ReactNode;
@@ -55,13 +56,18 @@ export function BlogAuthorCard({
   bio?: React.ReactNode;
   /** `floating` uses frosted panel styling for map overlays. */
   surface?: "default" | "floating";
+  /** Floating only: slides the card out to the left (kept mounted so it can animate back in). */
+  hidden?: boolean;
 }) {
   return (
     <div
       className={cn(
         styles.authorCard,
         surface === "floating" && styles.authorCardFloating,
+        surface === "floating" && hidden && styles.authorCardFloatingHidden,
       )}
+      aria-hidden={hidden || undefined}
+      inert={hidden || undefined}
     >
       <div className={styles.authorAvatar}>{avatar}</div>
       <div className={styles.authorIdentity}>

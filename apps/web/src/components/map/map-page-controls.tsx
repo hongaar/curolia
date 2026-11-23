@@ -20,6 +20,7 @@ import type { RefObject, SetStateAction } from "react";
 export function MapPageControls({
   mapRef,
   showOwnerCard,
+  ownerCardHidden = false,
   ownerProfile,
   activeRelocatePinId,
   tags,
@@ -47,6 +48,8 @@ export function MapPageControls({
 }: {
   mapRef?: RefObject<PinMapHandle | null>;
   showOwnerCard?: boolean;
+  /** Slides the owner card out (e.g. while a blog/gallery panel shows its own author section). */
+  ownerCardHidden?: boolean;
   ownerProfile?: PublicMapOwnerProfile | null;
   activeRelocatePinId?: string | null;
   tags: Tag[];
@@ -121,6 +124,7 @@ export function MapPageControls({
                 profile={ownerProfile}
                 surface="floating"
                 showBio={false}
+                hidden={ownerCardHidden}
               />
             ) : null}
           </MapControlsTopLeftStack>

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
+import { useStoryArgs } from "../../storybook/args";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import {
   BlogAuthorCard,
@@ -88,4 +89,42 @@ export const PinTitleAccent: Story = {
       </BlogPinTitle>
     </BlogContent>
   ),
+};
+
+export const FloatingAuthorCardSlide: Story = {
+  parameters: storyDocs(
+    "Floating author card (map overlay). `hidden` slides it out to the left and back in; toggle the button to preview.",
+  ),
+  render: function Render() {
+    const [{ authorHidden }, updateArgs] = useStoryArgs<{
+      authorHidden?: boolean;
+    }>();
+    return (
+      <div style={{ display: "grid", gap: "1rem", justifyItems: "start" }}>
+        <button
+          type="button"
+          onClick={() => updateArgs({ authorHidden: !authorHidden })}
+        >
+          {authorHidden ? "Show" : "Hide"} author
+        </button>
+        <BlogAuthorCard
+          surface="floating"
+          hidden={authorHidden}
+          avatar={
+            <span
+              aria-hidden
+              style={{
+                display: "inline-flex",
+                width: "2rem",
+                height: "2rem",
+                borderRadius: "9999px",
+                background: "var(--muted)",
+              }}
+            />
+          }
+          name="Ada Lovelace"
+        />
+      </div>
+    );
+  },
 };

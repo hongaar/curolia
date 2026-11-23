@@ -75,6 +75,25 @@
   background: var(--panel-bg);
   box-shadow: var(--panel-shadow);
   backdrop-filter: blur(24px) saturate(1.5);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
+}
+
+.authorCardFloatingHidden {
+  transform: translateX(calc(-100% - var(--space-6)));
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authorCardFloating {
+    transition: opacity 160ms ease;
+  }
+
+  .authorCardFloatingHidden {
+    transform: none;
+  }
 }
 
 .authorAvatar {
