@@ -50,8 +50,9 @@ function useFrozenBaseLocationValue(): Location {
       });
       return;
     }
-    // Stack opened above map — drop ?pin= from frozen base so URL sync on the
-    // still-mounted MapPage does not resurrect the side-sheet pin on the map URL.
+    // Stack opened above map — drop ?pin= and the panel pin hash from the frozen
+    // base so the still-mounted MapPage does not resurrect the side sheet or keep
+    // scrolling/highlighting a blog pin under the stack screen.
     if (isStackRoute(location.pathname)) {
       setFrozenBase((prev) => {
         if (!isBaseRoute(prev.pathname)) return prev;
@@ -61,8 +62,8 @@ function useFrozenBaseLocationValue(): Location {
         );
         const q = nextParams.toString();
         const nextSearch = q ? `?${q}` : "";
-        if (nextSearch === prev.search) return prev;
-        return { ...prev, search: nextSearch };
+        if (nextSearch === prev.search && prev.hash === "") return prev;
+        return { ...prev, search: nextSearch, hash: "" };
       });
     }
   }, [location]);

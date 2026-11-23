@@ -1,6 +1,9 @@
 .masonry {
   column-gap: var(--space-3);
   column-count: 2;
+  /* Keep columns from becoming the scroll container so ancestor
+     scrollTo({ behavior: "smooth" }) still runs in Chromium. */
+  overflow: clip;
 }
 
 .masonry[data-columns="4"] {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "../../lib/utils";
 import styles from "./map.module.css";
@@ -33,29 +33,48 @@ export function MapLayer({
 const BLOG_SIDE_PANEL_SCRIM_MS = 220;
 export const MAP_BLOG_SIDE_PANEL_ANIMATION_MS = 240;
 
+function prefersReducedPanelMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export const MapBlogSidePanel = React.forwardRef<
   HTMLDivElement,
   {
     children: React.ReactNode;
     /** When false, plays slide-out then unmounts. Defaults to true for static layouts. */
     show?: boolean;
+    /** Called after the slide-in animation completes. */
+    onEntered?: () => void;
     /** Called after the slide-out animation completes. */
     onClosed?: () => void;
   }
->(function MapBlogSidePanel({ children, show = true, onClosed }, ref) {
+>(function MapBlogSidePanel(
+  { children, show = true, onEntered, onClosed },
+  ref,
+) {
   const [mounted, setMounted] = useState(show);
-  const [entering, setEntering] = useState(false);
+  const [entering, setEntering] = useState(show);
   const [exiting, setExiting] = useState(false);
+  const onEnteredRef = useRef(onEntered);
+  const onClosedRef = useRef(onClosed);
+  onEnteredRef.current = onEntered;
+  onClosedRef.current = onClosed;
 
   useLayoutEffect(() => {
+    const motionMs = prefersReducedPanelMotion()
+      ? 0
+      : MAP_BLOG_SIDE_PANEL_ANIMATION_MS;
     if (show) {
       setMounted(true);
       setExiting(false);
       setEntering(true);
-      const timer = window.setTimeout(
-        () => setEntering(false),
-        MAP_BLOG_SIDE_PANEL_ANIMATION_MS,
-      );
+      const timer = window.setTimeout(() => {
+        setEntering(false);
+        onEnteredRef.current?.();
+      }, motionMs);
       return () => clearTimeout(timer);
     }
     if (!mounted) return;
@@ -64,16 +83,17 @@ export const MapBlogSidePanel = React.forwardRef<
     const timer = window.setTimeout(() => {
       setMounted(false);
       setExiting(false);
-      onClosed?.();
-    }, MAP_BLOG_SIDE_PANEL_ANIMATION_MS);
+      onClosedRef.current?.();
+    }, motionMs);
     return () => clearTimeout(timer);
-  }, [show, mounted, onClosed]);
+  }, [show, mounted]);
 
   if (!mounted) return null;
 
   return (
     <div
       ref={ref}
+      data-map-content-side-panel
       className={cn(
         styles.blogSidePanel,
         entering && styles.blogSidePanelEnter,

@@ -248,7 +248,12 @@ export function PinDetailBody({
                   size="icon-sm"
                   aria-label="Open full pin detail page"
                   render={
-                    <Link to={pinDetailHref(permalinkMapRoute!, pin.slug)} />
+                    <Link
+                      to={{
+                        pathname: pinDetailHref(permalinkMapRoute!, pin.slug),
+                        hash: "",
+                      }}
+                    />
                   }
                 >
                   <Link2Icon />

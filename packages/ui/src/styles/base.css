@@ -10,6 +10,12 @@ html {
 }
 
 /* Map route: inset map layer below toolbar before component CSS hydrates. */
+html.map-route,
+html.map-route body {
+  overflow: hidden;
+  height: 100%;
+}
+
 @media (min-width: 40rem) {
   html.map-route [data-curolia-map-layer] {
     top: var(--toolbar-offset);

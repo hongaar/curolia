@@ -7,7 +7,7 @@ import { parsePinRoutePathname } from "@/lib/map-route";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { useMap } from "@/providers/map-provider";
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 /**
@@ -21,6 +21,10 @@ export function useMapSlugRouteSync(
   const { maps } = useMap();
   const navigate = useNavigate();
   const location = useLocation();
+  const locationRef = useRef(location);
+  useLayoutEffect(() => {
+    locationRef.current = location;
+  });
 
   useLayoutEffect(() => {
     if (!profileSlug?.trim() || !mapSlug?.trim()) return;
@@ -50,13 +54,18 @@ export function useMapSlugRouteSync(
         profileSlug: canonicalProfile,
         mapSlug: canonicalMap,
       };
-      const pinRoute = parsePinRoutePathname(location.pathname);
+      const { pathname, search, hash } = locationRef.current;
+      const pinRoute = parsePinRoutePathname(pathname);
       if (pinRoute) {
-        navigate(pinDetailHref(route, pinRoute.pinSlug), { replace: true });
+        navigate(`${pinDetailHref(route, pinRoute.pinSlug)}${search}`, {
+          replace: true,
+        });
         return;
       }
-      const view = mapViewSegmentFromPathname(location.pathname);
-      navigate(mapViewHref(view, route), { replace: true });
+      const view = mapViewSegmentFromPathname(pathname);
+      navigate(`${mapViewHref(view, route)}${search}${hash}`, {
+        replace: true,
+      });
     })();
 
     return () => {

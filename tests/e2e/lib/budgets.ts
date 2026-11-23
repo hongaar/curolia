@@ -43,6 +43,9 @@ export const FLOW_BUDGETS: Record<string, FlowBudgets> = {
   search: {
     maxTimingMs: { "search-pick": 6_000 },
   },
+  "map-panel-pin-focus": {
+    maxTimingMs: { "panel-pin-focus": 6_000 },
+  },
 };
 
 export function median(values: number[]): number {

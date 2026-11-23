@@ -9,8 +9,9 @@ export function isMapChromeRoute(pathname: string): boolean {
 export function syncMapRouteDocumentClass(pathname?: string): void {
   if (typeof document === "undefined") return;
   const p = pathname ?? window.location.pathname;
-  document.documentElement.classList.toggle(
-    "map-route",
-    isMapFullscreenPathname(p),
-  );
+  const isMap = isMapFullscreenPathname(p);
+  document.documentElement.classList.toggle("map-route", isMap);
+  if (typeof history !== "undefined" && "scrollRestoration" in history) {
+    history.scrollRestoration = isMap ? "manual" : "auto";
+  }
 }

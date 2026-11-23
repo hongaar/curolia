@@ -5,7 +5,7 @@ import { Search } from "@/components/layout/search";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@curolia/ui/button";
 import { MainToolbar as MainToolbarLayout } from "@curolia/ui/main-toolbar";
-import { Sparkles } from "lucide-react";
+import { MapPinPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function WhatsNewToolbarButton() {
@@ -16,7 +16,7 @@ function WhatsNewToolbarButton() {
       size="default"
       render={<Link to="/whats-new" />}
     >
-      <Sparkles />
+      <MapPinPlus />
       What&apos;s new
     </Button>
   );

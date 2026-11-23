@@ -1,4 +1,5 @@
 import { UserAvatar } from "@/components/user-avatar";
+import { useExploreCategories } from "@/hooks/use-explore-categories";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
@@ -8,14 +9,13 @@ import {
   mapViewHrefWithSearch,
   pinDetailHref,
 } from "@/lib/app-paths";
-import { useExploreCategories } from "@/hooks/use-explore-categories";
 import {
   buildExploreSearchCommands,
   exploreCategoryForCommand,
 } from "@/lib/explore-search-commands";
 import {
-  GLOBAL_SEARCH_COMMANDS,
   filterGlobalSearchCommands,
+  GLOBAL_SEARCH_COMMANDS,
   globalSearchCommandsWithShortcuts,
   resolveGlobalSearchMapViewContext,
   runGlobalSearchCommand,
@@ -31,6 +31,7 @@ import {
   isEditableKeyboardTarget,
   matchesShortcut,
 } from "@/lib/keyboard-shortcut";
+import { mapPanelPinHash } from "@/lib/map-panel-pin-hash";
 import { mapRouteForMap, parseMapRoutePathname } from "@/lib/map-route";
 import {
   applyMapBboxToSearchParams,
@@ -665,7 +666,12 @@ export function Search() {
           }),
         );
         navigate(
-          mapViewHrefWithSearch(mapViewContext, route, `?${params.toString()}`),
+          mapViewHrefWithSearch(
+            mapViewContext,
+            route,
+            `?${params.toString()}`,
+            mapPanelPinHash(t.slug.trim() || t.id),
+          ),
         );
         requestPanelPinFocus(t.id);
       } else if (isMapRoute) {

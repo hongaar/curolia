@@ -1,3 +1,4 @@
+import { withUrlHash } from "@/lib/map-panel-pin-hash";
 import { parsePublicMapShortcutPathname, type MapRoute } from "@/lib/map-route";
 import {
   MAP_VIEW_PARAM,
@@ -74,7 +75,7 @@ export function mapViewSegmentFromPathname(pathname: string): MapViewSegment {
   return "map";
 }
 
-/** Switch between map and blog for the same map, keeping tag filters. */
+/** Switch between map, blog, and gallery for the same map, keeping tag filters. */
 export function mapViewSwitchHref(
   view: MapViewSegment,
   route: MapRoute,
@@ -135,6 +136,7 @@ export function mapViewHrefWithSearch(
   view: MapViewSegment,
   route: MapRoute,
   searchParamsStr: string,
+  hash: string = "",
 ): string {
   const p = new URLSearchParams(
     searchParamsStr.startsWith("?")
@@ -143,5 +145,5 @@ export function mapViewHrefWithSearch(
   );
   const q = p.toString();
   const base = mapViewHref(view, route);
-  return q ? `${base}?${q}` : base;
+  return withUrlHash(q ? `${base}?${q}` : base, hash);
 }

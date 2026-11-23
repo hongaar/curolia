@@ -44,6 +44,7 @@ import {
   useQuickSettingsBasemapDraft,
 } from "@/hooks/use-quick-settings-basemap-draft";
 import { useRecordMapVisit } from "@/hooks/use-record-map-visit";
+import { useSearchParamsPreservingHash } from "@/hooks/use-search-params-preserving-hash";
 import { mapViewSegmentFromPathname, pinEditHref } from "@/lib/app-paths";
 import { createPinAtLocation } from "@/lib/create-pin-at-location";
 import {
@@ -57,6 +58,10 @@ import {
   writeStoredMapCamera,
 } from "@/lib/map-camera-storage";
 import { measureMapPanelInset } from "@/lib/map-panel-inset";
+import {
+  mapPanelPinHash,
+  parseMapPanelPinHash,
+} from "@/lib/map-panel-pin-hash";
 import { normalizeShowPinRoute } from "@/lib/map-pin-route";
 import { mapRouteForMap } from "@/lib/map-route";
 import {
@@ -135,12 +140,7 @@ import {
   useState,
   type SetStateAction,
 } from "react";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const PinFormDialog = lazy(() =>
@@ -170,6 +170,8 @@ export function MapPage() {
   const showBlogPanel = isBlogView && isWideEnough;
   const showGalleryPanel = isGalleryView && isWideEnough;
   const showContentSidePanel = showBlogPanel || showGalleryPanel;
+  const stackCoversMap =
+    typeof window !== "undefined" && isStackRoute(window.location.pathname);
   const visibleContentPanelView: "blog" | "gallery" | null = showGalleryPanel
     ? "gallery"
     : showBlogPanel
@@ -199,6 +201,7 @@ export function MapPage() {
 
   const contentSidePanelRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
+  const hashFocusKeyRef = useRef<string | null>(null);
   const connectorAnchorRef = useRef<MapPanelPinConnectorAnchor | null>(null);
   const suspendContentPanRef = useRef(false);
   const { profileSlug, mapSlug } = useParams<{
@@ -208,7 +211,7 @@ export function MapPage() {
   useMapSlugRouteSync(profileSlug, mapSlug);
   useMapViewAccess();
   const mapRef = useRef<PinMapHandle>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParamsPreservingHash();
   const bboxFromUrl = useMemo(
     () => parseMapBboxFromSearchParams(searchParams),
     [searchParams],
@@ -348,6 +351,7 @@ export function MapPage() {
   const [panelPinFocusRequest, setPanelPinFocusRequest] = useState<{
     pinId: string;
     nonce: number;
+    behavior: "smooth" | "auto";
   } | null>(null);
   const [tagEditTarget, setTagEditTarget] = useState<Tag | null>(null);
   const [newTagName, setNewTagName] = useState("");
@@ -648,6 +652,14 @@ export function MapPage() {
     () => resolvePinIdFromMapToken(sidebarPinToken, pins),
     [sidebarPinToken, pins],
   );
+  const hashPinToken = useMemo(
+    () => parseMapPanelPinHash(location.hash),
+    [location.hash],
+  );
+  const hashPinId = useMemo(
+    () => resolvePinIdFromMapToken(hashPinToken, pins),
+    [hashPinToken, pins],
+  );
 
   useLayoutEffect(() => {
     sidebarPinTokenRef.current = sidebarPinToken;
@@ -712,13 +724,36 @@ export function MapPage() {
   });
 
   const { highlightedPinId, highlightSession } = useMapPanelPinFocus({
-    enabled: showContentSidePanel && panelPinFocusRequest != null,
+    enabled:
+      showContentSidePanel &&
+      panelPinFocusRequest != null &&
+      hashPinId != null &&
+      !stackCoversMap,
     pinId: panelPinFocusRequest?.pinId,
     mode: showBlogPanel ? "blog" : "gallery",
     scrollRootRef: contentScrollRef,
     focusNonce: panelPinFocusRequest?.nonce ?? 0,
+    behavior: panelPinFocusRequest?.behavior ?? "auto",
     contentReady: Boolean(activeMapId) && !mapLoading && !pinsQuery.isPending,
   });
+
+  useLayoutEffect(() => {
+    if (!hashPinToken || stackCoversMap) return;
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [hashPinToken, stackCoversMap]);
+
+  useLayoutEffect(() => {
+    if (!showContentSidePanel || stackCoversMap || !hashPinId) return;
+    if (hashFocusKeyRef.current === hashPinId) return;
+    hashFocusKeyRef.current = hashPinId;
+    setPanelPinFocusRequest((prev) => ({
+      pinId: hashPinId,
+      nonce: (prev?.nonce ?? 0) + 1,
+      behavior: "auto",
+    }));
+  }, [hashPinId, showContentSidePanel, stackCoversMap]);
 
   const handlePanelPinHover = useCallback(
     (pinId: string, anchor: MapPanelPinConnectorAnchor) => {
@@ -834,6 +869,31 @@ export function MapPage() {
     [setSearchParams, onCollisionOpen, setSidePanelAnimateIn],
   );
 
+  const focusContentPanelPin = useCallback(
+    (pinId: string) => {
+      const row = pins.find((pin) => pin.id === pinId);
+      const token = row?.slug?.trim() || pinId;
+      const nextHash = mapPanelPinHash(token);
+      hashFocusKeyRef.current = pinId;
+      if (location.hash !== nextHash) {
+        navigate(
+          {
+            pathname: location.pathname,
+            search: location.search,
+            hash: nextHash,
+          },
+          { replace: true },
+        );
+      }
+      setPanelPinFocusRequest((prev) => ({
+        pinId,
+        nonce: (prev?.nonce ?? 0) + 1,
+        behavior: "smooth",
+      }));
+    },
+    [location.hash, location.pathname, location.search, navigate, pins],
+  );
+
   const onSelectPin = useCallback(
     (id: string) => {
       setPinCollisionPicker(null);
@@ -849,6 +909,28 @@ export function MapPage() {
       });
     },
     [setSearchParams, pins, onPinSelectFromMap, setExploreSelectedEntry],
+  );
+
+  const onSelectMapPin = useCallback(
+    (id: string) => {
+      if (showContentSidePanel) {
+        setPinCollisionPicker(null);
+        setQuickAddPin(null);
+        setQuickAddAnchorScreen(null);
+        setExploreSelectedEntry(null);
+        if (sidebarPinId) onClosePinMapPopover();
+        focusContentPanelPin(id);
+        return;
+      }
+      onSelectPin(id);
+    },
+    [
+      showContentSidePanel,
+      sidebarPinId,
+      onClosePinMapPopover,
+      focusContentPanelPin,
+      onSelectPin,
+    ],
   );
 
   const onSelectExploreEntry = useCallback(
@@ -887,9 +969,9 @@ export function MapPage() {
   const onPickCollisionPin = useCallback(
     (id: string) => {
       onCollisionPinPick();
-      onSelectPin(id);
+      onSelectMapPin(id);
     },
-    [onSelectPin, onCollisionPinPick],
+    [onSelectMapPin, onCollisionPinPick],
   );
 
   const onCameraIdle = useCallback(
@@ -1193,14 +1275,9 @@ export function MapPage() {
   }, [quickAddPin]);
 
   useEffect(() => {
-    registerPanelPinFocusHandler((pinId) => {
-      setPanelPinFocusRequest((prev) => ({
-        pinId,
-        nonce: (prev?.nonce ?? 0) + 1,
-      }));
-    });
+    registerPanelPinFocusHandler(focusContentPanelPin);
     return () => registerPanelPinFocusHandler(null);
-  }, [registerPanelPinFocusHandler]);
+  }, [focusContentPanelPin, registerPanelPinFocusHandler]);
 
   useEffect(() => {
     registerAddPinFromPlaceHandler((place) => {
@@ -1300,9 +1377,6 @@ export function MapPage() {
     ? (pins.find((pin) => pin.id === bottomSheetPinId) ?? null)
     : null;
   const bottomSheetTitle = pinDetailSideSheetTitle(bottomSheetPin);
-  const stackCoversMap = isStackRoute(
-    typeof window !== "undefined" ? window.location.pathname : "",
-  );
 
   if (mapLoading) {
     return <MapViewInitialLoader />;
@@ -1353,7 +1427,7 @@ export function MapPage() {
             placeHighlight={globalSearchPlaceHighlight}
             exploreLayer={exploreLayer}
             onExploreEntryClick={onExploreEntryClick}
-            onSelectPin={onSelectPin}
+            onSelectPin={onSelectMapPin}
             onPinCollisionClick={onPinCollisionClick}
             initialCamera={resolvedInitialCamera}
             initialBbox={bboxFromUrl}
@@ -1426,14 +1500,6 @@ export function MapPage() {
             mapRef={mapRef}
           />
         ) : null}
-        {showContentSidePanel && highlightedPinId ? (
-          <MapPanelPinHighlightOverlay
-            key={highlightSession}
-            pinId={highlightedPinId}
-            mode={showBlogPanel ? "blog" : "gallery"}
-            scrollRootRef={contentScrollRef}
-          />
-        ) : null}
         {isWideEnough && contentPanelView ? (
           <MapBlogSidePanel
             ref={contentSidePanelRef}
@@ -1465,6 +1531,15 @@ export function MapPage() {
               onDismiss={onClosePinMapPopover}
             />
           </MapBlogSidePanel>
+        ) : null}
+        {showContentSidePanel && highlightedPinId && !stackCoversMap ? (
+          <MapPanelPinHighlightOverlay
+            key={highlightSession}
+            pinId={highlightedPinId}
+            mode={showBlogPanel ? "blog" : "gallery"}
+            scrollRootRef={contentScrollRef}
+            sidePanelRef={contentSidePanelRef}
+          />
         ) : null}
         {showSidePanel && sidebarPinId ? (
           <MapSidePanel
