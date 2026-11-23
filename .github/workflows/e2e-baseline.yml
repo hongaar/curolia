@@ -28,7 +28,7 @@ permissions:
 jobs:
   update-baseline:
     name: Refresh baseline
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       TARGET_REF: ${{ inputs.branch != '' && inputs.branch || github.ref_name }}
