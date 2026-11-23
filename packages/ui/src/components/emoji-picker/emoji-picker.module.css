@@ -8,6 +8,7 @@
   border-radius: var(--radius-md);
   background: var(--popover);
   color: var(--popover-foreground);
+  font-family: var(--font-sans);
 }
 
 .searchWrapper {
@@ -44,20 +45,25 @@
 }
 
 .row {
+  display: flex;
   scroll-margin-block: 0.25rem;
   padding: 0 0.25rem;
 }
 
 .emoji {
   display: flex;
-  width: var(--control-h-sm);
-  height: var(--control-h-sm);
+  flex: 0 0 calc(100% / var(--frimousse-list-columns, 8));
+  min-width: 0;
+  aspect-ratio: 1;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
-  font-size: var(--font-size-base);
+  padding: 0;
+  font-family: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -76,6 +82,7 @@
 .viewport {
   position: relative;
   flex: 1;
+  overflow-x: hidden;
   outline: none;
 }
 

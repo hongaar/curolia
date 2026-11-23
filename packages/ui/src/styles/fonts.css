@@ -1,2 +1,14 @@
 @import "@fontsource-variable/geist";
 @import url("https://fonts.googleapis.com/css2?family=Faculty+Glyphic:wght@400&display=swap");
+
+/* Country flag emoji (Windows ships none; Twemoji subset, CC-BY 4.0, via country-flag-emoji-polyfill). unicode-range limits this face to
+   regional indicators + tag sequences, so it only downloads when a flag renders. */
+@font-face {
+  font-family: "Twemoji Country Flags";
+  src: url("country-flag-emoji-polyfill/dist/TwemojiCountryFlags.woff2")
+    format("woff2");
+  font-display: swap;
+  unicode-range:
+    U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E,
+    U+E0073-E0074, U+E0077, U+E007F;
+}

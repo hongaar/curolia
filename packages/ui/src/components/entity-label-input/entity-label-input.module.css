@@ -129,7 +129,7 @@
 }
 
 .popoverEmoji {
-  width: min(calc(100vw - 2rem), 17rem);
+  width: min(calc(100vw - 2rem), 20rem);
   padding: 0;
 }
 

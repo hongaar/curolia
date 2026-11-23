@@ -219,9 +219,12 @@
     transparent
   );
 
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    "Twemoji Country Flags", "Geist Variable", ui-sans-serif, system-ui,
+    sans-serif;
   --font-display:
-    "Faculty Glyphic", ui-serif, Georgia, "Times New Roman", serif;
+    "Twemoji Country Flags", "Faculty Glyphic", ui-serif, Georgia,
+    "Times New Roman", serif;
   /* Faculty Glyphic is loaded at 400 only; keep display/heading at normal weight. */
   --font-heading: var(--font-display);
 }
