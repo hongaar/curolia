@@ -377,6 +377,13 @@ Geoapify confirmed (Jun 2026) two related limitations when diverse categories ar
 
 **Regression checks:** Utrecht Domplein (cafés not drowned by artwork), Zeist hospital coords (healthcare batch when re-enabled).
 
+### E2E: temporary workarounds to remove
+
+Two stopgaps keep the Playwright suite (`tests/e2e`) green; both should be fixed properly.
+
+1. **React “Encountered a script tag” console error** — `next-themes`’ `ThemeProvider` (`apps/web/src/main.tsx`) renders an inline `<script>`; React ≥ 19.3 logs a dev-mode `console.error` on client render. The E2E collector currently ignores it via `IGNORED_ERRORS` in `tests/e2e/lib/budgets.ts`. **Fix:** stop rendering the script on client renders while keeping it in prerendered marketing HTML (it prevents a theme flash there), e.g. a no-flash script in `index.html` / prerender output plus a script-less theme provider (or upstream `next-themes` fix). Then remove the allowlist entry.
+2. **Playwright vs Ubuntu 26.04** — Playwright refuses to install Chromium on `ubuntu26.04-x64` (`ubuntu-latest` runners and local dev). the E2E job is pinned to `ubuntu-24.04` (`.github/workflows/test.yml`); locally the suite can’t run (`PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64` downloads stall/aren’t supported). **Fix:** upgrade `@playwright/test` once it supports 26.04 (or run E2E in the official Playwright Docker image), then unpin the job.
+
 ### Dead code / unused exports cleanup
 
 A one-off scan with **[Knip](https://knip.dev)** (`npx knip` from the repo root) flagged likely leftovers from refactors. Nothing is wired into CI yet — add a root `**knip.json`\*\* (workspace entry points + ignore patterns) before treating output as authoritative.
