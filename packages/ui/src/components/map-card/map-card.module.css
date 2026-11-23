@@ -4,6 +4,9 @@
   /* Keep columns from becoming the scroll container so ancestor
      scrollTo({ behavior: "smooth" }) still runs in Chromium. */
   overflow: clip;
+  /* Let card rings and hover shadows (18px offset + 40px blur) paint past
+     the column box instead of being cut at its edges. */
+  overflow-clip-margin: 4rem;
 }
 
 .masonry[data-columns="4"] {
