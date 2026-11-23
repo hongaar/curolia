@@ -26,11 +26,7 @@ import {
 } from "@curolia/ui/map";
 import { MapCardMasonryGrid } from "@curolia/ui/map-card";
 import { PageMuted } from "@curolia/ui/page";
-import {
-  PinCard,
-  PinCardEmptyState,
-  PinCardTagRow,
-} from "@curolia/ui/pin-card";
+import { PinCard, PinCardTagRow } from "@curolia/ui/pin-card";
 import { TagBadge } from "@curolia/ui/tag-badge";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useRef, type ReactNode, type RefObject } from "react";
@@ -198,9 +194,7 @@ export function MapGalleryPanel({
           />
         ))}
       </MapCardMasonryGrid>
-    ) : (
-      <PinCardEmptyState>No pins to show.</PinCardEmptyState>
-    );
+    ) : null;
 
   if (embedded) {
     return (
