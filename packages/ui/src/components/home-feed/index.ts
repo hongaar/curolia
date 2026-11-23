@@ -1,12 +1,12 @@
 export {
   HomeFeedAside,
+  HomeFeedChangelog,
+  HomeFeedChangelogItem,
   HomeFeedLayout,
   HomeFeedMain,
   HomeFeedMapList,
   HomeFeedMapListEmpty,
   HomeFeedMapLink,
   HomeFeedMapListItem,
-  HomeFeedNewMapAction,
-  HomeFeedShortcutActions,
-  HomeFeedShortcuts,
+  HomeFeedProfileLink,
 } from "./home-feed";

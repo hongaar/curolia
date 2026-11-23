@@ -69,6 +69,13 @@ export const AccentRounded: Story = {
   args: { variant: "accent", rounded: true },
 };
 
+export const AccentSoft: Story = {
+  parameters: storyDocs(
+    '`variant="accentSoft"`: faint accent tint and outline with accent text, for low-key promos on toolbars.',
+  ),
+  args: { variant: "accentSoft", rounded: true },
+};
+
 export const Disabled: Story = {
   parameters: storyDocs("Disabled state blocks interaction."),
   args: { disabled: true },

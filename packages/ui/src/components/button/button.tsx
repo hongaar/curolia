@@ -11,7 +11,8 @@ type ButtonVariant =
   | "ghost"
   | "destructive"
   | "link"
-  | "accent";
+  | "accent"
+  | "accentSoft";
 
 type ButtonSize =
   | "default"
@@ -31,6 +32,7 @@ const variantClass: Record<ButtonVariant, string> = {
   destructive: styles.variantDestructive,
   link: styles.variantLink,
   accent: styles.variantAccent,
+  accentSoft: styles.variantAccentSoft,
 };
 
 const sizeClass: Record<ButtonSize, string> = {

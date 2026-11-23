@@ -1,6 +1,7 @@
 export {
   MapCard,
   MapCardCompact,
+  MapCardCreateAction,
   MapCardEmptyState,
   MapCardMasonryGrid,
   MapCardRowItem,

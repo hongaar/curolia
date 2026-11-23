@@ -34,6 +34,48 @@ export type Database = {
   };
   public: {
     Tables: {
+      app_admins: {
+        Row: {
+          created_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      changelog_entries: {
+        Row: {
+          created_at: string;
+          description: string;
+          id: string;
+          image_url: string | null;
+          published_on: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description: string;
+          id?: string;
+          image_url?: string | null;
+          published_on?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string;
+          id?: string;
+          image_url?: string | null;
+          published_on?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       map_invitations: {
         Row: {
           created_at: string;
@@ -773,6 +815,30 @@ export type Database = {
           },
         ];
       };
+      place_explore_tiles: {
+        Row: {
+          category_id: string;
+          fetched_at: string;
+          tile_deg: number;
+          tile_x: number;
+          tile_y: number;
+        };
+        Insert: {
+          category_id: string;
+          fetched_at?: string;
+          tile_deg: number;
+          tile_x: number;
+          tile_y: number;
+        };
+        Update: {
+          category_id?: string;
+          fetched_at?: string;
+          tile_deg?: number;
+          tile_x?: number;
+          tile_y?: number;
+        };
+        Relationships: [];
+      };
       place_metadata: {
         Row: {
           created_at: string;
@@ -1335,6 +1401,14 @@ export type Database = {
       };
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
       delete_map: { Args: { p_map_id: string }; Returns: undefined };
+      enqueue_place_enrichment_job: {
+        Args: {
+          p_event?: string;
+          p_place_id: string;
+          p_plugin_type_id: string;
+        };
+        Returns: undefined;
+      };
       follow_profile: { Args: { p_following_id: string }; Returns: undefined };
       gravatar_hash_for_email: { Args: { p_email: string }; Returns: string };
       home_map_pin_count: { Args: { p_map_id: string }; Returns: number };
@@ -1346,6 +1420,7 @@ export type Database = {
         };
         Returns: string;
       };
+      is_app_admin: { Args: never; Returns: boolean };
       is_following_profile: {
         Args: { p_following_id: string };
         Returns: boolean;
@@ -1598,6 +1673,15 @@ export type Database = {
         Returns: string;
       };
       touch_map_updated_at: { Args: { p_map_id: string }; Returns: undefined };
+      touch_place_explore_tile: {
+        Args: {
+          p_category_id: string;
+          p_tile_deg: number;
+          p_tile_x: number;
+          p_tile_y: number;
+        };
+        Returns: undefined;
+      };
       transfer_map_ownership: {
         Args: { p_map_id: string; p_new_owner_user_id: string };
         Returns: undefined;

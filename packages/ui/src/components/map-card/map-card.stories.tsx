@@ -6,6 +6,7 @@ import { UserAvatar } from "../user-avatar";
 import {
   MapCard,
   MapCardCompact,
+  MapCardCreateAction,
   MapCardEmptyState,
   MapCardMasonryGrid,
   MapCardStreamItem,
@@ -168,6 +169,34 @@ export const MasonryGrid: Story = {
     </MapCardMasonryGrid>
   ),
   ...storyDocs("Mixed cover ratios and deterministic emoji-card heights."),
+};
+
+export const CreateActionInGrid: Story = {
+  render: () => (
+    <MapCardMasonryGrid>
+      <MapCardCreateAction label="New map" onClick={() => {}} />
+      <MapCard
+        to="/alex/europe"
+        title="Europe 2025"
+        coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=80&auto=format&fit=crop"
+        iconEmoji="🗺️"
+        layoutSeed="map-europe"
+        pinCountLabel="42 pins"
+        updatedLabel="Updated 3d ago"
+      />
+      <MapCard
+        to="/alex/weekend-hikes"
+        title="Weekend hikes"
+        iconEmoji="🥾"
+        layoutSeed="map-hikes"
+        pinCountLabel="8 pins"
+        updatedLabel="Updated 1w ago"
+      />
+    </MapCardMasonryGrid>
+  ),
+  ...storyDocs(
+    "`MapCardCreateAction`: dashed accent tile that sits in the masonry grid as the create-map action.",
+  ),
 };
 
 export const Empty: Story = {

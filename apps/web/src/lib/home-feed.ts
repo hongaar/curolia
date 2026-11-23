@@ -61,16 +61,6 @@ export async function fetchRecentlyVisitedMaps(
   return ((data ?? []) as HomeFeedMapRow[]).map(mapHomeFeedRow);
 }
 
-export async function fetchRecentlyEditedMaps(
-  limit = 16,
-): Promise<HomeFeedMap[]> {
-  const { data, error } = await supabase.rpc("list_recently_edited_maps", {
-    p_limit: limit,
-  });
-  if (error) throw error;
-  return ((data ?? []) as HomeFeedMapRow[]).map(mapHomeFeedRow);
-}
-
 export async function fetchFollowedRecentPublicMaps(
   limit = 12,
 ): Promise<HomeFeedMap[]> {

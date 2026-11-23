@@ -1,4 +1,4 @@
-import { Globe, Lock, MapPin, Users } from "lucide-react";
+import { Globe, Lock, MapPin, Plus, Users } from "lucide-react";
 import type * as React from "react";
 import {
   useCallback,
@@ -326,6 +326,31 @@ export function MapCoverPreview({
           {iconEmoji}
         </span>
       )}
+    </div>
+  );
+}
+
+/** Action tile shaped like a masonry card (dashed outline, accent icon) for creating a map. */
+export function MapCardCreateAction({
+  label,
+  description,
+  onClick,
+}: {
+  label: React.ReactNode;
+  description?: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <div className={styles.itemWrap}>
+      <button type="button" className={styles.createCard} onClick={onClick}>
+        <span className={styles.createIcon} aria-hidden>
+          <Plus />
+        </span>
+        <span className={styles.createLabel}>{label}</span>
+        {description ? (
+          <span className={styles.createDescription}>{description}</span>
+        ) : null}
+      </button>
     </div>
   );
 }

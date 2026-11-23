@@ -484,3 +484,60 @@
   line-height: 1.35;
   color: var(--muted-foreground);
 }
+
+.createCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 12rem;
+  padding: var(--space-6) var(--space-4);
+  border: 2px dashed color-mix(in oklch, var(--accent-strong) 40%, transparent);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--accent-strong) 5%, transparent);
+  color: var(--foreground);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.createCard:hover {
+  border-color: color-mix(in oklch, var(--accent-strong) 70%, transparent);
+  background: color-mix(in oklch, var(--accent-strong) 10%, transparent);
+}
+
+.createCard:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.createIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-strong-foreground);
+}
+
+.createIcon > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.createLabel {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.createDescription {
+  font-size: var(--font-size-sm);
+  color: var(--muted-foreground);
+}

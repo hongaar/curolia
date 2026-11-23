@@ -15,10 +15,12 @@ import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
 import { useProfileFollow } from "@/lib/use-profile-follow";
 import { useAuth } from "@/providers/auth-provider";
+import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import type { Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import {
   MapCard,
+  MapCardCreateAction,
   MapCardEmptyState,
   MapCardMasonryGrid,
 } from "@curolia/ui/map-card";
@@ -49,6 +51,7 @@ export function PublicProfilePage() {
     profileSlug: string;
   }>();
   const { user } = useAuth();
+  const { openNewMapDialog } = useNavigationShell();
   const [profileOverride, setProfileOverride] = useState<Profile | null>(null);
 
   const profileSlug = profileSlugParam?.trim() ?? "";
@@ -260,14 +263,16 @@ export function PublicProfilePage() {
         </ProfileOverviewAside>
 
         <ProfileOverviewMain>
-          {maps.length === 0 ? (
-            <MapCardEmptyState>
-              {isOwner
-                ? "Your public maps and shared maps will appear here."
-                : "No maps to show yet."}
-            </MapCardEmptyState>
+          {maps.length === 0 && !isOwner ? (
+            <MapCardEmptyState>No maps to show yet.</MapCardEmptyState>
           ) : (
             <MapCardMasonryGrid>
+              {isOwner ? (
+                <MapCardCreateAction
+                  label="New map"
+                  onClick={() => openNewMapDialog()}
+                />
+              ) : null}
               {maps.map((map) => (
                 <MapCard
                   key={map.id}

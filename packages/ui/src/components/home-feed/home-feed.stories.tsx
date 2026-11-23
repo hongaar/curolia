@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { MapPlus, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Pencil, Plus } from "lucide-react";
 
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { Button } from "../button";
@@ -13,15 +12,15 @@ import {
 } from "../map-card";
 import {
   HomeFeedAside,
+  HomeFeedChangelog,
+  HomeFeedChangelogItem,
   HomeFeedLayout,
   HomeFeedMain,
   HomeFeedMapLink,
   HomeFeedMapList,
   HomeFeedMapListEmpty,
   HomeFeedMapListItem,
-  HomeFeedNewMapAction,
-  HomeFeedShortcutActions,
-  HomeFeedShortcuts,
+  HomeFeedProfileLink,
 } from "./home-feed";
 
 const meta = {
@@ -36,47 +35,64 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+const avatar = (
+  <img
+    src="https://i.pravatar.cc/80?img=12"
+    alt=""
+    width={36}
+    height={36}
+    style={{ borderRadius: "999px" }}
+  />
+);
+
+function DemoProfileLink() {
+  return (
+    <HomeFeedProfileLink
+      to="/alex"
+      avatar={avatar}
+      title="Signed in as Alex"
+      subtitle="View my profile"
+    />
+  );
+}
+
+function DemoChangelog({ admin = false }: { admin?: boolean }) {
+  const actions = admin ? (
+    <Button size="icon-xs" variant="ghost" aria-label="Edit">
+      <Pencil aria-hidden />
+    </Button>
+  ) : undefined;
+  return (
+    <HomeFeedChangelog
+      title="What's new"
+      action={
+        admin ? (
+          <Button size="icon-xs" variant="ghost" aria-label="Add entry">
+            <Plus aria-hidden />
+          </Button>
+        ) : undefined
+      }
+    >
+      <HomeFeedChangelogItem
+        date="Nov 23, 2026"
+        imageUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
+        actions={actions}
+      >
+        Country flags now show in the emoji picker on every platform.
+      </HomeFeedChangelogItem>
+      <HomeFeedChangelogItem date="Nov 12, 2026" actions={actions}>
+        Pins in blog and gallery panels pick up their tag color on focus.
+      </HomeFeedChangelogItem>
+    </HomeFeedChangelog>
+  );
+}
+
 export const Layout: Story = {
   render: () => (
     <HomeFeedLayout>
       <HomeFeedAside>
-        <HomeFeedMapList title="My maps">
-          <HomeFeedMapListItem
-            to="/alex/europe"
-            title="Europe 2025"
-            coverUrl="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80&auto=format&fit=crop"
-            iconEmoji="🗺️"
-            meta="42 pins · 3d ago"
-          />
-          <HomeFeedMapListItem
-            to="/alex/food"
-            title="Food map"
-            iconEmoji="🍜"
-            meta="26 pins · 1w ago"
-          />
-          <HomeFeedMapListItem
-            to="/alex/weekend-hikes"
-            title="Weekend hikes"
-            iconEmoji="🥾"
-            meta="8 pins · 2d ago"
-          />
-        </HomeFeedMapList>
-        <HomeFeedShortcuts>
-          <HomeFeedShortcutActions>
-            <HomeFeedNewMapAction>
-              <Button>
-                <MapPlus aria-hidden />
-                New map
-              </Button>
-            </HomeFeedNewMapAction>
-            <HomeFeedNewMapAction>
-              <Button variant="outline" render={<Link to="/joram" />}>
-                <User aria-hidden />
-                View my profile
-              </Button>
-            </HomeFeedNewMapAction>
-          </HomeFeedShortcutActions>
-        </HomeFeedShortcuts>
+        <DemoProfileLink />
+        <DemoChangelog />
       </HomeFeedAside>
       <HomeFeedMain>
         <MapCardStreamPanel title="Recently visited">
@@ -123,8 +139,49 @@ export const Layout: Story = {
     </HomeFeedLayout>
   ),
   ...storyDocs(
-    "Sidebar with your-maps list, shortcut actions, compact stream cards, and a denser four-column feed.",
+    "Sidebar with profile link and changelog, compact stream cards, and a denser four-column feed.",
   ),
+};
+
+export const ProfileLink: Story = {
+  render: () => (
+    <div style={{ maxWidth: "14rem" }}>
+      <DemoProfileLink />
+    </div>
+  ),
+  ...storyDocs("Avatar button with signed-in name and a profile link row."),
+};
+
+export const Changelog: Story = {
+  render: () => (
+    <div style={{ maxWidth: "14rem" }}>
+      <DemoChangelog />
+    </div>
+  ),
+  ...storyDocs("Changelog entries with date, optional image, and text."),
+};
+
+export const ChangelogAdmin: Story = {
+  render: () => (
+    <div style={{ maxWidth: "14rem" }}>
+      <DemoChangelog admin />
+    </div>
+  ),
+  ...storyDocs(
+    "Admin view: add action in the header, edit controls per entry.",
+  ),
+};
+
+export const ChangelogEmpty: Story = {
+  render: () => (
+    <div style={{ maxWidth: "14rem" }}>
+      <HomeFeedChangelog
+        title="What's new"
+        empty={<HomeFeedMapListEmpty>No updates yet.</HomeFeedMapListEmpty>}
+      />
+    </div>
+  ),
+  ...storyDocs("Empty changelog placeholder."),
 };
 
 export const MapList: Story = {

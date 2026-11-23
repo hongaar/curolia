@@ -1,23 +1,14 @@
-import { HomeEditedMapsList } from "@/components/home/home-edited-maps-list";
-import type { HomeFeedMap } from "@/lib/home-feed";
+import { HomeChangelog } from "@/components/home/home-changelog";
+import { UserAvatar } from "@/components/user-avatar";
 import { profileEditHref, publicProfileHref } from "@/lib/profile-route";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import type { Profile } from "@/types/database";
-import { Button } from "@curolia/ui/button";
-import {
-  HomeFeedNewMapAction,
-  HomeFeedShortcutActions,
-  HomeFeedShortcuts,
-} from "@curolia/ui/home-feed";
+import { HomeFeedProfileLink } from "@curolia/ui/home-feed";
 import { useQuery } from "@tanstack/react-query";
-import { MapPlus, User } from "lucide-react";
-import { Link } from "react-router-dom";
 
-export function HomeSidebar({ editedMaps }: { editedMaps: HomeFeedMap[] }) {
+export function HomeSidebar() {
   const { user } = useAuth();
-  const { openNewMapDialog } = useNavigationShell();
 
   const profileQuery = useQuery({
     queryKey: ["profile", user?.id],
@@ -34,29 +25,34 @@ export function HomeSidebar({ editedMaps }: { editedMaps: HomeFeedMap[] }) {
     enabled: Boolean(user),
   });
 
-  const profileHref = profileQuery.data?.slug
-    ? publicProfileHref(profileQuery.data.slug)
+  const profile = profileQuery.data;
+  const profileHref = profile?.slug
+    ? publicProfileHref(profile.slug)
     : profileEditHref();
+  const username =
+    profile?.display_name?.trim() ||
+    (profile?.slug ? `@${profile.slug}` : user?.email) ||
+    "you";
 
   return (
     <>
-      <HomeEditedMapsList maps={editedMaps} />
-      <HomeFeedShortcuts>
-        <HomeFeedShortcutActions>
-          <HomeFeedNewMapAction>
-            <Button onClick={() => openNewMapDialog()}>
-              <MapPlus aria-hidden />
-              New map
-            </Button>
-          </HomeFeedNewMapAction>
-          <HomeFeedNewMapAction>
-            <Button variant="outline" render={<Link to={profileHref} />}>
-              <User aria-hidden />
-              View my profile
-            </Button>
-          </HomeFeedNewMapAction>
-        </HomeFeedShortcutActions>
-      </HomeFeedShortcuts>
+      <HomeFeedProfileLink
+        to={profileHref}
+        avatar={
+          <UserAvatar
+            storedAvatarUrl={profile?.avatar_url}
+            email={user?.email}
+            gravatarHash={profile?.gravatar_hash}
+            gravatarFallback={!profileQuery.isLoading}
+            gravatarSize={80}
+            size="sm"
+            label={username}
+          />
+        }
+        title={`Signed in as ${username}`}
+        subtitle="View my profile"
+      />
+      <HomeChangelog />
     </>
   );
 }

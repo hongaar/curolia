@@ -1478,7 +1478,7 @@ export function MapPage() {
         </MapHost>
         <MapPageControls
           mapRef={mapRef}
-          showOwnerCard={showOwnerCard}
+          showOwnerCard={showOwnerCard && !showContentSidePanel}
           ownerProfile={ownerProfile}
           activeRelocatePinId={activeRelocatePinId}
           tags={tags}

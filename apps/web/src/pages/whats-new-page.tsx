@@ -7,7 +7,6 @@ import { featureFlags } from "@/lib/feature-flags";
 import {
   fetchDiscoverRecentPublicMaps,
   fetchFollowedRecentPublicMaps,
-  fetchRecentlyEditedMaps,
   fetchRecentlyVisitedMaps,
   mixHomeFeedMaps,
 } from "@/lib/home-feed";
@@ -33,18 +32,16 @@ export function WhatsNewPage() {
   const feedQuery = useQuery({
     queryKey: ["home_feed", user?.id],
     queryFn: async () => {
-      const [visited, edited, followed, discover] = await Promise.all([
+      const [visited, followed, discover] = await Promise.all([
         featureFlags.homeRecentlyVisited
           ? fetchRecentlyVisitedMaps()
           : Promise.resolve([]),
-        fetchRecentlyEditedMaps(),
         fetchFollowedRecentPublicMaps(),
         fetchDiscoverRecentPublicMaps(),
       ]);
 
       return {
         visited,
-        edited,
         feed: mixHomeFeedMaps(followed, discover),
       };
     },
@@ -65,9 +62,8 @@ export function WhatsNewPage() {
     );
   }
 
-  const { visited, edited, feed } = feedQuery.data ?? {
+  const { visited, feed } = feedQuery.data ?? {
     visited: [],
-    edited: [],
     feed: [],
   };
 
@@ -75,14 +71,14 @@ export function WhatsNewPage() {
     <AppPageLayout width="full">
       <HomeFeedLayout>
         <HomeFeedAside>
-          <HomeSidebar editedMaps={edited} />
+          <HomeSidebar />
         </HomeFeedAside>
 
         <HomeFeedMain>
           <Stack gap="2xl">
             <Stack gap="md">
               <PageHeader>
-                <PageHeaderTitle>What&apos;s new</PageHeaderTitle>
+                <PageHeaderTitle>Recently updated maps</PageHeaderTitle>
               </PageHeader>
               <WhatsNewFeedGrid maps={feed} />
             </Stack>

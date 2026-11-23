@@ -16,28 +16,83 @@ export function HomeFeedMain({ children }: { children: React.ReactNode }) {
   return <div className={styles.main}>{children}</div>;
 }
 
-export function HomeFeedShortcuts({ children }: { children: React.ReactNode }) {
+/** Sidebar link to the signed-in user's profile: avatar plus two text rows. */
+export function HomeFeedProfileLink({
+  to,
+  avatar,
+  title,
+  subtitle,
+}: {
+  to: string;
+  avatar: React.ReactNode;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
+}) {
   return (
-    <nav className={styles.shortcuts} aria-label="Home shortcuts">
-      {children}
-    </nav>
+    <Link to={to} className={styles.profileLink}>
+      <span className={styles.profileAvatar}>{avatar}</span>
+      <span className={styles.mapListBody}>
+        <span className={styles.mapListName}>{title}</span>
+        <span className={styles.profileSubtitle}>{subtitle}</span>
+      </span>
+    </Link>
   );
 }
 
-export function HomeFeedShortcutActions({
+/** Sidebar section listing changelog entries, with an optional header action. */
+export function HomeFeedChangelog({
+  title,
+  action,
+  empty,
   children,
 }: {
-  children: React.ReactNode;
+  title: React.ReactNode;
+  action?: React.ReactNode;
+  empty?: React.ReactNode;
+  children?: React.ReactNode;
 }) {
-  return <div className={styles.shortcutActions}>{children}</div>;
+  const hasItems = React.Children.count(children) > 0;
+
+  return (
+    <section
+      className={styles.changelog}
+      aria-label={typeof title === "string" ? title : undefined}
+    >
+      <div className={styles.changelogHeader}>
+        <h2 className={styles.changelogTitle}>{title}</h2>
+        {action}
+      </div>
+      {hasItems ? <ul className={styles.changelogItems}>{children}</ul> : empty}
+    </section>
+  );
 }
 
-export function HomeFeedNewMapAction({
+export function HomeFeedChangelogItem({
+  date,
+  imageUrl,
+  actions,
   children,
 }: {
+  date: React.ReactNode;
+  imageUrl?: string | null;
+  /** Admin controls (edit/delete), shown beside the date. */
+  actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  return <div className={styles.shortcutAction}>{children}</div>;
+  return (
+    <li className={styles.changelogItem}>
+      <div className={styles.changelogMeta}>
+        <span className={styles.changelogDate}>{date}</span>
+        {actions ? (
+          <span className={styles.changelogActions}>{actions}</span>
+        ) : null}
+      </div>
+      {imageUrl?.trim() ? (
+        <img src={imageUrl} alt="" className={styles.changelogImage} />
+      ) : null}
+      <div className={styles.changelogDescription}>{children}</div>
+    </li>
+  );
 }
 
 export function HomeFeedMapList({

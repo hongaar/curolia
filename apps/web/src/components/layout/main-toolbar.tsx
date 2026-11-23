@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 function WhatsNewToolbarButton() {
   return (
     <Button
-      variant="accent"
+      variant="accentSoft"
       rounded
       size="default"
       render={<Link to="/whats-new" />}
