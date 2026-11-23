@@ -39,7 +39,18 @@ const queryClient = new QueryClient({
   },
 });
 
-registerSW({ immediate: true });
+if (import.meta.env.DEV) {
+  // A service worker left on this origin (preview/e2e build on the same port)
+  // serves cached scripts/styles (StaleWhileRevalidate) and masks HMR edits.
+  void navigator.serviceWorker
+    ?.getRegistrations()
+    .then((regs) => Promise.all(regs.map((r) => r.unregister())));
+  void globalThis.caches
+    ?.keys()
+    .then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+} else {
+  registerSW({ immediate: true });
+}
 initBugsink();
 initUmami();
 initPerfProbe();
