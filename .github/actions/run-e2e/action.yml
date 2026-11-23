@@ -6,7 +6,7 @@ runs:
   steps:
     - uses: supabase/setup-cli@v1
       with:
-        version: latest
+        version: 2.104.0
 
     - name: Sync plugin functions
       shell: bash
