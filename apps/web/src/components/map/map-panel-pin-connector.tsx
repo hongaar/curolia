@@ -24,7 +24,10 @@ type MapPanelPinConnectorOverlayProps = {
   show: boolean;
   pinLng: number;
   pinLat: number;
-  anchorRef: RefObject<MapPanelPinConnectorAnchor | null>;
+  /** Pin tag color; contrast is normalized in CSS. */
+  color: string;
+  /** Read on every frame update so the anchor can come from hover or DOM lookup. */
+  getAnchor: () => MapPanelPinConnectorAnchor | null;
   scrollRootRef: RefObject<HTMLElement | null>;
   sidePanelRef: RefObject<HTMLElement | null>;
   mapRef: RefObject<PinMapHandle | null>;
@@ -118,12 +121,13 @@ function computePanelLineAnchor(
   };
 }
 
-/** Draws a line from a map side-panel pin to its map marker while hovered. */
+/** Draws a line from a map side-panel pin to its map marker (hovered or selected). */
 export function MapPanelPinConnectorOverlay({
   show,
   pinLng,
   pinLat,
-  anchorRef,
+  color,
+  getAnchor,
   scrollRootRef,
   sidePanelRef,
   mapRef,
@@ -136,7 +140,7 @@ export function MapPanelPinConnectorOverlay({
     if (!show) return;
 
     const update = () => {
-      const anchor = anchorRef.current;
+      const anchor = getAnchor();
       const map = mapRef.current;
       const container = map?.getMapContainer() ?? null;
       const sidePanel = sidePanelRef.current;
@@ -206,7 +210,7 @@ export function MapPanelPinConnectorOverlay({
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [show, pinLng, pinLat, anchorRef, scrollRootRef, sidePanelRef, mapRef]);
+  }, [show, pinLng, pinLat, getAnchor, scrollRootRef, sidePanelRef, mapRef]);
 
   if (!show || !segments) return null;
 
@@ -216,6 +220,7 @@ export function MapPanelPinConnectorOverlay({
       y1={segments.panel.y1}
       x2={segments.panel.x2}
       y2={segments.panel.y2}
+      color={color}
     />
   );
 
@@ -229,6 +234,7 @@ export function MapPanelPinConnectorOverlay({
               y1={segments.map.y1}
               x2={segments.map.x2}
               y2={segments.map.y2}
+              color={color}
             />,
             mapContainer,
           )

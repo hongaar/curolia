@@ -153,9 +153,6 @@ export function MapBlogSidePanelGallery({
   return <div className={styles.blogSidePanelGallery}>{children}</div>;
 }
 
-/** Keep in sync with `mapPanelPinHighlightRing` in map.module.css */
-export const MAP_PANEL_PIN_HIGHLIGHT_DURATION_MS = 5_000;
-
 /** Match `--map-panel-pin-highlight-bleed` (space-4 − 2px @ 16px root). */
 export const MAP_PANEL_PIN_HIGHLIGHT_BLEED_PX = 10;
 
@@ -164,10 +161,6 @@ export const MAP_PANEL_PIN_HIGHLIGHT_SCROLL_GAP_PX = 20;
 
 export const MAP_PANEL_PIN_SCROLL_TOP_MARGIN_PX =
   MAP_PANEL_PIN_HIGHLIGHT_BLEED_PX + MAP_PANEL_PIN_HIGHLIGHT_SCROLL_GAP_PX;
-
-export function mapPanelPinHighlightRingClassName(): string {
-  return styles.mapPanelPinHighlightRing;
-}
 
 export function MapBlogSidePanelScrim({
   onDismiss,
@@ -386,21 +379,31 @@ export function MapBlogPinConnector({
   );
 }
 
+function connectorColorStyle(color?: string): React.CSSProperties | undefined {
+  return color
+    ? ({ "--map-pin-connector-color": color } as React.CSSProperties)
+    : undefined;
+}
+
 /** Blog segment portaled into the side panel — below pin content and gallery. */
 export function MapBlogPinConnectorInPanel({
   x1,
   y1,
   x2,
   y2,
+  color,
 }: {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
+  /** Line hue (e.g. tag color); lightness is clamped for contrast. Defaults to primary. */
+  color?: string;
 }) {
   return (
     <svg
       className={styles.blogPinConnectorInPanel}
+      style={connectorColorStyle(color)}
       aria-hidden
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -421,15 +424,19 @@ export function MapBlogPinConnectorMap({
   y1,
   x2,
   y2,
+  color,
 }: {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
+  /** Line hue (e.g. tag color); lightness is clamped for contrast. Defaults to primary. */
+  color?: string;
 }) {
   return (
     <svg
       className={styles.blogPinConnectorMap}
+      style={connectorColorStyle(color)}
       aria-hidden
       xmlns="http://www.w3.org/2000/svg"
     >

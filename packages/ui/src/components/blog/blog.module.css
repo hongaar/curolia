@@ -260,6 +260,10 @@
 }
 
 .pinTitleLink {
+  --_accent: var(--blog-pin-accent, var(--primary));
+  /* Keep the hue, clamp perceptual lightness so pale/dark tags stay legible. */
+  --_accent-text: var(--_accent);
+  --_accent-text: oklch(from var(--_accent) clamp(0.42, l, 0.6) c h);
   color: inherit;
   text-decoration: none;
   transition: color 150ms;
@@ -273,10 +277,17 @@
 }
 
 .pinTitleLink:hover {
-  color: var(--primary);
+  color: var(--_accent-text);
   text-decoration: underline;
   text-decoration-color: color-mix(in oklch, var(--border) 60%, transparent);
   text-underline-offset: 4px;
+}
+
+/* Hovering anywhere on the entry matches the active (map-selected) look;
+   underline stays reserved for hovering the title itself. */
+.pinList > li:hover .pinTitleLink,
+.pinTitleLink[data-active="true"] {
+  color: var(--_accent-text);
 }
 
 .tagRow {

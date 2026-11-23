@@ -1,4 +1,8 @@
 .itemWrap {
+  --_accent: var(--pin-card-accent, var(--primary));
+  /* Keep the hue, clamp perceptual lightness so pale/dark tags stay legible. */
+  --_accent-text: var(--_accent);
+  --_accent-text: oklch(from var(--_accent) clamp(0.42, l, 0.6) c h);
   position: relative;
   z-index: 1;
   break-inside: avoid;
@@ -34,6 +38,13 @@
 .card:hover {
   box-shadow:
     0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
+    0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
+}
+
+/* Outer ring via box-shadow: thicker border without shifting layout. */
+.itemWrap[data-active="true"] .card {
+  box-shadow:
+    0 0 0 2px var(--_accent-text),
     0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
 }
 
@@ -80,6 +91,19 @@
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: var(--card-foreground);
+  transition: color 150ms;
+}
+
+.card:hover .title {
+  color: var(--_accent-text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklch, var(--border) 60%, transparent);
+  text-underline-offset: 4px;
+}
+
+/* Color only, so title hover still underlines while active. */
+.itemWrap[data-active="true"] .title {
+  color: var(--_accent-text);
 }
 
 .description {

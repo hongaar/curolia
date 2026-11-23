@@ -1,7 +1,6 @@
 import {
   cancelMapPanelPinScrollFollow,
   focusMapPanelPin,
-  mapPanelPinHighlightDurationMs,
   type MapPanelPinScrollBehavior,
   type MapPanelPinScrollMode,
 } from "@/lib/scroll-map-panel-to-pin";
@@ -38,21 +37,12 @@ export function useMapPanelPinFocus({
   behavior = "smooth",
   contentReady = true,
 }: UseMapPanelPinFocusOptions) {
-  const [highlightedPinId, setHighlightedPinId] = useState<string | null>(null);
-  const [highlightSession, setHighlightSession] = useState(0);
-  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [focusedPinId, setFocusedPinId] = useState<string | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const modeRef = useRef(mode);
   const behaviorRef = useRef(behavior);
   modeRef.current = mode;
   behaviorRef.current = behavior;
-
-  const clearHighlightTimer = useCallback(() => {
-    if (highlightTimerRef.current) {
-      clearTimeout(highlightTimerRef.current);
-      highlightTimerRef.current = null;
-    }
-  }, []);
 
   const clearRetryTimer = useCallback(() => {
     if (retryTimerRef.current) {
@@ -83,24 +73,15 @@ export function useMapPanelPinFocus({
         return;
       }
 
-      setHighlightedPinId(targetPinId);
-      setHighlightSession((session) => session + 1);
-      clearHighlightTimer();
-      highlightTimerRef.current = setTimeout(() => {
-        setHighlightedPinId((current) =>
-          current === targetPinId ? null : current,
-        );
-        highlightTimerRef.current = null;
-      }, mapPanelPinHighlightDurationMs());
+      setFocusedPinId(targetPinId);
     },
-    [clearHighlightTimer, scrollRootRef],
+    [scrollRootRef],
   );
 
   useEffect(() => {
     if (!enabled || !pinId || !contentReady) {
       clearRetryTimer();
-      clearHighlightTimer();
-      setHighlightedPinId(null);
+      setFocusedPinId(null);
       const scrollRoot = scrollRootRef.current;
       if (scrollRoot) cancelMapPanelPinScrollFollow(scrollRoot);
       return undefined;
@@ -111,7 +92,6 @@ export function useMapPanelPinFocus({
       clearRetryTimer();
     };
   }, [
-    clearHighlightTimer,
     clearRetryTimer,
     contentReady,
     enabled,
@@ -121,7 +101,5 @@ export function useMapPanelPinFocus({
     scrollRootRef,
   ]);
 
-  useEffect(() => () => clearHighlightTimer(), [clearHighlightTimer]);
-
-  return { highlightedPinId, highlightSession };
+  return { focusedPinId };
 }

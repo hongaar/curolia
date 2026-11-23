@@ -7,7 +7,6 @@ import {
   MapPanelPinConnectorOverlay,
   type MapPanelPinConnectorAnchor,
 } from "@/components/map/map-panel-pin-connector";
-import { MapPanelPinHighlightOverlay } from "@/components/map/map-panel-pin-highlight-overlay";
 import {
   MapPointerContextMenu,
   type MapPointerContextMenuTarget,
@@ -31,6 +30,7 @@ import { useExploreMapResults } from "@/hooks/use-explore-results";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { useMapPanelPinFocus } from "@/hooks/use-map-panel-pin-focus";
+import { findMapPanelPinConnectorAnchor } from "@/lib/scroll-map-panel-to-pin";
 import { useMapPanelPinHoverSync } from "@/hooks/use-map-panel-pin-hover-sync";
 import { useMapPinPanel } from "@/hooks/use-map-pin-panel";
 import { useMapSlugRouteSync } from "@/hooks/use-map-slug-route-sync";
@@ -95,7 +95,8 @@ import { createPinFromLinkMetadata } from "@/lib/pin-from-link";
 import { fetchLinkMetadata } from "@/lib/pin-links";
 import { EMPTY_EXPLORE_LAYER } from "@/lib/pin-map-explore-layer";
 import type { PlaceMapHighlight } from "@/lib/pin-map-place-highlight";
-import { hasPinTravelSequence } from "@/lib/pin-sequence";
+import { pinRouteColor } from "@/lib/pin-map-route-colors";
+import { hasPinTravelSequence, pinSequenceTagColor } from "@/lib/pin-sequence";
 import type { PinWithTags } from "@/lib/pin-with-tags";
 import { filterPinsByTags } from "@/lib/pin-with-tags";
 import { randomPresetTagColor } from "@/lib/preset-pin-tag-colors";
@@ -723,14 +724,15 @@ export function MapPage() {
     suspendPanRef: suspendContentPanRef,
   });
 
-  const { highlightedPinId, highlightSession } = useMapPanelPinFocus({
+  const contentPanelMode = showBlogPanel ? "blog" : "gallery";
+  const { focusedPinId } = useMapPanelPinFocus({
     enabled:
       showContentSidePanel &&
       panelPinFocusRequest != null &&
       hashPinId != null &&
       !stackCoversMap,
     pinId: panelPinFocusRequest?.pinId,
-    mode: showBlogPanel ? "blog" : "gallery",
+    mode: contentPanelMode,
     scrollRootRef: contentScrollRef,
     focusNonce: panelPinFocusRequest?.nonce ?? 0,
     behavior: panelPinFocusRequest?.behavior ?? "auto",
@@ -772,6 +774,24 @@ export function MapPage() {
     () => pins.find((pin) => pin.id === hoverPinId) ?? null,
     [pins, hoverPinId],
   );
+
+  const panelActivePinId =
+    showContentSidePanel && !stackCoversMap ? focusedPinId : null;
+  // Hover wins; otherwise keep the line on the pin selected from the map.
+  const connectorPin = useMemo(() => {
+    if (hoverPin) return hoverPin;
+    return pins.find((pin) => pin.id === panelActivePinId) ?? null;
+  }, [hoverPin, pins, panelActivePinId]);
+  const connectorFromHover = hoverPin != null;
+  const getConnectorAnchor = useCallback(() => {
+    if (connectorFromHover) return connectorAnchorRef.current;
+    if (!connectorPin) return null;
+    return findMapPanelPinConnectorAnchor(
+      contentScrollRef.current,
+      connectorPin.id,
+      contentPanelMode,
+    );
+  }, [connectorFromHover, connectorPin, contentPanelMode]);
 
   const onContentPanelClosed = useCallback(() => {
     setContentPanelLayoutPersist(false);
@@ -1487,14 +1507,15 @@ export function MapPage() {
           onSelectExploreCategory={selectExploreCategory}
         />
         {showContentSidePanel &&
-        hoverPin &&
-        typeof hoverPin.lat === "number" &&
-        typeof hoverPin.lng === "number" ? (
+        connectorPin &&
+        typeof connectorPin.lat === "number" &&
+        typeof connectorPin.lng === "number" ? (
           <MapPanelPinConnectorOverlay
             show
-            pinLng={hoverPin.lng}
-            pinLat={hoverPin.lat}
-            anchorRef={connectorAnchorRef}
+            pinLng={connectorPin.lng}
+            pinLat={connectorPin.lat}
+            color={pinRouteColor(pinSequenceTagColor(connectorPin))}
+            getAnchor={getConnectorAnchor}
             scrollRootRef={contentScrollRef}
             sidePanelRef={contentSidePanelRef}
             mapRef={mapRef}
@@ -1514,6 +1535,7 @@ export function MapPage() {
                 scrollRootRef={contentScrollRef}
                 onPinHover={handlePanelPinHover}
                 onPinHoverEnd={handlePanelPinHoverEnd}
+                activePinId={panelActivePinId}
                 gridColumns={3}
               />
             ) : (
@@ -1524,6 +1546,7 @@ export function MapPage() {
                 scrollRootRef={contentScrollRef}
                 onPinHover={handlePanelPinHover}
                 onPinHoverEnd={handlePanelPinHoverEnd}
+                activePinId={panelActivePinId}
               />
             )}
             <MapBlogSidePanelScrim
@@ -1531,15 +1554,6 @@ export function MapPage() {
               onDismiss={onClosePinMapPopover}
             />
           </MapBlogSidePanel>
-        ) : null}
-        {showContentSidePanel && highlightedPinId && !stackCoversMap ? (
-          <MapPanelPinHighlightOverlay
-            key={highlightSession}
-            pinId={highlightedPinId}
-            mode={showBlogPanel ? "blog" : "gallery"}
-            scrollRootRef={contentScrollRef}
-            sidePanelRef={contentSidePanelRef}
-          />
         ) : null}
         {showSidePanel && sidebarPinId ? (
           <MapSidePanel

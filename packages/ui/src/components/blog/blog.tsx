@@ -156,15 +156,34 @@ export function BlogPinTitle({
   );
 }
 
+type BlogPinTitleAccentProps = {
+  /** Hover/active color (e.g. tag color); lightness is clamped for contrast. Defaults to primary. */
+  accentColor?: string;
+  /** Selected pin: title stays in the accent color without underline. */
+  active?: boolean;
+};
+
+function pinTitleAccentProps({ accentColor, active }: BlogPinTitleAccentProps) {
+  return {
+    className: styles.pinTitleLink,
+    "data-active": active ? "true" : undefined,
+    style: accentColor
+      ? ({ "--blog-pin-accent": accentColor } as React.CSSProperties)
+      : undefined,
+  };
+}
+
 export function BlogPinTitleLink({
   to,
   children,
+  accentColor,
+  active,
 }: {
   to: string;
   children: React.ReactNode;
-}) {
+} & BlogPinTitleAccentProps) {
   return (
-    <Link className={styles.pinTitleLink} to={to}>
+    <Link to={to} {...pinTitleAccentProps({ accentColor, active })}>
       {children}
     </Link>
   );
@@ -172,10 +191,17 @@ export function BlogPinTitleLink({
 
 export function BlogPinTitleButton({
   children,
+  accentColor,
+  active,
   ...props
-}: React.ComponentProps<"button">) {
+}: Omit<React.ComponentProps<"button">, "className" | "style"> &
+  BlogPinTitleAccentProps) {
   return (
-    <button type="button" className={styles.pinTitleLink} {...props}>
+    <button
+      type="button"
+      {...props}
+      {...pinTitleAccentProps({ accentColor, active })}
+    >
       {children}
     </button>
   );

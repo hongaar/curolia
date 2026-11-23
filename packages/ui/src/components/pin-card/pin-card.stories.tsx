@@ -55,6 +55,20 @@ export const WithoutCover: Story = {
   },
 };
 
+export const AccentHover: Story = {
+  args: { accentColor: "#ffe66d" },
+  parameters: storyDocs(
+    "Hover the card: title takes the (contrast-clamped) tag color with underline.",
+  ),
+};
+
+export const Active: Story = {
+  args: { accentColor: "#ff851b", active: true },
+  parameters: storyDocs(
+    "Pin selected on the map: tag-colored outer ring (no layout shift) and title.",
+  ),
+};
+
 export const MasonryGrid: Story = {
   render: () => (
     <MapCardMasonryGrid columns={4}>

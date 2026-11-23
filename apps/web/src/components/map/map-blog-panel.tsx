@@ -53,6 +53,8 @@ import type { MapPanelPinConnectorAnchor } from "@/components/map/map-panel-pin-
 import { pinDetailHref } from "@/lib/app-paths";
 import type { MapRoute } from "@/lib/map-route";
 import { mapRouteForMap } from "@/lib/map-route";
+import { pinRouteColor } from "@/lib/pin-map-route-colors";
+import { pinSequenceTagColor } from "@/lib/pin-sequence";
 import { resolveFilterTagIdsFromSearchParams } from "@/lib/map-view-params";
 
 type MapBlogPanelProps = {
@@ -64,6 +66,8 @@ type MapBlogPanelProps = {
   /** Desktop map+blog: hover a pin section to focus it on the map. */
   onPinHover?: (pinId: string, anchor: MapPanelPinConnectorAnchor) => void;
   onPinHoverEnd?: () => void;
+  /** Pin selected on the map — title/card shows its tag-colored active state. */
+  activePinId?: string | null;
 };
 
 export function MapBlogPanel({
@@ -73,6 +77,7 @@ export function MapBlogPanel({
   scrollRootRef,
   onPinHover,
   onPinHoverEnd,
+  activePinId,
 }: MapBlogPanelProps) {
   const [searchParams] = useSearchParams();
   const { activeMapId, activeMap, loading: mapLoading } = useMap();
@@ -204,6 +209,7 @@ export function MapBlogPanel({
             onViewPin={onViewPin}
             onPinHover={onPinHover}
             onPinHoverEnd={onPinHoverEnd}
+            active={t.id === activePinId}
             onOpenPhoto={(photoId) =>
               setPhotoLightbox({ pinId: t.id, photoId })
             }
@@ -257,6 +263,7 @@ function BlogPinEntry({
   onPinHover,
   onPinHoverEnd,
   onOpenPhoto,
+  active,
 }: {
   pin: PinWithTags;
   blogMapRoute: MapRoute | null;
@@ -267,8 +274,10 @@ function BlogPinEntry({
   onPinHover?: (pinId: string, anchor: MapPanelPinConnectorAnchor) => void;
   onPinHoverEnd?: () => void;
   onOpenPhoto: (photoId: string) => void;
+  active: boolean;
 }) {
   const titleAnchorRef = useRef<HTMLSpanElement>(null);
+  const accentColor = pinRouteColor(pinSequenceTagColor(t));
   const pinEntryRef = useRef<HTMLLIElement>(null);
   const tagRows = (t.pin_tags ?? []).map((tt) => tt.tags).filter(Boolean) as {
     id: string;
@@ -294,13 +303,21 @@ function BlogPinEntry({
         </BlogPinDate>
       ) : null}
       <BlogPinTitle spaced={Boolean(t.date)}>
-        <span ref={titleAnchorRef} data-blog-pin-title-anchor>
+        <span ref={titleAnchorRef} data-pin-line-anchor>
           {embedded && onViewPin ? (
-            <BlogPinTitleButton onClick={() => onViewPin(t.id)}>
+            <BlogPinTitleButton
+              onClick={() => onViewPin(t.id)}
+              accentColor={accentColor}
+              active={active}
+            >
               {t.title?.trim() || "Untitled pin"}
             </BlogPinTitleButton>
           ) : (
-            <BlogPinTitleLink to={detailHref}>
+            <BlogPinTitleLink
+              to={detailHref}
+              accentColor={accentColor}
+              active={active}
+            >
               {t.title?.trim() || "Untitled pin"}
             </BlogPinTitleLink>
           )}

@@ -39,6 +39,8 @@ import { useSearchParams } from "react-router-dom";
 import { pinDetailHref } from "@/lib/app-paths";
 import type { MapRoute } from "@/lib/map-route";
 import { mapRouteForMap } from "@/lib/map-route";
+import { pinRouteColor } from "@/lib/pin-map-route-colors";
+import { pinSequenceTagColor } from "@/lib/pin-sequence";
 import { resolveFilterTagIdsFromSearchParams } from "@/lib/map-view-params";
 
 type MapGalleryPanelProps = {
@@ -49,6 +51,8 @@ type MapGalleryPanelProps = {
   scrollRootRef?: RefObject<HTMLDivElement | null>;
   onPinHover?: (pinId: string, anchor: MapPanelPinConnectorAnchor) => void;
   onPinHoverEnd?: () => void;
+  /** Pin selected on the map — title/card shows its tag-colored active state. */
+  activePinId?: string | null;
   /** Masonry column count — side panel uses 3, fullscreen mobile uses 4. */
   gridColumns?: 3 | 4;
 };
@@ -74,6 +78,7 @@ export function MapGalleryPanel({
   scrollRootRef,
   onPinHover,
   onPinHoverEnd,
+  activePinId,
   gridColumns = 3,
 }: MapGalleryPanelProps) {
   const [searchParams] = useSearchParams();
@@ -189,6 +194,7 @@ export function MapGalleryPanel({
             onViewPin={onViewPin}
             onPinHover={onPinHover}
             onPinHoverEnd={onPinHoverEnd}
+            active={pin.id === activePinId}
           />
         ))}
       </MapCardMasonryGrid>
@@ -228,6 +234,7 @@ function GalleryPinCard({
   onViewPin,
   onPinHover,
   onPinHoverEnd,
+  active,
 }: {
   pin: PinWithTags;
   galleryMapRoute: MapRoute | null;
@@ -237,6 +244,7 @@ function GalleryPinCard({
   onViewPin?: (pinId: string) => void;
   onPinHover?: (pinId: string, anchor: MapPanelPinConnectorAnchor) => void;
   onPinHoverEnd?: () => void;
+  active: boolean;
 }) {
   const pinEntryRef = useRef<HTMLElement>(null);
   const lineAnchorRef = useRef<HTMLHeadingElement>(null);
@@ -276,6 +284,8 @@ function GalleryPinCard({
     pinId: pin.id,
     pinEntryRef,
     lineAnchorRef,
+    accentColor: pinRouteColor(pinSequenceTagColor(pin)),
+    active,
     ...hoverHandlers,
   };
 

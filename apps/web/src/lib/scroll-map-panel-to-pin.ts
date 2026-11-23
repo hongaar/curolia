@@ -1,7 +1,4 @@
-import {
-  MAP_PANEL_PIN_HIGHLIGHT_DURATION_MS,
-  MAP_PANEL_PIN_SCROLL_TOP_MARGIN_PX,
-} from "@curolia/ui/map";
+import { MAP_PANEL_PIN_SCROLL_TOP_MARGIN_PX } from "@curolia/ui/map";
 
 export { MAP_PANEL_PIN_SCROLL_TOP_MARGIN_PX };
 
@@ -36,6 +33,19 @@ export function findMapPanelPinElement(
 ): HTMLElement | null {
   const match = scrollRoot.querySelector(pinSelector(pinId, mode));
   return match instanceof HTMLElement ? match : null;
+}
+
+/** Line anchor (`data-pin-line-anchor`) + entry for the pin → marker connector. */
+export function findMapPanelPinConnectorAnchor(
+  scrollRoot: HTMLElement | null,
+  pinId: string,
+  mode: MapPanelPinScrollMode,
+): { lineAnchor: HTMLElement; pinEntry: HTMLElement } | null {
+  if (!scrollRoot) return null;
+  const pinEntry = findMapPanelPinElement(scrollRoot, pinId, mode);
+  const lineAnchor = pinEntry?.querySelector("[data-pin-line-anchor]");
+  if (!pinEntry || !(lineAnchor instanceof HTMLElement)) return null;
+  return { lineAnchor, pinEntry };
 }
 
 export function mapPanelPinScrollTargetTop(
@@ -228,10 +238,6 @@ export function scrollMapPanelPinIntoView(
     mapPanelPinScrollTargetTop(scrollRoot, pinElement, topMarginPx),
     !prefersReducedMotion(),
   );
-}
-
-export function mapPanelPinHighlightDurationMs(): number {
-  return MAP_PANEL_PIN_HIGHLIGHT_DURATION_MS;
 }
 
 export function focusMapPanelPin(

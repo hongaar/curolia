@@ -28,6 +28,10 @@ export type PinCardProps = {
   entryClassName?: string;
   onMouseEnter?: React.MouseEventHandler<HTMLElement>;
   onMouseLeave?: React.MouseEventHandler<HTMLElement>;
+  /** Hover/active accent (e.g. tag color); lightness is clamped for contrast. Defaults to primary. */
+  accentColor?: string;
+  /** Selected pin: accent border and title color. */
+  active?: boolean;
 };
 
 function PinCardShell({
@@ -99,6 +103,8 @@ export function PinCard({
   entryClassName,
   onMouseEnter,
   onMouseLeave,
+  accentColor,
+  active = false,
 }: PinCardProps) {
   const hasCover = Boolean(coverUrl?.trim());
   const hasMeta = Boolean(dateLabel || photoCountLabel);
@@ -136,6 +142,12 @@ export function PinCard({
       ref={pinEntryRef}
       className={[styles.itemWrap, entryClassName].filter(Boolean).join(" ")}
       data-gallery-pin-id={pinId}
+      data-active={active ? "true" : undefined}
+      style={
+        accentColor
+          ? ({ "--pin-card-accent": accentColor } as React.CSSProperties)
+          : undefined
+      }
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -157,7 +169,7 @@ export function PinCard({
           </div>
         ) : null}
         <div className={styles.body}>
-          <h3 ref={lineAnchorRef} className={styles.title}>
+          <h3 ref={lineAnchorRef} className={styles.title} data-pin-line-anchor>
             {title}
           </h3>
           {tags}

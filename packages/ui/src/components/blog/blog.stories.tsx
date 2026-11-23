@@ -7,6 +7,8 @@ import {
   BlogHeader,
   BlogLead,
   BlogPageRoot,
+  BlogPinTitle,
+  BlogPinTitleButton,
   BlogScroll,
   BlogTitle,
 } from "./blog";
@@ -60,5 +62,30 @@ export const Default: Story = {
         </BlogContent>
       </BlogScroll>
     </BlogPageRoot>
+  ),
+};
+
+export const PinTitleAccent: Story = {
+  parameters: storyDocs(
+    "Pin titles take the tag color on hover (with underline); `active` keeps it without underline. Pale/dark colors are clamped for contrast.",
+  ),
+  render: () => (
+    <BlogContent>
+      <BlogPinTitle>
+        <BlogPinTitleButton accentColor="#2d6a5d">
+          Default tag (hover me)
+        </BlogPinTitleButton>
+      </BlogPinTitle>
+      <BlogPinTitle spaced>
+        <BlogPinTitleButton accentColor="#ffe66d">
+          Very light tag (hover me)
+        </BlogPinTitleButton>
+      </BlogPinTitle>
+      <BlogPinTitle spaced>
+        <BlogPinTitleButton accentColor="#ff851b" active>
+          Active pin
+        </BlogPinTitleButton>
+      </BlogPinTitle>
+    </BlogContent>
   ),
 };

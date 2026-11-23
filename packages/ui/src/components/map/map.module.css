@@ -377,7 +377,10 @@
 }
 
 .blogPinConnectorLine {
-  stroke: var(--primary);
+  --_connector: var(--map-pin-connector-color, var(--primary));
+  stroke: var(--_connector);
+  /* Keep the hue, clamp perceptual lightness so pale/dark tags stay legible on map + panel. */
+  stroke: oklch(from var(--_connector) clamp(0.42, l, 0.6) c h);
   stroke-width: 2;
   stroke-opacity: 1;
   vector-effect: non-scaling-stroke;
@@ -386,43 +389,6 @@
 @media (prefers-reduced-motion: reduce) {
   .blogSidePanelScrim {
     transition: none;
-  }
-}
-
-.mapPanelPinHighlightRing {
-  position: fixed;
-  pointer-events: none;
-  z-index: 18;
-  --map-panel-pin-highlight-radius: calc(
-    var(--radius-2xl) + var(--space-3) - 2px
-  );
-  --map-panel-pin-highlight-duration: 5s;
-  border-radius: var(--map-panel-pin-highlight-radius);
-  animation: mapPanelPinHighlightFade var(--map-panel-pin-highlight-duration)
-    ease-out forwards;
-}
-
-@keyframes mapPanelPinHighlightFade {
-  0%,
-  30% {
-    background: color-mix(in oklch, var(--accent-strong) 18%, transparent);
-    box-shadow:
-      0 0 0 2px color-mix(in oklch, var(--accent-strong) 32%, transparent),
-      0 0 28px color-mix(in oklch, var(--accent-strong) 20%, transparent);
-  }
-
-  100% {
-    background: transparent;
-    box-shadow: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mapPanelPinHighlightRing {
-    animation: none;
-    background: color-mix(in oklch, var(--accent-strong) 14%, transparent);
-    box-shadow: 0 0 0 2px
-      color-mix(in oklch, var(--accent-strong) 26%, transparent);
   }
 }
 
