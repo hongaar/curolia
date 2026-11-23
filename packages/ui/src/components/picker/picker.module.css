@@ -49,6 +49,7 @@
 }
 
 .emojiDisplay {
+  font-family: var(--font-emoji);
   font-size: var(--font-size-xl);
   line-height: 1;
 }

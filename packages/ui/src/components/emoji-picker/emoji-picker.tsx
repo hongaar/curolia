@@ -14,9 +14,8 @@ import styles from "./emoji-picker.module.css";
 
 const EMOJIBASE_URL = "https://cdn.jsdelivr.net/npm/emojibase-data@latest";
 
-/** Frimousse's own emoji font stack, with the country-flag web font in front. */
-const EMOJI_FONT =
-  "'Twemoji Country Flags', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', 'Android Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', EmojiSymbols, sans-serif";
+/** Shared emoji font stack (see `--font-emoji` in tokens.css). */
+const EMOJI_FONT = "var(--font-emoji)";
 
 /** Newest-first samples per emoji version, probed like frimousse does. */
 const EMOJI_VERSION_SAMPLES: [number, string][] = [
@@ -62,7 +61,11 @@ function detectEmojiVersion(): number | undefined {
     return undefined;
   }
   if (!ctx) return undefined;
-  ctx.font = `2px ${EMOJI_FONT}`;
+  const fontStack =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--font-emoji")
+      .trim() || "sans-serif";
+  ctx.font = `2px ${fontStack}`;
   ctx.textBaseline = "middle";
   for (const [version, sample] of EMOJI_VERSION_SAMPLES) {
     if (canRenderEmoji(ctx, sample)) return version;

@@ -133,8 +133,10 @@
   max-height: 10rem;
   object-fit: cover;
   border-radius: var(--radius-md);
-  box-shadow: inset 0 0 0 1px
-    color-mix(in oklch, var(--border) 65%, transparent);
+  /* Inset shadows don't paint over <img> content; use an outline instead. */
+  outline: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+  outline-offset: -1px;
+  box-shadow: 0 1px 3px color-mix(in oklch, var(--foreground) 10%, transparent);
 }
 
 .changelogDescription {

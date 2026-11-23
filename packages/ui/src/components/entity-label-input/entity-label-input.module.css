@@ -86,6 +86,7 @@
 }
 
 .emojiDisplay {
+  font-family: var(--font-emoji);
   display: flex;
   width: 1.125rem;
   height: 1.125rem;

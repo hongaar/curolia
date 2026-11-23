@@ -120,6 +120,7 @@
 }
 
 .activeEmoji {
+  font-family: var(--font-emoji);
   display: flex;
   width: var(--control-h-sm);
   height: var(--control-h-sm);
