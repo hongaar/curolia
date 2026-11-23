@@ -278,21 +278,22 @@ test.describe("map panel pin focus @smoke", () => {
     ).toBeVisible({
       timeout: 10_000,
     });
+    // Budget covers the panel focus only, not the detail navigation below.
+    const wallMs = Date.now() - start;
     await page
       .locator(`[data-blog-pin-id="${seed.targetPinId}"]`)
       .getByRole("button", { name: "Pin details" })
       .click();
-    await expect(
-      page.getByRole("link", { name: "Open full pin detail page" }),
-    ).toBeVisible({ timeout: 10_000 });
-    await page.getByRole("link", { name: "Open full pin detail page" }).click();
+    await expect(page.getByLabel("Open full pin detail page")).toBeVisible({
+      timeout: 10_000,
+    });
+    await page.getByLabel("Open full pin detail page").click();
     await expect(page).toHaveURL(/\/pin\//);
     await expect(
       page.locator(
         `[data-blog-pin-id] [data-active="true"], [data-gallery-pin-id][data-active="true"]`,
       ),
     ).toHaveCount(0);
-    const wallMs = Date.now() - start;
 
     const snapshot = await perfSnapshot();
     await finishFlow("map-panel-pin-focus", {

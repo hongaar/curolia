@@ -9,6 +9,12 @@ Playwright suite that runs the real app against local Supabase and asserts:
 ## Prerequisites
 
 - Local Supabase running (`npm run db:start -w @curolia/supabase`)
+- Playwright's Chromium, installed once per Playwright upgrade:
+  `npx playwright install chromium` (run in `tests/e2e`). Playwright ≥ 1.65
+  ships generic Chrome for Testing builds, so this works on Ubuntu 26.04 and
+  other distros that older versions refused ("does not support chromium on
+  ubuntu26.04-x64"). If launching fails on missing system libraries, run
+  `sudo npx playwright install-deps chromium`.
 - E2E scripts load `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and Vite
   publishable key from `supabase status` automatically — no hardcoded JWTs.
   Override by exporting those variables yourself if needed.
