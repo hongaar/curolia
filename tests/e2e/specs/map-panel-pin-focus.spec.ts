@@ -58,7 +58,11 @@ test.describe("map panel pin focus @smoke", () => {
 
     const start = Date.now();
     await map.clickMapPinMarker(seed.targetPinId, { force: true });
-    await expect(page.locator("[data-map-panel-pin-highlight]")).toBeVisible({
+    await expect(
+      page.locator(
+        `[data-blog-pin-id="${seed.targetPinId}"] [data-active="true"]`,
+      ),
+    ).toBeVisible({
       timeout: 10_000,
     });
     await expect(
@@ -106,7 +110,11 @@ test.describe("map panel pin focus @smoke", () => {
 
     const start = Date.now();
     await map.clickMapPinMarker(seed.targetPinId, { force: true });
-    await expect(page.locator("[data-map-panel-pin-highlight]")).toBeVisible({
+    await expect(
+      page.locator(
+        `[data-gallery-pin-id="${seed.targetPinId}"][data-active="true"]`,
+      ),
+    ).toBeVisible({
       timeout: 10_000,
     });
     await expect(
@@ -162,7 +170,11 @@ test.describe("map panel pin focus @smoke", () => {
       state: "visible",
       timeout: 10_000,
     });
-    await expect(page.locator("[data-map-panel-pin-highlight]")).toHaveCount(0);
+    await expect(
+      page.locator(
+        `[data-blog-pin-id] [data-active="true"], [data-gallery-pin-id][data-active="true"]`,
+      ),
+    ).toHaveCount(0);
     await expect
       .poll(
         () =>
@@ -219,7 +231,11 @@ test.describe("map panel pin focus @smoke", () => {
       page,
       `[data-blog-pin-id="${seed.targetPinId}"]`,
     );
-    await expect(page.locator("[data-map-panel-pin-highlight]")).toBeVisible({
+    await expect(
+      page.locator(
+        `[data-blog-pin-id="${seed.targetPinId}"] [data-active="true"]`,
+      ),
+    ).toBeVisible({
       timeout: 10_000,
     });
     const wallMs = Date.now() - start;
@@ -233,7 +249,7 @@ test.describe("map panel pin focus @smoke", () => {
     });
   });
 
-  test("pin detail permalink does not keep the panel highlight overlay", async ({
+  test("pin detail permalink does not keep the panel pin active", async ({
     page,
     consoleErrors,
     perfReset,
@@ -255,7 +271,11 @@ test.describe("map panel pin focus @smoke", () => {
 
     const start = Date.now();
     await map.clickMapPinMarker(seed.targetPinId, { force: true });
-    await expect(page.locator("[data-map-panel-pin-highlight]")).toBeVisible({
+    await expect(
+      page.locator(
+        `[data-blog-pin-id="${seed.targetPinId}"] [data-active="true"]`,
+      ),
+    ).toBeVisible({
       timeout: 10_000,
     });
     await page
@@ -267,7 +287,11 @@ test.describe("map panel pin focus @smoke", () => {
     ).toBeVisible({ timeout: 10_000 });
     await page.getByRole("link", { name: "Open full pin detail page" }).click();
     await expect(page).toHaveURL(/\/pin\//);
-    await expect(page.locator("[data-map-panel-pin-highlight]")).toHaveCount(0);
+    await expect(
+      page.locator(
+        `[data-blog-pin-id] [data-active="true"], [data-gallery-pin-id][data-active="true"]`,
+      ),
+    ).toHaveCount(0);
     const wallMs = Date.now() - start;
 
     const snapshot = await perfSnapshot();

@@ -14,8 +14,15 @@ export type TestFixtures = {
   recordFlowMetric: (flow: string, snapshot: CuroliaPerfSnapshot) => void;
 };
 
-function isBenignConsoleError(text: string): boolean {
+export function isBenignConsoleError(text: string): boolean {
   if (text.includes("favicon")) return true;
+  // next-themes' ThemeProvider renders an inline <script> (needed for
+  // prerendered pages); React 19.3+ warns about it on client render.
+  // TODO: remove once fixed properly (see README "E2E: temporary workarounds").
+  if (
+    text.startsWith("Encountered a script tag while rendering React component")
+  )
+    return true;
   if (/Failed to load resource.*\b404\b/i.test(text)) return true;
   if (/\b404\b.*Not Found/i.test(text)) return true;
   return false;

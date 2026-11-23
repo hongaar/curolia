@@ -147,7 +147,15 @@ export class MapPage {
   ): Promise<void> {
     const marker = this.pinMarker(pinId);
     await marker.waitFor({ state: "attached", timeout: 15_000 });
-    await marker.click({ force: options?.force });
+    if (options?.force) {
+      // The marker may sit under a side panel; a forced click at its center
+      // would hit the panel. Dispatch on the element (pointerdown arms the
+      // marker's click guard).
+      await marker.dispatchEvent("pointerdown");
+      await marker.dispatchEvent("click");
+      return;
+    }
+    await marker.click();
   }
 
   async clickPin(pinId: string): Promise<void> {

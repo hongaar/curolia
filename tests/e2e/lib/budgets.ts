@@ -1,4 +1,5 @@
 import type { CuroliaPerfSnapshot } from "../fixtures/perf-types.ts";
+import { isBenignConsoleError } from "../fixtures/test.ts";
 
 export type FlowBudgets = {
   counters?: Record<string, number>;
@@ -93,15 +94,6 @@ export function assertFlowBudget(
   }
 }
 
-/**
- * Known-benign dev-only console errors.
- * - next-themes' ThemeProvider renders an inline <script> (needed for prerendered
- *   pages); React 19.3+ warns about it on client render.
- */
-const IGNORED_ERRORS: RegExp[] = [
-  /^Encountered a script tag while rendering React component/,
-];
-
 export async function collectErrors(
   pageErrors: Array<{ type: string; message: string }>,
   snapshot: CuroliaPerfSnapshot,
@@ -109,7 +101,7 @@ export async function collectErrors(
   const messages = [
     ...pageErrors.map((e) => e.message),
     ...snapshot.errors,
-  ].filter((m) => !IGNORED_ERRORS.some((re) => re.test(m)));
+  ].filter((m) => !isBenignConsoleError(m));
   if (messages.length > 0) {
     throw new Error(`Unexpected errors:\n${messages.join("\n")}`);
   }
