@@ -35,6 +35,7 @@
   justify-content: center;
   border-radius: var(--radius-full);
   border: 2px solid rgb(255 255 255 / 0.8);
+  font-family: var(--font-emoji);
   font-size: var(--font-size-lg);
   transition:
     box-shadow 150ms,
