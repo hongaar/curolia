@@ -1,8 +1,10 @@
 import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
+import { scrollRestoreState } from "@/hooks/use-scroll-position-restore";
 import { mapViewSegmentFromPathname } from "@/lib/app-paths";
 import {
   pinDetailBackFallback,
   pinDetailBackLabel,
+  locationHref,
   pinDetailBackTarget,
   type PinDetailBackTarget,
 } from "@/lib/pin-detail-back";
@@ -41,8 +43,13 @@ export function usePinDetailBack({
   }, [fallbackMapHref, frozenBase, mapSlug, profileSlug]);
 
   const onBack = useCallback(() => {
-    navigate(target.href);
-  }, [navigate, target.href]);
+    navigate(target.href, {
+      state:
+        target.href === locationHref(frozenBase)
+          ? scrollRestoreState(frozenBase.key)
+          : undefined,
+    });
+  }, [navigate, target.href, frozenBase]);
 
   return { ...target, onBack };
 }

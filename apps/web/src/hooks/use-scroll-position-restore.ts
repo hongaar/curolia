@@ -7,8 +7,19 @@ const savedScrollTop = new Map<string, number>();
 const RESTORE_TIMEOUT_MS = 3000;
 
 /**
+ * Navigation state for "back" buttons that push the previous URL instead of
+ * popping history: restores the scroll position saved for that entry.
+ */
+export type ScrollRestoreState = { restoreScrollFrom?: string };
+
+export function scrollRestoreState(fromKey: string): ScrollRestoreState {
+  return { restoreScrollFrom: fromKey };
+}
+
+/**
  * Persists an element's scroll position per history entry and restores it on
- * back/forward navigation (POP), waiting for async content to grow tall enough.
+ * back/forward navigation (POP) or a back-button push carrying
+ * {@link scrollRestoreState}, waiting for async content to grow tall enough.
  */
 export function useScrollPositionRestore(
   scrollRef: RefObject<HTMLElement | null>,
@@ -31,9 +42,15 @@ export function useScrollPositionRestore(
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (!enabled || !el || navigationType !== "POP") return;
-    const target = savedScrollTop.get(key);
+    if (!enabled || !el) return;
+    const fromKey =
+      navigationType === "POP"
+        ? key
+        : (location.state as ScrollRestoreState | null)?.restoreScrollFrom;
+    if (!fromKey) return;
+    const target = savedScrollTop.get(fromKey);
     if (!target) return;
+    savedScrollTop.set(key, target);
 
     restoringRef.current = true;
     let done = false;
@@ -60,5 +77,6 @@ export function useScrollPositionRestore(
     el.addEventListener("wheel", finish, { passive: true });
     tryRestore();
     return finish;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restore once per entry
   }, [scrollRef, key, navigationType, enabled]);
 }
