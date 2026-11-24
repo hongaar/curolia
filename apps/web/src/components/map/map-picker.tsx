@@ -2,6 +2,8 @@ import { MapPickerMenuContent } from "@/components/map/map-picker-menu-content";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
 import { getStoredActiveMapId } from "@/providers/auth-provider";
+import { useMaxSm } from "@/hooks/use-max-sm";
+import { useMapQuickSettingsSlot } from "@/lib/map-quick-settings-slot";
 import { useMap } from "@/providers/map-provider";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import { DropdownMenu } from "@curolia/ui/dropdown-menu";
@@ -18,6 +20,8 @@ export function MapPicker({
   const { memberMaps, activeMap } = useMap();
   const { openNewMapDialog } = useNavigationShell();
   const [open, setOpen] = useState(false);
+  const isMobile = useMaxSm();
+  const quickSettings = useMapQuickSettingsSlot();
 
   const viewingForeignMap = useMemo(
     () =>
@@ -57,6 +61,15 @@ export function MapPicker({
             maps={memberMaps}
             activeMapId={activeMap?.id}
             onNewMap={() => openNewMapDialog()}
+            // Desktop keeps the settings chip beside the view switcher.
+            onOpenActiveMapSettings={
+              isMobile && quickSettings
+                ? () => {
+                    setOpen(false);
+                    quickSettings.open();
+                  }
+                : undefined
+            }
           />
         )}
       </MapPickerContent>

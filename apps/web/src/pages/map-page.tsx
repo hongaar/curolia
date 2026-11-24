@@ -141,6 +141,7 @@ import {
   useState,
   type SetStateAction,
 } from "react";
+import { setMapQuickSettingsSlot } from "@/lib/map-quick-settings-slot";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -832,6 +833,14 @@ export function MapPage() {
     if (sidebarPinId) onClosePinMapPopover();
     setQuickSettingsOpen(true);
   }, [onClosePinMapPopover, sidebarPinId]);
+
+  const canQuickSettings = Boolean(isOwner) && !publicView;
+  useEffect(() => {
+    setMapQuickSettingsSlot(
+      canQuickSettings ? { open: openQuickSettings } : null,
+    );
+    return () => setMapQuickSettingsSlot(null);
+  }, [canQuickSettings, openQuickSettings]);
 
   useLayoutEffect(() => {
     if (!contentPanelLayoutActive) {

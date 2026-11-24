@@ -10,10 +10,12 @@ import {
   DropdownMenuCheckIcon,
   DropdownMenuCheckItem,
   DropdownMenuCheckSpacer,
+  DropdownMenuEditButton,
+  DropdownMenuEditRow,
   DropdownMenuItemEmoji,
   DropdownMenuItemName,
 } from "@curolia/ui/dropdown-menu-list";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function mapEmoji(map: MapWithOwnerSlug) {
@@ -25,6 +27,8 @@ type MapPickerMemberMenuContentProps = {
   maps: MapWithOwnerSlug[];
   activeMapId: string | null | undefined;
   onNewMap: () => void;
+  /** Opens map settings for the active map (row action). */
+  onOpenActiveMapSettings?: () => void;
 };
 
 type MapPickerForeignMenuContentProps = {
@@ -48,7 +52,7 @@ export function MapPickerMenuContent(props: MapPickerMenuContentProps) {
     );
   }
 
-  const { maps, activeMapId, onNewMap } = props;
+  const { maps, activeMapId, onNewMap, onOpenActiveMapSettings } = props;
 
   return (
     <>
@@ -56,7 +60,7 @@ export function MapPickerMenuContent(props: MapPickerMenuContentProps) {
         <DropdownMenuLabel>Maps</DropdownMenuLabel>
         {maps.map((j) => {
           const selected = j.id === activeMapId;
-          return (
+          const item = (
             <DropdownMenuCheckItem
               key={j.id}
               onClick={() => {
@@ -75,6 +79,22 @@ export function MapPickerMenuContent(props: MapPickerMenuContentProps) {
                 <DropdownMenuCheckSpacer />
               )}
             </DropdownMenuCheckItem>
+          );
+          if (!selected || !onOpenActiveMapSettings) return item;
+          return (
+            <DropdownMenuEditRow key={j.id}>
+              {item}
+              <DropdownMenuEditButton
+                title="Map settings"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onOpenActiveMapSettings();
+                }}
+              >
+                <Settings aria-hidden />
+              </DropdownMenuEditButton>
+            </DropdownMenuEditRow>
           );
         })}
       </DropdownMenuGroup>
