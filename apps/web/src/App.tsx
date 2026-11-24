@@ -6,6 +6,7 @@ import { OpenSourceLicensesPage } from "@/pages/open-source-licenses-page";
 import { ResetPasswordPage } from "@/pages/reset-password-page";
 import { RootPage } from "@/pages/root-page";
 import { appShellRouteElements } from "@/routes/app-shell-routes";
+import { DocumentRouteClasses } from "@/routes/document-route-classes";
 import { ProtectedLayout } from "@/routes/protected-layout";
 import { ScrollToTop } from "@/routes/scroll-to-top";
 import { StackLayout } from "@/routes/stack-layout";
@@ -30,6 +31,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 export default function App() {
   return (
     <>
+      <DocumentRouteClasses />
       <ScrollToTop />
       <UmamiNavigation />
       <Routes>

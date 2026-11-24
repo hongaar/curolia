@@ -5,18 +5,13 @@ import { FrozenBaseLocationProvider } from "@/hooks/use-frozen-base-location";
 import { useNativeBackButton } from "@/hooks/use-native-back-button";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import { reportAppError } from "@/lib/bugsink";
-import { syncMapRouteDocumentClass } from "@/lib/map-chrome";
 import { isPublicProfileViewPathname } from "@/lib/profile-route";
-import {
-  installStackChromeLayoutSync,
-  syncStackChromeDocumentClass,
-} from "@/lib/stack-chrome";
 import { isStackRoute } from "@/lib/stack-routes";
 import { useAuth } from "@/providers/auth-provider";
 import { NavigationShellProvider } from "@/providers/navigation-shell-provider";
 import { AppShellLayout } from "@curolia/ui/app-shell";
 import { ErrorBoundary } from "@curolia/ui/error-boundary";
-import { useEffect, useLayoutEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 export function AppShellFrame({ children }: { children: ReactNode }) {
@@ -27,15 +22,6 @@ export function AppShellFrame({ children }: { children: ReactNode }) {
     !stackTransitions ||
     !isStackRoute(pathname) ||
     isPublicProfileViewPathname(pathname);
-
-  useLayoutEffect(() => {
-    syncMapRouteDocumentClass(pathname);
-    syncStackChromeDocumentClass(pathname);
-  }, [pathname]);
-
-  useEffect(() => {
-    return installStackChromeLayoutSync(() => pathname);
-  }, [pathname]);
 
   useNativeBackButton();
 
