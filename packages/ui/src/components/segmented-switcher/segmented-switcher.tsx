@@ -24,6 +24,8 @@ export function SegmentedSwitcher({
       aria-label={ariaLabel}
     >
       {children}
+      {/* Must follow the links: anchor positioning needs the anchor earlier in tree order. */}
+      <span className={styles.indicator} aria-hidden />
     </nav>
   );
 }

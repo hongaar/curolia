@@ -13,6 +13,48 @@
   backdrop-filter: blur(24px) saturate(1.5);
   padding: var(--space-1);
   gap: var(--space-1);
+  position: relative;
+  isolation: isolate;
+  anchor-scope: --segmented-active;
+}
+
+/* Sliding selected background, anchored to the active link. Only `left`
+   transitions (the slide); width tracks the anchor live so expanding labels
+   don't lag. `right` is avoided: it's relative to the growing root. */
+.indicator {
+  position: absolute;
+  z-index: 0;
+  top: var(--space-1);
+  bottom: var(--space-1);
+  position-anchor: --segmented-active;
+  left: anchor(left);
+  width: anchor-size(width);
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--card);
+  border: 1px solid color-mix(in oklch, var(--border) 75%, transparent);
+  box-shadow:
+    var(--shadow-sm),
+    0 1px 0 color-mix(in oklch, var(--foreground) 4%, transparent);
+  pointer-events: none;
+}
+
+.root:not(:has(.linkActive)) .indicator {
+  opacity: 0;
+}
+
+.indicator {
+  transition:
+    left 280ms cubic-bezier(0.2, 0, 0, 1),
+    opacity 150ms ease;
+}
+
+:global(.dark) .indicator {
+  background: color-mix(in oklch, var(--card) 88%, var(--background));
+  border-color: color-mix(in oklch, var(--border) 55%, transparent);
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 1px color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
 .root[data-size="default"] {
@@ -24,6 +66,8 @@
 }
 
 .link {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   flex: 0 0 auto;
   align-self: stretch;
@@ -68,20 +112,8 @@
 }
 
 .linkActive {
-  background: var(--card);
-  border-color: color-mix(in oklch, var(--border) 75%, transparent);
+  anchor-name: --segmented-active;
   color: var(--foreground);
-  box-shadow:
-    var(--shadow-sm),
-    0 1px 0 color-mix(in oklch, var(--foreground) 4%, transparent);
-}
-
-:global(.dark) .linkActive {
-  background: color-mix(in oklch, var(--card) 88%, var(--background));
-  border-color: color-mix(in oklch, var(--border) 55%, transparent);
-  box-shadow:
-    var(--shadow-sm),
-    0 0 0 1px color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
 .icon {
@@ -204,7 +236,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .label,
-  .link {
+  .link,
+  .indicator {
     transition: none;
   }
 }
