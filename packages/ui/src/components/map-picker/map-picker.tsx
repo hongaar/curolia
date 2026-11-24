@@ -13,7 +13,8 @@ export function MapPickerTrigger({
 }: Omit<React.ComponentProps<typeof DropdownMenuTrigger>, "children"> & {
   mapEmoji?: React.ReactNode;
   mapName?: string | null;
-  density?: "auto" | "compact";
+  /** `auto` hides the name on narrow hosts, `compact` always hides it, `full` always shows it. */
+  density?: "auto" | "compact" | "full";
 }) {
   return (
     <DropdownMenuTrigger
@@ -135,7 +136,8 @@ export function PublicMapToolbarInfo({
   mapEmoji?: React.ReactNode;
   mapName: string;
   ownerName?: string | null;
-  density?: "auto" | "compact";
+  /** `auto` hides the name on narrow hosts, `compact` always hides it, `full` always shows it. */
+  density?: "auto" | "compact" | "full";
 }) {
   return (
     <div

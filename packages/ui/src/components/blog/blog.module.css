@@ -336,3 +336,25 @@
 .pinActions {
   margin-top: 1.25rem;
 }
+
+.scrollToolbarRow {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  /* Pull up into the toolbar band, beside the brand icon. */
+  height: var(--control-h-md);
+  margin-top: calc(
+    var(--nav-shell-pad) + var(--safe-top) - var(--app-chrome-top) - 0.75rem
+  );
+  margin-bottom: var(--space-3);
+  margin-left: calc(
+    var(--nav-shell-pad) + var(--control-h-md) + var(--space-3) - 0.75rem
+  );
+  max-width: calc(100vw - 9rem);
+}
+
+@media (min-width: 40rem) {
+  .scrollToolbarRow {
+    display: none;
+  }
+}

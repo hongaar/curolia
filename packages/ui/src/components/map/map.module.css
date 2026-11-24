@@ -230,6 +230,14 @@
   container-name: map-controls-bottom-center;
 }
 
+/* Small viewports: the app toolbar's view switcher is fixed at the bottom
+   center, so stack anything here (e.g. the placement hint) above it. */
+@media (max-width: 39.99rem) {
+  .controlsBottomCenter {
+    bottom: calc(1.5rem + var(--safe-bottom) + var(--control-h-lg) + 1rem);
+  }
+}
+
 .controlsBottomCenter .placementHint {
   position: relative;
   bottom: auto;

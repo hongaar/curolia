@@ -156,3 +156,24 @@
     display: none;
   }
 }
+
+.mapPicker {
+  display: flex;
+  min-width: 0;
+}
+
+.mobileBottom {
+  display: none;
+}
+
+@media (max-width: 39.99rem) {
+  .mobileBottom {
+    pointer-events: auto;
+    position: fixed;
+    left: 50%;
+    bottom: calc(1.5rem + var(--safe-bottom));
+    display: flex;
+    justify-content: center;
+    transform: translateX(-50%);
+  }
+}

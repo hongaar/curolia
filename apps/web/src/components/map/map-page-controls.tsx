@@ -3,6 +3,7 @@ import { MapSecondaryToolbar } from "@/components/map/map-secondary-toolbar";
 import { MapTagFiltersControl } from "@/components/map/map-tag-filters-control";
 import type { PinMapHandle } from "@/components/map/pin-map";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
+import { useMaxSm } from "@/hooks/use-max-sm";
 import type { PublicMapOwnerProfile } from "@/hooks/use-public-map-owner-profile";
 import type { ExploreCategoryId } from "@/lib/explore-categories";
 import type { ExploreViewport } from "@/lib/explore-results";
@@ -29,10 +30,6 @@ export function MapPageControls({
   onNewTag,
   onEditTag,
   canEdit,
-  isOwner,
-  publicView,
-  quickSettingsOpen,
-  onQuickSettingsClick,
   exploreExpanded,
   exploreActiveCategories,
   exploreFocusedCategoryId,
@@ -44,6 +41,10 @@ export function MapPageControls({
   exploreResultsFetching,
   onGenerateExploreRoutes,
   onSelectExploreEntry,
+  isOwner,
+  publicView,
+  quickSettingsOpen,
+  onQuickSettingsClick,
   variant = "map",
 }: {
   mapRef?: RefObject<PinMapHandle | null>;
@@ -58,10 +59,6 @@ export function MapPageControls({
   onNewTag?: () => void;
   onEditTag: (tag: Tag) => void;
   canEdit: boolean;
-  isOwner?: boolean;
-  publicView?: boolean;
-  quickSettingsOpen?: boolean;
-  onQuickSettingsClick?: () => void;
   exploreExpanded: boolean;
   exploreActiveCategories: readonly ExploreCategoryId[];
   exploreFocusedCategoryId: ExploreCategoryId | null;
@@ -73,30 +70,39 @@ export function MapPageControls({
   exploreResultsFetching?: boolean;
   onGenerateExploreRoutes?: () => void;
   onSelectExploreEntry?: (entry: ExploreResultEntry) => void;
+  isOwner?: boolean;
+  publicView?: boolean;
+  quickSettingsOpen?: boolean;
+  onQuickSettingsClick?: () => void;
   variant?: "map" | "content";
 }) {
   const isMapVariant = variant === "map";
   const isContentVariant = variant === "content";
+  const isMobile = useMaxSm();
+  // On mobile the picker and view switcher live in the app toolbar
+  // (persistent across map/blog/gallery), so they never move between views.
 
   return (
     <MapControlsLayer>
       {isContentVariant ? (
-        <MapControlsBottomCenter>
-          <MapSecondaryToolbar
-            placement="bottom-center"
-            activeCategories={exploreActiveCategories}
-            focusedCategoryId={exploreFocusedCategoryId}
-            exploreExpanded={exploreExpanded}
-            onToggleExploreExpanded={onToggleExploreExpanded}
-            onToggleCategory={onToggleExploreCategory}
-            onSelectCategory={onSelectExploreCategory}
-            exploreViewport={exploreViewport}
-            exploreEntries={exploreEntries}
-            exploreResultsFetching={exploreResultsFetching}
-            onGenerateExploreRoutes={onGenerateExploreRoutes}
-            onSelectExploreEntry={onSelectExploreEntry}
-          />
-        </MapControlsBottomCenter>
+        isMobile ? null : (
+          <MapControlsBottomCenter>
+            <MapSecondaryToolbar
+              placement="bottom-center"
+              activeCategories={exploreActiveCategories}
+              focusedCategoryId={exploreFocusedCategoryId}
+              exploreExpanded={exploreExpanded}
+              onToggleExploreExpanded={onToggleExploreExpanded}
+              onToggleCategory={onToggleExploreCategory}
+              onSelectCategory={onSelectExploreCategory}
+              exploreViewport={exploreViewport}
+              exploreEntries={exploreEntries}
+              exploreResultsFetching={exploreResultsFetching}
+              onGenerateExploreRoutes={onGenerateExploreRoutes}
+              onSelectExploreEntry={onSelectExploreEntry}
+            />
+          </MapControlsBottomCenter>
+        )
       ) : (
         <>
           <MapControlsTopLeftStack>
@@ -113,8 +119,9 @@ export function MapPageControls({
               exploreResultsFetching={exploreResultsFetching}
               onGenerateExploreRoutes={onGenerateExploreRoutes}
               onSelectExploreEntry={onSelectExploreEntry}
+              showNav={!isMobile}
               showQuickSettings={
-                isMapVariant && Boolean(isOwner) && !publicView
+                !isMobile && isMapVariant && Boolean(isOwner) && !publicView
               }
               quickSettingsOpen={quickSettingsOpen}
               onQuickSettingsClick={onQuickSettingsClick}

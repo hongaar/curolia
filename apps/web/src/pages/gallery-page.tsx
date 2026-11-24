@@ -1,3 +1,4 @@
+import { MapToolbarPicker } from "@/components/map/map-secondary-toolbar";
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapGalleryPanel } from "@/components/map/map-gallery-panel";
 import { MapPageControls } from "@/components/map/map-page-controls";
@@ -192,7 +193,11 @@ export function GalleryPage() {
         onSelectExploreCategory={selectExploreCategory}
       />
 
-      <MapGalleryPanel mapSlug={mapSlug} gridColumns={4} />
+      <MapGalleryPanel
+        mapSlug={mapSlug}
+        scrollToolbar={<MapToolbarPicker density="full" />}
+        gridColumns={4}
+      />
 
       <Dialog
         open={tagDialogOpen}

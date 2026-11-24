@@ -31,6 +31,7 @@ import {
   BlogPinTitleButton,
   BlogPinTitleLink,
   BlogScroll,
+  BlogScrollToolbarRow,
   BlogTagRow,
   BlogTitle,
 } from "@curolia/ui/blog";
@@ -47,7 +48,13 @@ import { PinPhotoLightbox } from "@curolia/ui/pin-photo-lightbox";
 import { TagBadge } from "@curolia/ui/tag-badge";
 import { useQuery } from "@tanstack/react-query";
 import { PanelRight } from "lucide-react";
-import { useMemo, useRef, useState, type RefObject } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import type { MapPanelPinConnectorAnchor } from "@/components/map/map-panel-pin-connector";
@@ -59,6 +66,8 @@ import { pinSequenceTagColor } from "@/lib/pin-sequence";
 import { resolveFilterTagIdsFromSearchParams } from "@/lib/map-view-params";
 
 type MapBlogPanelProps = {
+  /** Non-embedded only: row at the top of the scroll (e.g. mobile map picker). */
+  scrollToolbar?: ReactNode;
   mapSlug: string | undefined;
   /** Embedded in the map page side panel — pin links open the map pin sheet. */
   embedded?: boolean;
@@ -79,6 +88,7 @@ export function MapBlogPanel({
   onPinHover,
   onPinHoverEnd,
   activePinId,
+  scrollToolbar,
 }: MapBlogPanelProps) {
   const ownScrollRef = useRef<HTMLDivElement>(null);
   const blogScrollRef = scrollRootRef ?? ownScrollRef;
@@ -241,7 +251,12 @@ export function MapBlogPanel({
           {pinList}
         </MapBlogSidePanelScroll>
       ) : (
-        <BlogScroll ref={blogScrollRef}>{scrollBody}</BlogScroll>
+        <BlogScroll ref={blogScrollRef}>
+          {scrollToolbar ? (
+            <BlogScrollToolbarRow>{scrollToolbar}</BlogScrollToolbarRow>
+          ) : null}
+          {scrollBody}
+        </BlogScroll>
       )}
 
       <PinPhotoLightbox

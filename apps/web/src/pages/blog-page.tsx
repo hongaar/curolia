@@ -1,3 +1,4 @@
+import { MapToolbarPicker } from "@/components/map/map-secondary-toolbar";
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { MapBlogPanel } from "@/components/map/map-blog-panel";
 import { MapPageControls } from "@/components/map/map-page-controls";
@@ -192,7 +193,10 @@ export function BlogPage() {
         onSelectExploreCategory={selectExploreCategory}
       />
 
-      <MapBlogPanel mapSlug={mapSlug} />
+      <MapBlogPanel
+        mapSlug={mapSlug}
+        scrollToolbar={<MapToolbarPicker density="full" />}
+      />
 
       <Dialog
         open={tagDialogOpen}

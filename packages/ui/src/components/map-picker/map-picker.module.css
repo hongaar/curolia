@@ -99,6 +99,7 @@
 
 .content {
   min-width: 14rem;
+  max-width: min(20rem, calc(100vw - 2rem));
 }
 
 .mapNavRoot {

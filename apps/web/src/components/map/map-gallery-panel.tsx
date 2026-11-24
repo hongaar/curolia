@@ -17,6 +17,7 @@ import {
   BlogFullWidthContent,
   BlogHeader,
   BlogScroll,
+  BlogScrollToolbarRow,
   BlogTitle,
 } from "@curolia/ui/blog";
 import {
@@ -41,6 +42,8 @@ import { pinSequenceTagColor } from "@/lib/pin-sequence";
 import { resolveFilterTagIdsFromSearchParams } from "@/lib/map-view-params";
 
 type MapGalleryPanelProps = {
+  /** Non-embedded only: row at the top of the scroll (e.g. mobile map picker). */
+  scrollToolbar?: ReactNode;
   mapSlug: string | undefined;
   /** Embedded in the map page side panel — cards open the map pin sheet. */
   embedded?: boolean;
@@ -77,6 +80,7 @@ export function MapGalleryPanel({
   onPinHoverEnd,
   activePinId,
   gridColumns = 3,
+  scrollToolbar,
 }: MapGalleryPanelProps) {
   const pageScrollRef = useRef<HTMLDivElement>(null);
   useScrollPositionRestore(pageScrollRef, !embedded);
@@ -213,6 +217,9 @@ export function MapGalleryPanel({
 
   return (
     <BlogScroll ref={pageScrollRef}>
+      {scrollToolbar ? (
+        <BlogScrollToolbarRow>{scrollToolbar}</BlogScrollToolbarRow>
+      ) : null}
       <BlogFullWidthContent>
         {galleryHeader}
         {emptyPanel}

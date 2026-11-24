@@ -139,3 +139,27 @@ export const WithInputSearch: Story = {
     />
   ),
 };
+
+export const MobileMapChrome: Story = {
+  parameters: {
+    ...storyDocs(
+      "Small viewport: map picker (with label) beside the brand and `mobileBottom` fixed at the bottom center (hidden from 40rem).",
+    ),
+    viewport: { defaultViewport: "mobile1" },
+  },
+  render: (args) => (
+    <div style={{ minHeight: "12rem" }}>
+      <MainToolbar
+        {...args}
+        mapPicker={<DemoMapPicker />}
+        notifications={<DemoNotifications />}
+        accountMenu={<DemoAccountMenu />}
+        mobileBottom={
+          <Button variant="secondary" rounded>
+            Map · Blog · Gallery
+          </Button>
+        }
+      />
+    </div>
+  ),
+};

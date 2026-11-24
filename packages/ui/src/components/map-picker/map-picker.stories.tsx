@@ -69,3 +69,25 @@ export const LongName: Story = {
     </DropdownMenu>
   ),
 };
+
+export const FullDensity: Story = {
+  parameters: {
+    ...storyDocs(
+      '`density="full"` always shows the map name, even on small viewports (mobile app toolbar).',
+    ),
+    viewport: { defaultViewport: "mobile1" },
+  },
+  render: () => (
+    <DropdownMenu>
+      <MapPickerTrigger
+        density="full"
+        mapEmoji="🗺️"
+        mapName="Summer trip"
+        aria-label="Select map"
+      />
+      <MapPickerContent>
+        <DropdownMenuItem>Summer trip</DropdownMenuItem>
+      </MapPickerContent>
+    </DropdownMenu>
+  ),
+};

@@ -11,6 +11,7 @@ import {
   BlogPinTitle,
   BlogPinTitleButton,
   BlogScroll,
+  BlogScrollToolbarRow,
   BlogTitle,
 } from "./blog";
 
@@ -127,4 +128,27 @@ export const FloatingAuthorCardSlide: Story = {
       </div>
     );
   },
+};
+
+export const ScrollToolbarRow: Story = {
+  parameters: {
+    ...storyDocs(
+      "Small viewport: a toolbar row (e.g. map picker) pulled up beside the fixed brand that scrolls away with the content. Hidden from 40rem.",
+    ),
+    viewport: { defaultViewport: "mobile1" },
+  },
+  render: () => (
+    <BlogPageRoot>
+      <BlogScroll>
+        <BlogScrollToolbarRow>
+          <span>🗺️ Summer 2025 ▾</span>
+        </BlogScrollToolbarRow>
+        <BlogContent>
+          <BlogHeader>
+            <BlogTitle>Summer 2025</BlogTitle>
+          </BlogHeader>
+        </BlogContent>
+      </BlogScroll>
+    </BlogPageRoot>
+  ),
 };

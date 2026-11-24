@@ -16,6 +16,8 @@ export type MainToolbarProps = {
   /** Notifications control shown left of the account menu. */
   notifications?: React.ReactNode;
   accountMenu: React.ReactNode;
+  /** Fixed bottom-center control on small viewports only (e.g. view switcher). */
+  mobileBottom?: React.ReactNode;
   /** App icon URL (defaults to `/favicon.png`). */
   logoSrc?: string;
   /** Brand wordmark beside the icon. */
@@ -92,6 +94,7 @@ export function MainToolbar({
   rightPromo,
   notifications,
   accountMenu,
+  mobileBottom,
   logoSrc,
   brandLabel,
   brand,
@@ -107,7 +110,9 @@ export function MainToolbar({
           )}
           {navCurrent}
           {leftPromo ? <div className={styles.promo}>{leftPromo}</div> : null}
-          {mapPicker}
+          {mapPicker ? (
+            <div className={styles.mapPicker}>{mapPicker}</div>
+          ) : null}
           {search ? (
             <div className={styles.search}>
               <div className={styles.searchSlot}>{search}</div>
@@ -120,6 +125,9 @@ export function MainToolbar({
           {accountMenu}
         </div>
       </div>
+      {mobileBottom ? (
+        <div className={styles.mobileBottom}>{mobileBottom}</div>
+      ) : null}
     </header>
   );
 }

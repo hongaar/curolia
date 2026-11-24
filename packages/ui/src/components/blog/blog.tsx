@@ -28,6 +28,16 @@ export function BlogScroll({
   );
 }
 
+/** Small-viewport row at the top of `BlogScroll`, aligned beside the fixed
+ *  toolbar brand; scrolls away with the content. Hidden on wider viewports. */
+export function BlogScrollToolbarRow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <div className={styles.scrollToolbarRow}>{children}</div>;
+}
+
 export function BlogContent({ children }: { children: React.ReactNode }) {
   return <div className={styles.content}>{children}</div>;
 }

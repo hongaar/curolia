@@ -1,8 +1,8 @@
 import { MapViewSwitcher } from "@/components/layout/map-view-switcher";
 import { ExploreToolbar } from "@/components/map/explore-categories";
 import { ExplorePanelCard } from "@/components/map/explore-panel-card";
-import { MapPicker } from "@/components/map/map-picker";
 import { MapQuickSettingsTrigger } from "@/components/map/map-quick-settings-trigger";
+import { MapPicker } from "@/components/map/map-picker";
 import { useExploreCategories } from "@/hooks/use-explore-categories";
 import type { ExploreCategoryId } from "@/lib/explore-categories";
 import type { ExploreViewport } from "@/lib/explore-results";
@@ -17,6 +17,27 @@ import {
 } from "@curolia/ui/map";
 import { PublicMapToolbarInfo } from "@curolia/ui/map-picker";
 
+/** Member map picker, or read-only map info for public viewers. */
+export function MapToolbarPicker({
+  density = "auto",
+}: {
+  density?: "auto" | "compact" | "full";
+}) {
+  const { user } = useAuth();
+  const { activeMap, publicView } = useMap();
+  if (user) return <MapPicker density={density} />;
+  if (publicView && activeMap) {
+    return (
+      <PublicMapToolbarInfo
+        density={density}
+        mapEmoji={activeMap.icon_emoji ?? defaultMapIcon()}
+        mapName={activeMap.name.trim() || "Map"}
+      />
+    );
+  }
+  return null;
+}
+
 export function MapSecondaryToolbar({
   placement = "top-left",
   activeCategories,
@@ -30,6 +51,7 @@ export function MapSecondaryToolbar({
   exploreResultsFetching,
   onGenerateExploreRoutes,
   onSelectExploreEntry,
+  showNav = true,
   quickSettingsOpen,
   onQuickSettingsClick,
   showQuickSettings,
@@ -46,12 +68,12 @@ export function MapSecondaryToolbar({
   exploreResultsFetching?: boolean;
   onGenerateExploreRoutes?: () => void;
   onSelectExploreEntry?: (entry: ExploreResultEntry) => void;
+  /** Top-left only: omit the picker/view-switcher row (rendered at bottom-center on mobile). */
+  showNav?: boolean;
   quickSettingsOpen?: boolean;
   onQuickSettingsClick?: () => void;
   showQuickSettings?: boolean;
 }) {
-  const { user } = useAuth();
-  const { activeMap, publicView } = useMap();
   const { categories, teaserCategories, categoryById } = useExploreCategories();
   const condensed = placement === "bottom-center";
   const pickerDensity = condensed ? "compact" : "auto";
@@ -63,15 +85,7 @@ export function MapSecondaryToolbar({
 
   const nav = (
     <MapSecondaryToolbarNav placement={placement}>
-      {user ? (
-        <MapPicker density={pickerDensity} />
-      ) : publicView && activeMap ? (
-        <PublicMapToolbarInfo
-          density={pickerDensity}
-          mapEmoji={activeMap.icon_emoji ?? defaultMapIcon()}
-          mapName={activeMap.name.trim() || "Map"}
-        />
-      ) : null}
+      <MapToolbarPicker density={pickerDensity} />
       <MapViewSwitcher size="default" labelMode="container" />
       {showQuickSettings ? (
         <MapQuickSettingsTrigger
@@ -88,7 +102,7 @@ export function MapSecondaryToolbar({
 
   return (
     <MapSecondaryToolbarShell>
-      {nav}
+      {showNav ? nav : null}
       {showExplore ? (
         <MapSecondaryToolbarExplore>
           <ExploreToolbar

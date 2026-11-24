@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 export function MapPicker({
   density = "auto",
 }: {
-  density?: "auto" | "compact";
+  density?: "auto" | "compact" | "full";
 } = {}) {
   const navigate = useNavigate();
   const { memberMaps, activeMap } = useMap();
