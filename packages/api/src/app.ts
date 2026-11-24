@@ -21,19 +21,23 @@ import { openApiDocument } from "./openapi.ts";
 import { Router, type Params } from "./router.ts";
 import {
   defined,
-  optEnum,
   optDate,
+  optEnum,
   optNumber,
   optString,
   rejectUnknownKeys,
 } from "./validate.ts";
 
-// deno-lint-ignore no-explicit-any
-type Query = any;
-/** Structural subset of a supabase-js client (kept loose so this runs on Deno and Node). */
-export type DbClient = {
-  from(table: string): Query;
-  rpc(fn: string, args?: Record<string, unknown>): Query;
+export type Row = Record<string, unknown>;
+
+/**
+ * SQL access for one request. Statements run inside a transaction as the
+ * `authenticated` role with the key owner's JWT claims, so RLS and
+ * `auth.uid()`-based functions apply exactly as they do in the app.
+ */
+export type Db = {
+  /** Runs `text` with positional `$1…` params (jsonb columns decoded to objects). */
+  query(text: string, params?: readonly unknown[]): Promise<Row[]>;
 };
 
 export type ApiScope = "read" | "write";
@@ -47,8 +51,8 @@ export type ApiPluginEntry = {
 export type ApiDeps = {
   /** Resolves a plaintext API key; `null` when unknown or revoked. */
   resolveKey(key: string): Promise<{ userId: string; scopes: string[] } | null>;
-  /** A database client that acts as `userId` (RLS applies). */
-  userClient(userId: string): Promise<DbClient>;
+  /** Runs `fn` with a {@link Db} that acts as `userId` (RLS applies). */
+  withUser<T>(userId: string, fn: (db: Db) => Promise<T>): Promise<T>;
   plugins: readonly ApiPluginEntry[];
 };
 
@@ -60,7 +64,7 @@ export type HandleOptions = {
 type Ctx = {
   req: Request;
   url: URL;
-  db: DbClient;
+  db: Db;
   userId: string;
   plugins: readonly ApiPluginEntry[];
 };
@@ -69,11 +73,13 @@ const VISIBILITIES = ["public", "unlisted", "private"] as const;
 const MAX_LIMIT = 200;
 const DEFAULT_LIMIT = 50;
 
-type PgError = { code?: string; message?: string } | null;
-
-function dbError(err: PgError): ApiError {
-  switch (err?.code) {
+/** Maps Postgres error codes to API errors. */
+export function dbError(err: unknown): ApiError {
+  if (err instanceof ApiError) return err;
+  const code = (err as { code?: string } | null)?.code;
+  switch (code) {
     case "42501":
+    case "P0001":
       return new ApiError(403, "forbidden", "Not allowed");
     case "23505":
       return new ApiError(
@@ -87,19 +93,52 @@ function dbError(err: PgError): ApiError {
     case "23514":
     case "22007":
     case "22008":
-      return badRequest(err.message ?? "Invalid value");
+    case "22001":
+      return badRequest("Invalid value");
     default:
+      console.error("api: database error", err);
       return new ApiError(500, "internal_error", "Unexpected database error");
   }
 }
 
-// deno-lint-ignore no-explicit-any
-async function run<T = any>(
-  q: PromiseLike<{ data: unknown; error: PgError }>,
-): Promise<T> {
-  const { data, error } = await q;
-  if (error) throw dbError(error);
-  return data as T;
+/**
+ * `with x as (…) select to_jsonb(x)` wrapper so rows come back with
+ * PostgREST-style JSON values. A CTE (not a subquery) so DML `returning` works.
+ */
+async function rows(
+  ctx: Ctx,
+  text: string,
+  params: unknown[] = [],
+): Promise<Row[]> {
+  const result = await ctx.db.query(
+    `with x as (${text}) select to_jsonb(x) as r from x`,
+    params,
+  );
+  return result.map((row) => row.r as Row);
+}
+
+async function one(ctx: Ctx, text: string, params: unknown[] = []) {
+  return (await rows(ctx, text, params))[0] ?? null;
+}
+
+/**
+ * JSON params are cast via `::text` so drivers send the string as-is
+ * (casting straight to `jsonb` makes some drivers JSON-encode it twice).
+ */
+const jsonParam = (i: number) => `$${i}::text::jsonb`;
+
+/** `= any(...)` over a JSON-encoded array param. */
+const anyOf = (i: number, type: "uuid" | "text") =>
+  `any(array(select jsonb_array_elements_text(${jsonParam(i)}))::${type}[])`;
+
+/** Builds `col = $n, …` for whitelisted columns; values appended to `params`. */
+function setClause(patch: Row, params: unknown[]): string {
+  return Object.entries(patch)
+    .map(([col, v]) => {
+      params.push(v);
+      return `${col} = $${params.length}`;
+    })
+    .join(", ");
 }
 
 function page(url: URL): { offset: number; limit: number } {
@@ -111,17 +150,22 @@ function page(url: URL): { offset: number; limit: number } {
   const cursor = url.searchParams.get("cursor");
   let offset = 0;
   if (cursor) {
-    offset = Number(atob(cursor));
-    if (!Number.isInteger(offset) || offset < 0)
+    try {
+      offset = Number(atob(cursor));
+    } catch {
+      offset = -1;
+    }
+    if (!Number.isInteger(offset) || offset < 0) {
       throw badRequest("Invalid cursor");
+    }
   }
   return { offset, limit };
 }
 
-function listResponse<T>(rows: T[], offset: number, limit: number): Response {
-  const hasMore = rows.length > limit;
+function listResponse<T>(items: T[], offset: number, limit: number): Response {
+  const hasMore = items.length > limit;
   return json({
-    data: rows.slice(0, limit),
+    data: items.slice(0, limit),
     nextCursor: hasMore ? btoa(String(offset + limit)) : null,
   });
 }
@@ -129,46 +173,47 @@ function listResponse<T>(rows: T[], offset: number, limit: number): Response {
 const wantsPlugins = (url: URL) =>
   (url.searchParams.get("include") ?? "").split(",").includes("plugins");
 
-function pickKeys(
-  cfg: unknown,
-  keys: readonly string[],
-): Record<string, unknown> {
-  const o =
-    cfg && typeof cfg === "object" ? (cfg as Record<string, unknown>) : {};
+function pickKeys(cfg: unknown, keys: readonly string[]): Row {
+  const o = cfg && typeof cfg === "object" ? (cfg as Row) : {};
   return Object.fromEntries(keys.filter((k) => k in o).map((k) => [k, o[k]]));
 }
 
+type EnabledPlugin = {
+  map_id: string;
+  plugin_type_id: string;
+  config: unknown;
+};
+
 async function enabledPlugins(ctx: Ctx, mapIds: string[]) {
-  if (!mapIds.length)
-    return [] as { map_id: string; plugin_type_id: string; config: unknown }[];
-  return (await run(
-    ctx.db
-      .from("map_plugins")
-      .select("map_id, plugin_type_id, config")
-      .in("map_id", mapIds)
-      .eq("enabled", true)
-      .in(
-        "plugin_type_id",
-        ctx.plugins.map((p) => p.pluginTypeId),
-      ),
-  )) as { map_id: string; plugin_type_id: string; config: unknown }[];
+  if (!mapIds.length || !ctx.plugins.length) return [] as EnabledPlugin[];
+  return (await rows(
+    ctx,
+    `select map_id, plugin_type_id, config from public.map_plugins
+     where map_id = ${anyOf(1, "uuid")} and enabled
+       and plugin_type_id = ${anyOf(2, "text")}`,
+    [
+      JSON.stringify(mapIds),
+      JSON.stringify(ctx.plugins.map((p) => p.pluginTypeId)),
+    ],
+  )) as EnabledPlugin[];
 }
 
 async function attachMapPlugins(ctx: Ctx, maps: ApiMap[]): Promise<void> {
-  const rows = await enabledPlugins(
+  for (const m of maps) m.plugins = {};
+  const enabled = await enabledPlugins(
     ctx,
     maps.map((m) => m.id),
   );
-  for (const m of maps) m.plugins = {};
-  for (const r of rows) {
+  for (const r of enabled) {
     const entry = ctx.plugins.find((p) => p.pluginTypeId === r.plugin_type_id);
     if (!entry?.map?.read) continue;
     const map = maps.find((m) => m.id === r.map_id);
-    if (map)
+    if (map) {
       map.plugins![r.plugin_type_id] = pickKeys(
         r.config,
         entry.map.mapConfigKeys,
       );
+    }
   }
 }
 
@@ -181,46 +226,39 @@ async function attachPinPlugins(ctx: Ctx, pins: ApiPin[]): Promise<void> {
   const enabled = await enabledPlugins(ctx, [
     ...new Set(pins.map((p) => p.mapId)),
   ]);
-  const rows = (await run(
-    ctx.db
-      .from("plugin_entity_data")
-      .select("entity_id, plugin_type_id, data")
-      .eq("entity_type", "pin")
-      .in(
-        "entity_id",
-        pins.map((p) => p.id),
-      )
-      .in("plugin_type_id", readable),
-  )) as { entity_id: string; plugin_type_id: string; data: unknown }[];
-  for (const r of rows) {
+  const data = await rows(
+    ctx,
+    `select entity_id, plugin_type_id, data from public.plugin_entity_data
+     where entity_type = 'pin' and entity_id = ${anyOf(1, "uuid")}
+       and plugin_type_id = ${anyOf(2, "text")}`,
+    [JSON.stringify(pins.map((p) => p.id)), JSON.stringify(readable)],
+  );
+  for (const r of data) {
     const pin = pins.find((p) => p.id === r.entity_id);
     if (!pin) continue;
     const on = enabled.some(
       (e) => e.map_id === pin.mapId && e.plugin_type_id === r.plugin_type_id,
     );
-    if (on) pin.plugins![r.plugin_type_id] = r.data;
+    if (on) pin.plugins![r.plugin_type_id as string] = r.data;
   }
 }
 
+const MAP_SELECT = `select ${MAP_COLUMNS},
+  (select mm.role from public.map_members mm
+   where mm.map_id = m.id and mm.user_id = auth.uid()) as role
+  from public.maps m`;
+
 async function loadMap(ctx: Ctx, mapId: string): Promise<ApiMap> {
-  const row = await run(
-    ctx.db.from("maps").select(MAP_COLUMNS).eq("id", mapId).maybeSingle(),
-  );
+  const row = await one(ctx, `${MAP_SELECT} where m.id = $1`, [mapId]);
   if (!row) throw notFound("Map");
-  const member = (await run(
-    ctx.db
-      .from("map_members")
-      .select("role")
-      .eq("map_id", mapId)
-      .eq("user_id", ctx.userId)
-      .maybeSingle(),
-  )) as { role: string } | null;
-  return toMap(row, member?.role ?? null);
+  return toMap(row, (row.role as string | null) ?? null);
 }
 
 async function loadPin(ctx: Ctx, pinId: string): Promise<ApiPin> {
-  const row = await run(
-    ctx.db.from("pins").select(PIN_COLUMNS).eq("id", pinId).maybeSingle(),
+  const row = await one(
+    ctx,
+    `select ${PIN_COLUMNS} from public.pins where id = $1`,
+    [pinId],
   );
   if (!row) throw notFound("Pin");
   return toPin(row);
@@ -232,16 +270,18 @@ function pluginEntry(ctx: Ctx, pluginId: string): ApiPluginEntry {
   return entry;
 }
 
+const pluginNotEnabled = () =>
+  new ApiError(404, "plugin_not_enabled", "Plugin is not enabled on this map");
+
 // ---- Handlers ---------------------------------------------------------------
 
 async function getProfile(ctx: Ctx) {
-  const row = await run(
-    ctx.db
-      .from("profiles")
-      .select(PROFILE_COLUMNS)
-      .eq("id", ctx.userId)
-      .single(),
+  const row = await one(
+    ctx,
+    `select ${PROFILE_COLUMNS} from public.profiles where id = $1`,
+    [ctx.userId],
   );
+  if (!row) throw notFound("Profile");
   return json(toProfile(row));
 }
 
@@ -254,27 +294,33 @@ async function patchProfile(ctx: Ctx) {
     slug: optString(body, "slug", { min: 1, max: 64, nullable: false }),
   });
   if (Object.keys(patch).length) {
-    await run(ctx.db.from("profiles").update(patch).eq("id", ctx.userId));
+    const params: unknown[] = [ctx.userId];
+    await ctx.db.query(
+      `update public.profiles set ${setClause(patch, params)}, updated_at = now()
+       where id = $1`,
+      params,
+    );
   }
   return getProfile(ctx);
 }
 
 async function listMaps(ctx: Ctx) {
   const { offset, limit } = page(ctx.url);
-  const rows = (await run(
-    ctx.db
-      .from("map_members")
-      .select(`role, maps!inner(${MAP_COLUMNS})`)
-      .eq("user_id", ctx.userId)
-      .order("map_id")
-      .range(offset, offset + limit),
-  )) as { role: string; maps: Record<string, unknown> }[];
-  const maps = rows.map((r) => toMap(r.maps, r.role));
+  const data = await rows(
+    ctx,
+    `select ${MAP_COLUMNS}, mm.role from public.map_members mm
+     join public.maps m on m.id = mm.map_id
+     where mm.user_id = $1
+     order by m.created_at, m.id
+     limit $2 offset $3`,
+    [ctx.userId, limit + 1, offset],
+  );
+  const maps = data.map((r) => toMap(r, r.role as string));
   if (wantsPlugins(ctx.url)) await attachMapPlugins(ctx, maps.slice(0, limit));
   return listResponse(maps, offset, limit);
 }
 
-function mapInput(body: Record<string, unknown>, create: boolean) {
+function mapInput(body: Row, create: boolean) {
   rejectUnknownKeys(body, ["name", "description", "iconEmoji", "visibility"]);
   const name = optString(body, "name", { min: 1, max: 200, nullable: false });
   if (create && name === undefined) throw badRequest("name is required");
@@ -288,29 +334,31 @@ function mapInput(body: Record<string, unknown>, create: boolean) {
   };
 }
 
+async function setVisibility(ctx: Ctx, mapId: string, visibility: string) {
+  await ctx.db.query(
+    `select public.set_map_visibility($1, $2::public.visibility)`,
+    [mapId, visibility],
+  );
+}
+
 async function createMap(ctx: Ctx) {
   const { patch, visibility } = mapInput(await readJsonBody(ctx.req), true);
-  const map = (await run(
-    ctx.db
-      .from("maps")
-      .insert({ ...patch, created_by_user_id: ctx.userId })
-      .select("id")
-      .single(),
-  )) as { id: string };
-  await run(
-    ctx.db
-      .from("map_members")
-      .insert({ map_id: map.id, user_id: ctx.userId, role: "owner" }),
+  const cols = ["created_by_user_id", ...Object.keys(patch)];
+  const params = [ctx.userId, ...Object.values(patch)];
+  const [map] = await ctx.db.query(
+    `insert into public.maps (${cols.join(", ")})
+     values (${params.map((_, i) => `$${i + 1}`).join(", ")})
+     returning id`,
+    params,
   );
-  if (visibility !== undefined) {
-    await run(
-      ctx.db.rpc("set_map_visibility", {
-        p_map_id: map.id,
-        p_visibility: visibility,
-      }),
-    );
-  }
-  return json(await loadMap(ctx, map.id), 201);
+  const mapId = map!.id as string;
+  await ctx.db.query(
+    `insert into public.map_members (map_id, user_id, role)
+     values ($1, $2, 'owner')`,
+    [mapId, ctx.userId],
+  );
+  if (visibility !== undefined) await setVisibility(ctx, mapId, visibility);
+  return json(await loadMap(ctx, mapId), 201);
 }
 
 async function getMap(ctx: Ctx, { mapId }: Params) {
@@ -322,25 +370,21 @@ async function getMap(ctx: Ctx, { mapId }: Params) {
 async function patchMap(ctx: Ctx, { mapId }: Params) {
   const { patch, visibility } = mapInput(await readJsonBody(ctx.req), false);
   if (Object.keys(patch).length) {
-    const updated = await run(
-      ctx.db.from("maps").update(patch).eq("id", mapId).select("id"),
+    const params: unknown[] = [mapId];
+    const updated = await ctx.db.query(
+      `update public.maps set ${setClause(patch, params)}, updated_at = now()
+       where id = $1 returning id`,
+      params,
     );
-    if (!(updated as unknown[]).length) throw notFound("Map");
+    if (!updated.length) throw notFound("Map");
   }
-  if (visibility !== undefined) {
-    await run(
-      ctx.db.rpc("set_map_visibility", {
-        p_map_id: mapId,
-        p_visibility: visibility,
-      }),
-    );
-  }
+  if (visibility !== undefined) await setVisibility(ctx, mapId!, visibility);
   return json(await loadMap(ctx, mapId!));
 }
 
 async function deleteMap(ctx: Ctx, { mapId }: Params) {
   await loadMap(ctx, mapId!);
-  await run(ctx.db.rpc("delete_map", { p_map_id: mapId }));
+  await ctx.db.query(`select public.delete_map($1)`, [mapId]);
   return json(null, 204);
 }
 
@@ -353,53 +397,41 @@ async function putMapPlugin(ctx: Ctx, { mapId, pluginId }: Params) {
   if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
     throw badRequest("config must be an object");
   }
-  rejectUnknownKeys(cfg as Record<string, unknown>, entry.map.mapConfigKeys);
-  const [row] = (await run(
-    ctx.db
-      .from("map_plugins")
-      .select("config")
-      .eq("map_id", mapId)
-      .eq("plugin_type_id", pluginId)
-      .eq("enabled", true),
-  )) as { config: Record<string, unknown> | null }[];
-  if (!row)
-    throw new ApiError(
-      404,
-      "plugin_not_enabled",
-      "Plugin is not enabled on this map",
-    );
-  const next = { ...(row.config ?? {}), ...(cfg as Record<string, unknown>) };
-  const updated = await run(
-    ctx.db
-      .from("map_plugins")
-      .update({ config: next })
-      .eq("map_id", mapId)
-      .eq("plugin_type_id", pluginId)
-      .select("config"),
+  rejectUnknownKeys(cfg as Row, entry.map.mapConfigKeys);
+  const exists = await one(
+    ctx,
+    `select 1 as ok from public.map_plugins
+     where map_id = $1 and plugin_type_id = $2 and enabled`,
+    [mapId, pluginId],
   );
-  if (!(updated as unknown[]).length)
-    throw new ApiError(403, "forbidden", "Not allowed");
-  return json({ pluginId, config: pickKeys(next, entry.map.mapConfigKeys) });
+  if (!exists) throw pluginNotEnabled();
+  const [updated] = await ctx.db.query(
+    `update public.map_plugins set config = config || ${jsonParam(3)}, updated_at = now()
+     where map_id = $1 and plugin_type_id = $2 returning config`,
+    [mapId, pluginId, JSON.stringify(cfg)],
+  );
+  if (!updated) throw new ApiError(403, "forbidden", "Not allowed");
+  return json({
+    pluginId,
+    config: pickKeys(updated.config, entry.map.mapConfigKeys),
+  });
 }
 
 async function listPins(ctx: Ctx, { mapId }: Params) {
   await loadMap(ctx, mapId!);
   const { offset, limit } = page(ctx.url);
-  const rows = (await run(
-    ctx.db
-      .from("pins")
-      .select(PIN_COLUMNS)
-      .eq("map_id", mapId)
-      .order("created_at")
-      .order("id")
-      .range(offset, offset + limit),
-  )) as Record<string, unknown>[];
-  const pins = rows.map(toPin);
+  const data = await rows(
+    ctx,
+    `select ${PIN_COLUMNS} from public.pins where map_id = $1
+     order by created_at, id limit $2 offset $3`,
+    [mapId, limit + 1, offset],
+  );
+  const pins = data.map(toPin);
   if (wantsPlugins(ctx.url)) await attachPinPlugins(ctx, pins.slice(0, limit));
   return listResponse(pins, offset, limit);
 }
 
-function pinInput(body: Record<string, unknown>, create: boolean) {
+function pinInput(body: Row, create: boolean) {
   rejectUnknownKeys(body, [
     "title",
     "description",
@@ -426,14 +458,16 @@ function pinInput(body: Record<string, unknown>, create: boolean) {
 async function createPin(ctx: Ctx, { mapId }: Params) {
   const input = pinInput(await readJsonBody(ctx.req), true);
   await loadMap(ctx, mapId!);
-  const row = await run(
-    ctx.db
-      .from("pins")
-      .insert({ ...input, map_id: mapId })
-      .select(PIN_COLUMNS)
-      .single(),
+  const cols = ["map_id", ...Object.keys(input)];
+  const params = [mapId, ...Object.values(input)];
+  const row = await one(
+    ctx,
+    `insert into public.pins (${cols.join(", ")})
+     values (${params.map((_, i) => `$${i + 1}`).join(", ")})
+     returning ${PIN_COLUMNS}`,
+    params,
   );
-  return json(toPin(row), 201);
+  return json(toPin(row!), 201);
 }
 
 async function getPin(ctx: Ctx, { pinId }: Params) {
@@ -445,18 +479,23 @@ async function getPin(ctx: Ctx, { pinId }: Params) {
 async function patchPin(ctx: Ctx, { pinId }: Params) {
   const patch = pinInput(await readJsonBody(ctx.req), false);
   if (!Object.keys(patch).length) return json(await loadPin(ctx, pinId!));
-  const rows = (await run(
-    ctx.db.from("pins").update(patch).eq("id", pinId).select(PIN_COLUMNS),
-  )) as Record<string, unknown>[];
-  if (!rows.length) throw notFound("Pin");
-  return json(toPin(rows[0]!));
+  const params: unknown[] = [pinId];
+  const row = await one(
+    ctx,
+    `update public.pins set ${setClause(patch, params)}, updated_at = now()
+     where id = $1 returning ${PIN_COLUMNS}`,
+    params,
+  );
+  if (!row) throw notFound("Pin");
+  return json(toPin(row));
 }
 
 async function deletePin(ctx: Ctx, { pinId }: Params) {
-  const rows = (await run(
-    ctx.db.from("pins").delete().eq("id", pinId).select("id"),
-  )) as unknown[];
-  if (!rows.length) throw notFound("Pin");
+  const deleted = await ctx.db.query(
+    `delete from public.pins where id = $1 returning id`,
+    [pinId],
+  );
+  if (!deleted.length) throw notFound("Pin");
   return json(null, 204);
 }
 
@@ -471,23 +510,15 @@ async function putPinPlugin(ctx: Ctx, { pinId, pluginId }: Params) {
   const pin = await loadPin(ctx, pinId!);
   const enabled = await enabledPlugins(ctx, [pin.mapId]);
   if (!enabled.some((e) => e.plugin_type_id === pluginId)) {
-    throw new ApiError(
-      404,
-      "plugin_not_enabled",
-      "Plugin is not enabled on this map",
-    );
+    throw pluginNotEnabled();
   }
-  await run(
-    ctx.db.from("plugin_entity_data").upsert(
-      {
-        entity_type: "pin",
-        entity_id: pinId,
-        plugin_type_id: pluginId,
-        map_id: pin.mapId,
-        data: body.data,
-      },
-      { onConflict: "entity_type,entity_id,plugin_type_id" },
-    ),
+  await ctx.db.query(
+    `insert into public.plugin_entity_data
+       (entity_type, entity_id, plugin_type_id, map_id, data)
+     values ('pin', $1, $2, $3, ${jsonParam(4)})
+     on conflict (entity_type, entity_id, plugin_type_id)
+     do update set data = excluded.data, updated_at = now()`,
+    [pinId, pluginId, pin.mapId, JSON.stringify(body.data)],
   );
   return json({ pluginId, data: body.data });
 }
@@ -513,6 +544,11 @@ function stripBase(pathname: string, basePath: string): string | null {
   if (!base) return pathname;
   if (pathname === base) return "/";
   return pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : null;
+}
+
+/** `/v1/openapi.json` needs no key or database. */
+export function isPublicPath(pathname: string): boolean {
+  return pathname.endsWith("/v1/openapi.json");
 }
 
 /** Host-agnostic entry point: works behind any origin or mount path. */
@@ -543,11 +579,13 @@ export async function handle(
 
     const auth = req.headers.get("Authorization") ?? "";
     const key = /^Bearer\s+(cur_live_[0-9a-f]+)$/i.exec(auth.trim())?.[1];
-    if (!key)
+    if (!key) {
       throw new ApiError(401, "unauthorized", "Missing or malformed API key");
+    }
     const resolved = await deps.resolveKey(key);
-    if (!resolved)
+    if (!resolved) {
       throw new ApiError(401, "unauthorized", "Invalid or revoked API key");
+    }
     const needed: ApiScope = req.method === "GET" ? "read" : "write";
     if (!resolved.scopes.includes(needed)) {
       throw new ApiError(
@@ -557,14 +595,24 @@ export async function handle(
       );
     }
 
-    const ctx: Ctx = {
-      req,
-      url,
-      db: await deps.userClient(resolved.userId),
-      userId: resolved.userId,
-      plugins: deps.plugins,
-    };
-    return await m.handler(ctx, m.params);
+    return await deps.withUser(resolved.userId, async (db) => {
+      const ctx: Ctx = {
+        req,
+        url,
+        db: {
+          query: async (text, params) => {
+            try {
+              return await db.query(text, params);
+            } catch (err) {
+              throw dbError(err);
+            }
+          },
+        },
+        userId: resolved.userId,
+        plugins: deps.plugins,
+      };
+      return m.handler(ctx, m.params);
+    });
   } catch (err) {
     if (err instanceof ApiError) return errorResponse(err);
     console.error("api: unhandled error", err);

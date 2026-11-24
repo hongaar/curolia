@@ -1,47 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { handle, type ApiDeps, type DbClient } from "./app.ts";
-import { signUserJwt } from "./jwt.ts";
+import { dbError, handle, type ApiDeps, type Db, type Row } from "./app.ts";
 
 const USER = "11111111-1111-4111-8111-111111111111";
 const KEY = "cur_live_abc123";
 const RO_KEY = "cur_live_def456";
 
-/** Chainable fake PostgREST builder that resolves to the queued result per table. */
-function fakeDb(
-  results: Record<string, unknown>,
-): DbClient & { calls: string[] } {
-  const calls: string[] = [];
-  const builder = (table: string) => {
-    const q: Record<string, unknown> = {};
-    const chain =
-      (name: string) =>
-      (..._args: unknown[]) => {
-        calls.push(`${table}.${name}`);
-        return q;
-      };
-    for (const m of [
-      "select",
-      "eq",
-      "in",
-      "order",
-      "range",
-      "insert",
-      "update",
-      "delete",
-      "upsert",
-    ]) {
-      q[m] = chain(m);
-    }
-    const done = { data: results[table] ?? null, error: null };
-    q.single = () => Promise.resolve(done);
-    q.maybeSingle = () => Promise.resolve(done);
-    q.then = (r: (v: unknown) => unknown) => Promise.resolve(done).then(r);
-    return q;
+type Route = [RegExp, (params: readonly unknown[]) => Row[]];
+
+/** Fake SQL layer: the first matching route answers; wrapped selects get `{ r }` rows. */
+function fakeDb(routes: Route[]): Db & { log: string[] } {
+  const log: string[] = [];
+  return {
+    log,
+    async query(text, params = []) {
+      log.push(text);
+      const route = routes.find(([re]) => re.test(text));
+      const result = route ? route[1](params) : [];
+      return text.startsWith("with x as") ? result.map((r) => ({ r })) : result;
+    },
   };
-  return { calls, from: builder, rpc: (fn: string) => builder(`rpc:${fn}`) };
 }
 
-function deps(db: DbClient): ApiDeps {
+function deps(db: Db, users: string[] = []): ApiDeps {
   return {
     plugins: [{ pluginTypeId: "poi", pin: { read: true, write: true } }],
     resolveKey: async (k) =>
@@ -50,7 +30,10 @@ function deps(db: DbClient): ApiDeps {
         : k === RO_KEY
           ? { userId: USER, scopes: ["read"] }
           : null,
-    userClient: async () => db,
+    withUser: async (userId, fn) => {
+      users.push(userId);
+      return fn(db);
+    },
   };
 }
 
@@ -76,23 +59,25 @@ const profileRow = {
 };
 
 describe("handle", () => {
-  it("serves profile under any base path and sets the alpha header", async () => {
-    const db = fakeDb({ profiles: profileRow });
+  it("serves profile under any base path, as the key owner", async () => {
+    const users: string[] = [];
+    const db = fakeDb([[/from public\.profiles/, () => [profileRow]]]);
     for (const [path, basePath] of [
       ["/api/v1/profile", "/api"],
       ["/functions/v1/api/v1/profile", "/api"],
       ["/v1/profile", ""],
       ["/api/v1/profile", "/api/"],
     ] as const) {
-      const res = await handle(req(path), deps(db), { basePath });
+      const res = await handle(req(path), deps(db, users), { basePath });
       expect(res.status).toBe(200);
       expect(res.headers.get("X-API-Status")).toBe("alpha");
       expect(await res.json()).toMatchObject({ id: USER, displayName: "Me" });
     }
+    expect(users).toEqual([USER, USER, USER, USER]);
   });
 
   it("rejects missing, unknown and under-scoped keys", async () => {
-    const db = fakeDb({});
+    const db = fakeDb([]);
     const noKey = await handle(
       new Request("https://x.test/v1/profile"),
       deps(db),
@@ -113,28 +98,31 @@ describe("handle", () => {
   });
 
   it("returns 404/405 for unknown routes and methods", async () => {
-    const db = fakeDb({});
+    const db = fakeDb([]);
     expect((await handle(req("/v1/nope"), deps(db))).status).toBe(404);
     expect(
       (await handle(req("/v1/profile", { method: "DELETE" }), deps(db))).status,
     ).toBe(405);
     expect(
-      (await handle(req("/other/v1/profile"), deps(db), { basePath: "/api" }))
-        .status,
+      (
+        await handle(req("/other/v1/profile"), deps(db), {
+          basePath: "/api",
+        })
+      ).status,
     ).toBe(404);
   });
 
   it("serves openapi without a key", async () => {
     const res = await handle(
       new Request("https://x.test/v1/openapi.json"),
-      deps(fakeDb({})),
+      deps(fakeDb([])),
     );
     expect(res.status).toBe(200);
     expect((await res.json()).info["x-status"]).toBe("alpha");
   });
 
   it("validates pin input", async () => {
-    const db = fakeDb({ maps: { id: "m" } });
+    const db = fakeDb([[/from public\.maps m/, () => [{ id: "m" }]]]);
     const bad = await handle(
       req("/v1/maps/m/pins", {
         method: "POST",
@@ -155,19 +143,44 @@ describe("handle", () => {
     });
   });
 
+  it("passes pin fields as parameters, never inline", async () => {
+    const db = fakeDb([
+      [/from public\.maps m/, () => [{ id: "m" }]],
+      [/insert into public\.pins/, () => [{ id: "p", map_id: "m" }]],
+    ]);
+    const res = await handle(
+      req("/v1/maps/m/pins", {
+        method: "POST",
+        body: JSON.stringify({
+          lat: 1,
+          lng: 2,
+          title: "x'; drop table pins;--",
+        }),
+      }),
+      deps(db),
+    );
+    expect(res.status).toBe(201);
+    const insert = db.log.find((q) => q.includes("insert into public.pins"))!;
+    expect(insert).not.toContain("drop table");
+    expect(insert).toContain("(map_id, title, lat, lng)");
+  });
+
   it("returns 404 when a pin is not visible", async () => {
-    const res = await handle(req("/v1/pins/p"), deps(fakeDb({ pins: null })));
+    const res = await handle(req("/v1/pins/p"), deps(fakeDb([])));
     expect(res.status).toBe(404);
   });
 
   it("paginates with an opaque cursor", async () => {
-    const rows = Array.from({ length: 3 }, (_, i) => ({
+    const maps = Array.from({ length: 3 }, (_, i) => ({
+      id: `m${i}`,
+      name: "n",
+      slug: "s",
+      visibility: "private",
       role: "owner",
-      maps: { id: `m${i}`, name: "n", slug: "s", visibility: "private" },
     }));
     const res = await handle(
       req("/v1/maps?limit=2"),
-      deps(fakeDb({ map_members: rows })),
+      deps(fakeDb([[/from public\.map_members mm/, () => maps]])),
     );
     const body = await res.json();
     expect(body.data).toHaveLength(2);
@@ -180,22 +193,23 @@ describe("handle", () => {
         method: "PUT",
         body: JSON.stringify({ config: {} }),
       }),
-      deps(fakeDb({})),
+      deps(fakeDb([])),
     );
     expect(res.status).toBe(404);
   });
-});
 
-describe("signUserJwt", () => {
-  it("produces an HS256 token with the authenticated role", async () => {
-    const token = await signUserJwt(USER, "secret", 60, 1000);
-    const [h, p, sig] = token.split(".");
-    expect(JSON.parse(atob(h!))).toEqual({ alg: "HS256", typ: "JWT" });
-    expect(JSON.parse(atob(p!))).toMatchObject({
-      sub: USER,
-      role: "authenticated",
-      exp: 1060,
-    });
-    expect(sig).toMatch(/^[A-Za-z0-9_-]+$/);
+  it("maps database errors to API errors", async () => {
+    const db: Db = {
+      query: async () => {
+        throw Object.assign(new Error("dup"), { code: "23505" });
+      },
+    };
+    const res = await handle(
+      req("/v1/profile", { method: "PATCH", body: '{"slug":"taken"}' }),
+      deps(db),
+    );
+    expect(res.status).toBe(409);
+    expect(dbError({ code: "22P02" }).status).toBe(404);
+    expect(dbError({ code: "42501" }).status).toBe(403);
   });
 });

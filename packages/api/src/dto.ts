@@ -82,7 +82,8 @@ export const toPin = (r: Row): ApiPin => ({
 
 export const PROFILE_COLUMNS =
   "id, slug, display_name, bio, avatar_url, visibility, default_map_id, created_at, updated_at";
+/** Map columns, qualified with the `m` alias used by the map queries. */
 export const MAP_COLUMNS =
-  "id, name, slug, description, icon_emoji, visibility, created_at, updated_at";
+  "m.id, m.name, m.slug, m.description, m.icon_emoji, m.visibility, m.created_at, m.updated_at";
 export const PIN_COLUMNS =
   "id, map_id, slug, title, description, lat, lng, date, end_date, created_at, updated_at";
