@@ -29,6 +29,7 @@ import { PageMuted } from "@curolia/ui/page";
 import { PinCard, PinCardTagRow } from "@curolia/ui/pin-card";
 import { TagBadge } from "@curolia/ui/tag-badge";
 import { useQuery } from "@tanstack/react-query";
+import { useScrollPositionRestore } from "@/hooks/use-scroll-position-restore";
 import { useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -77,6 +78,8 @@ export function MapGalleryPanel({
   activePinId,
   gridColumns = 3,
 }: MapGalleryPanelProps) {
+  const pageScrollRef = useRef<HTMLDivElement>(null);
+  useScrollPositionRestore(pageScrollRef, !embedded);
   const [searchParams] = useSearchParams();
   const { activeMapId, activeMap, loading: mapLoading } = useMap();
   const {
@@ -209,7 +212,7 @@ export function MapGalleryPanel({
   }
 
   return (
-    <BlogScroll>
+    <BlogScroll ref={pageScrollRef}>
       <BlogFullWidthContent>
         {galleryHeader}
         {emptyPanel}

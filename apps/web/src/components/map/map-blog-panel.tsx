@@ -2,6 +2,7 @@ import { FloatingPanel } from "@/components/layout/floating-panel";
 import { BlogPinListSortLead } from "@/components/map/blog-pin-list-sort-lead";
 import { PinBlogMetaSummaries } from "@/components/map/pin-blog-meta-summaries";
 import { PublicMapOwnerCard } from "@/components/map/public-map-owner-card";
+import { useScrollPositionRestore } from "@/hooks/use-scroll-position-restore";
 import { useBlogPinListSort } from "@/hooks/use-blog-pin-list-order";
 import { useMapOwnerCard } from "@/hooks/use-map-owner-card";
 import { orderedBlogPinList } from "@/lib/blog-pin-list-order";
@@ -79,6 +80,9 @@ export function MapBlogPanel({
   onPinHoverEnd,
   activePinId,
 }: MapBlogPanelProps) {
+  const ownScrollRef = useRef<HTMLDivElement>(null);
+  const blogScrollRef = scrollRootRef ?? ownScrollRef;
+  useScrollPositionRestore(blogScrollRef, !embedded);
   const [searchParams] = useSearchParams();
   const { activeMapId, activeMap, loading: mapLoading } = useMap();
   const {
@@ -237,7 +241,7 @@ export function MapBlogPanel({
           {pinList}
         </MapBlogSidePanelScroll>
       ) : (
-        <BlogScroll ref={scrollRootRef}>{scrollBody}</BlogScroll>
+        <BlogScroll ref={blogScrollRef}>{scrollBody}</BlogScroll>
       )}
 
       <PinPhotoLightbox
