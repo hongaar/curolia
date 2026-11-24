@@ -40,6 +40,25 @@ jobs:
           echo "Manual deploy for ref: ${{ inputs.ref }}"
           echo "Play Store deploy: ${{ inputs.enable_play_store_deploy }}"
 
+  status-pending:
+    name: Report deploy pending
+    needs: [eligible, manual]
+    if: always() && (needs.eligible.result == 'success' || needs.manual.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Set pending commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sha=$(gh api "repos/${{ github.repository }}/commits/${{ env.DEPLOY_REF }}" --jq .sha)
+          gh api "repos/${{ github.repository }}/statuses/$sha" \
+            -f state=pending -f context=Deploy \
+            -f description="Deploying to production" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   resolve-version:
     name: Release version
     needs: [eligible, manual]
@@ -237,3 +256,23 @@ jobs:
           track: ${{ env.PLAY_STORE_TRACK }}
           status: completed
           whatsNewDirectory: apps/mobile/android/fastlane/metadata/android/en-US/changelogs
+
+  status-result:
+    name: Report deploy result
+    needs: [status-pending, supabase, vercel, play-store]
+    if: always() && needs.status-pending.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Set final commit status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILED: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: |
+          set -euo pipefail
+          sha=$(gh api "repos/${{ github.repository }}/commits/${{ env.DEPLOY_REF }}" --jq .sha)
+          if [ "$FAILED" = "true" ]; then state=failure; desc="Deploy failed"; else state=success; desc="Deployed to production"; fi
+          gh api "repos/${{ github.repository }}/statuses/$sha" \
+            -f state="$state" -f context=Deploy -f description="$desc" \
+            -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
