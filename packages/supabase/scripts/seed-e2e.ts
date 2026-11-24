@@ -28,13 +28,13 @@ import {
 import { requireSupabaseEnv } from "./require-supabase-env.ts";
 
 const SUPABASE_URL = requireSupabaseEnv("SUPABASE_URL");
-const SERVICE_ROLE_KEY = requireSupabaseEnv("SUPABASE_SERVICE_ROLE_KEY");
+const SECRET_KEY = requireSupabaseEnv("SUPABASE_SECRET_KEY");
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "../../..");
 const fixturePath = path.resolve(repoRoot, "tests/e2e/fixtures/seed.json");
 
-const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+const admin = createClient(SUPABASE_URL, SECRET_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 

@@ -34,9 +34,12 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !anonKey || !serviceRole) {
+  const publishableKey = JSON.parse(
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}",
+  ).default as string | undefined;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}")
+    .default as string | undefined;
+  if (!supabaseUrl || !publishableKey || !secretKey) {
     return jsonResponse(500, { error: "Supabase env vars missing" });
   }
 
@@ -49,7 +52,7 @@ Deno.serve(async (req) => {
     MAX_BATCH_PER_PLUGIN,
   );
 
-  const admin = createClient(supabaseUrl, serviceRole);
+  const admin = createClient(supabaseUrl, secretKey);
   const registry = body.pluginTypeId
     ? PLUGIN_SYNC_DISPATCH_REGISTRY.filter(
         (entry) => entry.pluginTypeId === body.pluginTypeId,
@@ -81,7 +84,7 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${dispatchSecret}`,
-          apikey: anonKey,
+          apikey: publishableKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ limit }),

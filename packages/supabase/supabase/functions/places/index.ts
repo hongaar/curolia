@@ -446,12 +446,13 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !serviceRole) {
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}")
+    .default as string | undefined;
+  if (!supabaseUrl || !secretKey) {
     return jsonResponse(500, { error: "supabase_env_missing" });
   }
 
-  const admin = createClient(supabaseUrl, serviceRole);
+  const admin = createClient(supabaseUrl, secretKey);
   const body = (await req.json().catch(() => ({}))) as ExploreStaticBody;
 
   switch (body.action) {

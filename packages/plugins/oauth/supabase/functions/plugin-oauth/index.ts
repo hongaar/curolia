@@ -196,8 +196,10 @@ async function insertPendingOauth(
 
 async function handleStart(body: StartBody, jwt: string): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const publishableKey = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")!)
+    .default as string;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!)
+    .default as string;
 
   if (!jwt) {
     return new Response(JSON.stringify({ error: "missing Authorization" }), {
@@ -224,23 +226,24 @@ async function handleStart(body: StartBody, jwt: string): Promise<Response> {
     );
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, publishableKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
-  if (userErr || !userData.user) {
+  const { data: claimsData, error: userErr } =
+    await userClient.auth.getClaims(jwt);
+  if (userErr || !claimsData?.claims.sub) {
     return new Response(JSON.stringify({ error: "invalid session" }), {
       status: 401,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
   }
-  const userId = userData.user.id;
+  const userId = claimsData.claims.sub;
 
   const codeVerifier = randomUrlSafe(48);
   const codeChallenge = await sha256Base64Url(codeVerifier);
   const state = randomUrlSafe(24);
 
-  const admin = createClient(supabaseUrl, serviceKey);
+  const admin = createClient(supabaseUrl, secretKey);
   const pendErrResp = await insertPendingOauth(admin, {
     state,
     userId,
@@ -331,8 +334,10 @@ async function handleStart(body: StartBody, jwt: string): Promise<Response> {
 
 async function handleUnlink(body: UnlinkBody, jwt: string): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const publishableKey = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")!)
+    .default as string;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!)
+    .default as string;
 
   if (!jwt) {
     return new Response(JSON.stringify({ error: "missing Authorization" }), {
@@ -358,19 +363,20 @@ async function handleUnlink(body: UnlinkBody, jwt: string): Promise<Response> {
     );
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, publishableKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
-  if (userErr || !userData.user) {
+  const { data: claimsData, error: userErr } =
+    await userClient.auth.getClaims(jwt);
+  if (userErr || !claimsData?.claims.sub) {
     return new Response(JSON.stringify({ error: "invalid session" }), {
       status: 401,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
   }
-  const userId = userData.user.id;
+  const userId = claimsData.claims.sub;
 
-  const admin = createClient(supabaseUrl, serviceKey);
+  const admin = createClient(supabaseUrl, secretKey);
   const { error: delErr } = await admin
     .from("user_plugin_oauth_tokens")
     .delete()
@@ -425,8 +431,10 @@ async function handleLinkStatus(
   jwt: string,
 ): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const publishableKey = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")!)
+    .default as string;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!)
+    .default as string;
 
   if (!jwt) {
     return new Response(JSON.stringify({ error: "missing Authorization" }), {
@@ -452,19 +460,20 @@ async function handleLinkStatus(
     );
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, publishableKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
-  if (userErr || !userData.user) {
+  const { data: claimsData, error: userErr } =
+    await userClient.auth.getClaims(jwt);
+  if (userErr || !claimsData?.claims.sub) {
     return new Response(JSON.stringify({ error: "invalid session" }), {
       status: 401,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
   }
-  const userId = userData.user.id;
+  const userId = claimsData.claims.sub;
 
-  const admin = createClient(supabaseUrl, serviceKey);
+  const admin = createClient(supabaseUrl, secretKey);
   const { data: tok } = await admin
     .from("user_plugin_oauth_tokens")
     .select("id")
@@ -507,7 +516,8 @@ async function handleLinkStatus(
 
 async function handleCallback(req: Request, url: URL): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!)
+    .default as string;
   const spotifyClientId = Deno.env.get("SPOTIFY_CLIENT_ID") ?? "";
   const spotifyClientSecret = Deno.env.get("SPOTIFY_CLIENT_SECRET") ?? "";
   const defaultOrigin =
@@ -528,7 +538,7 @@ async function handleCallback(req: Request, url: URL): Promise<Response> {
   const state = url.searchParams.get("state");
   const err = url.searchParams.get("error");
 
-  const admin = createClient(supabaseUrl, serviceKey);
+  const admin = createClient(supabaseUrl, secretKey);
 
   if (err) {
     return redirectBack(`${defaultOrigin}/plugins`, {

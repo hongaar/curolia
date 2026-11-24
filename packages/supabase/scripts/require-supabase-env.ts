@@ -11,7 +11,7 @@ export function requireSupabaseEnv(name: string): string {
         "",
         "Or export explicitly (from `npm run db:status -w @curolia/supabase`):",
         "  SUPABASE_URL",
-        "  SUPABASE_SERVICE_ROLE_KEY",
+        "  SUPABASE_SECRET_KEY",
       ].join("\n"),
     );
   }

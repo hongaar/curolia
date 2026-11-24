@@ -34,7 +34,7 @@
         "E2E_BASE_URL",
         "E2E_ENFORCE_BASELINE",
         "SUPABASE_URL",
-        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL",
         "VITE_SUPABASE_PUBLISHABLE_KEY"
       ]
@@ -47,7 +47,7 @@
         "CI",
         "E2E_BASE_URL",
         "SUPABASE_URL",
-        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_SECRET_KEY",
         "VITE_SUPABASE_URL",
         "VITE_SUPABASE_PUBLISHABLE_KEY"
       ]

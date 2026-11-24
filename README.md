@@ -153,7 +153,7 @@ Point the web app at the local API (defaults are stable):
 
 1. Create `apps/web/.env` (see `[apps/web/.env.example](apps/web/.env.example)`).
 2. Set `VITE_SUPABASE_URL` to the **API URL** from `npm run db:status -w @curolia/supabase` (usually `http://127.0.0.1:54321`).
-3. Set `VITE_SUPABASE_PUBLISHABLE_KEY` to the **anon key** from that same command.
+3. Set `VITE_SUPABASE_PUBLISHABLE_KEY` to the **publishable key** (`sb_publishable_…`) from that same command.
 
 Then run `**npm run dev`** from the **repo root** (Turbo runs `**@curolia/supabase#stack`** once: `supabase start`+`**functions:sync**`, then `**supabase functions serve**`, **Vite**, and **Storybook** (port 6006) in parallel after that). Open the web app URL from Vite's output. [Studio](http://127.0.0.1:54323) lists tables and auth users. [Mailpit](http://127.0.0.1:54324) catches auth emails if you turn confirmations back on.
 

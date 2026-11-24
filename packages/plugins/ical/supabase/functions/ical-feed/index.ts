@@ -30,12 +30,13 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !serviceKey) {
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}")
+    .default as string | undefined;
+  if (!supabaseUrl || !secretKey) {
     return new Response("Server misconfigured", { status: 500 });
   }
 
-  const admin = createClient(supabaseUrl, serviceKey, {
+  const admin = createClient(supabaseUrl, secretKey, {
     auth: { persistSession: false },
   });
 

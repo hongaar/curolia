@@ -61,16 +61,17 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}")
+    .default as string | undefined;
   const fcmServerKey = Deno.env.get("FCM_SERVER_KEY");
-  if (!supabaseUrl || !serviceRole)
+  if (!supabaseUrl || !secretKey)
     return jsonResponse(500, { error: "Supabase env vars missing" });
   if (!fcmServerKey)
     return jsonResponse(500, { error: "FCM_SERVER_KEY is not configured" });
 
   const body = (await req.json().catch(() => ({}))) as { limit?: number };
   const limit = Math.min(Math.max(body.limit ?? 50, 1), 100);
-  const client = createClient(supabaseUrl, serviceRole);
+  const client = createClient(supabaseUrl, secretKey);
 
   const { data: rows, error } = await client
     .from("push_notification_outbox")

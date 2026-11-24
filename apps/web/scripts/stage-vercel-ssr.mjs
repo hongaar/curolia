@@ -36,9 +36,7 @@ writeFileSync(join(stageDir, "template.html"), enriched);
 
 const supabaseUrl =
   process.env.VITE_SUPABASE_URL?.trim() ?? process.env.SUPABASE_URL?.trim();
-const supabaseKey =
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() ??
-  process.env.SUPABASE_ANON_KEY?.trim();
+const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
 if (supabaseUrl && supabaseKey) {
   writeFileSync(

@@ -15,7 +15,7 @@ Playwright suite that runs the real app against local Supabase and asserts:
   other distros that older versions refused ("does not support chromium on
   ubuntu26.04-x64"). If launching fails on missing system libraries, run
   `sudo npx playwright install-deps chromium`.
-- E2E scripts load `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and Vite
+- E2E scripts load `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and Vite
   publishable key from `supabase status` automatically — no hardcoded JWTs.
   Override by exporting those variables yourself if needed.
 

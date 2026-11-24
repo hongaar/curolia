@@ -351,8 +351,10 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const publishableKey = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")!)
+    .default as string;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!)
+    .default as string;
 
   let body: Body;
   try {
@@ -365,14 +367,16 @@ Deno.serve(async (req: Request) => {
   const jwt = authHeader.replace(/^Bearer\s+/i, "");
   if (!jwt) return json(401, { error: "unauthorized" });
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, publishableKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
-  if (userErr || !userData.user) return json(401, { error: "invalid_session" });
+  const { data: claimsData, error: userErr } =
+    await userClient.auth.getClaims(jwt);
+  if (userErr || !claimsData?.claims.sub)
+    return json(401, { error: "invalid_session" });
 
-  const userId = userData.user.id;
-  const admin = createClient(supabaseUrl, serviceKey);
+  const userId = claimsData.claims.sub;
+  const admin = createClient(supabaseUrl, secretKey);
 
   if (body.action === "list_trips") {
     return handleListTrips(admin, userId);

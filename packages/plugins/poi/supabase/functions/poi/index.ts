@@ -1664,8 +1664,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const publishableKey = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")!)
+    .default as string;
+  const secretKey = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")!)
+    .default as string;
   const dispatchSecret =
     Deno.env.get(PLUGIN_SYNC_DISPATCH_SECRET_ENV) ??
     Deno.env.get("POI_DISPATCH_SECRET");
@@ -1693,7 +1695,7 @@ Deno.serve(async (req: Request) => {
     dispatchSecret &&
     authHeader === `Bearer ${dispatchSecret}`
   ) {
-    const admin = createClient(supabaseUrl, serviceKey);
+    const admin = createClient(supabaseUrl, secretKey);
     const limit = Math.min(
       Math.max(typeof body.limit === "number" ? body.limit : 10, 1),
       50,
@@ -1709,18 +1711,19 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
+  const userClient = createClient(supabaseUrl, publishableKey, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
-  const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
-  if (userErr || !userData.user) {
+  const { data: claimsData, error: userErr } =
+    await userClient.auth.getClaims(jwt);
+  if (userErr || !claimsData?.claims.sub) {
     return new Response(JSON.stringify({ error: "invalid_session" }), {
       status: 401,
       headers: { ...cors(), "Content-Type": "application/json" },
     });
   }
-  const userId = userData.user.id;
-  const admin = createClient(supabaseUrl, serviceKey);
+  const userId = claimsData.claims.sub;
+  const admin = createClient(supabaseUrl, secretKey);
 
   async function loadPinForUser(
     pinId: string,

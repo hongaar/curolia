@@ -30,8 +30,10 @@ Deno.serve(async (req) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!supabaseUrl || !anonKey) {
+  const publishableKey = JSON.parse(
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? "{}",
+  ).default as string | undefined;
+  if (!supabaseUrl || !publishableKey) {
     return jsonResponse(500, { error: "Supabase env vars missing" });
   }
 
@@ -42,7 +44,7 @@ Deno.serve(async (req) => {
     method: "POST",
     headers: {
       Authorization: `Bearer ${dispatchSecret}`,
-      apikey: anonKey,
+      apikey: publishableKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ action: "process_sync_jobs", limit }),

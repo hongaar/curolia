@@ -45,7 +45,6 @@ export function createServerSupabase(): SupabaseClient<Database> {
     PLACEHOLDER_URL;
   const key =
     readEnv("VITE_SUPABASE_PUBLISHABLE_KEY") ??
-    readEnv("SUPABASE_ANON_KEY") ??
     staged.supabaseKey?.trim() ??
     PLACEHOLDER_KEY;
 

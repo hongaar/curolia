@@ -30,8 +30,7 @@ export function parseSupabaseStatusEnv(stdout) {
 /** @returns {Record<string, string>} */
 export function loadLocalSupabaseEnv() {
   const hasCore =
-    process.env.SUPABASE_URL?.trim() &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    process.env.SUPABASE_URL?.trim() && process.env.SUPABASE_SECRET_KEY?.trim();
 
   let status = null;
   const readStatus = () => {
@@ -55,7 +54,7 @@ export function loadLocalSupabaseEnv() {
         [
           "Could not read local Supabase credentials.",
           "Start the stack with: npm run db:start -w @curolia/supabase",
-          "Or set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment.",
+          "Or set SUPABASE_URL and SUPABASE_SECRET_KEY in the environment.",
           stderr.trim(),
         ]
           .filter(Boolean)
@@ -69,17 +68,17 @@ export function loadLocalSupabaseEnv() {
   if (hasCore) {
     const parsed = readStatus();
     const supabaseUrl = process.env.SUPABASE_URL.trim();
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY.trim();
+    const secretKey = process.env.SUPABASE_SECRET_KEY.trim();
     const apiUrl = process.env.VITE_SUPABASE_URL?.trim() ?? supabaseUrl;
-    const anonKey =
+    const publishableKey =
       process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim() ??
-      parsed?.ANON_KEY?.trim() ??
+      parsed?.PUBLISHABLE_KEY?.trim() ??
       "";
     return {
       SUPABASE_URL: supabaseUrl,
-      SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+      SUPABASE_SECRET_KEY: secretKey,
       VITE_SUPABASE_URL: apiUrl,
-      VITE_SUPABASE_PUBLISHABLE_KEY: anonKey,
+      VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
     };
   }
 
@@ -89,29 +88,29 @@ export function loadLocalSupabaseEnv() {
   }
 
   const apiUrl = parsed.API_URL?.trim();
-  const serviceRoleKey = parsed.SERVICE_ROLE_KEY?.trim();
-  const anonKey = parsed.ANON_KEY?.trim();
+  const secretKey = parsed.SECRET_KEY?.trim();
+  const publishableKey = parsed.PUBLISHABLE_KEY?.trim();
 
-  if (!apiUrl || !serviceRoleKey) {
+  if (!apiUrl || !secretKey) {
     throw new Error(
       [
-        "Local Supabase is running but status did not return API_URL / SERVICE_ROLE_KEY.",
+        "Local Supabase is running but status did not return API_URL / SECRET_KEY.",
         "Try: npm run db:status -w @curolia/supabase",
       ].join("\n"),
     );
   }
 
-  if (!anonKey) {
+  if (!publishableKey) {
     throw new Error(
-      "Local Supabase status did not return ANON_KEY for VITE_SUPABASE_PUBLISHABLE_KEY.",
+      "Local Supabase status did not return PUBLISHABLE_KEY for VITE_SUPABASE_PUBLISHABLE_KEY.",
     );
   }
 
   return {
     SUPABASE_URL: apiUrl,
-    SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+    SUPABASE_SECRET_KEY: secretKey,
     VITE_SUPABASE_URL: apiUrl,
-    VITE_SUPABASE_PUBLISHABLE_KEY: anonKey,
+    VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
   };
 }
 

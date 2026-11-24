@@ -254,11 +254,11 @@ Route explore categories use a separate `route` Edge Function (ORS); not covered
 
 ## Configuration
 
-| Variable                                    | Used by                               |
-| ------------------------------------------- | ------------------------------------- |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | `places`, `place-enrichment-dispatch` |
-| `PLUGIN_SYNC_DISPATCH_SECRET`               | `place-enrichment-dispatch` + pg_cron |
-| `ORS_API_KEY`                               | `route` function only                 |
+| Variable                              | Used by                               |
+| ------------------------------------- | ------------------------------------- |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | `places`, `place-enrichment-dispatch` |
+| `PLUGIN_SYNC_DISPATCH_SECRET`         | `place-enrichment-dispatch` + pg_cron |
+| `ORS_API_KEY`                         | `route` function only                 |
 
 Overpass requires no key. See `packages/supabase/supabase/functions/.env.example`.
 
