@@ -112,7 +112,7 @@ export function MapGalleryPanel({
       if (!activeMapId) return [];
       const { data, error } = await supabase
         .from("tags")
-        .select("id, name, slug")
+        .select("*")
         .eq("map_id", activeMapId);
       if (error) throw error;
       return data ?? [];
