@@ -18,6 +18,7 @@ import {
 } from "@curolia/site/pages";
 import type { ReactElement } from "react";
 
+import { DevelopersPage } from "@/pages/developers-page";
 import type { PageMeta } from "@/ssr/render-document";
 import type { StaticSsrRouteId } from "@/ssr/routes";
 import {
@@ -64,6 +65,11 @@ const STATIC_META: Record<Exclude<StaticSsrRouteId, "campaign">, PageMeta> = {
   licenses: {
     title: "Open Source Licenses — Curolia",
     description: "Open source software used by Curolia.",
+  },
+  developers: {
+    title: "Developers & API — Curolia",
+    description:
+      "Curolia REST API (alpha) for profiles, maps, pins and plugin data, with API keys and docs.",
   },
 };
 
@@ -120,6 +126,8 @@ export function renderStaticPage(
       return <PluginsOverviewPageContent />;
     case "licenses":
       return <OpenSourceLicensesPageContent />;
+    case "developers":
+      return <DevelopersPage />;
     case "campaign": {
       const render = campaignId ? CAMPAIGN_PAGES[campaignId] : undefined;
       return render ? render() : null;

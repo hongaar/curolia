@@ -8,6 +8,9 @@
  * Also runs `extract-plugin-oauth-registry.ts` (via `tsx`) to build
  * `packages/plugins/oauth/supabase/functions/plugin-oauth/scopes-registry.gen.ts`
  * from each plugin's exported `pluginManifest.contributions.oauth`.
+ *
+ * Also syncs the public REST API function from `packages/api` and generates its
+ * plugin exposure registry from each plugin's `src/api-registry.ts`.
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -47,8 +50,8 @@ function runPluginOauthRegistryExtract() {
   }
 }
 
-function runPluginSyncRegistryExtract() {
-  const extractor = path.join(__dirname, "extract-plugin-sync-registry.ts");
+function runTsxScript(name) {
+  const extractor = path.join(__dirname, name);
   const tsxBin = resolveTsxBin(repoRoot);
   const useLocalTsx = tsxBin !== null;
   const cmd = useLocalTsx ? tsxBin : "npx";
@@ -96,7 +99,8 @@ if (!fs.existsSync(pluginsRoot)) {
 }
 
 runPluginOauthRegistryExtract();
-runPluginSyncRegistryExtract();
+runTsxScript("extract-plugin-sync-registry.ts");
+runTsxScript("extract-plugin-api-registry.ts");
 
 let count = 0;
 for (const pkg of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
@@ -117,6 +121,23 @@ for (const pkg of fs.readdirSync(pluginsRoot, { withFileTypes: true })) {
     );
     count += 1;
   }
+}
+
+// Public REST API (@curolia/api): copy the function adapter plus the package
+// sources into `api/lib/_api/` (tests excluded).
+const apiPkgRoot = path.join(repoRoot, "packages", "api");
+const apiFnSrc = path.join(apiPkgRoot, "supabase", "functions", "api");
+if (fs.existsSync(apiFnSrc)) {
+  const dest = path.join(destRoot, "api");
+  rmrf(dest);
+  copyDir(apiFnSrc, dest);
+  const libDest = path.join(dest, "lib", "_api");
+  fs.mkdirSync(libDest, { recursive: true });
+  for (const f of fs.readdirSync(path.join(apiPkgRoot, "src"))) {
+    if (!f.endsWith(".ts") || f.endsWith(".test.ts")) continue;
+    fs.copyFileSync(path.join(apiPkgRoot, "src", f), path.join(libDest, f));
+  }
+  console.log(`synced packages/api -> ${path.relative(repoRoot, dest)}`);
 }
 
 const linkMetadataLib = path.join(destRoot, "link-metadata", "lib");

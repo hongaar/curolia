@@ -12,8 +12,6 @@ import {
 } from "../shell/marketing-shell";
 import styles from "../styles/site.module.css";
 
-const EFFECTIVE_DATE = "22 June 2026";
-
 export function PluginsOverviewPageContent({
   logoSrc = "/icon.png",
 }: {
@@ -55,10 +53,6 @@ export function PluginsOverviewPageContent({
               Log in
             </MarketingButtonLink>
           </div>
-
-          <p className={styles.pluginsOverviewUpdated}>
-            Last updated: {EFFECTIVE_DATE}
-          </p>
         </section>
       </main>
       <MarketingFooter />

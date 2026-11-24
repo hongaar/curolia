@@ -9,7 +9,7 @@ import {
 
 function pluginSortRank(plugin: LandingPlugin): number {
   if (plugin.status === "coming-soon") return 2;
-  if (plugin.experimental) return 1;
+  if (plugin.badge || plugin.experimental) return 1;
   return 0;
 }
 
@@ -32,8 +32,10 @@ export function PluginsOverviewGrid({
               <h3 className={styles.pluginName}>{plugin.name}</h3>
               {plugin.status === "coming-soon" ? (
                 <span className={styles.pluginBadge}>Coming soon</span>
-              ) : plugin.experimental ? (
-                <span className={styles.pluginBadge}>Experimental</span>
+              ) : plugin.badge || plugin.experimental ? (
+                <span className={styles.pluginBadge}>
+                  {plugin.badge ?? "Experimental"}
+                </span>
               ) : null}
             </div>
             <p className={styles.pluginDescription}>{plugin.description}</p>

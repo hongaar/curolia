@@ -92,3 +92,10 @@ The **only** acceptable migration path is a **one-off Supabase SQL migration** t
 - Use **[Conventional Commits](https://www.conventionalcommits.org/)**: `type(scope): short imperative summary` (e.g. `feat(web): add profile-scoped map URLs`, `fix(supabase): …`, `refactor(ui): …`).
 - Common types: **`feat`**, **`fix`**, **`refactor`**, **`chore`**, **`docs`**, **`test`**, **`ci`**, **`build`**. Pick the type that best matches the change; optional **`scope`** is usually the workspace or area (`web`, `ui`, `supabase`, `routing`, …).
 - Keep the subject line concise; add a body only when the “why” is not obvious from the subject.
+
+## Public REST API (`@curolia/api`, alpha)
+
+- Host-agnostic router in **`packages/api/src`** (`handle(request, deps, { basePath })`, no runtime deps). The Supabase adapter is **`packages/api/supabase/functions/api/index.ts`**; **`functions:sync`** copies it plus `src/*.ts` into `packages/supabase/supabase/functions/api/` (gitignored). To serve from another host (e.g. `api.curolia.com`), add a thin adapter with a different `basePath` and set **`VITE_PUBLIC_API_URL`** for the docs.
+- Auth: **`api_keys`** stores only sha256 hashes (`create_api_key` / `resolve_api_key` RPCs). The function mints a 60s user JWT with **`API_JWT_SECRET`** (project JWT secret), so RLS stays the source of truth.
+- Plugins opt in via **`contributions.api`** and a React-free **`src/api-registry.ts`** (extracted into `api-registry.gen.ts` by `functions:sync`). Only list non-secret `mapConfigKeys`.
+- v1 is **alpha**: change it freely, no backwards compatibility. Keep **`src/openapi.ts`** in sync with handlers—the `/developers` docs page renders from it.

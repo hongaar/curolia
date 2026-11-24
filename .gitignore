@@ -53,9 +53,11 @@ packages/supabase/supabase/functions/poi-dispatch/
 packages/supabase/supabase/functions/plugin-oauth/
 packages/supabase/supabase/functions/spotify/
 packages/supabase/supabase/functions/wikidata/
+packages/supabase/supabase/functions/api/
 
 # Generated Edge Function registries (built by functions:sync extractors)
 packages/supabase/supabase/functions/plugin-sync-dispatch/dispatch-registry.gen.ts
+packages/api/supabase/functions/api/api-registry.gen.ts
 packages/plugins/**/scopes-registry.gen.ts
 
 # Synced @curolia/services copy for Edge Functions (built by functions:sync)

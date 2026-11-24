@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
+import { DevelopersPage } from "@/pages/developers-page";
 import { ForgotPasswordPage } from "@/pages/forgot-password-page";
 import { LoginPage } from "@/pages/login-page";
 import { OpenSourceLicensesPage } from "@/pages/open-source-licenses-page";
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPolicyPageContent />} />
         <Route path="/terms" element={<TermsPageContent />} />
         <Route path="/open-source" element={<OpenSourceMindsetPageContent />} />
+        <Route path="/developers" element={<DevelopersPage />} />
         <Route
           path="/plugins-overview"
           element={<PluginsOverviewPageContent />}

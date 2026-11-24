@@ -75,6 +75,31 @@ export type SyncJobsDeclaration = {
   dispatchSecretEnvVar?: string;
 };
 
+/** Read/write exposure of one resource through the public REST API (alpha). */
+export type PluginApiResourceDeclaration = {
+  read?: boolean;
+  write?: boolean;
+  description?: string;
+};
+
+/**
+ * Exposes plugin data through the public REST API (`/v1/maps/...`, `/v1/pins/...`).
+ * - `map`: `map_plugins.config`, limited to `mapConfigKeys` (never expose secrets/tokens).
+ * - `pin`: `plugin_entity_data.data` for the pin (only for `pinOutputScope: "map"` plugins).
+ */
+export type PluginApiDeclaration = {
+  map?: PluginApiResourceDeclaration & { mapConfigKeys: readonly string[] };
+  pin?: PluginApiResourceDeclaration;
+};
+
+/**
+ * Pure-data registry entry exported from a plugin's `src/api-registry.ts`
+ * (no React/CSS) and extracted into the `api` Edge Function by `functions:sync`.
+ */
+export type PluginApiRegistryEntry = PluginApiDeclaration & {
+  pluginTypeId: string;
+};
+
 export type PluginContributions = {
   globalSettings?: GlobalSettingsDeclaration;
   mapSettings?: MapSettingsDeclaration;
@@ -82,4 +107,5 @@ export type PluginContributions = {
   edgeFunctions?: EdgeFunctionDeclaration[];
   oauth?: PluginOAuthDeclaration[];
   syncJobs?: SyncJobsDeclaration;
+  api?: PluginApiDeclaration;
 };

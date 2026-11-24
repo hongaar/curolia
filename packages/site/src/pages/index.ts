@@ -19,3 +19,4 @@ export { OpenSourceLicensesPageContent } from "./licenses-page";
 export { NativeAppLandingPage } from "./native-app-landing-page";
 export { OpenSourceMindsetPageContent } from "./open-source-page";
 export { PluginsOverviewPageContent } from "./plugins-overview-page";
+export { DevelopersPageContent } from "./developers-page";

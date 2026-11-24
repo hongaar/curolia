@@ -6,6 +6,7 @@ export type StaticSsrRouteId =
   | "openSource"
   | "pluginsOverview"
   | "licenses"
+  | "developers"
   | "campaign";
 
 /** Fixed marketing/legal SSR paths — add new static pages here only. */
@@ -17,6 +18,7 @@ export const SSR_STATIC_PATHS: Record<string, StaticSsrRouteId> = {
   "/open-source": "openSource",
   "/plugins-overview": "pluginsOverview",
   "/licenses": "licenses",
+  "/developers": "developers",
 };
 
 export const SSR_STATIC_PATHNAMES: readonly string[] = Object.freeze(

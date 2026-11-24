@@ -69,6 +69,7 @@
     "./plugins": "./src/components/plugins/index.ts",
     "./profile-overview": "./src/components/profile-overview/index.ts",
     "./popover": "./src/components/popover/index.ts",
+    "./secret-reveal": "./src/components/secret-reveal/index.ts",
     "./search-combobox": "./src/components/search-combobox/index.ts",
     "./select": "./src/components/select/index.ts",
     "./separator": "./src/components/separator/index.ts",

@@ -9,7 +9,8 @@ export type LegalNavTarget =
   | "terms"
   | "licenses"
   | "openSource"
-  | "pluginsOverview";
+  | "pluginsOverview"
+  | "developers";
 
 export type LegalContentProps = {
   contactEmail?: string;
@@ -26,6 +27,7 @@ const LEGAL_PATHS: Record<LegalNavTarget, string> = {
   licenses: "/licenses",
   openSource: "/open-source",
   pluginsOverview: "/plugins-overview",
+  developers: "/developers",
 };
 
 export function LegalEmbed({ children }: { children: React.ReactNode }) {

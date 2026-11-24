@@ -31,6 +31,7 @@ const ABOUT_LINKS = [
   { id: "terms", label: "Terms and Conditions" },
   { id: "privacy", label: "Privacy Policy" },
   { id: "licenses", label: "Open source licenses" },
+  { id: "developers", label: "Developers & API" },
 ] as const;
 
 export type AboutDialogProps = {
@@ -70,8 +71,16 @@ export function AboutDialog({
         navigate("/plugins-overview");
         return;
       }
+      if (target === "developers") {
+        handleOpenChange(false);
+        navigate("/developers");
+        return;
+      }
       const map: Record<
-        Exclude<LegalNavTarget, "openSource" | "pluginsOverview">,
+        Exclude<
+          LegalNavTarget,
+          "openSource" | "pluginsOverview" | "developers"
+        >,
         AboutView
       > = {
         contact: "contact",
@@ -109,7 +118,13 @@ export function AboutDialog({
           <AboutVersionMeta version={version} />
           <AboutLinkList
             items={[...ABOUT_LINKS]}
-            onSelect={(id) => setView(id as AboutView)}
+            onSelect={(id) => {
+              if (id === "developers") {
+                legalProps.onNavigate("developers");
+                return;
+              }
+              setView(id as AboutView);
+            }}
           />
           <AboutMapAttributionSection />
         </>

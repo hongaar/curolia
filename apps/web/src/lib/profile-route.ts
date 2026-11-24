@@ -17,6 +17,7 @@ const PUBLIC_PROFILE_SKIP_SLUGS = new Set([
   "open-source",
   "plugins-overview",
   "licenses",
+  "developers",
 ]);
 
 function normalizePathname(pathname: string): string {

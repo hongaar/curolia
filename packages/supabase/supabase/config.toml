@@ -57,3 +57,7 @@ verify_jwt = false
 [functions.route]
 verify_jwt = false
 
+# Public REST API (alpha): authenticates with Curolia API keys, not Supabase JWTs.
+[functions.api]
+verify_jwt = false
+

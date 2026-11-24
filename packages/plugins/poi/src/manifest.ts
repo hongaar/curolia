@@ -1,4 +1,5 @@
 import type { PluginPackageManifest } from "@curolia/plugin-contract";
+import { poiApiRegistry } from "./api-registry";
 import { poiExploreCategories } from "./explore";
 import { PoiIcon } from "./icon";
 import { PoiMapSettingsPanel } from "./map-settings-panel";
@@ -32,5 +33,6 @@ export const poiPluginManifest: PluginPackageManifest = {
       panel: "inline",
       title: "Points of interest",
     },
+    api: { pin: poiApiRegistry.pin },
   },
 };

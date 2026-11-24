@@ -524,12 +524,6 @@
   letter-spacing: -0.02em;
 }
 
-.legalEffective {
-  margin: 0 0 0.5rem;
-  font-size: var(--text-caption);
-  color: var(--muted-foreground);
-}
-
 .legalBody {
   display: flex;
   flex-direction: column;
@@ -837,12 +831,6 @@
   margin-top: 2rem;
 }
 
-.pluginsOverviewUpdated {
-  margin: 2rem 0 0;
-  font-size: var(--font-size-sm);
-  color: var(--muted-foreground);
-}
-
 .photoCredits {
   max-width: 72rem;
   margin: 0 auto;
@@ -933,4 +921,96 @@
 .legalTitle,
 .sharingTitle {
   font-weight: var(--font-weight-normal);
+}
+
+/* Developer docs (/developers) */
+.devNotice {
+  margin: 0 0 var(--space-6);
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklch, #f59e0b 30%, transparent);
+  background: color-mix(in oklch, #f59e0b 6%, transparent);
+  color: var(--foreground);
+  line-height: var(--line-height-relaxed);
+}
+
+.devCode {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.devPre {
+  margin: var(--space-3) 0;
+  padding: var(--space-3) var(--space-4);
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-caption);
+  line-height: var(--line-height-relaxed);
+}
+
+.devGroup {
+  margin-top: var(--space-6);
+}
+
+.devGroupTitle {
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.devEndpointButton {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  width: 100%;
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.devEndpointButton:hover,
+.devEndpointButton:focus-visible {
+  outline: none;
+  background: color-mix(in oklch, var(--foreground) 5%, transparent);
+}
+
+.devEndpoints {
+  /* Pull hover padding outside so methods align with the group title. */
+  margin: var(--space-2) calc(-1 * var(--space-2)) 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.devEndpoint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.devMethod {
+  min-width: 4.5rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary);
+}
+
+.devSummary {
+  color: var(--muted-foreground);
 }

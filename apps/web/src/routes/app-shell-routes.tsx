@@ -1,3 +1,4 @@
+import { ApiKeysPage } from "@/pages/api-keys-page";
 import { AppSettingsPage } from "@/pages/app-settings-page";
 import { InvitationsPage } from "@/pages/invitations-page";
 import { MapSettingsPage } from "@/pages/map-settings-page";
@@ -50,6 +51,7 @@ export const appShellRouteElements = (
     <Route path="notifications" element={<NotificationsPage />} />
     <Route path="invitations" element={<InvitationsPage />} />
     <Route path="whats-new" element={<WhatsNewPage />} />
+    <Route path="developers/keys" element={<ApiKeysPage />} />
     <Route path=":profileSlug" element={<PublicProfilePage />} />
   </>
 );

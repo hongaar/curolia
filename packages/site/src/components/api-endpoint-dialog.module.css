@@ -1,0 +1,65 @@
+.section + .section {
+  margin-top: var(--space-5);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.pre {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--text-caption);
+  line-height: var(--line-height-relaxed);
+}
+
+.code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+}
+
+.method {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--primary);
+}
+
+.muted {
+  color: var(--muted-foreground);
+}
+
+.required {
+  color: var(--primary);
+  font-size: var(--text-caption);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-caption);
+}
+
+.table th,
+.table td {
+  padding: var(--space-1) var(--space-2) var(--space-1) 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+}
+
+.table th {
+  font-weight: var(--font-weight-medium);
+}
+
+.response + .response {
+  margin-top: var(--space-2);
+}
+
+.responseHead {
+  margin: 0;
+}

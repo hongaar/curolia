@@ -27,6 +27,8 @@ export type LandingPlugin = {
   description: string;
   status: LandingPluginStatus;
   experimental?: boolean;
+  /** Status badge for available plugins (e.g. "Alpha"); overrides "Experimental". */
+  badge?: string;
   icon: () => ReactNode;
 };
 
@@ -143,8 +145,9 @@ export const landingPlugins: LandingPlugin[] = [
   {
     id: "api",
     name: "API access",
-    description: "Access your data with our public API and SDK",
-    status: "coming-soon",
+    description: "Access your profile, maps and pins with our public REST API",
+    status: "available",
+    badge: "Alpha",
     icon: () => <ApiAccessIcon size={6} />,
   },
 ];

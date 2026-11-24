@@ -111,6 +111,9 @@ export function MarketingFooter() {
           <MarketingLink to="/open-source" className={styles.footerLink}>
             Open source
           </MarketingLink>
+          <MarketingLink to="/developers" className={styles.footerLink}>
+            Developers
+          </MarketingLink>
           <MarketingLink to="/licenses" className={styles.footerLink}>
             Licenses
           </MarketingLink>
@@ -131,12 +134,10 @@ export function MarketingFooter() {
 
 export function MarketingDocumentPage({
   title,
-  effectiveDate,
   logoSrc = "/icon.png",
   children,
 }: {
   title: string;
-  effectiveDate: string;
   logoSrc?: string;
   children: React.ReactNode;
 }) {
@@ -146,7 +147,6 @@ export function MarketingDocumentPage({
       <main className={styles.legalPage}>
         <article className={styles.legalPanel}>
           <h1 className={styles.legalTitle}>{title}</h1>
-          <p className={styles.legalEffective}>Last updated: {effectiveDate}</p>
           <div className={styles.legalBody}>{children}</div>
         </article>
       </main>

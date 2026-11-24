@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
+  /** Public REST API base URL (defaults to the Supabase `api` function). */
+  readonly VITE_PUBLIC_API_URL?: string;
   readonly VITE_SUPABASE_PUBLISHABLE_KEY: string;
   readonly VITE_APP_VERSION: string;
   readonly VITE_UMAMI_WEBSITE_ID?: string;
