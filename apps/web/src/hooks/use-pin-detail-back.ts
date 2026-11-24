@@ -1,6 +1,5 @@
 import { historyDeltaTo } from "@/lib/history-index";
 import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
-import { scrollRestoreState } from "@/hooks/use-scroll-position-restore";
 import { mapViewSegmentFromPathname } from "@/lib/app-paths";
 import {
   pinDetailBackFallback,
@@ -50,9 +49,7 @@ export function usePinDetailBack({
       navigate(delta);
       return;
     }
-    navigate(target.href, {
-      state: fromBase ? scrollRestoreState(frozenBase.key) : undefined,
-    });
+    navigate(target.href);
   }, [navigate, target.href, frozenBase]);
 
   return { ...target, onBack };

@@ -1,6 +1,5 @@
 import { historyDeltaTo } from "@/lib/history-index";
 import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
-import { scrollRestoreState } from "@/hooks/use-scroll-position-restore";
 import {
   canNavigateBack,
   shouldShowPageBackButton,
@@ -26,9 +25,7 @@ export function PageBackButton() {
       return;
     }
     const target = pinDetailBackTarget(frozenBase);
-    navigate(target?.href ?? locationHref(frozenBase), {
-      state: scrollRestoreState(frozenBase.key),
-    });
+    navigate(target?.href ?? locationHref(frozenBase));
   }, [frozenBase, navigate]);
 
   if (!shouldShowPageBackButton(pathname)) return null;

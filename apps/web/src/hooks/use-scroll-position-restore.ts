@@ -1,86 +1,38 @@
-import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import { useEffect, useLayoutEffect, type RefObject } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
 
-type SavedScroll = {
-  scrollTop: number;
-  /** Anchor attribute value of the topmost visible entry. */
-  anchorId?: string;
-  /** Anchor top relative to the scroll element's top, in px. */
-  anchorOffset?: number;
-};
-
-/** Saved scroll per history entry (`location.key`) for the session. */
+/** Topmost visible anchor per history entry (`location.key`). */
+type SavedScroll = { scrollTop: number; anchorId?: string; offset: number };
 const savedScroll = new Map<string, SavedScroll>();
 
 const RESTORE_TIMEOUT_MS = 3000;
 
 /**
- * Navigation state for "back" buttons that push the previous URL instead of
- * popping history: restores the scroll position saved for that entry.
- */
-export type ScrollRestoreState = { restoreScrollFrom?: string };
-
-export function scrollRestoreState(fromKey: string): ScrollRestoreState {
-  return { restoreScrollFrom: fromKey };
-}
-
-function captureScroll(el: HTMLElement, anchorAttr?: string): SavedScroll {
-  const saved: SavedScroll = { scrollTop: el.scrollTop };
-  if (!anchorAttr) return saved;
-  const elTop = el.getBoundingClientRect().top;
-  for (const node of el.querySelectorAll<HTMLElement>(`[${anchorAttr}]`)) {
-    const rect = node.getBoundingClientRect();
-    if (rect.bottom > elTop) {
-      saved.anchorId = node.getAttribute(anchorAttr) ?? undefined;
-      saved.anchorOffset = rect.top - elTop;
-      break;
-    }
-  }
-  return saved;
-}
-
-function applyScroll(el: HTMLElement, saved: SavedScroll, anchorAttr?: string) {
-  if (anchorAttr && saved.anchorId !== undefined) {
-    const node = el.querySelector<HTMLElement>(
-      `[${anchorAttr}="${CSS.escape(saved.anchorId)}"]`,
-    );
-    if (node) {
-      const delta =
-        node.getBoundingClientRect().top -
-        el.getBoundingClientRect().top -
-        (saved.anchorOffset ?? 0);
-      el.scrollTop += delta;
-      return;
-    }
-  }
-  el.scrollTop = saved.scrollTop;
-}
-
-/**
- * Persists an element's scroll position per history entry and restores it on
- * back/forward navigation (POP) or a back-button push carrying
- * {@link scrollRestoreState}. With `anchorAttr`, restores relative to the
- * topmost visible entry and keeps re-applying while late content (photos,
+ * Remembers which `[anchorAttr]` entry is at the top of `scrollRef` and brings
+ * it back on back/forward navigation. Re-applies while late content (photos,
  * summaries) resizes the list, until the user interacts or a timeout passes.
  */
 export function useScrollPositionRestore(
   scrollRef: RefObject<HTMLElement | null>,
-  {
-    enabled = true,
-    anchorAttr,
-  }: { enabled?: boolean; anchorAttr?: string } = {},
+  anchorAttr: string,
+  enabled = true,
 ) {
-  const location = useLocation();
+  const { key } = useLocation();
   const navigationType = useNavigationType();
-  const key = location.key;
-  const restoringRef = useRef(false);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!enabled || !el) return;
     const onScroll = () => {
-      if (!restoringRef.current)
-        savedScroll.set(key, captureScroll(el, anchorAttr));
+      const top = el.getBoundingClientRect().top;
+      const anchor = Array.from(
+        el.querySelectorAll<HTMLElement>(`[${anchorAttr}]`),
+      ).find((node) => node.getBoundingClientRect().bottom > top);
+      savedScroll.set(key, {
+        scrollTop: el.scrollTop,
+        anchorId: anchor?.getAttribute(anchorAttr) ?? undefined,
+        offset: anchor ? anchor.getBoundingClientRect().top - top : 0,
+      });
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
@@ -88,39 +40,36 @@ export function useScrollPositionRestore(
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (!enabled || !el) return;
-    const fromKey =
-      navigationType === "POP"
-        ? key
-        : (location.state as ScrollRestoreState | null)?.restoreScrollFrom;
-    if (!fromKey) return;
-    const saved = savedScroll.get(fromKey);
-    if (!saved || (!saved.scrollTop && !saved.anchorId)) return;
-    savedScroll.set(key, saved);
+    const saved = savedScroll.get(key);
+    if (!enabled || !el || navigationType !== "POP" || !saved) return;
 
-    restoringRef.current = true;
-    let done = false;
-    const restore = () => applyScroll(el, saved, anchorAttr);
-    const finish = () => {
-      if (done) return;
-      done = true;
-      restoringRef.current = false;
-      observer.disconnect();
-      window.clearTimeout(timeout);
-      el.removeEventListener("touchstart", finish);
-      el.removeEventListener("wheel", finish);
-      savedScroll.set(key, captureScroll(el, anchorAttr));
+    const restore = () => {
+      const anchor =
+        saved.anchorId &&
+        el.querySelector(`[${anchorAttr}="${CSS.escape(saved.anchorId)}"]`);
+      if (anchor) {
+        el.scrollTop +=
+          anchor.getBoundingClientRect().top -
+          el.getBoundingClientRect().top -
+          saved.offset;
+      } else {
+        el.scrollTop = saved.scrollTop;
+      }
     };
-
     const observer = new ResizeObserver(restore);
     observer.observe(el);
     for (const child of Array.from(el.children)) observer.observe(child);
-    const timeout = window.setTimeout(finish, RESTORE_TIMEOUT_MS);
+    const stop = () => observer.disconnect();
+    const timeout = window.setTimeout(stop, RESTORE_TIMEOUT_MS);
     // User interaction wins over pending restore.
-    el.addEventListener("touchstart", finish, { passive: true });
-    el.addEventListener("wheel", finish, { passive: true });
+    el.addEventListener("touchstart", stop, { once: true, passive: true });
+    el.addEventListener("wheel", stop, { once: true, passive: true });
     restore();
-    return finish;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- restore once per entry
+    return () => {
+      stop();
+      window.clearTimeout(timeout);
+      el.removeEventListener("touchstart", stop);
+      el.removeEventListener("wheel", stop);
+    };
   }, [scrollRef, key, navigationType, enabled, anchorAttr]);
 }
