@@ -1,3 +1,4 @@
+import { edgeInvokeError } from "@curolia/plugin-oauth";
 import type { PinPhotoSuggestion } from "@curolia/plugin-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -82,7 +83,7 @@ export async function googlePhotosPickerCreate(
   }>("google-photos", {
     body: { action: "picker_create", ...(pinId ? { pinId } : {}) },
   });
-  if (error) throw error;
+  if (error) throw await edgeInvokeError(error);
   if (data?.error || !data?.sessionId || !data?.pickerUri) {
     throw new Error(data?.error ?? "picker_create_failed");
   }
@@ -103,7 +104,7 @@ export async function googlePhotosPickerSession(
   >("google-photos", {
     body: { action: "picker_session", sessionId },
   });
-  if (error) throw error;
+  if (error) throw await edgeInvokeError(error);
   return normalizePickerSession(data);
 }
 
@@ -120,7 +121,7 @@ async function googlePhotosPickerListOnce(
   }>("google-photos", {
     body: { action: "picker_list", sessionId },
   });
-  if (error) throw error;
+  if (error) throw await edgeInvokeError(error);
   if (data?.error) throw new Error(data.message ?? data.error);
   return { suggestions: data?.suggestions ?? [] };
 }
@@ -236,7 +237,7 @@ export async function googlePhotosImport(
       finalizePickerSession: options?.finalizePickerSession,
     },
   });
-  if (error) throw error;
+  if (error) throw await edgeInvokeError(error);
   if (data?.error) throw new Error(data.message ?? data.error);
   return {
     importedIds: data?.importedIds ?? [],

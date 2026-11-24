@@ -125,7 +125,14 @@ function byteaInsertValue(buf: Uint8Array): string {
 
 type GoogleTokenResult =
   | { ok: true; accessToken: string }
-  | { ok: false; reason: "not_linked" | "decrypt_failed" | "refresh_failed" };
+  | {
+      ok: false;
+      reason:
+        | "not_linked"
+        | "decrypt_failed"
+        | "refresh_failed"
+        | "reauth_required";
+    };
 
 async function getGoogleAccessToken(
   admin: ReturnType<typeof createClient>,
@@ -183,6 +190,17 @@ async function getGoogleAccessToken(
   });
   const tok = (await res.json()) as Record<string, unknown>;
   if (!res.ok || typeof tok.access_token !== "string") {
+    if (tok.error === "invalid_grant") {
+      // Refresh token revoked or expired: drop it so the UI shows unlinked.
+      console.warn("refresh token invalid_grant; unlinking", userId);
+      await admin
+        .from("user_plugin_oauth_tokens")
+        .delete()
+        .eq("user_id", userId)
+        .eq("plugin_type_id", PLUGIN_TYPE_ID);
+      return { ok: false, reason: "reauth_required" };
+    }
+    console.error("refresh failed", res.status, tok);
     return { ok: false, reason: "refresh_failed" };
   }
 
@@ -1191,9 +1209,13 @@ Deno.serve(async (req: Request) => {
       decrypt_failed:
         "Stored tokens could not be decrypted. Unlink and link again.",
       refresh_failed:
-        "Google rejected the refresh token. Unlink and link again.",
+        "Could not refresh Google Maps access. Try again in a moment.",
+      reauth_required:
+        "Your Google Maps access has expired. Link Google Maps again under Plugins.",
     };
-    return json(gt.reason === "not_linked" ? 401 : 502, {
+    const status =
+      gt.reason === "not_linked" || gt.reason === "reauth_required" ? 401 : 502;
+    return json(status, {
       error: gt.reason,
       message: messages[gt.reason],
     });

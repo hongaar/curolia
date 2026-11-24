@@ -1,3 +1,4 @@
+import { edgeInvokeError } from "@curolia/plugin-oauth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   GoogleMapsImportJob,
@@ -51,7 +52,7 @@ async function invoke<T>(
   const { data, error } = await supabase.functions.invoke<
     T & { error?: string; message?: string }
   >("google-maps-saved-lists", { body });
-  if (error) throw error;
+  if (error) throw await edgeInvokeError(error);
   if (data && typeof data === "object" && "error" in data && data.error) {
     throw new Error(data.message ?? data.error);
   }

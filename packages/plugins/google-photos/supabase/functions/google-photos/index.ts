@@ -172,7 +172,11 @@ type GoogleTokenResult =
   | { ok: true; accessToken: string }
   | {
       ok: false;
-      reason: "not_linked" | "decrypt_failed" | "refresh_failed";
+      reason:
+        | "not_linked"
+        | "decrypt_failed"
+        | "refresh_failed"
+        | "reauth_required";
     };
 
 async function getGoogleAccessToken(
@@ -240,7 +244,18 @@ async function getGoogleAccessToken(
   });
   const tok = (await res.json()) as Record<string, unknown>;
   if (!res.ok || typeof tok.access_token !== "string") {
-    console.error("refresh failed", tok);
+    if (tok.error === "invalid_grant") {
+      // Refresh token revoked or expired (e.g. 7-day limit for OAuth apps in
+      // "Testing"). It can never work again: drop it so the UI shows unlinked.
+      console.warn("refresh token invalid_grant; unlinking", userId);
+      await admin
+        .from("user_plugin_oauth_tokens")
+        .delete()
+        .eq("user_id", userId)
+        .eq("plugin_type_id", "google_photos");
+      return { ok: false, reason: "reauth_required" };
+    }
+    console.error("refresh failed", res.status, tok);
     return { ok: false, reason: "refresh_failed" };
   }
 
@@ -507,12 +522,25 @@ Deno.serve(async (req: Request) => {
         },
       );
     }
+    if (gt.reason === "reauth_required") {
+      return new Response(
+        JSON.stringify({
+          error: "google_reauth_required",
+          message:
+            "Your Google Photos access has expired. Link Google Photos again under Settings → Plugins.",
+        }),
+        {
+          status: 401,
+          headers: { ...cors(), "Content-Type": "application/json" },
+        },
+      );
+    }
     if (gt.reason === "refresh_failed") {
       return new Response(
         JSON.stringify({
           error: "google_refresh_failed",
           message:
-            "Google rejected the refresh token. Unlink and link Google Photos again.",
+            "Could not refresh Google Photos access. Try again in a moment.",
         }),
         {
           status: 502,
