@@ -82,11 +82,25 @@ export function DropdownMenuItemName({
   secondary?: React.ReactNode;
 }) {
   return (
-    <span className={cn(styles.itemName, selected && styles.itemNameSelected)}>
-      {children}
-      {secondary ? (
-        <span className={styles.itemNameSecondary}>{secondary}</span>
-      ) : null}
+    <span className={styles.itemName}>
+      <span
+        className={cn(styles.itemNameText, selected && styles.itemNameSelected)}
+      >
+        {children}
+        {secondary ? (
+          <span className={styles.itemNameSecondary}>{secondary}</span>
+        ) : null}
+      </span>
+      {/* Reserves the selected (medium) width so toggling doesn't resize the menu. */}
+      <span
+        className={cn(styles.itemNameText, styles.itemNameSizer)}
+        aria-hidden
+      >
+        {children}
+        {secondary ? (
+          <span className={styles.itemNameSecondary}>{secondary}</span>
+        ) : null}
+      </span>
     </span>
   );
 }

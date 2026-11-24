@@ -19,11 +19,22 @@
 }
 
 .itemName {
+  display: grid;
   min-width: 0;
   flex: 1;
+}
+
+.itemNameText {
+  grid-area: 1 / 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.itemNameSizer {
+  font-weight: var(--font-weight-medium);
+  visibility: hidden;
 }
 
 .itemNameSelected {
