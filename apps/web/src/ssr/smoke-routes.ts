@@ -20,6 +20,7 @@ const SMOKE_BODY_BY_ID: Partial<
   openSource: "built in the open",
   licenses: "open source",
   contact: "touch",
+  developers: "Curolia API",
 };
 
 function staticTitleNeedle(id: StaticSsrRouteId): string {
