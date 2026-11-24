@@ -1,3 +1,4 @@
+import { historyDeltaTo } from "@/lib/history-index";
 import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
 import { scrollRestoreState } from "@/hooks/use-scroll-position-restore";
 import { mapViewSegmentFromPathname } from "@/lib/app-paths";
@@ -43,11 +44,14 @@ export function usePinDetailBack({
   }, [fallbackMapHref, frozenBase, mapSlug, profileSlug]);
 
   const onBack = useCallback(() => {
+    const fromBase = target.href === locationHref(frozenBase);
+    const delta = fromBase ? historyDeltaTo(frozenBase.key) : null;
+    if (delta !== null) {
+      navigate(delta);
+      return;
+    }
     navigate(target.href, {
-      state:
-        target.href === locationHref(frozenBase)
-          ? scrollRestoreState(frozenBase.key)
-          : undefined,
+      state: fromBase ? scrollRestoreState(frozenBase.key) : undefined,
     });
   }, [navigate, target.href, frozenBase]);
 

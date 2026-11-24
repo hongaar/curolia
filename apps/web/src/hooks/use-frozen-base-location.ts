@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect -- persist last map/blog location for the stack base layer */
 import { mapViewHref } from "@/lib/app-paths";
+import { rememberHistoryIndex } from "@/lib/history-index";
 import { mapRouteForMap } from "@/lib/map-route";
 import { applySelectedPinToSearchParams } from "@/lib/map-view-params";
 import { isBaseRoute, isStackRoute } from "@/lib/stack-routes";
@@ -38,6 +39,7 @@ function useFrozenBaseLocationValue(): Location {
 
   useLayoutEffect(() => {
     if (isBaseRoute(location.pathname)) {
+      rememberHistoryIndex(location.key);
       setFrozenBase((prev) => {
         if (
           prev.pathname === location.pathname &&

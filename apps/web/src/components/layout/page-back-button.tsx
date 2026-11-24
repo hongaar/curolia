@@ -1,3 +1,4 @@
+import { historyDeltaTo } from "@/lib/history-index";
 import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
 import { scrollRestoreState } from "@/hooks/use-scroll-position-restore";
 import {
@@ -15,6 +16,11 @@ export function PageBackButton() {
   const frozenBase = useFrozenBaseLocation();
 
   const handleBack = useCallback(() => {
+    const delta = historyDeltaTo(frozenBase.key);
+    if (delta !== null) {
+      navigate(delta);
+      return;
+    }
     if (canNavigateBack()) {
       navigate(-1);
       return;

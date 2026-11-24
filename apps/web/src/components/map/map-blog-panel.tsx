@@ -92,7 +92,10 @@ export function MapBlogPanel({
 }: MapBlogPanelProps) {
   const ownScrollRef = useRef<HTMLDivElement>(null);
   const blogScrollRef = scrollRootRef ?? ownScrollRef;
-  useScrollPositionRestore(blogScrollRef, !embedded);
+  useScrollPositionRestore(blogScrollRef, {
+    enabled: !embedded,
+    anchorAttr: "data-blog-pin-id",
+  });
   const [searchParams] = useSearchParams();
   const { activeMapId, activeMap, loading: mapLoading } = useMap();
   const {

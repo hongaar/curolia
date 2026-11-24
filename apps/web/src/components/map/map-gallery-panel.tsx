@@ -83,7 +83,10 @@ export function MapGalleryPanel({
   scrollToolbar,
 }: MapGalleryPanelProps) {
   const pageScrollRef = useRef<HTMLDivElement>(null);
-  useScrollPositionRestore(pageScrollRef, !embedded);
+  useScrollPositionRestore(pageScrollRef, {
+    enabled: !embedded,
+    anchorAttr: "data-gallery-pin-id",
+  });
   const [searchParams] = useSearchParams();
   const { activeMapId, activeMap, loading: mapLoading } = useMap();
   const {
