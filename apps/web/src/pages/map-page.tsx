@@ -823,10 +823,10 @@ export function MapPage() {
 
   const closeQuickSettings = useCallback(() => {
     setQuickSettingsOpen(false);
-    if (!showSidePanel) {
+    if (!showSidePanel && !contentPanelLayoutActive) {
       mapRef.current?.clearPanelPadding();
     }
-  }, [showSidePanel]);
+  }, [showSidePanel, contentPanelLayoutActive]);
 
   const openQuickSettings = useCallback(() => {
     if (sidebarPinId) onClosePinMapPopover();
@@ -848,7 +848,8 @@ export function MapPage() {
   }, [contentPanelLayoutActive]);
 
   useLayoutEffect(() => {
-    if (!showQuickSettingsPanel) return;
+    // Blog/gallery already inset the map; the settings sheet overlays it.
+    if (!showQuickSettingsPanel || contentPanelLayoutActive) return;
     const applyQuickSettingsPanelInset = () => {
       const inset = measureMapPanelInset("side", quickSettingsPanelRef.current);
       const camera = mapRef.current?.getCurrentCamera();
@@ -856,7 +857,7 @@ export function MapPage() {
       mapRef.current?.panForPanel(camera.lng, camera.lat, inset);
     };
     requestAnimationFrame(applyQuickSettingsPanelInset);
-  }, [showQuickSettingsPanel]);
+  }, [showQuickSettingsPanel, contentPanelLayoutActive]);
 
   const onClosePinCollisionPicker = useCallback(() => {
     onCollisionClose();
@@ -1551,8 +1552,12 @@ export function MapPage() {
               />
             )}
             <MapBlogSidePanelScrim
-              show={showSidePanel}
-              onDismiss={onClosePinMapPopover}
+              show={showSidePanel || showQuickSettingsPanel}
+              onDismiss={
+                showQuickSettingsPanel
+                  ? closeQuickSettings
+                  : onClosePinMapPopover
+              }
             />
           </MapBlogSidePanel>
         ) : null}
