@@ -1,6 +1,6 @@
 import {
   BLOCK_PUBLIC_CRAWLERS_ROBOTS,
-  profileBlocksPublicCrawlers,
+  blocksPublicCrawlers,
 } from "@/lib/public-map-crawler-block";
 import type { Profile } from "@/types/database";
 import { useEffect } from "react";
@@ -34,11 +34,11 @@ function upsertRobotsMeta(content: string): () => void {
 }
 
 export function usePublicProfileCrawlerBlockMeta(
-  profile: Pick<Profile, "is_public" | "block_public_crawlers"> | null,
+  profile: Pick<Profile, "visibility"> | null,
   enabled: boolean,
 ): void {
   useEffect(() => {
-    if (!enabled || !profile || !profileBlocksPublicCrawlers(profile)) return;
+    if (!enabled || !profile || !blocksPublicCrawlers(profile)) return;
     return upsertRobotsMeta(BLOCK_PUBLIC_CRAWLERS_ROBOTS);
-  }, [enabled, profile?.is_public, profile?.block_public_crawlers, profile]);
+  }, [enabled, profile?.visibility, profile]);
 }

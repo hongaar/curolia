@@ -237,11 +237,17 @@ export function PageSectionHeading({
 }
 
 export function PageSectionSubheading({
+  id,
   children,
 }: {
+  id?: string;
   children: React.ReactNode;
 }) {
-  return <h3 className={styles.sectionSubheading}>{children}</h3>;
+  return (
+    <h3 id={id} className={styles.sectionSubheading}>
+      {children}
+    </h3>
+  );
 }
 
 export function PageSectionHint({ children }: { children: React.ReactNode }) {

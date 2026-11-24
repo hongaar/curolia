@@ -80,7 +80,7 @@ export async function fetchProfileMaps(
     .from("maps")
     .select("*")
     .eq("created_by_user_id", profileId)
-    .eq("is_public", true)
+    .eq("visibility", "public")
     .order("updated_at", { ascending: false });
 
   if (!viewerUserId) {

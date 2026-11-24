@@ -26,7 +26,7 @@ describe("profileSearchTitle", () => {
       display_name: "Joram",
       avatar_url: null,
       gravatar_hash: null,
-      is_public: true,
+      visibility: "public",
     };
     expect(profileSearchTitle(row)).toBe("Joram");
   });
@@ -40,7 +40,7 @@ describe("profileSearchSubtitle", () => {
       display_name: "Joram",
       avatar_url: null,
       gravatar_hash: null,
-      is_public: true,
+      visibility: "public",
     };
     expect(profileSearchSubtitle(row)).toBe("@joram");
   });

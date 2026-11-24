@@ -113,6 +113,14 @@ export const VisibilityPublic: Story = {
   ...storyDocs("Public map badge with globe icon."),
 };
 
+export const VisibilityUnlisted: Story = {
+  args: {
+    title: "Weekend in Lisbon",
+    visibility: "unlisted",
+  },
+  ...storyDocs("Unlisted map badge with link icon."),
+};
+
 export const VisibilityShared: Story = {
   args: {
     coverUrl: null,

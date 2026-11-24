@@ -9,5 +9,5 @@ export function commentsMapPluginQueryKey(mapId: string) {
 }
 
 export function commentsMapPublicQueryKey(mapId: string) {
-  return ["maps", mapId, "is_public"] as const;
+  return ["maps", mapId, "visibility"] as const;
 }

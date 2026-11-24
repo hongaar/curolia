@@ -1,6 +1,6 @@
 import {
   BLOCK_PUBLIC_CRAWLERS_ROBOTS,
-  mapBlocksPublicCrawlers,
+  blocksPublicCrawlers,
 } from "@/lib/public-map-crawler-block";
 import type { CuroliaMap } from "@/types/database";
 import { useEffect } from "react";
@@ -34,11 +34,11 @@ function upsertRobotsMeta(content: string): () => void {
 }
 
 export function usePublicMapCrawlerBlockMeta(
-  map: Pick<CuroliaMap, "is_public" | "block_public_crawlers"> | null,
+  map: Pick<CuroliaMap, "visibility"> | null,
   enabled: boolean,
 ): void {
   useEffect(() => {
-    if (!enabled || !map || !mapBlocksPublicCrawlers(map)) return;
+    if (!enabled || !map || !blocksPublicCrawlers(map)) return;
     return upsertRobotsMeta(BLOCK_PUBLIC_CRAWLERS_ROBOTS);
-  }, [enabled, map?.is_public, map?.block_public_crawlers, map]);
+  }, [enabled, map?.visibility, map]);
 }

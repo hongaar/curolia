@@ -3,7 +3,7 @@ import {
   BLOCK_PUBLIC_CRAWLERS_ROBOTS,
   crawlerBlockResponseHeaders,
   isLikelyCrawlerUserAgent,
-  mapBlocksPublicCrawlers,
+  blocksPublicCrawlers,
 } from "@/lib/public-map-crawler-block";
 import { assembleHtml, type PageMeta } from "@/ssr/render-document";
 import { SITE_NAME } from "@/ssr/seo";
@@ -17,14 +17,14 @@ export type CrawlerBlockSsrResult = {
 export function publicMapCrawlerBlockMeta(
   map: MapWithOwnerSlug,
 ): Pick<PageMeta, "robots"> | null {
-  if (!mapBlocksPublicCrawlers(map)) return null;
+  if (!blocksPublicCrawlers(map)) return null;
   return { robots: BLOCK_PUBLIC_CRAWLERS_ROBOTS };
 }
 
 export function publicMapCrawlerBlockHeaders(
   map: MapWithOwnerSlug,
 ): Record<string, string> | null {
-  if (!mapBlocksPublicCrawlers(map)) return null;
+  if (!blocksPublicCrawlers(map)) return null;
   return crawlerBlockResponseHeaders();
 }
 
@@ -34,7 +34,7 @@ export function maybeBlockCrawlerRequest(
   template: string,
   canonicalUrl: string,
 ): CrawlerBlockSsrResult | null {
-  if (!mapBlocksPublicCrawlers(map)) return null;
+  if (!blocksPublicCrawlers(map)) return null;
   if (!isLikelyCrawlerUserAgent(userAgent)) return null;
 
   const title = `Map not available to crawlers — ${SITE_NAME}`;

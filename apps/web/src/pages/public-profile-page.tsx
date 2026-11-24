@@ -72,7 +72,7 @@ export function PublicProfilePage() {
 
       const profile = data as Profile;
       const isOwner = user?.id === profile.id;
-      const canView = profile.is_public || isOwner;
+      const canView = profile.visibility !== "private" || isOwner;
 
       if (!canView) {
         return {
@@ -123,12 +123,16 @@ export function PublicProfilePage() {
     viewerUserId: user?.id,
     isOwner: okResult?.isOwner ?? false,
     isFollowing: okResult?.followStats.isFollowing ?? false,
-    enabled: Boolean(okResult?.profile.is_public && okResult.profile.id),
+    enabled: Boolean(
+      okResult &&
+      okResult.profile.visibility !== "private" &&
+      okResult.profile.id,
+    ),
   });
 
   usePublicProfileCrawlerBlockMeta(
     profile,
-    Boolean(profile?.is_public && !user),
+    Boolean(profile && profile.visibility !== "private" && !user),
   );
 
   if (!profileSlug) {
@@ -218,7 +222,7 @@ export function PublicProfilePage() {
               name={displayName}
               bio={profile.bio?.trim() || undefined}
             />
-            {profile.is_public || isOwner ? (
+            {profile.visibility !== "private" || isOwner ? (
               <ProfileOverviewStats>
                 <ProfileFollowStatPopover
                   profileId={profile.id}
@@ -249,7 +253,7 @@ export function PublicProfilePage() {
                   />
                 </PageInlineActions>
               </PageFitButton>
-            ) : profile.is_public ? (
+            ) : profile.visibility !== "private" ? (
               <PageFitButton>
                 <ProfileFollowButton
                   isFollowing={follow.isFollowing}

@@ -1,3 +1,4 @@
+import type { Visibility } from "@/lib/visibility";
 import { sanitizeSearchFragment } from "@/lib/pin-text-search";
 import { supabase } from "@/lib/supabase";
 
@@ -7,7 +8,7 @@ export type ProfileSearchRow = {
   display_name: string | null;
   avatar_url: string | null;
   gravatar_hash: string | null;
-  is_public: boolean;
+  visibility: Visibility;
 };
 
 /** Normalize a toolbar query for profile display-name / handle matching. */
@@ -40,8 +41,8 @@ export async function searchProfiles(
   const pattern = `%${q}%`;
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, slug, display_name, avatar_url, gravatar_hash, is_public")
-    .eq("is_public", true)
+    .select("id, slug, display_name, avatar_url, gravatar_hash, visibility")
+    .eq("visibility", "public")
     .or(`display_name.ilike.${pattern},slug.ilike.${pattern}`)
     .order("display_name", { ascending: true, nullsFirst: false })
     .limit(12);

@@ -9,5 +9,5 @@ export function reactionsMapPluginQueryKey(mapId: string) {
 }
 
 export function reactionsMapPublicQueryKey(mapId: string) {
-  return ["maps", mapId, "is_public"] as const;
+  return ["maps", mapId, "visibility"] as const;
 }

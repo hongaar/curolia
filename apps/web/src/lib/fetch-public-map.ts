@@ -35,7 +35,7 @@ export async function fetchPublicMapByRoute(
     .from("maps")
     .select("*")
     .eq("id", mapMatch.mapId)
-    .eq("is_public", true)
+    .in("visibility", ["public", "unlisted"])
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;

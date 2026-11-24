@@ -1,27 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  blocksPublicCrawlers,
   isLikelyCrawlerUserAgent,
-  mapBlocksPublicCrawlers,
 } from "@/lib/public-map-crawler-block";
 
 describe("public-map-crawler-block", () => {
-  it("only blocks crawlers when the map is public and opted in", () => {
-    expect(
-      mapBlocksPublicCrawlers({ is_public: true, block_public_crawlers: true }),
-    ).toBe(true);
-    expect(
-      mapBlocksPublicCrawlers({
-        is_public: false,
-        block_public_crawlers: true,
-      }),
-    ).toBe(false);
-    expect(
-      mapBlocksPublicCrawlers({
-        is_public: true,
-        block_public_crawlers: false,
-      }),
-    ).toBe(false);
+  it("only blocks crawlers for unlisted content", () => {
+    expect(blocksPublicCrawlers({ visibility: "unlisted" })).toBe(true);
+    expect(blocksPublicCrawlers({ visibility: "public" })).toBe(false);
+    expect(blocksPublicCrawlers({ visibility: "private" })).toBe(false);
   });
 
   it("detects common crawler user agents", () => {

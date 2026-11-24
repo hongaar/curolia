@@ -34,6 +34,42 @@ export type Database = {
   };
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string;
+          id: string;
+          key_hash: string;
+          last_used_at: string | null;
+          name: string;
+          prefix: string;
+          revoked_at: string | null;
+          scopes: string[];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          key_hash: string;
+          last_used_at?: string | null;
+          name: string;
+          prefix: string;
+          revoked_at?: string | null;
+          scopes?: string[];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          key_hash?: string;
+          last_used_at?: string | null;
+          name?: string;
+          prefix?: string;
+          revoked_at?: string | null;
+          scopes?: string[];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       app_admins: {
         Row: {
           created_at: string;
@@ -247,7 +283,6 @@ export type Database = {
       };
       maps: {
         Row: {
-          block_public_crawlers: boolean;
           cover_photo_id: string | null;
           cover_url: string | null;
           created_at: string;
@@ -257,7 +292,6 @@ export type Database = {
           enabled_map_views: Json;
           icon_emoji: string | null;
           id: string;
-          is_public: boolean;
           name: string;
           show_pin_metadata: Json;
           show_pin_route: boolean;
@@ -267,9 +301,9 @@ export type Database = {
           style_hillshades: boolean;
           style_satellite_labels: boolean;
           updated_at: string;
+          visibility: Database["public"]["Enums"]["visibility"];
         };
         Insert: {
-          block_public_crawlers?: boolean;
           cover_photo_id?: string | null;
           cover_url?: string | null;
           created_at?: string;
@@ -279,7 +313,6 @@ export type Database = {
           enabled_map_views?: Json;
           icon_emoji?: string | null;
           id?: string;
-          is_public?: boolean;
           name: string;
           show_pin_metadata?: Json;
           show_pin_route?: boolean;
@@ -289,9 +322,9 @@ export type Database = {
           style_hillshades?: boolean;
           style_satellite_labels?: boolean;
           updated_at?: string;
+          visibility?: Database["public"]["Enums"]["visibility"];
         };
         Update: {
-          block_public_crawlers?: boolean;
           cover_photo_id?: string | null;
           cover_url?: string | null;
           created_at?: string;
@@ -301,7 +334,6 @@ export type Database = {
           enabled_map_views?: Json;
           icon_emoji?: string | null;
           id?: string;
-          is_public?: boolean;
           name?: string;
           show_pin_metadata?: Json;
           show_pin_route?: boolean;
@@ -311,6 +343,7 @@ export type Database = {
           style_hillshades?: boolean;
           style_satellite_labels?: boolean;
           updated_at?: string;
+          visibility?: Database["public"]["Enums"]["visibility"];
         };
         Relationships: [
           {
@@ -1118,50 +1151,47 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           bio: string | null;
-          block_public_crawlers: boolean;
           created_at: string;
           default_map_id: string | null;
           display_name: string | null;
           gravatar_hash: string | null;
           id: string;
-          is_public: boolean;
           notification_email_enabled: boolean;
           notification_push_enabled: boolean;
           onboarding_completed: boolean;
           slug: string;
           updated_at: string;
+          visibility: Database["public"]["Enums"]["visibility"];
         };
         Insert: {
           avatar_url?: string | null;
           bio?: string | null;
-          block_public_crawlers?: boolean;
           created_at?: string;
           default_map_id?: string | null;
           display_name?: string | null;
           gravatar_hash?: string | null;
           id: string;
-          is_public?: boolean;
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
           onboarding_completed?: boolean;
           slug?: string;
           updated_at?: string;
+          visibility?: Database["public"]["Enums"]["visibility"];
         };
         Update: {
           avatar_url?: string | null;
           bio?: string | null;
-          block_public_crawlers?: boolean;
           created_at?: string;
           default_map_id?: string | null;
           display_name?: string | null;
           gravatar_hash?: string | null;
           id?: string;
-          is_public?: boolean;
           notification_email_enabled?: boolean;
           notification_push_enabled?: boolean;
           onboarding_completed?: boolean;
           slug?: string;
           updated_at?: string;
+          visibility?: Database["public"]["Enums"]["visibility"];
         };
         Relationships: [
           {
@@ -1398,6 +1428,14 @@ export type Database = {
       cancel_map_invitation: {
         Args: { p_invitation_id: string };
         Returns: undefined;
+      };
+      create_api_key: {
+        Args: { p_name: string; p_scopes: string[] };
+        Returns: {
+          id: string;
+          key: string;
+          prefix: string;
+        }[];
       };
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
       delete_map: { Args: { p_map_id: string }; Returns: undefined };
@@ -1651,20 +1689,22 @@ export type Database = {
         Args: { p_map_id: string; p_user_id: string };
         Returns: undefined;
       };
-      set_map_block_public_crawlers: {
-        Args: { p_block: boolean; p_map_id: string };
+      resolve_api_key: {
+        Args: { p_key: string };
+        Returns: {
+          scopes: string[];
+          user_id: string;
+        }[];
+      };
+      set_map_visibility: {
+        Args: {
+          p_map_id: string;
+          p_visibility: Database["public"]["Enums"]["visibility"];
+        };
         Returns: undefined;
       };
-      set_map_public: {
-        Args: { p_is_public: boolean; p_map_id: string };
-        Returns: undefined;
-      };
-      set_profile_block_public_crawlers: {
-        Args: { p_block: boolean };
-        Returns: undefined;
-      };
-      set_profile_public: {
-        Args: { p_is_public: boolean };
+      set_profile_visibility: {
+        Args: { p_visibility: Database["public"]["Enums"]["visibility"] };
         Returns: undefined;
       };
       slugify_text: { Args: { p_raw: string }; Returns: string };
@@ -1735,6 +1775,7 @@ export type Database = {
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
       plugin_sync_job_status: "pending" | "processing" | "completed" | "failed";
       push_delivery_status: "pending" | "sent" | "failed";
+      visibility: "public" | "unlisted" | "private";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1889,6 +1930,7 @@ export const Constants = {
       plugin_link_status: ["disabled", "pending", "error", "connected"],
       plugin_sync_job_status: ["pending", "processing", "completed", "failed"],
       push_delivery_status: ["pending", "sent", "failed"],
+      visibility: ["public", "unlisted", "private"],
     },
   },
 } as const;

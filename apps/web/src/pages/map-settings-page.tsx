@@ -665,8 +665,7 @@ export function MapSettingsPage() {
             mapName={map.name}
             ownerProfileSlug={mapRouteForMap(map).profileSlug}
             mapSlug={map.slug}
-            isPublic={map.is_public}
-            blockPublicCrawlers={map.block_public_crawlers}
+            visibility={map.visibility}
             isOwner={isOwner}
           />
         </PageAnchoredSection>

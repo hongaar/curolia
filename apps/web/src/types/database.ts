@@ -1,3 +1,4 @@
+import type { Visibility } from "@/lib/visibility";
 export type MapMemberRole = "owner" | "editor" | "viewer";
 export type MapInvitationStatus =
   | "pending"
@@ -23,10 +24,8 @@ export type Profile = {
   avatar_url: string | null;
   /** SHA-256 hex digest of account email for Gravatar (not reversible). */
   gravatar_hash: string | null;
-  /** When true, the profile homepage is visible at /{slug}. */
-  is_public: boolean;
-  /** When true with is_public, discourage crawlers from indexing the profile page. */
-  block_public_crawlers: boolean;
+  /** Public: listed + indexable; unlisted: link/follow only; private: owner only. */
+  visibility: Visibility;
   default_map_id: string | null;
   notification_email_enabled: boolean;
   notification_push_enabled: boolean;
@@ -40,9 +39,8 @@ export type CuroliaMap = {
   id: string;
   name: string;
   slug: string;
-  is_public: boolean;
-  /** When true with is_public, discourage crawlers from indexing public URLs. */
-  block_public_crawlers: boolean;
+  /** Public: listed + indexable; unlisted: link only; private: members only. */
+  visibility: Visibility;
   /** Optional short blurb for the public profile map card. */
   description: string | null;
   /** Optional cover image URL for the public profile map card. */

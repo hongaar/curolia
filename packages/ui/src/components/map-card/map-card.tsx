@@ -1,4 +1,11 @@
-import { Globe, Lock, MapPin, Plus, Users } from "lucide-react";
+import {
+  Globe,
+  Link as LinkIcon,
+  Lock,
+  MapPin,
+  Plus,
+  Users,
+} from "lucide-react";
 import type * as React from "react";
 import {
   useCallback,
@@ -21,7 +28,7 @@ import {
 } from "./map-card-layout";
 import styles from "./map-card.module.css";
 
-export type MapCardVisibility = "private" | "public" | "shared";
+export type MapCardVisibility = "private" | "public" | "unlisted" | "shared";
 
 const VISIBILITY_META: Record<
   MapCardVisibility,
@@ -29,6 +36,7 @@ const VISIBILITY_META: Record<
 > = {
   private: { label: "Only me", Icon: Lock },
   public: { label: "Public", Icon: Globe },
+  unlisted: { label: "Unlisted", Icon: LinkIcon },
   shared: { label: "Shared", Icon: Users },
 };
 

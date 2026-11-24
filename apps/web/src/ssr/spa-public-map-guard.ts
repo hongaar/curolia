@@ -2,7 +2,7 @@ import { fetchPublicMapByRoute } from "@/lib/fetch-public-map";
 import { parseMapRoutePathname } from "@/lib/map-route";
 import {
   BLOCK_PUBLIC_CRAWLERS_ROBOTS,
-  mapBlocksPublicCrawlers,
+  blocksPublicCrawlers,
 } from "@/lib/public-map-crawler-block";
 import { maybeBlockCrawlerRequest } from "@/ssr/crawler-block";
 import type { SpaPageMeta } from "@/ssr/seo";
@@ -30,7 +30,7 @@ export async function spaPublicMapGuard(
     route.mapSlug,
     createServerSupabase(),
   );
-  if (!map || !mapBlocksPublicCrawlers(map)) return null;
+  if (!map || !blocksPublicCrawlers(map)) return null;
 
   const canonicalUrl = joinOriginPath(origin, pathname);
   const blocked = maybeBlockCrawlerRequest(

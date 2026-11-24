@@ -164,7 +164,7 @@ export function MapQuickSettingsPanel({
   const [styleOptions, setStyleOptions] = useState<MapStyleOptions>(
     normalizeMapStyleOptions(map),
   );
-  const [isPublic, setIsPublic] = useState(map.is_public);
+  const [visibility, setVisibility] = useState(map.visibility);
   const [coverUploading, setCoverUploading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -175,11 +175,11 @@ export function MapQuickSettingsPanel({
       if (!user) return null;
       const { data, error: profileError } = await supabase
         .from("profiles")
-        .select("is_public")
+        .select("visibility")
         .eq("id", user.id)
         .maybeSingle();
       if (profileError) throw profileError;
-      return data as Pick<Profile, "is_public"> | null;
+      return data as Pick<Profile, "visibility"> | null;
     },
     enabled: Boolean(user?.id),
   });
@@ -201,7 +201,7 @@ export function MapQuickSettingsPanel({
     setCoverPhotoId(map.cover_photo_id ?? null);
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
-    setIsPublic(map.is_public);
+    setVisibility(map.visibility);
   }, [map]);
 
   useEffect(() => {
@@ -377,7 +377,8 @@ export function MapQuickSettingsPanel({
     }
   }
 
-  const ownerProfileIsPrivate = ownerProfileQuery.data?.is_public === false;
+  const ownerProfileIsPrivate =
+    ownerProfileQuery.data?.visibility === "private";
 
   return (
     <div className={styles.root}>
@@ -468,15 +469,15 @@ export function MapQuickSettingsPanel({
             <div className={styles.visibilityRow}>
               <span className={styles.visibilityLabel}>Visibility</span>
               <MapVisibilityMenu
-                map={{ id: map.id, is_public: isPublic, slug: map.slug }}
+                map={{ id: map.id, visibility, slug: map.slug }}
                 silent
                 onMapChange={(next) => {
-                  setIsPublic(next);
+                  setVisibility(next);
                   showSaved();
                 }}
               />
             </div>
-            {isPublic && ownerProfileIsPrivate ? (
+            {visibility !== "private" && ownerProfileIsPrivate ? (
               <PrivateProfilePublicMapWarning context="map-public-access" />
             ) : null}
           </Field>

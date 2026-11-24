@@ -28,11 +28,11 @@ export function useReactionPolicy({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("maps")
-        .select("is_public")
+        .select("visibility")
         .eq("id", mapId)
         .maybeSingle();
       if (error) throw error;
-      return data?.is_public === true;
+      return data != null && data.visibility !== "private";
     },
     enabled: Boolean(mapId),
   });

@@ -1,15 +1,7 @@
+import { VisibilityMenu } from "@/components/visibility/visibility-controls";
 import { useMapVisibility } from "@/lib/use-map-visibility";
+import type { Visibility } from "@/lib/visibility";
 import type { CuroliaMap } from "@/types/database";
-import { Button } from "@curolia/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@curolia/ui/dropdown-menu";
-import { ChevronDown, Globe, Lock } from "lucide-react";
 
 export function MapVisibilityMenu({
   map,
@@ -17,51 +9,24 @@ export function MapVisibilityMenu({
   disabled = false,
   silent = false,
 }: {
-  map: Pick<CuroliaMap, "id" | "is_public" | "slug">;
-  onMapChange?: (isPublic: boolean) => void;
+  map: Pick<CuroliaMap, "id" | "visibility" | "slug">;
+  onMapChange?: (visibility: Visibility) => void;
   disabled?: boolean;
   /** Skip toast notifications (e.g. quick settings footer feedback). */
   silent?: boolean;
 }) {
-  const { setPublic, publicBusy } = useMapVisibility(map);
-  const value = map.is_public ? "public" : "private";
-  const VisibilityIcon = map.is_public ? Globe : Lock;
+  const { setVisibility, visibilityBusy } = useMapVisibility(map);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="outline"
-            disabled={disabled || publicBusy}
-            aria-label="Map visibility"
-          />
-        }
-      >
-        <VisibilityIcon aria-hidden size={16} />
-        {map.is_public ? "Public" : "Private"}
-        <ChevronDown aria-hidden size={16} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuGroup>
-          <DropdownMenuRadioGroup
-            value={value}
-            onValueChange={(next) => {
-              if (next !== "public" && next !== "private") return;
-              void setPublic(next === "public", map.is_public, { silent }).then(
-                (ok) => {
-                  if (ok) onMapChange?.(next === "public");
-                },
-              );
-            }}
-          >
-            <DropdownMenuRadioItem value="public">Public</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="private">
-              Private
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <VisibilityMenu
+      value={map.visibility}
+      disabled={disabled || visibilityBusy}
+      ariaLabel="Map visibility"
+      onValueChange={(next) => {
+        void setVisibility(next, { silent }).then((result) => {
+          if (result.ok) onMapChange?.(next);
+        });
+      }}
+    />
   );
 }

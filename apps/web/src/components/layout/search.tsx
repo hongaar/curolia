@@ -1,4 +1,5 @@
 import { UserAvatar } from "@/components/user-avatar";
+import { VISIBILITY_LABELS } from "@/lib/visibility";
 import { useExploreCategories } from "@/hooks/use-explore-categories";
 import { useMapMemberRole } from "@/hooks/use-map-access";
 import { useMaxSm } from "@/hooks/use-max-sm";
@@ -949,7 +950,11 @@ export function Search() {
                   key={j.id}
                   icon={<Notebook />}
                   title={j.name}
-                  subtitle={j.is_public ? "Public" : undefined}
+                  subtitle={
+                    j.visibility === "private"
+                      ? undefined
+                      : VISIBILITY_LABELS[j.visibility]
+                  }
                   onPick={() => onPickMap(j)}
                   {...rowProps}
                 />

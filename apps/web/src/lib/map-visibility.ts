@@ -1,10 +1,12 @@
-export type MapVisibilityKind = "private" | "public" | "shared";
+import type { Visibility } from "@/lib/visibility";
+
+export type MapVisibilityKind = Visibility | "shared";
 
 export function resolveMapVisibility(
-  map: { is_public: boolean },
+  map: { visibility: Visibility },
   memberCount: number,
 ): MapVisibilityKind {
-  if (map.is_public) return "public";
+  if (map.visibility !== "private") return map.visibility;
   if (memberCount > 1) return "shared";
   return "private";
 }
