@@ -273,10 +273,13 @@
 
 .stripNav {
   position: absolute;
-  top: 50%;
+  /* Centre without transform: Button's :active translateY would replace it and
+     jump the arrow away from the pointer, swallowing the click. */
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
   z-index: 2;
   display: none;
-  transform: translateY(-50%);
   color: var(--muted-foreground);
   background: color-mix(in oklch, var(--card) 90%, transparent);
   border: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
