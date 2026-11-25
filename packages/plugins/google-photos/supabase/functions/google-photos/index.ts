@@ -678,16 +678,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const suggestions = items.map((m) => ({
-      externalId: m.id,
-      title: m.mediaFile?.filename ?? null,
-      capturedAt: m.createTime ?? null,
-      meta: {
-        mimeType: m.mediaFile?.mimeType ?? null,
-        picker: true,
-        mediaType: m.type ?? null,
-      },
-    }));
+    // The Picker API returns items in selection order (arbitrary with
+    // "Select all") and exposes no grid order, so import chronologically.
+    const suggestions = [...items]
+      .sort((a, b) => (a.createTime ?? "").localeCompare(b.createTime ?? ""))
+      .map((m) => ({
+        externalId: m.id,
+        title: m.mediaFile?.filename ?? null,
+        capturedAt: m.createTime ?? null,
+        meta: {
+          mimeType: m.mediaFile?.mimeType ?? null,
+          picker: true,
+          mediaType: m.type ?? null,
+        },
+      }));
 
     return new Response(JSON.stringify({ suggestions }), {
       status: 200,
