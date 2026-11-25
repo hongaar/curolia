@@ -16,7 +16,15 @@ import {
 } from "react";
 import { useLocation, type Location } from "react-router-dom";
 
-const FrozenBaseLocationContext = createContext<Location | null>(null);
+interface FrozenBaseLocationValue {
+  location: Location;
+  /** No map/blog was visited this session; `location` is only a back target. */
+  isFallback: boolean;
+}
+
+const FrozenBaseLocationContext = createContext<FrozenBaseLocationValue | null>(
+  null,
+);
 
 function defaultBasePathname(
   activeMap: ReturnType<typeof useMap>["activeMap"],
@@ -29,7 +37,7 @@ function defaultBasePathname(
   return "/";
 }
 
-function useFrozenBaseLocationValue(): Location {
+function useFrozenBaseLocationValue(): FrozenBaseLocationValue {
   const location = useLocation();
   const { activeMap, maps } = useMap();
   const fallbackMap = maps[0];
@@ -82,15 +90,15 @@ function useFrozenBaseLocationValue(): Location {
     [defaultPathname, location],
   );
 
-  if (isBaseRoute(location.pathname)) {
-    return location;
-  }
-
-  if (isBaseRoute(frozenBase.pathname)) {
-    return frozenBase;
-  }
-
-  return fallbackLocation;
+  return useMemo(() => {
+    if (isBaseRoute(location.pathname)) {
+      return { location, isFallback: false };
+    }
+    if (isBaseRoute(frozenBase.pathname)) {
+      return { location: frozenBase, isFallback: false };
+    }
+    return { location: fallbackLocation, isFallback: true };
+  }, [fallbackLocation, frozenBase, location]);
 }
 
 /** Shares one frozen map/blog location across stack layers and back navigation. */
@@ -103,8 +111,7 @@ export function FrozenBaseLocationProvider({
   return createElement(FrozenBaseLocationContext.Provider, { value }, children);
 }
 
-/** Last map/blog location — kept mounted while stack screens are open. */
-export function useFrozenBaseLocation(): Location {
+function useFrozenBaseLocationContext(): FrozenBaseLocationValue {
   const value = useContext(FrozenBaseLocationContext);
   if (!value) {
     throw new Error(
@@ -112,4 +119,14 @@ export function useFrozenBaseLocation(): Location {
     );
   }
   return value;
+}
+
+/** Last map/blog location (or the default map as a back target on cold stack loads). */
+export function useFrozenBaseLocation(): Location {
+  return useFrozenBaseLocationContext().location;
+}
+
+/** Whether a map/blog location was actually visited and should stay mounted under stack screens. */
+export function useHasVisitedBaseLocation(): boolean {
+  return !useFrozenBaseLocationContext().isFallback;
 }

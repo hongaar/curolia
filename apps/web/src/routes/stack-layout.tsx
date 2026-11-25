@@ -1,5 +1,8 @@
 /* eslint-disable react-hooks/set-state-in-effect -- router-driven stack mount list + push/pop exit animations */
-import { useFrozenBaseLocation } from "@/hooks/use-frozen-base-location";
+import {
+  useFrozenBaseLocation,
+  useHasVisitedBaseLocation,
+} from "@/hooks/use-frozen-base-location";
 import { useStackTransitions } from "@/hooks/use-stack-transitions";
 import {
   getStackChain,
@@ -54,6 +57,7 @@ export function StackLayout() {
   const location = useLocation();
   const navigationType = useNavigationType();
   const baseLocation = useFrozenBaseLocation();
+  const hasVisitedBase = useHasVisitedBaseLocation();
   const stackChain = getStackChain(location.pathname);
   const stackActive = stackChain.length > 0;
 
@@ -136,8 +140,11 @@ export function StackLayout() {
       <div
         className={`${styles.baseLayer}${stackActive ? ` ${styles.baseLayerCovered}` : ""}`}
       >
+        {/* Cold load of a stack screen (e.g. `/:profileSlug`): don't mount a map the user never opened. */}
         {stackActive ? (
-          <Routes location={baseLocation}>{appShellRouteElements}</Routes>
+          hasVisitedBase ? (
+            <Routes location={baseLocation}>{appShellRouteElements}</Routes>
+          ) : null
         ) : (
           <Routes>{appShellRouteElements}</Routes>
         )}
