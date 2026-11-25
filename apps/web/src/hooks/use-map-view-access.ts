@@ -1,5 +1,5 @@
 import { mapViewHref, mapViewSegmentFromPathname } from "@/lib/app-paths";
-import { mapRouteForMap } from "@/lib/map-route";
+import { mapRouteForMap, parseMapRoutePathname } from "@/lib/map-route";
 import {
   normalizeMapViewSettings,
   resolveAccessibleMapView,
@@ -16,6 +16,18 @@ export function useMapViewAccess() {
 
   useLayoutEffect(() => {
     if (!activeMap?.owner_profile_slug || !activeMap.slug.trim()) return;
+
+    // `activeMap` syncs from the pathname a render later; acting on a stale
+    // map (e.g. right after switching maps) would bounce between both maps.
+    const route = parseMapRoutePathname(location.pathname);
+    if (
+      !route ||
+      route.profileSlug.trim().toLowerCase() !==
+        activeMap.owner_profile_slug.trim().toLowerCase() ||
+      route.mapSlug.trim().toLowerCase() !== activeMap.slug.trim().toLowerCase()
+    ) {
+      return;
+    }
 
     const currentView = mapViewSegmentFromPathname(location.pathname);
     const settings = normalizeMapViewSettings(activeMap);
