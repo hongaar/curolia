@@ -1,12 +1,20 @@
 import type { PinPhotoImportSlotProps } from "@curolia/plugin-contract";
+import { Button } from "@curolia/ui/button";
+import { Checkbox } from "@curolia/ui/checkbox";
 import {
-  DialogFooterRow,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogFormStack,
+  DialogHeader,
   DialogImportButton,
-  DialogInlinePrep,
   DialogMonoBox,
-  DialogRoundedButton,
   DialogSpinner,
+  DialogTitle,
 } from "@curolia/ui/dialog";
+import { Label } from "@curolia/ui/label";
 import {
   keepPreviousData,
   useMutation,
@@ -25,6 +33,25 @@ import { googlePhotosLibrarySearchPasteLine } from "./google-photos-search-paste
 import { GooglePhotosIcon } from "./icon";
 import { syncPinPhotosToCache } from "./pin-photo-cache";
 import { googlePhotosPluginMeta } from "./plugin-meta";
+
+const SKIP_PREP_STORAGE_KEY = "curolia.googlePhotos.skipPickPrep";
+
+function readSkipPrep(): boolean {
+  try {
+    return window.localStorage.getItem(SKIP_PREP_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSkipPrep(skip: boolean) {
+  try {
+    if (skip) window.localStorage.setItem(SKIP_PREP_STORAGE_KEY, "1");
+    else window.localStorage.removeItem(SKIP_PREP_STORAGE_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
 
 function toastGooglePhotosImportResult(result: {
   importedIds: string[];
@@ -78,6 +105,7 @@ export function GooglePhotosPinPhotoImportSlot({
 }: PinPhotoImportSlotProps) {
   const qc = useQueryClient();
   const [pickPrepOpen, setPickPrepOpen] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [importPhase, setImportPhase] = useState<"idle" | "picker" | "import">(
     "idle",
   );
@@ -205,33 +233,59 @@ export function GooglePhotosPinPhotoImportSlot({
     pickAndImportMut.mutate();
   }
 
+  function onImportClick() {
+    if (readSkipPrep()) {
+      void copySearchPasteAndStartPicker();
+      return;
+    }
+    setDontShowAgain(false);
+    setPickPrepOpen(true);
+  }
+
+  function onConfirmPrep() {
+    if (dontShowAgain) writeSkipPrep(true);
+    void copySearchPasteAndStartPicker();
+  }
+
   const label = `Select from ${googlePhotosPluginMeta.displayName}`;
 
   return (
     <>
-      {pickPrepOpen ? (
-        <DialogInlinePrep
-          title="Open Google Photos"
-          description="When you click the button below, the pin dates will be copied to your clipboard and Google Photos will open. Paste the text into search, then pick the photos you want."
-          onClose={() => setPickPrepOpen(false)}
-        >
-          <DialogMonoBox>{searchPasteLine}</DialogMonoBox>
-          <DialogFooterRow>
-            <DialogRoundedButton
-              type="button"
-              onClick={() => void copySearchPasteAndStartPicker()}
-            >
-              Copy & open Google Photos
-            </DialogRoundedButton>
-          </DialogFooterRow>
-        </DialogInlinePrep>
-      ) : null}
+      <Dialog open={pickPrepOpen} onOpenChange={setPickPrepOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Open Google Photos</DialogTitle>
+            <DialogDescription>
+              When you click the button below, the pin dates will be copied to
+              your clipboard and Google Photos will open. Paste the text into
+              search, then pick the photos you want.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <DialogFormStack>
+              <DialogMonoBox>{searchPasteLine}</DialogMonoBox>
+              <Label>
+                <Checkbox
+                  checked={dontShowAgain}
+                  onCheckedChange={(next) => setDontShowAgain(next === true)}
+                />
+                Do not show this again
+              </Label>
+            </DialogFormStack>
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPickPrepOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={onConfirmPrep}>Copy & open Google Photos</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <DialogImportButton
         type="button"
         disabled={busy}
-        onClick={() => setPickPrepOpen(true)}
+        onClick={onImportClick}
         aria-label={label}
-        aria-expanded={pickPrepOpen}
       >
         {busy ? <DialogSpinner /> : null}
         <GooglePhotosIcon size={4} />
