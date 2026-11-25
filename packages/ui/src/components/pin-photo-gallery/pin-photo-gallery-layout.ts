@@ -160,7 +160,9 @@ function balanceSparseLastRow<T extends PinPhotoGalleryLayoutItem>(
     if (!tooSparse) break;
 
     const prev = out[out.length - 2]!;
-    if (prev.length <= 2) break;
+    // Never shrink an earlier row below three photos — a short interior row
+    // cannot be justified without becoming very tall.
+    if (prev.length <= 3) break;
 
     last.unshift(prev.pop()!);
   }

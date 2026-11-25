@@ -46,6 +46,25 @@ describe("computeRowsLayout", () => {
     expect(Math.max(...heights) / Math.min(...heights)).toBeLessThan(1.45);
   });
 
+  it("never leaves an interior row with fewer than three photos", () => {
+    let seed = 1;
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const aspects = [0.67, 0.75, 1.33, 1.5, 1.78];
+
+    for (let trial = 0; trial < 2000; trial += 1) {
+      const count = 4 + Math.floor(random() * 10);
+      const items = Array.from({ length: count }, () => ({
+        width: aspects[Math.floor(random() * aspects.length)]! * 100,
+        height: 100,
+      }));
+      const width = 800 + Math.floor(random() * 900);
+      const rows = computeRowsLayout(items, width, width / 5);
+      for (const row of rows.slice(0, -1)) {
+        expect(row.length).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
   it("keeps row heights within a narrow band when justified", () => {
     const items = Array.from({ length: 11 }, (_, i) => ({
       width: i % 3 === 0 ? 900 : 1600,
