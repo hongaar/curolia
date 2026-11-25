@@ -333,17 +333,28 @@ function mapPanelPadding(map: maplibregl.Map) {
   };
 }
 
-function fitPaddingForMap(
+/**
+ * Make `panelInset` the map's padding without moving what is on screen.
+ * MapLibre `fitBounds` adds its `padding` option on top of the map's padding
+ * (while `flyTo` replaces it), so fits set the panel inset here first and then
+ * pass only the fit margin.
+ */
+function applyPanelPaddingInPlace(
   map: maplibregl.Map,
   panelInset?: { top?: number; right?: number; bottom?: number; left?: number },
-): maplibregl.PaddingOptions {
-  const pad = cameraFitPaddingPx(map);
-  return {
-    top: (panelInset?.top ?? 0) + pad,
-    right: (panelInset?.right ?? 0) + pad,
-    bottom: (panelInset?.bottom ?? 0) + pad,
-    left: (panelInset?.left ?? 0) + pad,
+): void {
+  const padding = {
+    top: panelInset?.top ?? 0,
+    right: panelInset?.right ?? 0,
+    bottom: panelInset?.bottom ?? 0,
+    left: panelInset?.left ?? 0,
   };
+  const { clientWidth: width, clientHeight: height } = map.getContainer();
+  const center = map.unproject([
+    (padding.left + width - padding.right) / 2,
+    (padding.top + height - padding.bottom) / 2,
+  ]);
+  map.jumpTo({ center, padding });
 }
 
 function notifyFitSettled(map: maplibregl.Map, onSettled?: () => void) {
@@ -382,14 +393,14 @@ function fitMapToPinCoordinates(
   if (coords.length === 0) return;
 
   const maxZoom = options?.maxZoom ?? map.getMaxZoom();
-  const padding = fitPaddingForMap(map, options?.panelInset);
+  applyPanelPaddingInPlace(map, options?.panelInset);
+  const padding = cameraFitPaddingPx(map);
 
   if (coords.length === 1) {
     const t = coords[0]!;
     map.flyTo({
       center: [t.lng, t.lat],
       zoom: Math.min(SINGLE_PIN_ZOOM, maxZoom),
-      padding,
       duration: CAMERA_DURATION_MS,
       essential: true,
     });
@@ -410,7 +421,6 @@ function fitMapToPinCoordinates(
     map.flyTo({
       center: [center.lng, center.lat],
       zoom: Math.min(map.getZoom() + 2, maxZoom),
-      padding,
       duration: CAMERA_DURATION_MS,
       essential: true,
     });

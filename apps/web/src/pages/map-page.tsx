@@ -596,6 +596,12 @@ export function MapPage() {
     Boolean(cameraFromUrl) ||
     (pinsReadyForMapFit && visiblePinsForFit.length === 0);
   const awaitingMapFit = mapFitPending && !mapFitCanResolve;
+  /** Read by idle URL sync: resize/idle during a map switch must not write the previous map's camera. */
+  const mapFitPendingRef = useRef(mapFitPending);
+  useLayoutEffect(() => {
+    mapFitPendingRef.current = mapFitPending;
+    if (mapFitPending) clearTimeout(cameraIdleTimerRef.current);
+  }, [mapFitPending]);
 
   useEffect(() => {
     if (!mapFitPending || !mapFitCanResolve) return;
@@ -633,7 +639,12 @@ export function MapPage() {
 
     const generation = mapFitGenerationRef.current;
 
+    // Blog/gallery panel overlays the map's right side; fit inside the visible strip.
+    const contentPanelWidth = contentPanelLayoutActive
+      ? contentSidePanelRef.current?.offsetWidth
+      : undefined;
     mapRef.current?.fitVisiblePins({
+      panelInset: contentPanelWidth ? { right: contentPanelWidth } : undefined,
       onSettled: () => {
         setMapFitResolvedGeneration(generation);
       },
@@ -644,6 +655,7 @@ export function MapPage() {
     pinsReadyForMapFit,
     visiblePinsForFit.length,
     activeMapId,
+    contentPanelLayoutActive,
   ]);
 
   const sidebarPinToken = useMemo(
@@ -881,6 +893,9 @@ export function MapPage() {
       }
       const instant = contentPanelInsetInstantRef.current;
       contentPanelInsetInstantRef.current = false;
+      // A pending map fit already includes the panel inset; panning here
+      // would cancel it and ease back to the previous map's camera.
+      if (mapFitPendingRef.current) return;
       mapRef.current?.panForPanel(
         camera.lng,
         camera.lat,
@@ -1048,6 +1063,7 @@ export function MapPage() {
         // Base MapPage stays mounted under stack routes; skip URL sync while a
         // stack screen is active so we do not navigate back to /map?pin=.
         if (isStackRoute(window.location.pathname)) return;
+        if (mapFitPendingRef.current) return;
         const routeProfile = profileSlug?.trim().toLowerCase();
         const routeMap = mapSlug?.trim().toLowerCase();
         const activeProfile = activeMap?.owner_profile_slug
