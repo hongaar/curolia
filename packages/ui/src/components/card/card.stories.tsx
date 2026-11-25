@@ -1,3 +1,4 @@
+import type * as React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
@@ -120,6 +121,51 @@ export const Colored: Story = {
           <Button size="sm">Attach place</Button>
         </CardFooter>
       </Card>
+    </StoryFrame>
+  ),
+};
+
+export const Focused: Story = {
+  parameters: storyDocs(
+    "Focusable card (`tabIndex={0}`): ring-colored border plus a soft halo, matching `Button` focus. Tab into it to see the ring.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <Card tabIndex={0}>
+        <CardHeader>
+          <CardTitle>Focusable card</CardTitle>
+          <CardDescription>Tab here to show the focus ring.</CardDescription>
+        </CardHeader>
+      </Card>
+    </StoryFrame>
+  ),
+  play: ({ canvasElement }) => {
+    canvasElement.querySelector<HTMLElement>("[tabindex]")?.focus();
+  },
+};
+
+export const Interactive: Story = {
+  parameters: storyDocs(
+    "`interactive` tile rendered as a link/button: hover lift, Button-style focus ring (border + halo). `active` shows the ring without focus; tint it via `--card-focus-color`.",
+  ),
+  render: () => (
+    <StoryFrame width="md">
+      <div style={{ display: "grid", gap: "1.5rem" }}>
+        <Card interactive render={<button type="button" />}>
+          <CardContent>Hover or Tab to me</CardContent>
+        </Card>
+        <Card interactive active render={<button type="button" />}>
+          <CardContent>Active</CardContent>
+        </Card>
+        <Card
+          interactive
+          active
+          render={<button type="button" />}
+          style={{ "--card-focus-color": "#ff851b" } as React.CSSProperties}
+        >
+          <CardContent>Active, custom focus color</CardContent>
+        </Card>
+      </div>
     </StoryFrame>
   ),
 };

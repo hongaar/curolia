@@ -53,24 +53,7 @@
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
   min-width: 0;
-  overflow: hidden;
-  border-radius: var(--radius-2xl);
-  color: inherit;
-  text-decoration: none;
-  background: var(--card);
-  box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent),
-    0 10px 30px color-mix(in oklch, var(--foreground) 6%, transparent);
-  transition: box-shadow 180ms ease;
-}
-
-.card:hover {
-  box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
-    0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
 }
 
 .cover {

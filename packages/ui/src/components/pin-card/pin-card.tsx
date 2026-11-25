@@ -3,6 +3,7 @@ import type * as React from "react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { Card } from "../card";
 import { CardMeta, CardMetaItem } from "../card-meta";
 import {
   coverAspectRatioCss,
@@ -38,10 +39,12 @@ function PinCardShell({
   className,
   hasCover,
   coverAspectReady,
+  active,
   children,
   ...rest
 }: {
   className: string;
+  active: boolean;
   hasCover: boolean;
   coverAspectReady: boolean;
   children: React.ReactNode;
@@ -56,6 +59,8 @@ function PinCardShell({
 )) {
   const dataProps = {
     className,
+    interactive: true,
+    active,
     "data-has-cover": hasCover ? "true" : "false",
     "data-aspect-ready": hasCover
       ? coverAspectReady
@@ -67,9 +72,9 @@ function PinCardShell({
   if ("to" in rest && rest.to) {
     const { to, ...linkRest } = rest;
     return (
-      <Link to={to} {...dataProps} {...linkRest}>
+      <Card {...dataProps} render={<Link to={to} {...linkRest} />}>
         {children}
-      </Link>
+      </Card>
     );
   }
 
@@ -78,9 +83,12 @@ function PinCardShell({
   } & React.ComponentPropsWithoutRef<"button">;
 
   return (
-    <button type="button" onClick={onSelect} {...dataProps} {...buttonRest}>
+    <Card
+      {...dataProps}
+      render={<button type="button" onClick={onSelect} {...buttonRest} />}
+    >
       {children}
-    </button>
+    </Card>
   );
 }
 
@@ -154,6 +162,7 @@ export function PinCard({
       <PinCardShell
         {...shellProps}
         className={styles.card}
+        active={active}
         hasCover={hasCover}
         coverAspectReady={!hasCover || coverAspectRatio != null}
       >

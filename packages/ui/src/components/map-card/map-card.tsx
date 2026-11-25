@@ -18,6 +18,7 @@ import {
 import { Link } from "react-router-dom";
 
 import { AuthorRow } from "../author-row";
+import { Card } from "../card";
 import { CardMeta, CardMetaItem } from "../card-meta";
 import { loadCoverAccentFromUrl } from "./map-card-cover-accent";
 import {
@@ -253,8 +254,9 @@ export function MapCard({
 
   return (
     <article className={styles.itemWrap}>
-      <Link
-        to={to}
+      <Card
+        interactive
+        render={<Link to={to} />}
         className={styles.card}
         data-has-cover={hasCover ? "true" : "false"}
         data-has-inset-icon={showInsetIcon ? "true" : "false"}
@@ -313,7 +315,7 @@ export function MapCard({
             </CardMeta>
           ) : null}
         </div>
-      </Link>
+      </Card>
     </article>
   );
 }

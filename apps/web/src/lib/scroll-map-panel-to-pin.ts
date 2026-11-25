@@ -248,6 +248,11 @@ export function focusMapPanelPin(
 ): boolean {
   const pinElement = findMapPanelPinElement(scrollRoot, pinId, mode);
   if (!pinElement) return false;
+  // Move keyboard focus to the pin's card/title link; scrolling is ours.
+  const focusTarget = pinElement.matches("a, button")
+    ? pinElement
+    : pinElement.querySelector<HTMLElement>("a, button");
+  focusTarget?.focus({ preventScroll: true });
   trackMapPanelPinScroll(
     scrollRoot,
     pinId,

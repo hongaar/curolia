@@ -40,6 +40,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+export const Focused: Story = {
+  parameters: storyDocs(
+    "Keyboard focus (Tab into the card): ring-colored border with a halo, matching `Card` / `Button` focus.",
+  ),
+  play: ({ canvasElement }) => {
+    canvasElement.querySelector<HTMLElement>("a")?.focus();
+  },
+};
+
 export const WithoutCover: Story = {
   args: {
     coverUrl: null,

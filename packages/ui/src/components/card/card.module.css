@@ -8,7 +8,56 @@
   padding: var(--card-pad) 0;
   font-size: var(--text-body);
   color: var(--card-foreground);
-  box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent);
+  /* Same layer count at rest and focus so the halo grows out on focus. */
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--foreground) 10%, transparent),
+    0 0 0 0 transparent;
+  transition: box-shadow 150ms ease;
+}
+
+/* Matches Button focus: ring-colored border plus a soft halo. */
+.card:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--ring),
+    0 0 0 4px var(--focus-ring-color);
+}
+
+/* Clickable tile (pin/map cards). Fixed three-layer shadow (border, focus
+   halo, drop) so transitions interpolate per layer: the halo grows out from
+   the border like Button focus while the drop shadow lifts on hover. */
+.card[data-interactive] {
+  --_focus: var(--card-focus-color, var(--ring));
+  --_border: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --_halo: 0 0 0 0 transparent;
+  --_drop: 0 10px 30px color-mix(in oklch, var(--foreground) 6%, transparent);
+  gap: 0;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-2xl);
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--_border),
+    var(--_halo),
+    var(--_drop);
+  transition: box-shadow 180ms ease;
+}
+
+.card[data-interactive]:hover {
+  --_border: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --_drop: 0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
+}
+
+.card[data-interactive]:focus-visible,
+.card[data-interactive][data-active] {
+  --_border: var(--_focus);
+  --_halo: 0 0 0 4px color-mix(in oklch, var(--_focus) 35%, transparent);
 }
 
 .card[data-variant="colored"] {

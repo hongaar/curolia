@@ -801,6 +801,19 @@ export function MapPage() {
   ) {
     setDismissedFocusNonce(focusNonce);
   }
+  // Also drop DOM focus from the clicked pin's card so its focus ring clears.
+  useEffect(() => {
+    if (dismissedFocusNonce == null || dismissedFocusNonce !== focusNonce) {
+      return;
+    }
+    const focused = document.activeElement;
+    if (
+      focused instanceof HTMLElement &&
+      contentSidePanelRef.current?.contains(focused)
+    ) {
+      focused.blur();
+    }
+  }, [dismissedFocusNonce, focusNonce]);
   const panelActivePinId =
     showContentSidePanel &&
     !stackCoversMap &&

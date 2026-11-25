@@ -65,8 +65,18 @@ export const AccentHover: Story = {
 export const Active: Story = {
   args: { accentColor: "#ff851b", active: true },
   parameters: storyDocs(
-    "Pin selected on the map: tag-colored outer ring (no layout shift) and title.",
+    "Pin selected on the map (card also receives focus): tag-colored focus ring with halo, plus title color.",
   ),
+};
+
+export const Focused: Story = {
+  args: { accentColor: "#2ecc40" },
+  parameters: storyDocs(
+    "Keyboard focus (Tab into the card): same ring as `Card` / `Button` focus, tinted by the tag color.",
+  ),
+  play: ({ canvasElement }) => {
+    canvasElement.querySelector<HTMLElement>("a, button")?.focus();
+  },
 };
 
 export const MasonryGrid: Story = {

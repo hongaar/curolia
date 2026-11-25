@@ -3,6 +3,7 @@
   /* Keep the hue, clamp perceptual lightness so pale/dark tags stay legible. */
   --_accent-text: var(--_accent);
   --_accent-text: oklch(from var(--_accent) clamp(0.42, l, 0.6) c h);
+  --card-focus-color: var(--_accent-text);
   position: relative;
   z-index: 1;
   break-inside: avoid;
@@ -13,35 +14,6 @@
   .itemWrap {
     margin-bottom: var(--space-5);
   }
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  border: 0;
-  border-radius: var(--radius-2xl);
-  padding: 0;
-  color: inherit;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  background: var(--card);
-  box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent),
-    0 10px 30px color-mix(in oklch, var(--foreground) 6%, transparent);
-  transition: box-shadow 180ms ease;
-}
-
-/* Outer ring via box-shadow: thicker border without shifting layout.
-   Hover matches the active (map-selected) look. */
-.card:hover,
-.itemWrap[data-active="true"] .card {
-  box-shadow:
-    0 0 0 2px var(--_accent-text),
-    0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
 }
 
 .cover {
