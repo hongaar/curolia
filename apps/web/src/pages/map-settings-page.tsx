@@ -1,11 +1,6 @@
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { MapPluginsSection } from "@/components/map-collection/map-plugins-section";
 import { MapSharingSection } from "@/components/map-collection/map-sharing-section";
-import {
-  mapShowMetadataDirty,
-  mapShowMetadataForSave,
-} from "@/components/map-collection/map-show-metadata";
-import { MapShowMetadataField } from "@/components/map-collection/map-show-metadata-section";
 import { MapViewsSettingsField } from "@/components/map-collection/map-views-settings-field";
 import { MapCoverPinPhotoPicker } from "@/components/map/map-cover-pin-photo-picker";
 import { useActivePageSection } from "@/hooks/use-active-page-section";
@@ -45,7 +40,6 @@ import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
 import { useMap } from "@/providers/map-context";
-import { resolveMapPinMetadataShow } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
@@ -110,9 +104,6 @@ export function MapSettingsPage() {
     hillshades: false,
     satelliteLabels: false,
   });
-  const [showPinMetadata, setShowPinMetadata] = useState(
-    resolveMapPinMetadataShow(null),
-  );
   const [showPinRoute, setShowPinRoute] = useState(false);
   const [mapViewSettings, setMapViewSettings] = useState<MapViewSettings>(
     normalizeMapViewSettings(null),
@@ -252,7 +243,6 @@ export function MapSettingsPage() {
     setIconEmoji(map.icon_emoji ?? defaultMapIcon());
     setMapStyle(normalizeMapStylePreset(map.style));
     setStyleOptions(normalizeMapStyleOptions(map));
-    setShowPinMetadata(resolveMapPinMetadataShow(map.show_pin_metadata));
     setShowPinRoute(normalizeShowPinRoute(map.show_pin_route));
     setMapViewSettings(normalizeMapViewSettings(map));
     setDescription(map.description ?? "");
@@ -311,7 +301,6 @@ export function MapSettingsPage() {
         style: mapStyle,
         style_hillshades: styleOptions.hillshades,
         style_satellite_labels: styleOptions.satelliteLabels,
-        show_pin_metadata: mapShowMetadataForSave(showPinMetadata),
         show_pin_route: showPinRoute,
         default_map_view: mapViewSettings.defaultView,
         enabled_map_views: enabledMapViewsForSave(mapViewSettings.enabled),
@@ -328,9 +317,6 @@ export function MapSettingsPage() {
     toast.success("Map settings saved");
     if (user) {
       await qc.invalidateQueries({ queryKey: ["maps", user.id] });
-      await qc.invalidateQueries({
-        queryKey: ["maps", mapId, "show_pin_metadata"],
-      });
       if (nameChanged) {
         await refetchMaps();
         const updatedMaps = qc.getQueryData<MapWithOwnerSlug[]>([
@@ -393,7 +379,6 @@ export function MapSettingsPage() {
     mapStyle !== normalizeMapStylePreset(map.style) ||
     styleOptions.hillshades !== savedStyleOptions.hillshades ||
     styleOptions.satelliteLabels !== savedStyleOptions.satelliteLabels;
-  const metadataDirty = mapShowMetadataDirty(map, showPinMetadata);
   const routeDirty = showPinRoute !== normalizeShowPinRoute(map.show_pin_route);
   const viewsDirty = mapViewSettingsDirty(map, mapViewSettings);
   const descriptionDirty =
@@ -406,7 +391,6 @@ export function MapSettingsPage() {
     (nameDirty ||
       iconDirty ||
       styleDirty ||
-      metadataDirty ||
       routeDirty ||
       viewsDirty ||
       descriptionDirty) &&
@@ -627,12 +611,6 @@ export function MapSettingsPage() {
                   Connect dated pins in chronological order on the map
                 </Label>
               </Field>
-              <MapShowMetadataField
-                mapId={map.id}
-                settings={showPinMetadata}
-                onChange={setShowPinMetadata}
-                disabled={controlsDisabled}
-              />
               {error ? <PageErrorText>{error}</PageErrorText> : null}
               <PageInlineActions>
                 <Button disabled={!canSave} onClick={() => void save()}>

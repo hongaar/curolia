@@ -169,7 +169,7 @@ export function PinPlaceMetadataStatus({
   return <span className={styles.status}>{children}</span>;
 }
 
-function PinPlaceMetadataIcon({
+export function PinPlaceMetadataIcon({
   fieldKey,
 }: {
   fieldKey: PinPlaceMetadataFieldKey;

@@ -1,5 +1,4 @@
 import {
-  defaultPinMetadataShowSettings,
   pinMetadataSubtitleFromRows,
   type PinMetadataRow,
 } from "@curolia/plugin-contract";
@@ -46,9 +45,7 @@ describe("pinMetadataSubtitleFromRows", () => {
       },
     ];
 
-    expect(
-      pinMetadataSubtitleFromRows(rows, defaultPinMetadataShowSettings()),
-    ).toEqual({
+    expect(pinMetadataSubtitleFromRows(rows)).toEqual({
       parts: [
         { kind: "text", text: "Café" },
         { kind: "text", text: "Italian" },

@@ -65,8 +65,6 @@ export type CuroliaMap = {
   default_map_view: import("@/lib/app-paths").MapViewSegment;
   /** Per-view availability (`{ map, blog, gallery }`; false hides). */
   enabled_map_views: import("@/lib/database.types").Json;
-  /** Per-field pin metadata visibility (`{ fields: string[] }`). */
-  show_pin_metadata?: import("@/lib/database.types").Json | null;
   /** Per-plugin pin output visibility (`{ [pluginId]: boolean }`; false hides). */
   show_plugin_outputs?: import("@/lib/database.types").Json | null;
   created_by_user_id: string;

@@ -72,11 +72,10 @@ This keeps plugin add/remove flow dependency-driven (no manual registry edits).
 
 Do not use **`user_plugins.enabled`** to gate read-only pin output that other map viewers should see.
 
-| Axis              | Storage / field          | Gates                                                                                                          |
-| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Account plugin    | `user_plugins`           | Editor slots (`PinFormSection`, `PinSuggestionSlot`, photo import), client Edge writes, viewer-personal output |
-| Map plugin config | `map_plugins`            | Background sync, optional map-level display (e.g. weather, Last.fm)                                            |
-| Map display prefs | `maps.show_pin_metadata` | Which normalized pin metadata fields render on pins                                                            |
+| Axis              | Storage / field | Gates                                                                                                          |
+| ----------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| Account plugin    | `user_plugins`  | Editor slots (`PinFormSection`, `PinSuggestionSlot`, photo import), client Edge writes, viewer-personal output |
+| Map plugin config | `map_plugins`   | Background sync, optional map-level display (e.g. weather, Last.fm)                                            |
 
 Set **`pinOutputScope`** on the manifest:
 
@@ -89,7 +88,7 @@ Set **`pinOutputScope`** on the manifest:
 
 Structured payloads keyed by **`entity_type`** + **`entity_id`** + **`plugin_type_id`** live in **`public.plugin_entity_data`** so plugins do not overload unrelated tables (e.g. pin links).
 
-Normalized display fields (phone, hours, cuisine, …) live in **`public.pin_metadata`**.
+Normalized display fields (phone, hours, cuisine, …) live in **`public.pin_metadata`**, keyed by `source_plugin_id`. Plugins replace only their own rows; map editors edit fields in the pin form, which writes rows with source **`manual`** (`PIN_METADATA_MANUAL_SOURCE_ID`) that always win over plugin rows for the same field.
 
 ### Future interaction plugins (comments, likes)
 

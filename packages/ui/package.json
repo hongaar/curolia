@@ -97,6 +97,7 @@
     "./place-detail": "./src/components/place-detail/index.ts",
     "./pin-form": "./src/components/pin-form/index.ts",
     "./pin-links": "./src/components/pin-links/index.ts",
+    "./pin-metadata-editor": "./src/components/pin-metadata-editor/index.ts",
     "./pin-metadata-footer": "./src/components/pin-metadata-footer/index.ts",
     "./pin-metadata-subtitle": "./src/components/pin-metadata-subtitle/index.ts",
     "./pin-reactions": "./src/components/pin-reactions/index.ts",

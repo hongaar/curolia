@@ -152,7 +152,6 @@ export function PinMapMarkerPopover({
     });
   const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin?.id ?? pinId,
-    mapId: pin?.map_id ?? mapId,
   });
 
   const anchorCoords = useMemo(() => {

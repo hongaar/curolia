@@ -15,6 +15,9 @@ export const PIN_METADATA_FIELD_KEYS = [
   "place_categories",
 ] as const;
 
+/** `source_plugin_id` for metadata entered by map editors in the pin form. */
+export const PIN_METADATA_MANUAL_SOURCE_ID = "manual";
+
 export type PinMetadataFieldKey = (typeof PIN_METADATA_FIELD_KEYS)[number];
 
 export type PinMetadataPhoneValue = {
@@ -344,16 +347,26 @@ export function parsePinMetadataRow(row: {
   };
 }
 
+/** Manual edits win over plugin rows; otherwise the newest row wins. */
+function isPreferredPinMetadataRow(
+  row: PinMetadataRow,
+  prev: PinMetadataRow | null | undefined,
+): boolean {
+  if (!prev) return true;
+  const rowManual = row.source_plugin_id === PIN_METADATA_MANUAL_SOURCE_ID;
+  const prevManual = prev.source_plugin_id === PIN_METADATA_MANUAL_SOURCE_ID;
+  if (rowManual !== prevManual) return rowManual;
+  return (
+    new Date(row.updated_at).getTime() > new Date(prev.updated_at).getTime()
+  );
+}
+
 export function groupPinMetadataForDisplay(
   rows: PinMetadataRow[],
 ): PinMetadataDisplayItem[] {
   const best = new Map<PinMetadataFieldKey, PinMetadataRow>();
   for (const row of rows) {
-    const prev = best.get(row.field_key);
-    if (
-      !prev ||
-      new Date(row.updated_at).getTime() > new Date(prev.updated_at).getTime()
-    ) {
+    if (isPreferredPinMetadataRow(row, best.get(row.field_key))) {
       best.set(row.field_key, row);
     }
   }
@@ -383,12 +396,7 @@ export function pinMetadataRowByField<K extends PinMetadataFieldKey>(
   let best: PinMetadataRow | null = null;
   for (const row of rows) {
     if (row.field_key !== fieldKey) continue;
-    if (
-      !best ||
-      new Date(row.updated_at).getTime() > new Date(best.updated_at).getTime()
-    ) {
-      best = row;
-    }
+    if (isPreferredPinMetadataRow(row, best)) best = row;
   }
   if (!best || best.field_key !== fieldKey) return null;
   return best as PinMetadataRow & {

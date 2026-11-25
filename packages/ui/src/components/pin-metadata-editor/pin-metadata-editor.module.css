@@ -1,0 +1,121 @@
+.root {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.list {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: color-mix(in oklch, var(--background) 40%, transparent);
+  padding: var(--space-2) var(--space-2) var(--space-2) 0.75rem;
+}
+
+.rowIcon {
+  display: flex;
+  flex-shrink: 0;
+  padding-top: 0.0625rem;
+  color: var(--muted-foreground);
+}
+
+.rowBody {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rowLabel {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--muted-foreground);
+}
+
+.rowValue {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  font-size: var(--text-body);
+  color: var(--foreground);
+}
+
+.rowActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: calc(-1 * var(--space-1));
+}
+
+.form {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--muted) 35%, transparent);
+  padding: var(--space-3);
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.formTitle {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.formBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.spinIcon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

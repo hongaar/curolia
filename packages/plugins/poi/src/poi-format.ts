@@ -1,7 +1,4 @@
-import {
-  isPinMetadataFieldShown,
-  type PinMetadataShowSettings,
-} from "@curolia/plugin-contract";
+import {} from "@curolia/plugin-contract";
 
 const FOOD_AMENITIES = new Set([
   "restaurant",
@@ -269,34 +266,22 @@ function dogLabel(value: string | undefined): string | null {
 }
 
 /** One-line OSM POI fragment for pin subtitles. */
-export function formatPoiSubtitle(
-  tags: Record<string, string>,
-  showSettings: PinMetadataShowSettings,
-): string | null {
+export function formatPoiSubtitle(tags: Record<string, string>): string | null {
   const parts: string[] = [];
 
-  if (isPinMetadataFieldShown("place_type", showSettings)) {
-    const primary = primaryPoiLabel(tags);
-    if (primary) parts.push(primary);
-  }
+  const primary = primaryPoiLabel(tags);
+  if (primary) parts.push(primary);
 
-  if (
-    isPinMetadataFieldShown("cuisine", showSettings) &&
-    tags.cuisine?.trim()
-  ) {
+  if (tags.cuisine?.trim()) {
     const cuisine = formatCuisine(tags.cuisine);
     if (cuisine && !parts.includes(cuisine)) parts.push(cuisine);
   }
 
-  if (isPinMetadataFieldShown("wheelchair_access", showSettings)) {
-    const wheel = wheelchairLabel(tags.wheelchair);
-    if (wheel) parts.push(wheel);
-  }
+  const wheel = wheelchairLabel(tags.wheelchair);
+  if (wheel) parts.push(wheel);
 
-  if (isPinMetadataFieldShown("dog_policy", showSettings)) {
-    const dog = dogLabel(tags.dog);
-    if (dog) parts.push(dog);
-  }
+  const dog = dogLabel(tags.dog);
+  if (dog) parts.push(dog);
 
   if (parts.length === 0) return null;
   return parts.join(" · ");

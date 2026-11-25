@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect -- reset form fields when dialog opens/closes */
 import { PinLinksEditor } from "@/components/pins/pin-links-editor";
+import { PinMetadataEditor } from "@/components/pins/pin-metadata-editor";
 import { TagEntityLabelInput } from "@/components/pins/tag-entity-label-input";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { mapViewHref, pinDetailHref } from "@/lib/app-paths";
@@ -1173,6 +1174,12 @@ export function PinFormDialog({
           New tag…
         </Button>
       </Field>
+      {pin ? (
+        <Field>
+          <FieldLabel>Details</FieldLabel>
+          <PinMetadataEditor pinId={pin.id} mapId={mapId} />
+        </Field>
+      ) : null}
       {pin
         ? enabledPlugins.map((p) => {
             const Section = p.PinFormSection;

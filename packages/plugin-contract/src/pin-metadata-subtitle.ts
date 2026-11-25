@@ -1,7 +1,3 @@
-import {
-  isPinMetadataFieldShown,
-  type PinMetadataShowSettings,
-} from "./map-pin-metadata-display";
 import { pinMetadataRowByField, type PinMetadataRow } from "./pin-metadata";
 
 export type PinMetadataSubtitlePart =
@@ -19,19 +15,15 @@ export type PinMetadataSubtitle = {
 /** Build compact pin subtitle parts from provider-agnostic `pin_metadata` rows. */
 export function pinMetadataSubtitleFromRows(
   rows: PinMetadataRow[],
-  showSettings: PinMetadataShowSettings,
 ): PinMetadataSubtitle | null {
   const parts: PinMetadataSubtitlePart[] = [];
 
   const placeTypeRow = pinMetadataRowByField(rows, "place_type");
-  if (
-    placeTypeRow?.field_key === "place_type" &&
-    isPinMetadataFieldShown("place_type", showSettings)
-  ) {
+  if (placeTypeRow?.field_key === "place_type") {
     parts.push({ kind: "text", text: placeTypeRow.value.label });
   }
 
-  if (isPinMetadataFieldShown("cuisine", showSettings)) {
+  {
     const cuisine = pinMetadataRowByField(rows, "cuisine");
     if (cuisine?.field_key === "cuisine") {
       const label = cuisine.value.label;
@@ -41,7 +33,7 @@ export function pinMetadataSubtitleFromRows(
     }
   }
 
-  if (isPinMetadataFieldShown("wheelchair_access", showSettings)) {
+  {
     const wheelchair = pinMetadataRowByField(rows, "wheelchair_access");
     if (wheelchair?.value && "level" in wheelchair.value) {
       switch (wheelchair.value.level) {
@@ -59,7 +51,7 @@ export function pinMetadataSubtitleFromRows(
     }
   }
 
-  if (isPinMetadataFieldShown("dog_policy", showSettings)) {
+  {
     const dog = pinMetadataRowByField(rows, "dog_policy");
     if (dog?.value && "level" in dog.value) {
       switch (dog.value.level) {

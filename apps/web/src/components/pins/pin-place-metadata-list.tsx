@@ -3,9 +3,7 @@ import { usePinMetadata } from "@/lib/use-pin-metadata";
 import { pluginList } from "@/plugins/registry";
 import {
   filterPinMetadataForDetailDisplay,
-  hasPinMetadataDetailDisplayEnabled,
   pinMetadataWebsiteDisplayLabel,
-  resolveMapPinMetadataShow,
   type PinMetadataDisplayItem,
 } from "@curolia/plugin-contract";
 import { usePoiPinMetadataLoading } from "@curolia/plugin-poi";
@@ -20,7 +18,6 @@ import {
   PinPlaceMetadataText,
   type PinPlaceMetadataFieldKey,
 } from "@curolia/ui/pin-place-metadata";
-import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 
 type PinPlaceMetadataListProps = {
@@ -41,27 +38,9 @@ export function PinPlaceMetadataList({
   const metadataQuery = usePinMetadata(pinId);
   const items = metadataQuery.data ?? [];
 
-  const showMetadataQuery = useQuery({
-    queryKey: ["maps", mapId, "show_pin_metadata"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("maps")
-        .select("show_pin_metadata")
-        .eq("id", mapId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: Boolean(mapId),
-  });
-
-  const showSettings = resolveMapPinMetadataShow(
-    showMetadataQuery.data?.show_pin_metadata,
+  const visibleItems = filterPinMetadataForDetailDisplay(items).filter(
+    isRenderablePlaceMetadataItem,
   );
-  const visibleItems = filterPinMetadataForDetailDisplay(
-    items,
-    showSettings,
-  ).filter(isRenderablePlaceMetadataItem);
 
   const poiMetadataLoading = usePoiPinMetadataLoading({
     supabase,
@@ -72,10 +51,7 @@ export function PinPlaceMetadataList({
     queryEnabled: poiEnabled,
   });
 
-  const showPoiLoading =
-    poiEnabled &&
-    hasPinMetadataDetailDisplayEnabled(showSettings) &&
-    poiMetadataLoading;
+  const showPoiLoading = poiEnabled && poiMetadataLoading;
 
   if (showPoiLoading) {
     return (

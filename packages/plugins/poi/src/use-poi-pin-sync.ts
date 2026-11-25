@@ -1,9 +1,7 @@
 import {
   isPluginSyncJobActive,
   parsePinMetadataRow,
-  resolveMapPinMetadataShow,
   type PinMetadataRow,
-  type PinMetadataShowSettings,
   type PluginSyncJobStatus,
 } from "@curolia/plugin-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -50,7 +48,6 @@ export type PoiPinSyncState = {
   autoLookupEnabled: boolean;
   canSync: boolean;
   isMetadataLoading: boolean;
-  showSettings: PinMetadataShowSettings;
   payload: PoiPinPayload | null;
   metadataRows: PinMetadataRow[];
 };
@@ -64,21 +61,6 @@ export function usePoiPinSync({
   queryEnabled = true,
 }: UsePoiPinSyncArgs): PoiPinSyncState {
   const qc = useQueryClient();
-
-  const showMetadataQuery = useQuery({
-    queryKey: ["maps", mapId, "show_pin_metadata"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("maps")
-        .select("show_pin_metadata")
-        .eq("id", mapId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: Boolean(mapId) && queryEnabled,
-    placeholderData: keepPreviousData,
-  });
 
   const mapPluginQuery = useQuery({
     queryKey: poiMapPluginQueryKey(mapId),
@@ -99,9 +81,6 @@ export function usePoiPinSync({
   const pluginEnabled = queryEnabled;
   const autoLookupEnabled = isMapPoiAutoLookupEnabled(
     mapPluginQuery.data ?? undefined,
-  );
-  const showSettings = resolveMapPinMetadataShow(
-    showMetadataQuery.data?.show_pin_metadata,
   );
 
   const canSync =
@@ -247,7 +226,6 @@ export function usePoiPinSync({
     autoLookupEnabled,
     canSync,
     isMetadataLoading,
-    showSettings,
     payload,
     metadataRows,
   };

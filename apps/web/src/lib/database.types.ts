@@ -294,7 +294,6 @@ export type Database = {
           id: string;
           name: string;
           show_on_profile: boolean;
-          show_pin_metadata: Json;
           show_pin_route: boolean;
           show_plugin_outputs: Json;
           slug: string;
@@ -316,7 +315,6 @@ export type Database = {
           id?: string;
           name: string;
           show_on_profile?: boolean;
-          show_pin_metadata?: Json;
           show_pin_route?: boolean;
           show_plugin_outputs?: Json;
           slug?: string;
@@ -338,7 +336,6 @@ export type Database = {
           id?: string;
           name?: string;
           show_on_profile?: boolean;
-          show_pin_metadata?: Json;
           show_pin_route?: boolean;
           show_plugin_outputs?: Json;
           slug?: string;

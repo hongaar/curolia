@@ -173,7 +173,6 @@ export function PinDetailBody({
     });
   const metadataSubtitle = usePinMetadataSubtitle({
     pinId: pin.id,
-    mapId: pin.map_id,
   });
 
   const pluginActionCount = countPinPluginDetailActions(enabledPlugins);
