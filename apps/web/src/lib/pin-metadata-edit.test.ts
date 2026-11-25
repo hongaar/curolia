@@ -37,6 +37,14 @@ describe("pinMetadataValueFromDraft", () => {
     ).toEqual({ tel: "+310201234567", display: "+31 (0)20 123 4567" });
   });
 
+  it("rejects URLs without a real host", () => {
+    for (const primary of ["not a url", "foo", "https://", "ftp://x.com"]) {
+      expect(
+        pinMetadataValueFromDraft("website", { primary, secondary: "" }),
+      ).toBeNull();
+    }
+  });
+
   it("rejects empty and invalid input", () => {
     expect(
       pinMetadataValueFromDraft("cuisine", { primary: "  ", secondary: "" }),
@@ -60,7 +68,7 @@ describe("pinMetadataValueFromDraft", () => {
 });
 
 describe("groupPinMetadataForDisplay", () => {
-  it("prefers manual rows over newer plugin rows", () => {
+  it("prefers plugin rows over newer manual rows", () => {
     const base = {
       map_id: "m",
       pin_id: "p",
@@ -73,19 +81,19 @@ describe("groupPinMetadataForDisplay", () => {
         id: "1",
         source_plugin_id: PIN_METADATA_MANUAL_SOURCE_ID,
         value: { label: "Mine" },
-        updated_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-02-01T00:00:00Z",
       },
       {
         ...base,
         id: "2",
         source_plugin_id: "poi",
         value: { label: "Plugin" },
-        updated_at: "2026-02-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z",
       },
     ];
     expect(groupPinMetadataForDisplay(rows)[0]).toMatchObject({
-      value: { label: "Mine" },
-      sourcePluginId: PIN_METADATA_MANUAL_SOURCE_ID,
+      value: { label: "Plugin" },
+      sourcePluginId: "poi",
     });
   });
 });

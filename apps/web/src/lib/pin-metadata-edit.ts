@@ -70,6 +70,41 @@ export function pinMetadataDraftFromValue(
   }
 }
 
+/** http(s) URL with a dotted hostname (or localhost); scheme optional in input. */
+function parseWebsiteUrl(input: string): string | null {
+  if (/\s/.test(input)) return null;
+  const normalized = normalizeWebsiteUrl(input);
+  if (!normalized) return null;
+  try {
+    const url = new URL(normalized);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    const host = url.hostname;
+    if (host !== "localhost" && !/^[^.]+(\.[^.]+)+$/.test(host)) return null;
+    return normalized;
+  } catch {
+    return null;
+  }
+}
+
+/** Validation message for a non-empty draft that does not parse. */
+export function pinMetadataDraftError(
+  fieldKey: PinMetadataEditableFieldKey,
+  draft: PinMetadataDraft,
+): string | null {
+  if (!draft.primary.trim()) return null;
+  if (pinMetadataValueFromDraft(fieldKey, draft)) return null;
+  switch (fieldKey) {
+    case "website":
+      return "Enter a valid URL, e.g. https://example.com";
+    case "email":
+      return "Enter a valid email address.";
+    case "phone":
+      return "Enter a valid phone number.";
+    default:
+      return null;
+  }
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Parse a draft into the stored JSON value; `null` when empty or invalid. */
@@ -113,13 +148,8 @@ export function pinMetadataValueFromDraft(
       return tel ? { tel, display: primary } : null;
     }
     case "website": {
-      const url = normalizeWebsiteUrl(primary);
+      const url = parseWebsiteUrl(primary);
       if (!url) return null;
-      try {
-        new URL(url);
-      } catch {
-        return null;
-      }
       return secondary ? { url, label: secondary } : { url };
     }
     case "email":

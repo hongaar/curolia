@@ -347,7 +347,7 @@ export function parsePinMetadataRow(row: {
   };
 }
 
-/** Manual edits win over plugin rows; otherwise the newest row wins. */
+/** Plugin rows win over manual edits (plugin fields are read-only); otherwise newest wins. */
 function isPreferredPinMetadataRow(
   row: PinMetadataRow,
   prev: PinMetadataRow | null | undefined,
@@ -355,7 +355,7 @@ function isPreferredPinMetadataRow(
   if (!prev) return true;
   const rowManual = row.source_plugin_id === PIN_METADATA_MANUAL_SOURCE_ID;
   const prevManual = prev.source_plugin_id === PIN_METADATA_MANUAL_SOURCE_ID;
-  if (rowManual !== prevManual) return rowManual;
+  if (rowManual !== prevManual) return prevManual;
   return (
     new Date(row.updated_at).getTime() > new Date(prev.updated_at).getTime()
   );

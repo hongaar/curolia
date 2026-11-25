@@ -88,7 +88,7 @@ Set **`pinOutputScope`** on the manifest:
 
 Structured payloads keyed by **`entity_type`** + **`entity_id`** + **`plugin_type_id`** live in **`public.plugin_entity_data`** so plugins do not overload unrelated tables (e.g. pin links).
 
-Normalized display fields (phone, hours, cuisine, …) live in **`public.pin_metadata`**, keyed by `source_plugin_id`. Plugins replace only their own rows; map editors edit fields in the pin form, which writes rows with source **`manual`** (`PIN_METADATA_MANUAL_SOURCE_ID`) that always win over plugin rows for the same field.
+Normalized display fields (phone, hours, cuisine, …) live in **`public.pin_metadata`**, keyed by `source_plugin_id`. Plugins replace only their own rows; map editors edit fields in the pin form, which writes rows with source **`manual`** (`PIN_METADATA_MANUAL_SOURCE_ID`). Fields a plugin provides are read-only in the editor and plugin rows win over manual rows; editors can only add, edit, or remove fields no plugin supplies (manual edits never delete plugin rows).
 
 ### Future interaction plugins (comments, likes)
 

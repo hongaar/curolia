@@ -1,6 +1,7 @@
 import {
   DOG_POLICY_LABELS,
   emptyPinMetadataDraft,
+  pinMetadataDraftError,
   pinMetadataDraftFromValue,
   pinMetadataValueFromDraft,
   pinMetadataValueSummary,
@@ -23,6 +24,7 @@ import {
   type PinMetadataEditableFieldKey,
   type PinMetadataValueByKey,
 } from "@curolia/plugin-contract";
+import { FieldError } from "@curolia/ui/field";
 import { FormSelectTriggerFull } from "@curolia/ui/form-layout";
 import { Input } from "@curolia/ui/input";
 import {
@@ -53,6 +55,8 @@ type EditingState = {
   fieldKey: PinMetadataEditableFieldKey;
   draft: PinMetadataDraft;
   isNew: boolean;
+  /** Show validation errors (after blur or a submit attempt). */
+  touched: boolean;
 };
 
 type EditableItem = {
@@ -126,7 +130,8 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
         .from("pin_metadata")
         .delete()
         .eq("pin_id", pinId)
-        .eq("field_key", fieldKey);
+        .eq("field_key", fieldKey)
+        .eq("source_plugin_id", PIN_METADATA_MANUAL_SOURCE_ID);
       if (error) throw error;
     },
     onSuccess: async () => {
@@ -152,9 +157,7 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
     if (!editing) return;
     const value = pinMetadataValueFromDraft(editing.fieldKey, editing.draft);
     if (!value) {
-      toast.error(
-        `Enter a valid ${pinMetadataFieldLabel(editing.fieldKey).toLowerCase()}.`,
-      );
+      setEditing({ ...editing, touched: true });
       return;
     }
     saveMutation.mutate({ fieldKey: editing.fieldKey, value });
@@ -169,15 +172,21 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
         onSubmit={submit}
         onCancel={() => setEditing(null)}
         saving={saveMutation.isPending}
-        submitDisabled={
-          pinMetadataValueFromDraft(state.fieldKey, state.draft) == null
-        }
+        submitDisabled={!state.draft.primary.trim()}
         submitLabel={state.isNew ? "Add" : "Save"}
       >
         <PinMetadataDraftFields
           fieldKey={state.fieldKey}
           draft={state.draft}
+          error={
+            state.touched
+              ? pinMetadataDraftError(state.fieldKey, state.draft)
+              : null
+          }
           onChange={(draft) => setEditing({ ...state, draft })}
+          onBlur={() => {
+            if (!state.touched) setEditing({ ...state, touched: true });
+          }}
         />
       </PinMetadataEditorForm>
     );
@@ -187,8 +196,12 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
     <PinMetadataEditorRoot>
       {items.length > 0 || editing?.isNew ? (
         <PinMetadataEditorList>
-          {items.map((item) =>
-            editing && !editing.isNew && editing.fieldKey === item.fieldKey ? (
+          {items.map((item) => {
+            const locked =
+              item.sourcePluginId !== PIN_METADATA_MANUAL_SOURCE_ID;
+            return editing &&
+              !editing.isNew &&
+              editing.fieldKey === item.fieldKey ? (
               renderForm(editing)
             ) : (
               <PinMetadataEditorRow
@@ -197,29 +210,42 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
                 label={pinMetadataFieldLabel(item.fieldKey)}
                 value={pinMetadataValueSummary(item.fieldKey, item.value)}
                 source={
-                  item.sourcePluginId === PIN_METADATA_MANUAL_SOURCE_ID
-                    ? undefined
-                    : (sourceLabelByPluginId.get(item.sourcePluginId) ??
+                  locked
+                    ? (sourceLabelByPluginId.get(item.sourcePluginId) ??
                       item.sourcePluginId)
+                    : undefined
                 }
-                onEdit={() =>
-                  setEditing({
-                    fieldKey: item.fieldKey,
-                    draft: pinMetadataDraftFromValue(item.fieldKey, item.value),
-                    isNew: false,
-                  })
+                onEdit={
+                  locked
+                    ? undefined
+                    : () =>
+                        setEditing({
+                          fieldKey: item.fieldKey,
+                          draft: pinMetadataDraftFromValue(
+                            item.fieldKey,
+                            item.value,
+                          ),
+                          isNew: false,
+                          touched: false,
+                        })
                 }
-                onRemove={() => {
-                  if (editing?.fieldKey === item.fieldKey) setEditing(null);
-                  removeMutation.mutate(item.fieldKey);
-                }}
+                onRemove={
+                  locked
+                    ? undefined
+                    : () => {
+                        if (editing?.fieldKey === item.fieldKey) {
+                          setEditing(null);
+                        }
+                        removeMutation.mutate(item.fieldKey);
+                      }
+                }
                 removing={
                   removeMutation.isPending &&
                   removeMutation.variables === item.fieldKey
                 }
               />
-            ),
-          )}
+            );
+          })}
           {editing?.isNew ? renderForm(editing) : null}
         </PinMetadataEditorList>
       ) : null}
@@ -232,6 +258,7 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
             fieldKey,
             draft: emptyPinMetadataDraft(fieldKey),
             isNew: true,
+            touched: false,
           });
         }}
       />
@@ -242,11 +269,43 @@ export function PinMetadataEditor({ pinId, mapId }: PinMetadataEditorProps) {
 function PinMetadataDraftFields({
   fieldKey,
   draft,
+  error,
   onChange,
+  onBlur,
 }: {
   fieldKey: PinMetadataEditableFieldKey;
   draft: PinMetadataDraft;
+  error: string | null;
   onChange: (draft: PinMetadataDraft) => void;
+  onBlur: () => void;
+}) {
+  const fields = renderPinMetadataDraftInputs({
+    fieldKey,
+    draft,
+    invalid: Boolean(error),
+    onChange,
+    onBlur,
+  });
+  return (
+    <>
+      {fields}
+      {error ? <FieldError>{error}</FieldError> : null}
+    </>
+  );
+}
+
+function renderPinMetadataDraftInputs({
+  fieldKey,
+  draft,
+  invalid,
+  onChange,
+  onBlur,
+}: {
+  fieldKey: PinMetadataEditableFieldKey;
+  draft: PinMetadataDraft;
+  invalid: boolean;
+  onChange: (draft: PinMetadataDraft) => void;
+  onBlur: () => void;
 }) {
   const label = pinMetadataFieldLabel(fieldKey);
   const setPrimary = (primary: string) => onChange({ ...draft, primary });
@@ -299,8 +358,10 @@ function PinMetadataDraftFields({
             type="url"
             inputMode="url"
             placeholder="https://example.com"
+            aria-invalid={invalid || undefined}
             value={draft.primary}
             onChange={(e) => setPrimary(e.target.value)}
+            onBlur={onBlur}
           />
           <Input
             aria-label="Website label"
@@ -323,8 +384,10 @@ function PinMetadataDraftFields({
                 : "text"
           }
           placeholder={FIELD_PLACEHOLDERS[fieldKey]}
+          aria-invalid={invalid || undefined}
           value={draft.primary}
           onChange={(e) => setPrimary(e.target.value)}
+          onBlur={onBlur}
         />
       );
   }
