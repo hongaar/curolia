@@ -284,8 +284,10 @@ test.describe("map panel pin focus @smoke", () => {
       .locator(`[data-blog-pin-id="${seed.targetPinId}"]`)
       .getByRole("button", { name: "Pin details" })
       .click();
+    // The side sheet renders only after its own pin query resolves, which can
+    // take well over 10s on a loaded CI runner.
     await expect(page.getByLabel("Open full pin detail page")).toBeVisible({
-      timeout: 10_000,
+      timeout: 30_000,
     });
     await page.getByLabel("Open full pin detail page").click();
     await expect(page).toHaveURL(/\/pin\//);
