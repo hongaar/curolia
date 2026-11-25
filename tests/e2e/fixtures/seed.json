@@ -10,6 +10,14 @@
   "secondaryMapSlug": "e2e-secondary",
   "secondaryMapUrl": "/e2e-seed/e2e-secondary/map",
   "secondaryMapName": "E2E Secondary Map",
+  "blogMapId": "00000000-0000-4000-a000-000000000013",
+  "blogMapSlug": "e2e-blog",
+  "blogMapName": "E2E Blog Map",
+  "blogPinId": "00000000-0000-4000-a000-000000000014",
+  "blogPinCenter": {
+    "lat": 38.7223,
+    "lng": -9.1393
+  },
   "targetPinId": "00000000-0000-4000-a000-000000000003",
   "targetPinSlug": "e2e-target-pin",
   "clusterPinId": "00000000-0000-4000-a000-000000000004",

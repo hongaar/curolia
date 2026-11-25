@@ -3,6 +3,8 @@
 export const E2E_USER_ID = "00000000-0000-4000-a000-000000000001";
 export const E2E_MAP_ID = "00000000-0000-4000-a000-000000000002";
 export const E2E_SECONDARY_MAP_ID = "00000000-0000-4000-a000-000000000012";
+export const E2E_BLOG_MAP_ID = "00000000-0000-4000-a000-000000000013";
+export const E2E_BLOG_PIN_ID = "00000000-0000-4000-a000-000000000014";
 export const E2E_TARGET_PIN_ID = "00000000-0000-4000-a000-000000000003";
 export const E2E_CLUSTER_PIN_ID = "00000000-0000-4000-a000-000000000004";
 export const E2E_TAG_A_ID = "00000000-0000-4000-a000-000000000010";
@@ -13,6 +15,10 @@ export const E2E_USER_PASSWORD = "e2e-test-password-secure";
 export const E2E_PROFILE_SLUG = "e2e-seed";
 export const E2E_MAP_SLUG = "e2e-dense";
 export const E2E_SECONDARY_MAP_SLUG = "e2e-secondary";
+export const E2E_BLOG_MAP_SLUG = "e2e-blog";
+export const E2E_BLOG_MAP_NAME = "E2E Blog Map";
+/** Lisbon — far from the dense map so a map switch must move the camera. */
+export const E2E_BLOG_PIN_CENTER = { lat: 38.7223, lng: -9.1393 };
 export const E2E_TARGET_PIN_SLUG = "e2e-target-pin";
 export const E2E_PIN_COUNT = 750;
 
@@ -32,6 +38,12 @@ export type E2eSeedFixture = {
   secondaryMapSlug: string;
   secondaryMapUrl: string;
   secondaryMapName: string;
+  /** Map whose default view is `blog`, with a single pin. */
+  blogMapId: string;
+  blogMapSlug: string;
+  blogMapName: string;
+  blogPinId: string;
+  blogPinCenter: { lat: number; lng: number };
   targetPinId: string;
   targetPinSlug: string;
   clusterPinId: string;
@@ -53,6 +65,11 @@ export function buildE2eSeedFixture(userId = E2E_USER_ID): E2eSeedFixture {
     secondaryMapSlug: E2E_SECONDARY_MAP_SLUG,
     secondaryMapUrl: `/${E2E_PROFILE_SLUG}/${E2E_SECONDARY_MAP_SLUG}/map`,
     secondaryMapName: "E2E Secondary Map",
+    blogMapId: E2E_BLOG_MAP_ID,
+    blogMapSlug: E2E_BLOG_MAP_SLUG,
+    blogMapName: E2E_BLOG_MAP_NAME,
+    blogPinId: E2E_BLOG_PIN_ID,
+    blogPinCenter: E2E_BLOG_PIN_CENTER,
     targetPinId: E2E_TARGET_PIN_ID,
     targetPinSlug: E2E_TARGET_PIN_SLUG,
     clusterPinId: E2E_CLUSTER_PIN_ID,

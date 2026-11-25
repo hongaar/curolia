@@ -14,6 +14,11 @@ export type E2eSeedFixture = {
   secondaryMapSlug: string;
   secondaryMapUrl: string;
   secondaryMapName: string;
+  blogMapId: string;
+  blogMapSlug: string;
+  blogMapName: string;
+  blogPinId: string;
+  blogPinCenter: { lat: number; lng: number };
   targetPinId: string;
   targetPinSlug: string;
   clusterPinId: string;

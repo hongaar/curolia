@@ -96,7 +96,11 @@ export class MapPage {
     await this.waitForMapStable();
   }
 
-  async switchToMap(mapName: string, mapSlug: string): Promise<void> {
+  async switchToMap(
+    mapName: string,
+    mapSlug: string,
+    view: "map" | "blog" | "gallery" = "map",
+  ): Promise<void> {
     const idleBefore = await this.page.evaluate(
       () => window.__curoliaMapIdle ?? 0,
     );
@@ -107,7 +111,7 @@ export class MapPage {
     await this.page.waitForURL(
       (url) => {
         try {
-          return new URL(url).pathname.endsWith(`/${mapSlug}/map`);
+          return new URL(url).pathname.endsWith(`/${mapSlug}/${view}`);
         } catch {
           return false;
         }

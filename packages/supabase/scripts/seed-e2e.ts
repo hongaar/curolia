@@ -15,6 +15,11 @@ import {
   E2E_MAP_SLUG,
   E2E_PIN_COUNT,
   E2E_PROFILE_SLUG,
+  E2E_BLOG_MAP_ID,
+  E2E_BLOG_MAP_NAME,
+  E2E_BLOG_MAP_SLUG,
+  E2E_BLOG_PIN_CENTER,
+  E2E_BLOG_PIN_ID,
   E2E_SECONDARY_MAP_ID,
   E2E_SECONDARY_MAP_SLUG,
   E2E_TAG_A_ID,
@@ -102,6 +107,8 @@ async function ensureMap(userId: string): Promise<void> {
         icon_emoji: "🧪",
         style: "street",
         style_satellite_labels: false,
+        default_map_view: "map",
+        enabled_map_views: { map: true, blog: true, gallery: true },
       },
       {
         id: E2E_SECONDARY_MAP_ID,
@@ -113,6 +120,22 @@ async function ensureMap(userId: string): Promise<void> {
         icon_emoji: "🗺️",
         style: "satellite",
         style_satellite_labels: true,
+        default_map_view: "map",
+        enabled_map_views: { map: true, blog: true, gallery: true },
+      },
+      {
+        id: E2E_BLOG_MAP_ID,
+        name: E2E_BLOG_MAP_NAME,
+        slug: E2E_BLOG_MAP_SLUG,
+        created_by_user_id: userId,
+        visibility: "public",
+        description: "Blog-default map for map-switch camera E2E flows",
+        icon_emoji: "📝",
+        style: "street",
+        style_satellite_labels: false,
+        default_map_view: "blog",
+        // Map view off: switching here from /map must change the view.
+        enabled_map_views: { map: false, blog: true, gallery: true },
       },
     ],
     { onConflict: "id" },
@@ -123,6 +146,7 @@ async function ensureMap(userId: string): Promise<void> {
     [
       { map_id: E2E_MAP_ID, user_id: userId, role: "owner" },
       { map_id: E2E_SECONDARY_MAP_ID, user_id: userId, role: "owner" },
+      { map_id: E2E_BLOG_MAP_ID, user_id: userId, role: "owner" },
     ],
     { onConflict: "map_id,user_id" },
   );
@@ -260,6 +284,23 @@ async function reconcilePins(userId: string): Promise<void> {
   }
 }
 
+async function ensureBlogMapPin(userId: string): Promise<void> {
+  const { error } = await admin.from("pins").upsert(
+    {
+      id: E2E_BLOG_PIN_ID,
+      map_id: E2E_BLOG_MAP_ID,
+      title: "E2E Blog Pin",
+      slug: "e2e-blog-pin",
+      lat: E2E_BLOG_PIN_CENTER.lat,
+      lng: E2E_BLOG_PIN_CENTER.lng,
+      created_by_user_id: userId,
+      description: "Single pin for blog-view camera E2E flows",
+    },
+    { onConflict: "id" },
+  );
+  if (error) throw error;
+}
+
 function writeFixture(userId: string): void {
   const fixture = { ...buildE2eSeedFixture(), userId };
   fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
@@ -274,6 +315,7 @@ async function main(): Promise<void> {
   await ensureUserPlugins(userId);
   await ensureTags();
   await reconcilePins(userId);
+  await ensureBlogMapPin(userId);
   writeFixture(userId);
   console.log("E2E seed complete");
 }
