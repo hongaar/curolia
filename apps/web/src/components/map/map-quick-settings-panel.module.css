@@ -38,7 +38,7 @@
 .footer {
   display: flex;
   flex-shrink: 0;
-  flex-direction: column;
+  align-items: center;
   gap: var(--space-3);
   border-top: 1px solid var(--border);
   background: var(--panel-bg-solid);
@@ -48,6 +48,8 @@
 
 .statusSlot {
   position: relative;
+  flex: 1;
+  min-width: 0;
   min-height: 1.25rem;
 }
 
@@ -97,7 +99,7 @@
 }
 
 .footerButton {
-  width: 100%;
+  flex-shrink: 0;
 }
 
 @keyframes spin {

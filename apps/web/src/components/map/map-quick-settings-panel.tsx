@@ -37,7 +37,7 @@ import { MapCoverPreview } from "@curolia/ui/map-card";
 import { PageAvatarActions, PageInlineActions } from "@curolia/ui/page";
 import { Textarea } from "@curolia/ui/textarea";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2 } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@curolia/ui/lib/utils";
@@ -572,6 +572,7 @@ export function MapQuickSettingsPanel({
           }}
         >
           All settings
+          <ArrowRight aria-hidden />
         </Button>
       </div>
     </div>
