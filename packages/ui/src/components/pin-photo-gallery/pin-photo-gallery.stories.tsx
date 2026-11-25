@@ -139,6 +139,49 @@ export const Rows: Story = {
   ),
 };
 
+/** Landscapes near the start, portraits near the end — like a typical trip day. */
+const mixedDims: [number, number][] = [
+  [1600, 1200],
+  [1500, 1000],
+  [1600, 900],
+  [1200, 900],
+  [1000, 1000],
+  [1600, 1200],
+  [900, 1200],
+  [1500, 1000],
+  [900, 1200],
+  [1000, 1500],
+  [1200, 1600],
+  [1600, 1200],
+  [900, 1600],
+  [1000, 1500],
+  [900, 1200],
+  [1200, 1600],
+  [1000, 1500],
+  [900, 1200],
+];
+
+const mixedItems = mixedDims.map(([width, height], index) => ({
+  id: `m${index}`,
+  url: `https://picsum.photos/seed/curolia-m${index}/${width}/${height}`,
+  width,
+  height,
+}));
+
+export const RowsMixed: Story = {
+  args: { layout: "rows", items: mixedItems },
+  parameters: storyDocs(
+    "Landscapes first, portraits last, without `balanceArea`: portrait rows pack in more photos at the same height, so each looks much smaller.",
+  ),
+};
+
+export const RowsMixedBalanced: Story = {
+  args: { layout: "rows", items: mixedItems, balanceArea: true },
+  parameters: storyDocs(
+    "Same photos with `balanceArea`: each row's height scales with its photos' aspect ratios, so portrait rows get fewer, larger photos and every photo covers a similar surface.",
+  ),
+};
+
 export const Columns: Story = {
   args: { layout: "columns" },
   parameters: storyDocs(

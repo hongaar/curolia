@@ -58,6 +58,12 @@ export type PinPhotoGalleryProps = {
    * or center wider rows when the gallery exceeds that column.
    */
   rowAlign?: "default" | "pin-content";
+  /**
+   * Rows layout only: scale each row's height by its photos' aspect ratios so
+   * portrait photos cover a similar surface to landscape ones (rows of portraits
+   * get fewer, larger photos).
+   */
+  balanceArea?: boolean;
 };
 
 function useContainerWidth() {
@@ -231,6 +237,7 @@ function RowsGallery({
   loadingPlaceholders,
   rowPreset = "default",
   rowAlign = "default",
+  balanceArea = false,
   albumRef,
 }: {
   items: PinPhotoGalleryItem[];
@@ -239,6 +246,7 @@ function RowsGallery({
   loadingPlaceholders: number;
   rowPreset?: "default" | "blog-panel";
   rowAlign?: "default" | "pin-content";
+  balanceArea?: boolean;
   albumRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const pinContentMaxWidth = usePinContentMaxWidth(
@@ -250,17 +258,13 @@ function RowsGallery({
       ? pinContentMaxWidth
       : containerWidth;
 
-  const rows = useMemo(
-    () =>
-      computeRowsLayout(
-        items,
-        containerWidth,
-        rowPreset === "blog-panel"
-          ? targetRowHeightForBlogPanel(containerWidth)
-          : targetRowHeightForWidth(containerWidth),
-      ),
-    [items, containerWidth, rowPreset],
-  );
+  const rows = useMemo(() => {
+    const target =
+      rowPreset === "blog-panel"
+        ? targetRowHeightForBlogPanel(containerWidth)
+        : targetRowHeightForWidth(containerWidth);
+    return computeRowsLayout(items, containerWidth, target, { balanceArea });
+  }, [items, containerWidth, rowPreset, balanceArea]);
 
   return (
     <div className={styles.rows}>
@@ -522,6 +526,7 @@ export function PinPhotoGallery({
   columnPreset = "default",
   rowPreset = "default",
   rowAlign = "default",
+  balanceArea = false,
 }: PinPhotoGalleryProps) {
   const { ref, width } = useContainerWidth();
 
@@ -570,6 +575,7 @@ export function PinPhotoGallery({
           loadingPlaceholders={loadingPlaceholders}
           rowPreset={rowPreset}
           rowAlign={rowAlign}
+          balanceArea={balanceArea}
           albumRef={ref}
         />
       ) : (

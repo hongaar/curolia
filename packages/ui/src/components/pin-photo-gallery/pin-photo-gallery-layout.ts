@@ -92,14 +92,21 @@ export function pinPhotoGalleryRowWidth<T extends PinPhotoGalleryLayoutItem>(
   );
 }
 
-/** Justified to container width, or capped at `maxHeight` for sparse galleries/rows. */
+/**
+ * Justified to container width, or capped at `maxHeight` for sparse rows.
+ * Interior rows of a multi-row gallery are always justified (even with one or
+ * two wide photos); only the last row may stay short.
+ */
 function sizeRowCapped<T extends PinPhotoGalleryLayoutItem>(
   photos: T[],
   containerWidth: number,
   maxHeight: number,
-  isMultiRowGallery: boolean,
+  {
+    isMultiRowGallery,
+    isLastRow,
+  }: { isMultiRowGallery: boolean; isLastRow: boolean },
 ): SizedGalleryItem<T>[] {
-  if (isMultiRowGallery && photos.length >= 3) {
+  if (isMultiRowGallery && (!isLastRow || photos.length >= 3)) {
     return sizeRow(photos, containerWidth);
   }
 
@@ -110,10 +117,21 @@ function sizeRowCapped<T extends PinPhotoGalleryLayoutItem>(
   return sizeRow(photos, containerWidth);
 }
 
+const SINGLE_ROW = { isMultiRowGallery: false, isLastRow: true };
+
+/** Target height for a specific row (area-balanced rows scale by their own aspects). */
+type RowTarget = (
+  row: PinPhotoGalleryLayoutItem[],
+  rowHeight: number,
+) => number;
+
+const uniformRowTarget: RowTarget = (_row, rowHeight) => rowHeight;
+
 function partitionRowsForHeight<T extends PinPhotoGalleryLayoutItem>(
   items: T[],
   containerWidth: number,
   rowHeight: number,
+  rowTarget: RowTarget,
 ): T[][] {
   const rows: T[][] = [];
   let row: T[] = [];
@@ -122,7 +140,11 @@ function partitionRowsForHeight<T extends PinPhotoGalleryLayoutItem>(
     const item = items[index]!;
     row.push(item);
     const remaining = items.length - index - 1;
-    const needed = aspectSumForHeight(containerWidth, row.length, rowHeight);
+    const needed = aspectSumForHeight(
+      containerWidth,
+      row.length,
+      rowTarget(row, rowHeight),
+    );
     const fullEnough = aspectSum(row) >= needed;
 
     if (!fullEnough) continue;
@@ -147,14 +169,15 @@ function balanceSparseLastRow<T extends PinPhotoGalleryLayoutItem>(
   rows: T[][],
   containerWidth: number,
   rowHeight: number,
+  rowTarget: RowTarget,
 ): T[][] {
   const out = rows.map((row) => [...row]);
   const minLastRowItems = 3;
-  const maxLastRowHeight = rowHeight * 1.28;
 
   while (out.length >= 2) {
     const last = out[out.length - 1]!;
     const lastHeight = rowHeightAtWidth(last, containerWidth);
+    const maxLastRowHeight = rowTarget(last, rowHeight) * 1.28;
     const tooSparse =
       last.length < minLastRowItems || lastHeight > maxLastRowHeight;
     if (!tooSparse) break;
@@ -174,10 +197,17 @@ function partitionScore<T extends PinPhotoGalleryLayoutItem>(
   rows: T[][],
   containerWidth: number,
   rowHeight: number,
+  rowTarget: RowTarget,
 ): number {
   if (rows.length === 0) return Number.POSITIVE_INFINITY;
 
-  const heights = rows.map((row) => rowHeightAtWidth(row, containerWidth));
+  // Heights relative to each row's own target, so intended area-balancing
+  // differences between rows are not penalized as spread.
+  const heights = rows.map(
+    (row) =>
+      (rowHeightAtWidth(row, containerWidth) / rowTarget(row, rowHeight)) *
+      rowHeight,
+  );
   const last = rows[rows.length - 1]!;
   const lastHeight = heights[heights.length - 1]!;
   const heightSpread = Math.max(...heights) - Math.min(...heights);
@@ -188,16 +218,34 @@ function partitionScore<T extends PinPhotoGalleryLayoutItem>(
   return lastRowCountPenalty + tallLastPenalty + heightSpread;
 }
 
-/** Justified rows with uniform height — balances the last row to avoid tall orphans. */
+export type RowsLayoutOptions = {
+  /**
+   * Scale each row's target height by its own photos' aspect ratios so every
+   * photo covers a similar surface: rows of portraits get fewer, larger photos.
+   */
+  balanceArea?: boolean;
+};
+
+/** Justified rows — balances the last row to avoid tall orphans. */
 export function computeRowsLayout<T extends PinPhotoGalleryLayoutItem>(
   items: T[],
   containerWidth: number,
   targetRowHeight: number,
+  { balanceArea = false }: RowsLayoutOptions = {},
 ): SizedGalleryItem<T>[][] {
   if (containerWidth <= 0 || items.length === 0) return [];
 
+  const rowTarget = balanceArea ? areaBalancedRowHeight : uniformRowTarget;
+
   if (items.length === 1) {
-    return [sizeRowCapped(items, containerWidth, targetRowHeight, false)];
+    return [
+      sizeRowCapped(
+        items,
+        containerWidth,
+        rowTarget(items, targetRowHeight),
+        SINGLE_ROW,
+      ),
+    ];
   }
 
   const heightCandidates = [
@@ -213,11 +261,17 @@ export function computeRowsLayout<T extends PinPhotoGalleryLayoutItem>(
 
   for (const candidateHeight of heightCandidates) {
     const partitions = balanceSparseLastRow(
-      partitionRowsForHeight(items, containerWidth, candidateHeight),
+      partitionRowsForHeight(items, containerWidth, candidateHeight, rowTarget),
       containerWidth,
       candidateHeight,
+      rowTarget,
     );
-    const score = partitionScore(partitions, containerWidth, candidateHeight);
+    const score = partitionScore(
+      partitions,
+      containerWidth,
+      candidateHeight,
+      rowTarget,
+    );
     if (score < bestScore) {
       bestScore = score;
       bestRows = partitions;
@@ -225,12 +279,51 @@ export function computeRowsLayout<T extends PinPhotoGalleryLayoutItem>(
   }
 
   if (bestRows.length === 0) {
-    return [sizeRowCapped(items, containerWidth, targetRowHeight, false)];
+    return [
+      sizeRowCapped(
+        items,
+        containerWidth,
+        rowTarget(items, targetRowHeight),
+        SINGLE_ROW,
+      ),
+    ];
   }
 
   const isMultiRowGallery = bestRows.length > 1;
-  return bestRows.map((row) =>
-    sizeRowCapped(row, containerWidth, targetRowHeight, isMultiRowGallery),
+  return bestRows.map((row, index) =>
+    sizeRowCapped(row, containerWidth, rowTarget(row, targetRowHeight), {
+      isMultiRowGallery,
+      isLastRow: index === bestRows.length - 1,
+    }),
+  );
+}
+
+/** Reference aspect for area balancing: a gallery of 4:3 photos keeps its target height. */
+const AREA_BALANCE_REFERENCE_ASPECT = DEFAULT_ASPECT;
+const AREA_BALANCE_MIN_FACTOR = 0.8;
+const AREA_BALANCE_MAX_FACTOR = 1.5;
+
+/**
+ * Scales the target row height so a row (or gallery) covers a similar surface per photo
+ * regardless of orientation. A photo's area at row height `h` is `aspect * h²`,
+ * so mostly-portrait galleries get taller rows (and mostly-panorama galleries
+ * shorter ones) by `sqrt(reference / meanAspect)`. Uses the geometric mean so
+ * a single panorama does not dominate; clamped to keep extremes reasonable.
+ */
+export function areaBalancedRowHeight(
+  items: PinPhotoGalleryLayoutItem[],
+  targetRowHeight: number,
+): number {
+  if (items.length === 0) return targetRowHeight;
+  const logSum = items.reduce(
+    (sum, item) => sum + Math.log(photoAspect(item)),
+    0,
+  );
+  const meanAspect = Math.exp(logSum / items.length);
+  const factor = Math.sqrt(AREA_BALANCE_REFERENCE_ASPECT / meanAspect);
+  return (
+    targetRowHeight *
+    Math.min(AREA_BALANCE_MAX_FACTOR, Math.max(AREA_BALANCE_MIN_FACTOR, factor))
   );
 }
 

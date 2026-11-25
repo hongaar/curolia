@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  areaBalancedRowHeight,
   computeRowsLayout,
   photoAspect,
   pinContentRowMargin,
@@ -189,6 +190,171 @@ describe("computeRowsLayout", () => {
     expect(pinContentRowMargin(rowWidth, container, contentMax)).toEqual({
       marginInline: "auto",
     });
+  });
+});
+
+describe("computeRowsLayout interior rows", () => {
+  // Storybook sample set: a square + 8:3 panorama form an interior two-photo row.
+  const sample = [
+    [800, 1200],
+    [900, 600],
+    [700, 900],
+    [800, 500],
+    [1000, 1000],
+    [1600, 600],
+    [600, 1400],
+    [1200, 900],
+    [1100, 750],
+    [750, 1100],
+    [1400, 400],
+    [640, 960],
+  ].map(([width, height]) => ({ width: width!, height: height! }));
+
+  it("justifies every non-last row, even with fewer than three photos", () => {
+    for (let width = 400; width <= 1800; width += 25) {
+      const rows = computeRowsLayout(
+        sample,
+        width,
+        targetRowHeightForWidth(width),
+      );
+      for (const row of rows.slice(0, -1)) {
+        expect(pinPhotoGalleryRowWidth(row)).toBeCloseTo(width, 0);
+      }
+    }
+  });
+
+  it("justifies interior rows with panoramas across random galleries", () => {
+    let seed = 7;
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const aspects = [0.67, 0.75, 1, 1.33, 1.78, 2.67, 3.5];
+    for (let trial = 0; trial < 1000; trial += 1) {
+      const count = 2 + Math.floor(random() * 14);
+      const items = Array.from({ length: count }, () => ({
+        width: aspects[Math.floor(random() * aspects.length)]! * 100,
+        height: 100,
+      }));
+      const width = 400 + Math.floor(random() * 1400);
+      const rows = computeRowsLayout(
+        items,
+        width,
+        targetRowHeightForWidth(width),
+      );
+      for (const row of rows.slice(0, -1)) {
+        expect(pinPhotoGalleryRowWidth(row)).toBeCloseTo(width, 0);
+      }
+    }
+  });
+});
+
+describe("areaBalancedRowHeight", () => {
+  const target = 200;
+  const repeat = (width: number, height: number, n = 12) =>
+    Array.from({ length: n }, () => ({ width, height }));
+
+  it("keeps the target height for 4:3 rows", () => {
+    expect(areaBalancedRowHeight(repeat(1200, 900), target)).toBeCloseTo(
+      target,
+    );
+  });
+
+  it("makes portrait rows taller and landscape rows shorter", () => {
+    expect(areaBalancedRowHeight(repeat(900, 1200), target)).toBeGreaterThan(
+      target,
+    );
+    expect(areaBalancedRowHeight(repeat(1600, 900), target)).toBeLessThan(
+      target,
+    );
+  });
+
+  it("clamps extreme rows", () => {
+    expect(areaBalancedRowHeight(repeat(100, 1000), target)).toBeCloseTo(
+      target * 1.5,
+    );
+    expect(areaBalancedRowHeight(repeat(1000, 100), target)).toBeCloseTo(
+      target * 0.8,
+    );
+  });
+
+  it("returns the target for an empty row", () => {
+    expect(areaBalancedRowHeight([], target)).toBe(target);
+  });
+});
+
+describe("computeRowsLayout with balanceArea", () => {
+  const landscapes = Array.from({ length: 8 }, () => ({
+    width: 1600,
+    height: 1000,
+  }));
+  const portraits = Array.from({ length: 12 }, () => ({
+    width: 1000,
+    height: 1500,
+  }));
+  const mixed = [...landscapes, ...portraits];
+  const target = targetRowHeightForWidth(W);
+  const isPortrait = (cell: { item: { width: number; height: number } }) =>
+    cell.item.height > cell.item.width;
+
+  /** Mean landscape area / mean portrait area within the gallery. */
+  function areaRatio(rows: ReturnType<typeof computeRowsLayout>): number {
+    const cells = rows.flat() as {
+      item: { width: number; height: number };
+      width: number;
+      height: number;
+    }[];
+    const mean = (list: typeof cells) =>
+      list.reduce((sum, c) => sum + c.width * c.height, 0) / list.length;
+    return (
+      mean(cells.filter((c) => !isPortrait(c))) /
+      mean(cells.filter((c) => isPortrait(c)))
+    );
+  }
+
+  it("gives portraits a surface much closer to landscapes in mixed galleries", () => {
+    const plain = areaRatio(computeRowsLayout(mixed, W, target));
+    const balanced = areaRatio(
+      computeRowsLayout(mixed, W, target, { balanceArea: true }),
+    );
+
+    expect(plain).toBeGreaterThan(1.5);
+    expect(balanced).toBeLessThan(1.45);
+    expect(Math.log(balanced)).toBeLessThan(Math.log(plain) * 0.65);
+  });
+
+  it("puts fewer photos in portrait rows than without balancing", () => {
+    const portraitRowSize = (rows: ReturnType<typeof computeRowsLayout>) =>
+      Math.max(
+        ...rows
+          .slice(0, -1)
+          .filter((r) => r.every(isPortrait))
+          .map((r) => r.length),
+      );
+    const plain = computeRowsLayout(mixed, W, target);
+    const balanced = computeRowsLayout(mixed, W, target, { balanceArea: true });
+    expect(portraitRowSize(balanced)).toBeLessThan(portraitRowSize(plain));
+  });
+
+  it("still justifies every non-last row", () => {
+    for (let width = 400; width <= 1800; width += 50) {
+      const rows = computeRowsLayout(
+        mixed,
+        width,
+        targetRowHeightForWidth(width),
+        { balanceArea: true },
+      );
+      for (const row of rows.slice(0, -1)) {
+        expect(pinPhotoGalleryRowWidth(row)).toBeCloseTo(width, 0);
+      }
+    }
+  });
+
+  it("leaves 4:3 galleries unchanged", () => {
+    const items = Array.from({ length: 10 }, () => ({
+      width: 1200,
+      height: 900,
+    }));
+    expect(computeRowsLayout(items, W, target, { balanceArea: true })).toEqual(
+      computeRowsLayout(items, W, target),
+    );
   });
 });
 

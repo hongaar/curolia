@@ -400,6 +400,7 @@ function BlogPinEntry({
           <PinPhotoGallery
             items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
+            balanceArea
             rowPreset="blog-panel"
             rowAlign="pin-content"
             onOpen={onOpenPhoto}
@@ -410,6 +411,7 @@ function BlogPinEntry({
           <PinPhotoGallery
             items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
+            balanceArea
             onOpen={onOpenPhoto}
           />
         </BlogPinGallery>
