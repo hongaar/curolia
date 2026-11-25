@@ -499,14 +499,16 @@ test.describe("map sharing settings", () => {
       page.getByText("Visible only to members of this map."),
     ).toBeVisible();
     const checkbox = page.getByRole("checkbox", {
-      name: "Visible on profile",
+      name: "Visible to followers",
     });
     await expect(checkbox).toBeDisabled();
     await page.getByText("Unlisted", { exact: true }).click();
     await expect(checkbox).toBeEnabled();
-    await page.getByRole("button", { name: "Visible on profile" }).hover();
+    await page.getByRole("button", { name: "Visible to followers" }).hover();
     await expect(
-      page.getByText(/only followers you approve see it on your profile/),
+      page.getByText(
+        /To choose who can follow you, make your profile restricted/,
+      ),
     ).toBeVisible();
     await checkbox.click();
     await expect

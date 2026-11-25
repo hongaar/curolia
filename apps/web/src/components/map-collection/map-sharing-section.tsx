@@ -566,10 +566,9 @@ export function MapSharingSection({
                           void changeShowOnProfile(c === true)
                         }
                       />
-                      <InfoTip label="Visible on profile">
-                        When your profile is public, anyone can discover this
-                        map on it. When your profile is restricted, only
-                        followers you approve see it on your profile.
+                      <InfoTip label="Visible to followers">
+                        Listed on your profile for your followers. To choose who
+                        can follow you, make your profile restricted.
                       </InfoTip>
                     </Label>
                   ),
