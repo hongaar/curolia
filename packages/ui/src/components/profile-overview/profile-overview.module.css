@@ -103,6 +103,7 @@
 }
 
 .statButton {
+  position: relative;
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -115,6 +116,17 @@
   padding: var(--space-1) var(--space-2);
   cursor: pointer;
   transition: background 150ms;
+}
+
+.statIndicator {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--destructive);
+  box-shadow: 0 0 0 2px var(--panel-bg);
 }
 
 .statButton:hover {
@@ -225,6 +237,46 @@
 
 .followListItem + .followListItem {
   border-top: 1px solid color-mix(in oklch, var(--border) 45%, transparent);
+}
+
+.followListItemWithTrailing {
+  display: flex;
+  align-items: center;
+}
+
+.followListItemWithTrailing > .followListButton,
+.followListItemWithTrailing > .followListStatic {
+  min-width: 0;
+  flex: 1;
+}
+
+.followListTrailing {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding-right: var(--space-2);
+}
+
+/* Rows with actions: name on top, actions on their own row below it. */
+.followListItemWithActions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.followListItemWithActions > .followListButton,
+.followListItemWithActions > .followListStatic {
+  flex: 1 1 100%;
+  min-width: 0;
+  padding-bottom: var(--space-1);
+}
+
+.followListActions {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: var(--space-1);
+  /* Align with the name: row padding + avatar + gap. */
+  padding: 0 var(--space-3) 0.625rem
+    calc(var(--space-3) + var(--control-h-sm, 2rem) + var(--space-2));
 }
 
 .followListButton {

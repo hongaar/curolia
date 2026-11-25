@@ -79,7 +79,7 @@ export function ChoiceCard<T extends string>({
 }: {
   value: T;
   label: string;
-  description?: string;
+  description?: ReactNode;
   previewSrc?: string;
   previewAlt?: string;
   preview?: ReactNode;

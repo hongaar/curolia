@@ -3,6 +3,7 @@ import { Bookmark, Star } from "lucide-react";
 import { useStoryArgs } from "../../storybook/args";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
 import { StoryFrame } from "../../storybook/story-frame";
+import { InfoTip } from "../info-tip";
 import { ChoiceCard, ChoiceCards } from "./choice-cards";
 
 /** Demo-only arg; not a prop on `ChoiceCards`. */
@@ -112,6 +113,36 @@ export const Disabled: Story = {
           value="satellite"
           label="Satellite"
           description="Aerial imagery"
+        />
+      </ChoiceCards>
+    </StoryFrame>
+  ),
+};
+
+export const RichDescription: Story = {
+  parameters: storyDocs(
+    "`description` accepts nodes, e.g. short help text plus an `InfoTip`.",
+  ),
+  render: () => (
+    <StoryFrame width="lg">
+      <ChoiceCards
+        name="visibility-rich"
+        value="restricted"
+        onValueChange={() => {}}
+      >
+        <ChoiceCard value="public" label="Public" description="Anyone" />
+        <ChoiceCard
+          value="restricted"
+          label="Restricted"
+          description={
+            <>
+              Only followers you approve.{" "}
+              <InfoTip>
+                Signed-in users see your name and avatar and can request to
+                follow you.
+              </InfoTip>
+            </>
+          }
         />
       </ChoiceCards>
     </StoryFrame>

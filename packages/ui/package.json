@@ -56,6 +56,7 @@
     "./map-toolbar": "./src/components/map-toolbar/index.ts",
     "./markdown-content": "./src/components/markdown-content/index.ts",
     "./markdown-editor": "./src/components/markdown-editor/index.ts",
+    "./info-tip": "./src/components/info-tip/index.ts",
     "./tooltip": "./src/components/tooltip/index.ts",
     "./notifications-popover": "./src/components/notifications-popover/index.ts",
     "./onboarding": "./src/components/onboarding/index.ts",

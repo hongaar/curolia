@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { ChevronDown, Globe } from "lucide-react";
+import { ChevronDown, Globe, UserMinus } from "lucide-react";
 
 import { withMemoryRouter } from "../../storybook/decorators";
 import { componentStoryMeta, storyDocs } from "../../storybook/docs";
@@ -8,6 +8,9 @@ import { MapCard, MapCardMasonryGrid } from "../map-card";
 import { PageFitButton, PageInlineActions, PagePanel } from "../page";
 import {
   ProfileOverviewAside,
+  ProfileOverviewFollowList,
+  ProfileOverviewFollowListItem,
+  ProfileOverviewFollowPopoverHeader,
   ProfileOverviewIdentity,
   ProfileOverviewLayout,
   ProfileOverviewMain,
@@ -52,7 +55,8 @@ export const OwnerView: Story = {
             <ProfileOverviewStatButton
               label="Followers"
               value="128"
-              aria-label="Followers: 128"
+              indicator
+              aria-label="Followers: 128, pending requests"
             />
             <ProfileOverviewStatButton
               label="Following"
@@ -99,6 +103,7 @@ export const OwnerView: Story = {
   ...storyDocs("Owner view with edit actions and an open map grid."),
 };
 
+// OwnerView shows `indicator` on Followers (pending follow requests).
 export const VisitorView: Story = {
   render: () => (
     <ProfileOverviewLayout>
@@ -134,4 +139,74 @@ export const VisitorView: Story = {
     </ProfileOverviewLayout>
   ),
   ...storyDocs("Visitor view with only the profile info card in the sidebar."),
+};
+
+const avatarDot = (
+  <div
+    style={{
+      width: "2rem",
+      height: "2rem",
+      borderRadius: "9999px",
+      background: "var(--muted)",
+    }}
+  />
+);
+
+export const FollowRequests: Story = {
+  render: () => (
+    <div style={{ maxWidth: "22rem" }}>
+      <ProfileOverviewFollowPopoverHeader title="Requests" count="2" />
+      <ProfileOverviewFollowList>
+        {["Sam Traveler", "Robin Walker"].map((name) => (
+          <ProfileOverviewFollowListItem
+            key={name}
+            avatar={avatarDot}
+            name={name}
+            onClick={() => {}}
+            actions={
+              <>
+                <Button size="sm">Approve</Button>
+                <Button size="sm" variant="outline">
+                  Decline
+                </Button>
+              </>
+            }
+          />
+        ))}
+      </ProfileOverviewFollowList>
+    </div>
+  ),
+  ...storyDocs(
+    "Follow list rows with trailing `actions`, e.g. pending follow requests on a restricted profile.",
+  ),
+};
+
+export const RemovableFollowers: Story = {
+  render: () => (
+    <div style={{ maxWidth: "16rem" }}>
+      <ProfileOverviewFollowPopoverHeader title="Followers" count="2" />
+      <ProfileOverviewFollowList>
+        {["Sam Traveler", "Robin Walker"].map((name) => (
+          <ProfileOverviewFollowListItem
+            key={name}
+            avatar={avatarDot}
+            name={name}
+            onClick={() => {}}
+            trailing={
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                aria-label={`Remove ${name}`}
+              >
+                <UserMinus aria-hidden size={16} />
+              </Button>
+            }
+          />
+        ))}
+      </ProfileOverviewFollowList>
+    </div>
+  ),
+  ...storyDocs(
+    "Follow list rows with an inline `trailing` control, e.g. removing a follower.",
+  ),
 };

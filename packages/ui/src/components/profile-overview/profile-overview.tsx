@@ -59,11 +59,14 @@ export function ProfileOverviewStat({
 export function ProfileOverviewStatButton({
   label,
   value,
+  indicator = false,
   className,
   ...props
 }: {
   label: React.ReactNode;
   value: React.ReactNode;
+  /** Shows a notification dot (e.g. pending follow requests). */
+  indicator?: boolean;
 } & React.ComponentProps<"button">) {
   return (
     <button
@@ -71,6 +74,7 @@ export function ProfileOverviewStatButton({
       className={cn(styles.statButton, className)}
       {...props}
     >
+      {indicator ? <span className={styles.statIndicator} aria-hidden /> : null}
       <span className={styles.statValue}>{value}</span>
       <span className={styles.statLabel}>{label}</span>
     </button>
@@ -126,11 +130,17 @@ export function ProfileOverviewFollowListItem({
   name,
   handle,
   onClick,
+  actions,
+  trailing,
 }: {
   avatar: React.ReactNode;
   name: React.ReactNode;
   handle?: React.ReactNode;
   onClick?: () => void;
+  /** Trailing controls (e.g. approve / decline a follow request). */
+  actions?: React.ReactNode;
+  /** Compact inline control at the row end (e.g. a remove icon button). */
+  trailing?: React.ReactNode;
 }) {
   const content = (
     <>
@@ -145,7 +155,15 @@ export function ProfileOverviewFollowListItem({
   );
 
   return (
-    <li className={styles.followListItem}>
+    <li
+      className={
+        actions != null
+          ? `${styles.followListItem} ${styles.followListItemWithActions}`
+          : trailing != null
+            ? `${styles.followListItem} ${styles.followListItemWithTrailing}`
+            : styles.followListItem
+      }
+    >
       {onClick ? (
         <button
           type="button"
@@ -157,6 +175,12 @@ export function ProfileOverviewFollowListItem({
       ) : (
         <div className={styles.followListStatic}>{content}</div>
       )}
+      {trailing != null ? (
+        <span className={styles.followListTrailing}>{trailing}</span>
+      ) : null}
+      {actions != null ? (
+        <span className={styles.followListActions}>{actions}</span>
+      ) : null}
     </li>
   );
 }
