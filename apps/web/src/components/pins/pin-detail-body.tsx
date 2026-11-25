@@ -323,6 +323,7 @@ export function PinDetailBody({
             items={galleryItems}
             loadingPlaceholders={photoPlaceholders}
             layout={sideSheet ? "strip" : "rows"}
+            balanceArea
             stripBleed={sideSheet}
             stripThumbHeight={sideSheet ? (bottomSheet ? 150 : 200) : undefined}
             onOpen={(photoId) => setPhotoLightbox({ photoId })}
