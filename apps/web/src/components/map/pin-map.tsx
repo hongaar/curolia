@@ -259,6 +259,8 @@ type PinMapProps = {
   photoUrlByPinId?: Record<string, string>;
   /** Blog scroll focus — marker hover styling without map tooltip. */
   scrollHoverPinId?: string | null;
+  /** Blog/gallery panel focus — animates route lines like a selected pin. */
+  routeFocusPinId?: string | null;
   /** When true, blog scroll sync should not pan the map (marker hover). */
   suspendBlogScrollPanRef?: MutableRefObject<boolean>;
 };
@@ -550,6 +552,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     onExploreEntryClick,
     photoUrlByPinId = EMPTY_PHOTO_URLS,
     scrollHoverPinId = null,
+    routeFocusPinId = null,
     suspendBlogScrollPanRef,
   },
   ref,
@@ -666,6 +669,8 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
 
   const filteredRef = useRef(filtered);
   const selectedPinIdRef = useRef(selectedPinId);
+  const routeActivePinId = selectedPinId ?? routeFocusPinId;
+  const routeActivePinIdRef = useRef(routeActivePinId);
   const collisionFocusRef = useRef(collisionFocus);
   const latestPinHoverIdRef = useRef<string | null>(null);
   const placementModeRef = useRef(placementMode);
@@ -683,6 +688,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     filteredRef.current = filtered;
     filteredByIdRef.current = new Map(filtered.map((p) => [p.id, p]));
     selectedPinIdRef.current = selectedPinId;
+    routeActivePinIdRef.current = routeActivePinId;
     collisionFocusRef.current = collisionFocus;
     latestPinHoverIdRef.current = pinHover?.pin.id ?? scrollHoverPinId ?? null;
     placementModeRef.current = placementMode;
@@ -701,6 +707,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     collisionFocus,
     pinHover,
     scrollHoverPinId,
+    routeActivePinId,
     placementMode,
     relocatePinId,
   ]);
@@ -1296,7 +1303,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
       syncPinRouteLayers(map, {
         show: showPinRouteRef.current,
         segments: routeSegmentsRef.current,
-        selectedPinId: selectedPinIdRef.current,
+        selectedPinId: routeActivePinIdRef.current,
         animationPhase: routeAnimationPhaseRef.current,
         darkBasemap: darkBasemapRef.current,
       });
@@ -2332,7 +2339,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     placeHighlight,
     exploreLayerKey,
     routeSegments,
-    selectedPinId,
+    routeActivePinId,
     mapStylePreset,
     mapStyleOpts,
     resolvedTheme,
@@ -2352,18 +2359,18 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
   }, []);
 
   useEffect(() => {
-    if (!showPinRoute || !selectedPinId) return;
+    if (!showPinRoute || !routeActivePinId) return;
 
     let raf = 0;
     const tick = (now: number) => {
       routeAnimationPhaseRef.current = (now / 2200) % 1;
       const map = mapRef.current;
-      const selectedPinId = selectedPinIdRef.current;
-      if (map && isMapStyleReady(map) && selectedPinId) {
+      const activePinId = routeActivePinIdRef.current;
+      if (map && isMapStyleReady(map) && activePinId) {
         updatePinRouteAnimation(
           map,
           routeSegmentsRef.current,
-          selectedPinId,
+          activePinId,
           routeAnimationPhaseRef.current,
           darkBasemapRef.current,
         );
@@ -2372,7 +2379,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [showPinRoute, selectedPinId]);
+  }, [showPinRoute, routeActivePinId]);
 
   const staticDraftPin = useMemo((): PinMapPreviewPin | null => {
     if (previewPin) return previewPin;

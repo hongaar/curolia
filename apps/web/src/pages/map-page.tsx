@@ -1500,6 +1500,11 @@ export function MapPage() {
             scrollHoverPinId={
               showContentSidePanel && !showSidePanel ? hoverPinId : null
             }
+            routeFocusPinId={
+              showContentSidePanel && !stackCoversMap
+                ? (connectorPin?.id ?? null)
+                : null
+            }
             suspendBlogScrollPanRef={suspendContentPanRef}
             collisionFocus={
               pinCollisionPicker
