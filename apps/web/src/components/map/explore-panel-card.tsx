@@ -1,6 +1,6 @@
 import type { ExploreCategory } from "@/lib/explore-categories";
 import type { ExploreViewport } from "@/lib/explore-results";
-import { useExplore } from "@/providers/explore-provider";
+import { useExplore } from "@/providers/explore-context";
 import type {
   ExploreFilterDef,
   ExploreResultEntry,

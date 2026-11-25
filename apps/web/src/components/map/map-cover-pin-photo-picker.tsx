@@ -1,7 +1,7 @@
 import { setMapCoverFromPinPhoto } from "@/lib/map-cover";
 import { useMapAllPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Photo } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import {

@@ -1,7 +1,7 @@
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { pinEditHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Pin } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { Pencil } from "lucide-react";

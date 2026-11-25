@@ -1,6 +1,6 @@
 import { shouldShowMapOwnerCard } from "@/lib/map-owner-card";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 
 import { usePublicMapOwnerProfile } from "./use-public-map-owner-profile";
 

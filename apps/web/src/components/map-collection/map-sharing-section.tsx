@@ -16,7 +16,7 @@ import {
 import { VisibilityChoiceCards } from "@/components/visibility/visibility-controls";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { MapInvitation, MapMemberRole, Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { CautionPanel } from "@curolia/ui/caution-panel";

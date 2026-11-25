@@ -1,7 +1,7 @@
 import { EmptyMapState } from "@/components/root/empty-map-state";
 import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
 import { getStoredActiveMapId } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";

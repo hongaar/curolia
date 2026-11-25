@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components -- Provider module also exports useMap */
 /* eslint-disable react-hooks/set-state-in-effect -- hydrate active map from storage/profile when maps load */
 import type { MapWithOwnerSlug } from "@/lib/app-paths";
 import { fetchPublicMapByRoute } from "@/lib/fetch-public-map";
@@ -17,9 +16,7 @@ import { supabase } from "@/lib/supabase";
 import type { CuroliaMap } from "@/types/database";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -31,27 +28,11 @@ import {
   setStoredActiveMapId,
   useAuth,
 } from "./auth-provider";
-
-export type RouteMapStatus = "none" | "loading" | "ready" | "unavailable";
-
-type MapContextValue = {
-  maps: MapWithOwnerSlug[];
-  /** Maps the signed-in user is a member of (excludes foreign maps being browsed). */
-  memberMaps: MapWithOwnerSlug[];
-  activeMap: MapWithOwnerSlug | null;
-  activeMapId: string | null;
-  setActiveMapId: (id: string) => void;
-  loading: boolean;
-  routeMapStatus: RouteMapStatus;
-  publicView: boolean;
-  refetch: () => Promise<void>;
-  createMap: (
-    name: string,
-    iconEmoji?: string | null,
-  ) => Promise<{ map: CuroliaMap | null; error: Error | null }>;
-};
-
-const MapContext = createContext<MapContextValue | null>(null);
+import {
+  MapContext,
+  type MapContextValue,
+  type RouteMapStatus,
+} from "./map-context";
 
 async function fetchMapsForUser(userId: string): Promise<MapWithOwnerSlug[]> {
   const { data, error } = await supabase
@@ -375,10 +356,4 @@ export function MapProvider({
   );
 
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>;
-}
-
-export function useMap() {
-  const ctx = useContext(MapContext);
-  if (!ctx) throw new Error("useMap must be used within MapProvider");
-  return ctx;
 }

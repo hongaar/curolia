@@ -8,7 +8,7 @@ import type { ExploreCategoryId } from "@/lib/explore-categories";
 import type { ExploreViewport } from "@/lib/explore-results";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import {
   MapSecondaryToolbarExplore,

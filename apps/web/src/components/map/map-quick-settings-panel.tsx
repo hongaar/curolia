@@ -19,7 +19,7 @@ import {
 import { MAP_STYLE_PREVIEW_SRC } from "@/lib/map-style-previews";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { CuroliaMap, Profile } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";

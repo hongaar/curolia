@@ -25,7 +25,7 @@ import { useAddPinLink } from "@/lib/use-add-pin-link";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Photo, Pin, Tag } from "@/types/database";
 import type { PinEditorFieldSuggestion } from "@curolia/plugin-contract";
 import {

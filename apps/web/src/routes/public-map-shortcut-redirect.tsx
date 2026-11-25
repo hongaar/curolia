@@ -1,6 +1,6 @@
 import { MapViewInitialLoader } from "@/components/layout/map-view-initial-loader";
 import { normalizeMapViewSettings } from "@/lib/map-view-settings";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { Navigate, useLocation } from "react-router-dom";
 
 /** `/:profileSlug/:mapSlug` → default map view (preserves query). */

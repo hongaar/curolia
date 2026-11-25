@@ -6,7 +6,7 @@ import {
   normalizeMapViewSettings,
 } from "@/lib/map-view-settings";
 import { isBaseRoute } from "@/lib/stack-routes";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import {
   SegmentedSwitcher,
   SegmentedSwitcherLink,

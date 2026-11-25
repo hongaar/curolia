@@ -61,9 +61,9 @@ import {
   type ProfileSearchRow,
 } from "@/lib/profile-text-search";
 import { useAuth } from "@/providers/auth-provider";
-import { useExplore } from "@/providers/explore-provider";
+import { useExplore } from "@/providers/explore-context";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import {
   pinLocationLabel,

@@ -4,7 +4,7 @@ import { mapRouteForMap } from "@/lib/map-route";
 import { normalizeMapStylePreset } from "@/lib/map-style";
 import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
 import { getStoredActiveMapId, useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import {
   MainToolbarBrand,
   MainToolbarBrandAnchor,

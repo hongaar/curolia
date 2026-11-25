@@ -5,7 +5,7 @@ import { pinEditHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { supabase } from "@/lib/supabase";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Pin } from "@/types/database";
 import { Button } from "@curolia/ui/button";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";

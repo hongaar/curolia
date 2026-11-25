@@ -11,7 +11,7 @@ import { useMapViewAccess } from "@/hooks/use-map-view-access";
 import { usePublicMapCrawlerBlockMeta } from "@/hooks/use-public-map-crawler-block-meta";
 import { DEFAULT_PIN_TAG_COLOR } from "@/lib/preset-pin-tag-colors";
 import { supabase } from "@/lib/supabase";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Tag } from "@/types/database";
 import { BlogPageRoot } from "@curolia/ui/blog";
 import { Button } from "@curolia/ui/button";

@@ -106,7 +106,7 @@ import { isStackRoute } from "@/lib/stack-routes";
 import { supabase } from "@/lib/supabase";
 import { useMapPinsPhotosSignedUrls } from "@/lib/use-pin-photos";
 import { useGlobalSearchPlace } from "@/providers/global-search-place-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Pin, Tag } from "@/types/database";
 import type { ExploreResultEntry } from "@curolia/plugin-contract";
 import { BottomSheet } from "@curolia/ui/bottom-sheet";

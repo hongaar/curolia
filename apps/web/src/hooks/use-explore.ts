@@ -1,2 +1,2 @@
-export { useExplore } from "@/providers/explore-provider";
-export type { ExploreState } from "@/providers/explore-provider";
+export { useExplore } from "@/providers/explore-context";
+export type { ExploreState } from "@/providers/explore-context";

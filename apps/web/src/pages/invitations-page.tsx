@@ -3,7 +3,7 @@ import { mapSettingsHref, mapViewHref } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { Button } from "@curolia/ui/button";
 import {
   AppPageLayout,

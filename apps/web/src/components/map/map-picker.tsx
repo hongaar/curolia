@@ -4,7 +4,7 @@ import { resolveMemberMapHomeHref } from "@/lib/member-map-home";
 import { getStoredActiveMapId } from "@/providers/auth-provider";
 import { useMaxSm } from "@/hooks/use-max-sm";
 import { useMapQuickSettingsSlot } from "@/lib/map-quick-settings-slot";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { useNavigationShell } from "@/providers/navigation-shell-provider";
 import { DropdownMenu } from "@curolia/ui/dropdown-menu";
 import { MapPickerContent, MapPickerTrigger } from "@curolia/ui/map-picker";

@@ -4,7 +4,7 @@ import {
 } from "@/lib/onboarding-storage";
 import { pluginList } from "@/plugins/registry";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { Button } from "@curolia/ui/button";
 import {
   OnboardingBody,

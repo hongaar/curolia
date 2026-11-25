@@ -15,7 +15,7 @@ import { photosToLightboxItems } from "@/lib/pin-photo-lightbox-items";
 import { filterPinsByTags, type PinWithTags } from "@/lib/pin-with-tags";
 import { supabase } from "@/lib/supabase";
 import { useMapPinsPhotosSignedUrls } from "@/lib/use-pin-photos";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import type { Photo } from "@/types/database";
 import { contrastingForeground } from "@curolia/ui";
 import {

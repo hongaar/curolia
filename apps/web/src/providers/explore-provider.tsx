@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/set-state-in-effect -- prune explore categories when enabled plugins load */
-/* eslint-disable react-refresh/only-export-components -- Provider module also exports useExplore */
 import type { ExploreCategoryId } from "@/lib/explore-registry";
 import { exploreCategoriesForEnabledPlugins } from "@/lib/explore-registry";
 import {
@@ -8,47 +7,18 @@ import {
 } from "@/lib/explore-results";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
+import {
+  ExploreContext,
+  type ExploreContextValue,
+} from "@/providers/explore-context";
 import type { ExploreFilterValues } from "@curolia/plugin-contract";
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-
-export type ExploreState = {
-  expanded: boolean;
-  activeCategories: ExploreCategoryId[];
-  focusedCategoryId: ExploreCategoryId | null;
-  filterValuesByCategory: Partial<
-    Record<ExploreCategoryId, ExploreFilterValues>
-  >;
-  selectedEntry: import("@curolia/plugin-contract").ExploreResultEntry | null;
-};
-
-type ExploreContextValue = ExploreState & {
-  cardExpanded: boolean;
-  toggleExpanded: () => void;
-  toggleCategory: (categoryId: ExploreCategoryId) => void;
-  selectCategory: (categoryId: ExploreCategoryId) => void;
-  activateCategory: (categoryId: ExploreCategoryId) => void;
-  setFocusedCategory: (categoryId: ExploreCategoryId | null) => void;
-  setFilterValue: (
-    categoryId: ExploreCategoryId,
-    filterId: string,
-    value: string | readonly string[] | number,
-  ) => void;
-  selectedEntry: import("@curolia/plugin-contract").ExploreResultEntry | null;
-  setSelectedEntry: (
-    entry: import("@curolia/plugin-contract").ExploreResultEntry | null,
-  ) => void;
-  getFilterValues: (categoryId: ExploreCategoryId) => ExploreFilterValues;
-};
-
-const ExploreContext = createContext<ExploreContextValue | null>(null);
 
 export function ExploreProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -208,12 +178,4 @@ export function ExploreProvider({ children }: { children: ReactNode }) {
   return (
     <ExploreContext.Provider value={value}>{children}</ExploreContext.Provider>
   );
-}
-
-export function useExplore(): ExploreContextValue {
-  const ctx = useContext(ExploreContext);
-  if (!ctx) {
-    throw new Error("useExplore must be used within ExploreProvider");
-  }
-  return ctx;
 }

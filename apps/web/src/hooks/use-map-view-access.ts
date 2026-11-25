@@ -4,7 +4,7 @@ import {
   normalizeMapViewSettings,
   resolveAccessibleMapView,
 } from "@/lib/map-view-settings";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { useLayoutEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 

@@ -4,7 +4,7 @@ import { rememberHistoryIndex } from "@/lib/history-index";
 import { mapRouteForMap } from "@/lib/map-route";
 import { applySelectedPinToSearchParams } from "@/lib/map-view-params";
 import { isBaseRoute, isStackRoute } from "@/lib/stack-routes";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import {
   createContext,
   createElement,

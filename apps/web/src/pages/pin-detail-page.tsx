@@ -26,7 +26,7 @@ import { resolvePinByMapSlug } from "@/lib/resolve-pin-slug";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { usePinPhotosSignedUrls } from "@/lib/use-pin-photos";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { Button } from "@curolia/ui/button";
 import { CuroliaLoadingSplash } from "@curolia/ui/loading-splash";
 import { AppPageLayout, PageCenteredError, PagePanel } from "@curolia/ui/page";

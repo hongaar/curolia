@@ -44,7 +44,7 @@ import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
 import { supabase } from "@/lib/supabase";
 import { useEnabledPlugins } from "@/lib/use-enabled-plugins";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { resolveMapPinMetadataShow } from "@curolia/plugin-contract";
 import { Button } from "@curolia/ui/button";
 import { Checkbox } from "@curolia/ui/checkbox";

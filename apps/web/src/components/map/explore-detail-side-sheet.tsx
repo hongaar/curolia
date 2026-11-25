@@ -1,6 +1,6 @@
 import type { Json } from "@/lib/database.types";
 import { supabase } from "@/lib/supabase";
-import { useExplore } from "@/providers/explore-provider";
+import { useExplore } from "@/providers/explore-context";
 import {
   isExplorePlaceEntry,
   isExploreRouteEntry,

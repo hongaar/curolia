@@ -1,6 +1,6 @@
 import { mapViewHref, mapViewSegmentFromPathname } from "@/lib/app-paths";
 import { mapRouteForMap } from "@/lib/map-route";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { Button } from "@curolia/ui/button";
 import { PageInlineActions } from "@curolia/ui/page";
 import { Stack } from "@curolia/ui/stack";

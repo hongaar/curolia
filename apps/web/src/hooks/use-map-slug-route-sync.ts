@@ -6,7 +6,7 @@ import {
 import { parsePinRoutePathname } from "@/lib/map-route";
 import { resolveMapByOwnerSlug } from "@/lib/resolve-map-slug";
 import { resolveProfileBySlug } from "@/lib/resolve-profile-slug";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { useLayoutEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 

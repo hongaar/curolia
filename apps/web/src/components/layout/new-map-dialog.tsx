@@ -2,7 +2,7 @@ import { mapViewHref } from "@/lib/app-paths";
 import { defaultMapIcon } from "@/lib/map-display-icon";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
-import { useMap } from "@/providers/map-provider";
+import { useMap } from "@/providers/map-context";
 import { Button } from "@curolia/ui/button";
 import {
   Dialog,
