@@ -19,6 +19,11 @@ export type PinCardProps = {
   onSelect?: () => void;
   description?: React.ReactNode;
   coverUrl?: string | null;
+  /**
+   * Known cover size (e.g. stored photo dimensions). Reserves the final cover
+   * height before the image loads so masonry neighbours do not reflow.
+   */
+  coverSize?: { width: number; height: number } | null;
   dateLabel?: React.ReactNode;
   photoCountLabel?: React.ReactNode;
   tags?: React.ReactNode;
@@ -102,6 +107,7 @@ export function PinCard({
   onSelect,
   description,
   coverUrl,
+  coverSize,
   dateLabel,
   photoCountLabel,
   tags,
@@ -116,7 +122,14 @@ export function PinCard({
 }: PinCardProps) {
   const hasCover = Boolean(coverUrl?.trim());
   const hasMeta = Boolean(dateLabel || photoCountLabel);
-  const [coverAspectRatio, setCoverAspectRatio] = useState<number | null>(null);
+  const knownCoverAspectRatio =
+    coverSize && coverSize.width > 0 && coverSize.height > 0
+      ? normalizeCoverAspectRatio(coverSize.width, coverSize.height)
+      : null;
+  const [loadedCoverAspectRatio, setCoverAspectRatio] = useState<number | null>(
+    null,
+  );
+  const coverAspectRatio = knownCoverAspectRatio ?? loadedCoverAspectRatio;
   const coverImageRef = useRef<HTMLImageElement>(null);
 
   const syncCoverAspectRatio = useCallback((image: HTMLImageElement) => {

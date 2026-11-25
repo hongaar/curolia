@@ -150,10 +150,11 @@ export function MapGalleryPanel({
     () => orderedVisible.map((pin) => pin.id),
     [orderedVisible],
   );
-  const { photosByPinId, signedUrlByPhotoId } = useMapPinsPhotosSignedUrls(
-    activeMapId ?? undefined,
-    visiblePinIds,
-  );
+  const {
+    photosByPinId,
+    signedUrlByPhotoId,
+    isLoading: photosLoading,
+  } = useMapPinsPhotosSignedUrls(activeMapId ?? undefined, visiblePinIds);
 
   const galleryHeader = (
     <BlogHeader>
@@ -183,8 +184,10 @@ export function MapGalleryPanel({
       </FloatingPanel>
     ) : null;
 
+  // Hold the grid until covers are known: CSS columns rebalance whenever a
+  // card's height changes, which would move every card after it.
   const grid =
-    visible.length > 0 ? (
+    visible.length > 0 && !photosLoading ? (
       <MapCardMasonryGrid columns={gridColumns}>
         {orderedVisible.map((pin) => (
           <GalleryPinCard
@@ -255,6 +258,11 @@ function GalleryPinCard({
   const title = pin.title?.trim() || "Untitled pin";
   const description = pin.description?.trim() || undefined;
   const coverUrl = firstPhotoCoverUrl(photos, signedUrlByPhotoId);
+  const cover = photos[0];
+  const coverSize =
+    coverUrl && cover?.width && cover.height
+      ? { width: cover.width, height: cover.height }
+      : null;
   const dateLabel = pin.date
     ? formatPinDateRange(pin.date, pin.end_date)
     : undefined;
@@ -282,6 +290,7 @@ function GalleryPinCard({
     title,
     description,
     coverUrl: coverUrl ?? undefined,
+    coverSize,
     dateLabel,
     photoCountLabel: photoLabel,
     tags: tagRow,

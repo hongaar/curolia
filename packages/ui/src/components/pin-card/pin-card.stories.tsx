@@ -55,6 +55,15 @@ export const WithoutCover: Story = {
   },
 };
 
+export const KnownCoverSize: Story = {
+  args: {
+    coverSize: { width: 1200, height: 800 },
+  },
+  parameters: storyDocs(
+    "With `coverSize` (stored photo dimensions) the cover reserves its final height before the image loads, so masonry neighbours do not reflow.",
+  ),
+};
+
 export const AccentHover: Story = {
   args: { accentColor: "#ffe66d" },
   parameters: storyDocs(
