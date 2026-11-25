@@ -525,15 +525,14 @@ export function MapSettingsPage() {
                     id="map-description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="A short intro for your public profile map card"
+                    placeholder="A short intro to this map"
                     disabled={controlsDisabled}
                     maxLength={MAX_MAP_DESCRIPTION_LENGTH}
                     rows={3}
                   />
                 </FieldControl>
                 <FieldDescription>
-                  Optional. Shown on your public profile when this map is
-                  visible there.
+                  Optional. Shown on blog and gallery views and on your profile.
                 </FieldDescription>
               </Field>
               <Field>

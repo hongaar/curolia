@@ -18,6 +18,7 @@ import {
   BlogHeader,
   BlogScroll,
   BlogScrollToolbarRow,
+  BlogLead,
   BlogTitle,
 } from "@curolia/ui/blog";
 import {
@@ -159,6 +160,9 @@ export function MapGalleryPanel({
   const galleryHeader = (
     <BlogHeader>
       <BlogTitle>{activeMap?.name?.trim() || mapSlug || "Map"}</BlogTitle>
+      {activeMap?.description?.trim() ? (
+        <BlogLead>{activeMap.description.trim()}</BlogLead>
+      ) : null}
       {showOwnerCard && ownerProfile ? (
         <PublicMapOwnerCard profile={ownerProfile} />
       ) : null}

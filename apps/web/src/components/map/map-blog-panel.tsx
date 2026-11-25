@@ -33,6 +33,7 @@ import {
   BlogScroll,
   BlogScrollToolbarRow,
   BlogTagRow,
+  BlogLead,
   BlogTitle,
 } from "@curolia/ui/blog";
 import { Button } from "@curolia/ui/button";
@@ -184,6 +185,9 @@ export function MapBlogPanel({
   const blogHeader = (
     <BlogHeader>
       <BlogTitle>{activeMap?.name?.trim() || mapSlug || "Map"}</BlogTitle>
+      {activeMap?.description?.trim() ? (
+        <BlogLead>{activeMap.description.trim()}</BlogLead>
+      ) : null}
       {showOwnerCard && ownerProfile ? (
         <PublicMapOwnerCard profile={ownerProfile} />
       ) : null}

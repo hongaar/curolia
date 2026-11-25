@@ -91,8 +91,8 @@ export function BlogAuthorCard({
             name
           )}
         </p>
+        {bio ? <p className={styles.authorBio}>{bio}</p> : null}
       </div>
-      {bio ? <p className={styles.authorBio}>{bio}</p> : null}
     </div>
   );
 }
@@ -111,6 +111,11 @@ export function BlogTitle({ children }: { children: React.ReactNode }) {
 
 export function BlogLead({ children }: { children: React.ReactNode }) {
   return <p className={styles.lead}>{children}</p>;
+}
+
+/** Compact control line (e.g. list sort) under the header text. */
+export function BlogSortLine({ children }: { children: React.ReactNode }) {
+  return <p className={styles.sortLine}>{children}</p>;
 }
 
 export function BlogSortTrigger({

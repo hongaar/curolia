@@ -7,6 +7,7 @@ import {
   BlogContent,
   BlogHeader,
   BlogLead,
+  BlogSortLine,
   BlogPageRoot,
   BlogPinTitle,
   BlogPinTitleButton,
@@ -59,6 +60,7 @@ export const Default: Story = {
               bio="Travel writer mapping favorite cafés and coastal trails."
             />
             <BlogLead>Stories from the road, sorted by date.</BlogLead>
+            <BlogSortLine>Pins are listed in chronological order.</BlogSortLine>
           </BlogHeader>
           <p style={{ margin: 0 }}>Post list would appear here.</p>
         </BlogContent>

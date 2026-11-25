@@ -53,9 +53,9 @@
 .authorCard {
   display: grid;
   grid-template-columns: auto 1fr;
+  align-items: center;
   column-gap: var(--space-3);
-  row-gap: var(--space-2);
-  margin-top: var(--space-4);
+  margin-top: var(--space-5);
   margin-bottom: var(--space-3);
   border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
   border-radius: var(--radius-xl);
@@ -97,17 +97,14 @@
 }
 
 .authorAvatar {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: center;
   display: flex;
   line-height: 0;
 }
 
 .authorIdentity {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
   min-width: 0;
 }
 
@@ -122,7 +119,7 @@
 }
 
 .authorName {
-  margin: var(--space-1) 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
@@ -140,8 +137,6 @@
 }
 
 .authorBio {
-  grid-column: 2;
-  grid-row: 2;
   margin: 0;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
@@ -179,9 +174,14 @@
 
 .lead {
   margin-top: var(--space-3);
-  max-width: 32rem;
   font-size: var(--text-body);
   line-height: var(--line-height-relaxed);
+  color: var(--muted-foreground);
+}
+
+.sortLine {
+  margin-top: var(--space-5);
+  font-size: var(--font-size-sm);
   color: var(--muted-foreground);
 }
 

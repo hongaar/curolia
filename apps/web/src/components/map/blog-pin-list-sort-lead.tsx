@@ -10,7 +10,7 @@ import {
   blogPinListOrderLabel,
 } from "@/lib/blog-pin-list-order";
 import {
-  BlogLead,
+  BlogSortLine,
   BlogSortChevron,
   BlogSortLabel,
   BlogSortTrigger,
@@ -39,7 +39,7 @@ export function BlogPinListSortLead({
   onDirectionChange,
 }: BlogPinListSortLeadProps) {
   return (
-    <BlogLead>
+    <BlogSortLine>
       Pins are listed in{" "}
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -115,6 +115,6 @@ export function BlogPinListSortLead({
         </DropdownMenuContent>
       </DropdownMenu>
       .
-    </BlogLead>
+    </BlogSortLine>
   );
 }
