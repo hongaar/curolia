@@ -141,6 +141,8 @@ export type PinMapHandle = {
     lat: number,
     inset: { top?: number; right?: number; bottom?: number; left?: number },
     onSettled?: () => void,
+    /** Apply without animation (e.g. initial load, where an ease can be interrupted). */
+    instant?: boolean,
   ) => void;
   /** Restore a previously saved camera and reset panel padding to 0. */
   restoreCameraAfterPanel: (camera: MapCamera) => void;
@@ -1574,6 +1576,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
           left?: number;
         },
         onSettled?: () => void,
+        instant = false,
       ) {
         const map = mapRef.current;
         if (!map) return;
@@ -1586,7 +1589,7 @@ export const PinMap = forwardRef<PinMapHandle, PinMapProps>(function PinMap(
             bottom: inset.bottom ?? 0,
             left: inset.left ?? 0,
           },
-          duration: PANEL_CAMERA_DURATION_MS,
+          duration: instant ? 0 : PANEL_CAMERA_DURATION_MS,
           essential: true,
         });
         map.once("moveend", () => {
