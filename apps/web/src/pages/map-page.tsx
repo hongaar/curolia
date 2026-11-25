@@ -776,8 +776,25 @@ export function MapPage() {
     [pins, hoverPinId],
   );
 
+  // Hovering a different panel item ends the map-selected active state.
+  const [dismissedFocusNonce, setDismissedFocusNonce] = useState<number | null>(
+    null,
+  );
+  const focusNonce = panelPinFocusRequest?.nonce ?? 0;
+  if (
+    hoverPinId != null &&
+    focusedPinId != null &&
+    hoverPinId !== focusedPinId &&
+    dismissedFocusNonce !== focusNonce
+  ) {
+    setDismissedFocusNonce(focusNonce);
+  }
   const panelActivePinId =
-    showContentSidePanel && !stackCoversMap ? focusedPinId : null;
+    showContentSidePanel &&
+    !stackCoversMap &&
+    dismissedFocusNonce !== focusNonce
+      ? focusedPinId
+      : null;
   // Hover wins; otherwise keep the line on the pin selected from the map.
   const connectorPin = useMemo(() => {
     if (hoverPin) return hoverPin;
@@ -842,19 +859,39 @@ export function MapPage() {
     return () => setMapQuickSettingsSlot(null);
   }, [canQuickSettings, openQuickSettings]);
 
+  // Blog/gallery open on page load: inset instantly (an ease gets interrupted
+  // by the panel's enter animation / initial camera work and lands off-pin).
+  const contentPanelInsetInstantRef = useRef(contentPanelLayoutActive);
   useLayoutEffect(() => {
+    // The map and panel only mount after `mapLoading`; re-run once they exist.
+    if (mapLoading) return;
     if (!contentPanelLayoutActive) {
       mapRef.current?.clearPanelPadding();
       return;
     }
+    let frame = 0;
     const applyContentPanelInset = () => {
       const width = contentSidePanelRef.current?.offsetWidth;
       const camera = mapRef.current?.getCurrentCamera();
-      if (!width || !camera) return;
-      mapRef.current?.panForPanel(camera.lng, camera.lat, { right: width });
+      // PinMap creates the MapLibre instance in a passive effect, which can
+      // land after this frame on first load; retry until it exists.
+      if (!width || !camera) {
+        frame = requestAnimationFrame(applyContentPanelInset);
+        return;
+      }
+      const instant = contentPanelInsetInstantRef.current;
+      contentPanelInsetInstantRef.current = false;
+      mapRef.current?.panForPanel(
+        camera.lng,
+        camera.lat,
+        { right: width },
+        undefined,
+        instant,
+      );
     };
-    requestAnimationFrame(applyContentPanelInset);
-  }, [contentPanelLayoutActive]);
+    frame = requestAnimationFrame(applyContentPanelInset);
+    return () => cancelAnimationFrame(frame);
+  }, [contentPanelLayoutActive, mapLoading]);
 
   useLayoutEffect(() => {
     // Blog/gallery already inset the map; the settings sheet overlays it.

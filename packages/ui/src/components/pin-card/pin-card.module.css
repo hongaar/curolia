@@ -35,13 +35,9 @@
   transition: box-shadow 180ms ease;
 }
 
-.card:hover {
-  box-shadow:
-    0 0 0 1px color-mix(in oklch, var(--foreground) 12%, transparent),
-    0 18px 40px color-mix(in oklch, var(--foreground) 12%, transparent);
-}
-
-/* Outer ring via box-shadow: thicker border without shifting layout. */
+/* Outer ring via box-shadow: thicker border without shifting layout.
+   Hover matches the active (map-selected) look. */
+.card:hover,
 .itemWrap[data-active="true"] .card {
   box-shadow:
     0 0 0 2px var(--_accent-text),
