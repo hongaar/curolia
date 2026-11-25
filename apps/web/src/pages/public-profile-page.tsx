@@ -4,7 +4,10 @@ import { ProfileVisibilityMenu } from "@/components/profile/profile-visibility-c
 import { UserAvatar } from "@/components/user-avatar";
 import { usePublicProfileCrawlerBlockMeta } from "@/hooks/use-public-profile-crawler-block-meta";
 import { publicMapLinkHref } from "@/lib/app-paths";
-import { fetchProfileFollowStats } from "@/lib/fetch-profile-follow-stats";
+import {
+  fetchProfileFollowStats,
+  type FollowStatus,
+} from "@/lib/fetch-profile-follow-stats";
 import { fetchProfileMaps } from "@/lib/fetch-profile-maps";
 import { formatPinCount, formatTimeAgo } from "@/lib/format-time-ago";
 import { defaultMapIcon } from "@/lib/map-display-icon";
@@ -44,13 +47,61 @@ import {
 } from "@curolia/ui/profile-overview";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+
+type RestrictedProfileCard = {
+  id: string;
+  slug: string;
+  displayName: string;
+  avatarUrl: string | null;
+  gravatarHash: string | null;
+  followStatus: FollowStatus | null;
+};
+
+async function loadRestrictedCard(
+  slug: string,
+  signedIn: boolean,
+): Promise<
+  | { kind: "restricted"; card: RestrictedProfileCard }
+  | { kind: "restricted_signed_out" }
+  | null
+> {
+  if (!signedIn) return { kind: "restricted_signed_out" };
+  const { data, error } = await supabase.rpc("get_restricted_profile_card", {
+    p_slug: slug,
+  });
+  if (error) throw error;
+  const row = data?.[0];
+  if (!row) return null;
+  return {
+    kind: "restricted",
+    card: {
+      id: row.id,
+      slug: row.slug,
+      displayName: row.display_name?.trim() || row.slug,
+      avatarUrl: row.avatar_url,
+      gravatarHash: row.gravatar_hash,
+      followStatus: row.follow_status ?? null,
+    },
+  };
+}
+
+const RESTRICTED = { visibility: "restricted" } as const;
 
 export function PublicProfilePage() {
   const { profileSlug: profileSlugParam } = useParams<{
     profileSlug: string;
   }>();
   const { user } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const openFollowRequests = searchParams.get("followers") === "requests";
   const { openNewMapDialog } = useNavigationShell();
   const [profileOverride, setProfileOverride] = useState<Profile | null>(null);
 
@@ -68,7 +119,23 @@ export function PublicProfilePage() {
         .eq("id", resolved.profileId)
         .maybeSingle();
       if (error) throw error;
-      if (!data) return { kind: "missing" as const };
+      if (!data) {
+        // Row hidden by RLS: restricted (not an approved follower) or private.
+        if (resolved.visibility === "restricted") {
+          const restricted = await loadRestrictedCard(
+            resolved.canonicalSlug,
+            Boolean(user),
+          );
+          if (restricted) return restricted;
+        }
+        if (resolved.visibility === "public")
+          return { kind: "missing" as const };
+        return {
+          kind: "private" as const,
+          canonicalSlug: resolved.canonicalSlug,
+          redirected: resolved.redirected,
+        };
+      }
 
       const profile = data as Profile;
       const isOwner = user?.id === profile.id;
@@ -116,23 +183,38 @@ export function PublicProfilePage() {
   }
   const profile = queryProfile ? (profileOverride ?? queryProfile) : null;
   const okResult = result?.kind === "ok" ? result : null;
+  const restrictedCard = result?.kind === "restricted" ? result.card : null;
+  const followTarget = okResult
+    ? {
+        id: okResult.profile.id,
+        slug: okResult.profile.slug,
+        status: okResult.followStats.followStatus,
+        enabled: okResult.profile.visibility !== "private",
+      }
+    : restrictedCard
+      ? {
+          id: restrictedCard.id,
+          slug: restrictedCard.slug,
+          status: restrictedCard.followStatus,
+          enabled: true,
+        }
+      : null;
 
   const follow = useProfileFollow({
-    profileId: okResult?.profile.id ?? "",
-    profileSlug: okResult?.profile.slug ?? profileSlug,
+    profileId: followTarget?.id ?? "",
+    profileSlug: followTarget?.slug ?? profileSlug,
     viewerUserId: user?.id,
     isOwner: okResult?.isOwner ?? false,
-    isFollowing: okResult?.followStats.isFollowing ?? false,
-    enabled: Boolean(
-      okResult &&
-      okResult.profile.visibility !== "private" &&
-      okResult.profile.id,
-    ),
+    followStatus: followTarget?.status ?? null,
+    enabled: Boolean(followTarget?.enabled && followTarget.id),
   });
 
   usePublicProfileCrawlerBlockMeta(
-    profile,
-    Boolean(profile && profile.visibility !== "private" && !user),
+    profile ?? (result?.kind?.startsWith("restricted") ? RESTRICTED : null),
+    Boolean(
+      (profile && profile.visibility !== "private") ||
+      result?.kind?.startsWith("restricted"),
+    ),
   );
 
   if (!profileSlug) {
@@ -168,6 +250,72 @@ export function PublicProfilePage() {
     );
   }
 
+  if (result?.kind === "restricted_signed_out") {
+    const next = encodeURIComponent(`${location.pathname}${location.search}`);
+    return (
+      <AppPageLayout width="narrow">
+        <PagePanel>
+          <PageHeader>
+            <PageHeaderTitle>Restricted profile</PageHeaderTitle>
+            <PageHeaderLead>
+              Sign in to see who this is and request to follow them.
+            </PageHeaderLead>
+          </PageHeader>
+          <PageFitButton>
+            <Button render={<Link to={`/login?next=${next}`} />}>
+              Sign in
+            </Button>
+          </PageFitButton>
+        </PagePanel>
+      </AppPageLayout>
+    );
+  }
+
+  if (restrictedCard) {
+    return (
+      <AppPageLayout width="full">
+        <ProfileOverviewLayout>
+          <ProfileOverviewAside>
+            <PagePanel mobileCard>
+              <ProfileOverviewIdentity
+                avatar={
+                  <UserAvatar
+                    storedAvatarUrl={restrictedCard.avatarUrl}
+                    email={null}
+                    gravatarHash={restrictedCard.gravatarHash}
+                    gravatarFallback={Boolean(
+                      restrictedCard.gravatarHash?.trim(),
+                    )}
+                    gravatarSize={256}
+                    size="lg"
+                    label={restrictedCard.displayName}
+                  />
+                }
+                name={restrictedCard.displayName}
+              />
+              <PageFitButton>
+                <ProfileFollowButton
+                  followStatus={follow.followStatus}
+                  requiresApproval
+                  busy={follow.busy}
+                  canFollow={follow.canFollow}
+                  onToggle={() => void follow.toggleFollow()}
+                />
+              </PageFitButton>
+            </PagePanel>
+          </ProfileOverviewAside>
+          <ProfileOverviewMain>
+            <MapCardEmptyState>
+              {follow.followStatus === "pending"
+                ? "Your follow request is pending. Maps are visible once it's approved."
+                : "This profile is restricted. Maps are only visible to approved followers."}
+            </MapCardEmptyState>
+          </ProfileOverviewMain>
+        </ProfileOverviewLayout>
+      </AppPageLayout>
+    );
+  }
+
   if (result?.kind === "private") {
     if (result.redirected && result.canonicalSlug !== profileSlug) {
       return <Navigate to={publicProfileHref(result.canonicalSlug)} replace />;
@@ -199,6 +347,13 @@ export function PublicProfilePage() {
   const maps = okResult.maps;
   const isOwner = okResult.isOwner;
   const followStats = okResult.followStats;
+  // Restricted: map members can read the profile row (co-worker access), but
+  // follow lists stay hidden until they are an approved follower.
+  const canSeeFollowStats =
+    isOwner ||
+    profile.visibility === "public" ||
+    (profile.visibility === "restricted" &&
+      followStats.followStatus === "approved");
 
   return (
     <AppPageLayout width="full">
@@ -222,13 +377,18 @@ export function PublicProfilePage() {
               name={displayName}
               bio={profile.bio?.trim() || undefined}
             />
-            {profile.visibility !== "private" || isOwner ? (
+            {canSeeFollowStats ? (
               <ProfileOverviewStats>
                 <ProfileFollowStatPopover
                   profileId={profile.id}
                   kind="followers"
                   label="Followers"
                   value={followStats.followerCount.toLocaleString()}
+                  showRequests={isOwner}
+                  canRemoveFollowers={
+                    isOwner && profile.visibility === "restricted"
+                  }
+                  defaultOpen={isOwner && openFollowRequests}
                 />
                 <ProfileFollowStatPopover
                   profileId={profile.id}
@@ -256,7 +416,8 @@ export function PublicProfilePage() {
             ) : profile.visibility !== "private" ? (
               <PageFitButton>
                 <ProfileFollowButton
-                  isFollowing={follow.isFollowing}
+                  followStatus={follow.followStatus}
+                  requiresApproval={profile.visibility === "restricted"}
                   busy={follow.busy}
                   canFollow={follow.canFollow}
                   onToggle={() => void follow.toggleFollow()}
@@ -297,6 +458,12 @@ export function PublicProfilePage() {
               ))}
             </MapCardMasonryGrid>
           )}
+          {isOwner && profile.visibility === "restricted" ? (
+            <PageMuted>
+              Your profile is restricted: these maps are only listed for
+              followers you approve.
+            </PageMuted>
+          ) : null}
         </ProfileOverviewMain>
       </ProfileOverviewLayout>
     </AppPageLayout>

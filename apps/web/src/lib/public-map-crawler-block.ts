@@ -1,4 +1,4 @@
-import type { Visibility } from "@/lib/visibility";
+import type { ProfileVisibility, Visibility } from "@/lib/visibility";
 
 /** Robots directive for maps that block crawlers while staying link-shareable. */
 export const BLOCK_PUBLIC_CRAWLERS_ROBOTS =
@@ -7,11 +7,11 @@ export const BLOCK_PUBLIC_CRAWLERS_ROBOTS =
 const CRAWLER_UA_RE =
   /bot|crawl|spider|slurp|archiver|wget|curl\/|python-requests|scrapy|headless|phantom|selenium|puppeteer|playwright|gptbot|chatgpt-user|claudebot|anthropic-ai|google-extended|bytespider|ccbot|amazonbot|applebot|bingbot|duckduckbot|facebookexternalhit|linkedinbot|meta-externalagent|perplexitybot|youbot|cohere-ai|ai2bot|diffbot|semrush|ahrefs|mj12bot|dotbot|petalbot|yandexbot|baiduspider|sogou|ia_archiver|rogerbot|embedly|quora link preview|telegrambot|discordbot|slackbot|whatsapp|preview/i;
 
-/** Unlisted content stays link-viewable but asks crawlers not to index it. */
+/** Unlisted maps and restricted profiles ask crawlers not to index them. */
 export function blocksPublicCrawlers(entity: {
-  visibility: Visibility;
+  visibility: Visibility | ProfileVisibility;
 }): boolean {
-  return entity.visibility === "unlisted";
+  return entity.visibility === "unlisted" || entity.visibility === "restricted";
 }
 
 export function isLikelyCrawlerUserAgent(

@@ -76,39 +76,20 @@ export async function fetchProfileMaps(
     return finalizeProfileMaps((data ?? []) as CuroliaMap[], profileSlug);
   }
 
-  const publicQuery = supabase
+  // Public maps, follower-visible unlisted opt-ins, and maps the viewer is a
+  // member of (resolved server-side for restricted profiles).
+  const { data: ids, error: idsError } = await supabase.rpc(
+    "list_profile_map_ids",
+    { p_profile_id: profileId },
+  );
+  if (idsError) throw idsError;
+  const mapIds = (ids ?? []) as string[];
+  if (mapIds.length === 0) return [];
+
+  const { data, error } = await supabase
     .from("maps")
     .select("*")
-    .eq("created_by_user_id", profileId)
-    .eq("visibility", "public")
-    .order("updated_at", { ascending: false });
-
-  if (!viewerUserId) {
-    const { data, error } = await publicQuery;
-    if (error) throw error;
-    return finalizeProfileMaps((data ?? []) as CuroliaMap[], profileSlug);
-  }
-
-  const [publicResult, memberResult] = await Promise.all([
-    publicQuery,
-    supabase.from("map_members").select("maps(*)").eq("user_id", viewerUserId),
-  ]);
-
-  if (publicResult.error) throw publicResult.error;
-  if (memberResult.error) throw memberResult.error;
-
-  const byId = new Map<string, CuroliaMap>();
-
-  for (const map of publicResult.data ?? []) {
-    byId.set(map.id, map as CuroliaMap);
-  }
-
-  for (const row of memberResult.data ?? []) {
-    const map = row.maps as CuroliaMap | null;
-    if (!map || map.created_by_user_id !== profileId) continue;
-    byId.set(map.id, map);
-  }
-
-  const maps = [...byId.values()];
-  return finalizeProfileMaps(maps, profileSlug);
+    .in("id", mapIds);
+  if (error) throw error;
+  return finalizeProfileMaps((data ?? []) as CuroliaMap[], profileSlug);
 }

@@ -24,7 +24,8 @@ export function PublicMapOwnerCard({
         <UserAvatar
           storedAvatarUrl={profile.avatarUrl}
           email={null}
-          gravatarFallback={false}
+          gravatarHash={profile.gravatarHash}
+          gravatarFallback={Boolean(profile.gravatarHash)}
           size="md"
           label={profile.displayName}
         />

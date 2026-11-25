@@ -133,10 +133,9 @@ export async function fetchOwnerProfileSlugs(
   if (unique.length === 0) return new Map();
 
   const { supabase } = await import("@/lib/supabase");
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, slug")
-    .in("id", unique);
+  const { data, error } = await supabase.rpc("profile_slugs", {
+    p_ids: unique,
+  });
   if (error) throw error;
 
   return new Map((data ?? []).map((row) => [row.id, row.slug]));

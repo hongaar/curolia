@@ -10,6 +10,7 @@ export type MapWithOwnerSlug = CuroliaMap & { owner_profile_slug: string };
 export type PublicMapOwnerProfile = {
   displayName: string;
   avatarUrl: string | null;
+  gravatarHash: string | null;
   bio: string | null;
   profileSlug: string;
 };
@@ -50,29 +51,21 @@ export async function fetchPublicMapOwnerProfile(
   mapId: string,
   client: DbClient,
 ): Promise<PublicMapOwnerProfile | null> {
-  const { data: ownerRow, error: memberError } = await client
-    .from("map_members")
-    .select("user_id")
-    .eq("map_id", mapId)
-    .eq("role", "owner")
-    .maybeSingle();
-  if (memberError) throw memberError;
-  if (!ownerRow) return null;
-
-  const { data: profile, error: profileError } = await client
-    .from("profiles")
-    .select("display_name, avatar_url, bio, slug")
-    .eq("id", ownerRow.user_id)
-    .maybeSingle();
-  if (profileError) throw profileError;
+  const { data, error } = await client.rpc("get_map_owner_card", {
+    p_map_id: mapId,
+  });
+  if (error) throw error;
+  const profile = data?.[0];
   if (!profile) return null;
 
   const profileSlug = profile.slug?.trim() ?? "";
   if (!profileSlug) return null;
 
   return {
-    displayName: profile.display_name?.trim() || "Map owner",
+    // Same fallback as the profile page: display name, then slug.
+    displayName: profile.display_name?.trim() || profileSlug,
     avatarUrl: profile.avatar_url?.trim() || null,
+    gravatarHash: profile.gravatar_hash?.trim() || null,
     bio: profile.bio?.trim() || null,
     profileSlug,
   };

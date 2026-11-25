@@ -47,3 +47,12 @@ export async function fetchProfileFollowList(
   if (error) throw error;
   return ((data ?? []) as FollowListRow[]).map(mapFollowListRow);
 }
+
+/** Pending follow requests for the signed-in owner (restricted profiles). */
+export async function fetchPendingFollowRequests(
+  client: DbClient,
+): Promise<ProfileFollowListUser[]> {
+  const { data, error } = await client.rpc("list_pending_follow_requests");
+  if (error) throw error;
+  return ((data ?? []) as FollowListRow[]).map(mapFollowListRow);
+}

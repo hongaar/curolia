@@ -1,5 +1,8 @@
 import { supabase } from "@/lib/supabase";
-import { VISIBILITY_LABELS, type Visibility } from "@/lib/visibility";
+import {
+  PROFILE_VISIBILITY_LABELS,
+  type ProfileVisibility,
+} from "@/lib/visibility";
 import type { Profile } from "@/types/database";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -10,7 +13,7 @@ export function useProfileVisibility(profile: Profile) {
   const [visibilityBusy, setVisibilityBusy] = useState(false);
 
   async function setVisibility(
-    visibility: Visibility,
+    visibility: ProfileVisibility,
   ): Promise<Profile | null> {
     if (visibility === profile.visibility) return profile;
     setVisibilityBusy(true);
@@ -23,7 +26,7 @@ export function useProfileVisibility(profile: Profile) {
       return null;
     }
     toast.success(
-      `Profile is now ${VISIBILITY_LABELS[visibility].toLowerCase()}`,
+      `Profile is now ${PROFILE_VISIBILITY_LABELS[visibility].toLowerCase()}`,
     );
     await qc.invalidateQueries({ queryKey: ["profile", profile.id] });
     await qc.invalidateQueries({

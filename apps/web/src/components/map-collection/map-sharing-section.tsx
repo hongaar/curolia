@@ -13,6 +13,7 @@ import {
   VISIBILITY_LABELS,
   type Visibility,
 } from "@/lib/visibility";
+import { MAP_VISIBILITY_SCHEME } from "@/lib/visibility-schemes";
 import { VisibilityChoiceCards } from "@/components/visibility/visibility-controls";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
@@ -47,7 +48,6 @@ import {
   MemberAvatar,
   MemberListRow,
   MemberPrimary,
-  MemberRole,
 } from "@curolia/ui/list";
 import {
   PageErrorText,
@@ -63,6 +63,9 @@ import {
   PageSharingRoot,
   PageSharingSection,
 } from "@curolia/ui/page";
+import { Label } from "@curolia/ui/label";
+import { Checkbox } from "@curolia/ui/checkbox";
+import { InfoTip } from "@curolia/ui/info-tip";
 import {
   Select,
   SelectContent,
@@ -74,6 +77,8 @@ import { Share2 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+
+const TRANSFER_OPTION = "__transfer__";
 
 type MemberRow = {
   user_id: string;
@@ -87,6 +92,7 @@ export function MapSharingSection({
   ownerProfileSlug,
   mapSlug,
   visibility,
+  showOnProfile,
   isOwner,
 }: {
   mapId: string;
@@ -94,6 +100,7 @@ export function MapSharingSection({
   ownerProfileSlug: string;
   mapSlug: string;
   visibility: Visibility;
+  showOnProfile: boolean;
   isOwner: boolean;
 }) {
   const { user } = useAuth();
@@ -116,6 +123,21 @@ export function MapSharingSection({
     slug: mapSlug,
   });
   const visibilityHeadingId = useId();
+  const [showOnProfileBusy, setShowOnProfileBusy] = useState(false);
+
+  async function changeShowOnProfile(next: boolean) {
+    setShowOnProfileBusy(true);
+    const { error } = await supabase.rpc("set_map_show_on_profile", {
+      p_map_id: mapId,
+      p_show: next,
+    });
+    setShowOnProfileBusy(false);
+    if (error) {
+      setInviteErr(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["maps", user?.id] });
+  }
 
   const ownerProfileQuery = useQuery({
     queryKey: ["profile", user?.id],
@@ -373,16 +395,37 @@ export function MapSharingSection({
                     >
                       {label}
                     </MemberPrimary>
-                    <MemberRole>{mapRoleLabel(m.role)}</MemberRole>
-                    {isOwner && !isSelf && m.role !== "owner" ? (
-                      <MemberActions>
+                    <MemberActions>
+                      {m.role === "owner" ? (
+                        <Select
+                          value="owner"
+                          disabled={!isOwner}
+                          onValueChange={(v) => {
+                            if (v !== TRANSFER_OPTION) return;
+                            setTransferErr(null);
+                            setTransferEmail("");
+                            setTransferOpen(true);
+                          }}
+                        >
+                          <FormSelectTriggerCompact aria-label="Role">
+                            <SelectValue>{mapRoleLabel("owner")}</SelectValue>
+                          </FormSelectTriggerCompact>
+                          <SelectContent>
+                            <SelectItem value="owner">Owner</SelectItem>
+                            <SelectItem value={TRANSFER_OPTION}>
+                              Transfer ownership…
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
                         <Select
                           value={m.role}
+                          disabled={!isOwner || isSelf}
                           onValueChange={(v) =>
                             void changeRole(m.user_id, v as MapMemberRole)
                           }
                         >
-                          <FormSelectTriggerCompact>
+                          <FormSelectTriggerCompact aria-label="Role">
                             <SelectValue>{mapRoleLabel(m.role)}</SelectValue>
                           </FormSelectTriggerCompact>
                           <SelectContent>
@@ -390,22 +433,58 @@ export function MapSharingSection({
                             <SelectItem value="editor">Contributor</SelectItem>
                           </SelectContent>
                         </Select>
+                      )}
+                      {isOwner && !isSelf && m.role !== "owner" ? (
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => void removeMember(m.user_id)}
                         >
                           Remove
                         </Button>
-                      </MemberActions>
-                    ) : null}
+                      ) : null}
+                    </MemberActions>
                   </MemberListRow>
                 );
               })
             )}
           </BorderedList>
         </PageSharingSection>
+
+        {isOwner && pendingInvites.length > 0 ? (
+          <PageSharingSection>
+            <PageSectionSubheading>Pending invitations</PageSectionSubheading>
+            <BorderedList>
+              {pendingInvites.map((inv) => (
+                <MemberListRow key={inv.id}>
+                  <MemberPrimary>{inv.invitee_email}</MemberPrimary>
+                  <MemberActions>
+                    <Select value={inv.invited_role} disabled>
+                      <FormSelectTriggerCompact aria-label="Invited role">
+                        <SelectValue>
+                          {mapRoleLabel(inv.invited_role)}
+                        </SelectValue>
+                      </FormSelectTriggerCompact>
+                      <SelectContent>
+                        <SelectItem value="viewer">Viewer</SelectItem>
+                        <SelectItem value="editor">Contributor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void cancelInvite(inv.id)}
+                    >
+                      Cancel
+                    </Button>
+                  </MemberActions>
+                </MemberListRow>
+              ))}
+            </BorderedList>
+          </PageSharingSection>
+        ) : null}
 
         {isOwner ? (
           <>
@@ -468,12 +547,33 @@ export function MapSharingSection({
                 Visibility
               </PageSectionSubheading>
               <VisibilityChoiceCards
+                scheme={MAP_VISIBILITY_SCHEME}
                 name="map-visibility"
                 aria-labelledby={visibilityHeadingId}
                 value={visibility}
                 hints={MAP_VISIBILITY_HINTS}
                 disabled={visibilityBusy}
                 onValueChange={(next) => void changeVisibility(next)}
+                footers={{
+                  unlisted: (
+                    <Label>
+                      <Checkbox
+                        checked={showOnProfile}
+                        disabled={
+                          visibility !== "unlisted" || showOnProfileBusy
+                        }
+                        onCheckedChange={(c) =>
+                          void changeShowOnProfile(c === true)
+                        }
+                      />
+                      <InfoTip label="Visible on profile">
+                        When your profile is public, anyone can discover this
+                        map on it. When your profile is restricted, only
+                        followers you approve see it on your profile.
+                      </InfoTip>
+                    </Label>
+                  ),
+                }}
               />
               {visibility !== "private" && ownerProfileIsPrivate ? (
                 <PrivateProfilePublicMapWarning context="map-public-access" />
@@ -506,54 +606,6 @@ export function MapSharingSection({
               ) : null}
             </PageSharingSection>
 
-            {pendingInvites.length > 0 ? (
-              <PageSharingSection>
-                <PageSectionSubheading>
-                  Pending invitations
-                </PageSectionSubheading>
-                <BorderedList>
-                  {pendingInvites.map((inv) => (
-                    <MemberListRow key={inv.id}>
-                      <MemberPrimary>{inv.invitee_email}</MemberPrimary>
-                      <MemberRole>{mapRoleLabel(inv.invited_role)}</MemberRole>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void cancelInvite(inv.id)}
-                      >
-                        Cancel
-                      </Button>
-                    </MemberListRow>
-                  ))}
-                </BorderedList>
-              </PageSharingSection>
-            ) : null}
-
-            <CautionPanel
-              title="Transfer ownership"
-              description={
-                <>
-                  Enter the new owner&apos;s email. They must have an account
-                  (or sign up with that email). You will become a contributor.
-                  All map plugins and calendar feed links for &quot;{mapName}
-                  &quot; will be removed.
-                </>
-              }
-            >
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setTransferErr(null);
-                  setTransferEmail("");
-                  setTransferOpen(true);
-                }}
-              >
-                Transfer ownership…
-              </Button>
-            </CautionPanel>
-
             <CautionPanel
               title="Delete map"
               description={
@@ -580,8 +632,10 @@ export function MapSharingSection({
                 <DialogHeader>
                   <DialogTitle>Transfer ownership</DialogTitle>
                   <DialogDescription>
-                    This cannot be undone from here. Plugins for this map will
-                    be cleared.
+                    Enter the new owner&apos;s email. They must have an account
+                    (or sign up with that email). You will become a contributor.
+                    All map plugins and calendar feed links for &quot;{mapName}
+                    &quot; will be removed. This cannot be undone from here.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogBody>

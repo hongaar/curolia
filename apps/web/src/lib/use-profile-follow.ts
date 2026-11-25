@@ -1,4 +1,7 @@
-import { fetchProfileFollowStats } from "@/lib/fetch-profile-follow-stats";
+import {
+  fetchProfileFollowStats,
+  type FollowStatus,
+} from "@/lib/fetch-profile-follow-stats";
 import { supabase } from "@/lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -9,7 +12,7 @@ export function useProfileFollow(options: {
   profileSlug: string;
   viewerUserId: string | undefined;
   isOwner: boolean;
-  isFollowing: boolean;
+  followStatus: FollowStatus | null;
   enabled: boolean;
 }) {
   const {
@@ -17,22 +20,23 @@ export function useProfileFollow(options: {
     profileSlug,
     viewerUserId,
     isOwner,
-    isFollowing: initialIsFollowing,
+    followStatus: initialStatus,
     enabled,
   } = options;
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [followingOverride, setFollowingOverride] = useState<boolean | null>(
-    null,
-  );
-  const followSyncToken = `${profileId}:${initialIsFollowing}`;
+  const [statusOverride, setStatusOverride] = useState<
+    FollowStatus | null | undefined
+  >(undefined);
+  const followSyncToken = `${profileId}:${initialStatus}`;
   const [prevFollowSyncToken, setPrevFollowSyncToken] =
     useState(followSyncToken);
   if (followSyncToken !== prevFollowSyncToken) {
     setPrevFollowSyncToken(followSyncToken);
-    setFollowingOverride(null);
+    setStatusOverride(undefined);
   }
-  const isFollowing = followingOverride ?? initialIsFollowing;
+  const followStatus =
+    statusOverride === undefined ? initialStatus : statusOverride;
 
   async function invalidateFollowQueries() {
     await qc.invalidateQueries({
@@ -49,7 +53,7 @@ export function useProfileFollow(options: {
   async function follow(): Promise<boolean> {
     if (!viewerUserId || isOwner || !enabled) return false;
     setBusy(true);
-    const { error } = await supabase.rpc("follow_profile", {
+    const { data, error } = await supabase.rpc("follow_profile", {
       p_following_id: profileId,
     });
     setBusy(false);
@@ -57,14 +61,16 @@ export function useProfileFollow(options: {
       toast.error(error.message);
       return false;
     }
-    setFollowingOverride(true);
-    toast.success("Following");
+    const next = (data as FollowStatus | null) ?? "approved";
+    setStatusOverride(next);
+    toast.success(next === "pending" ? "Follow request sent" : "Following");
     await invalidateFollowQueries();
     return true;
   }
 
   async function unfollow(): Promise<boolean> {
     if (!viewerUserId || isOwner || !enabled) return false;
+    const wasPending = followStatus === "pending";
     setBusy(true);
     const { error } = await supabase.rpc("unfollow_profile", {
       p_following_id: profileId,
@@ -74,18 +80,18 @@ export function useProfileFollow(options: {
       toast.error(error.message);
       return false;
     }
-    setFollowingOverride(false);
-    toast.success("Unfollowed");
+    setStatusOverride(null);
+    toast.success(wasPending ? "Follow request canceled" : "Unfollowed");
     await invalidateFollowQueries();
     return true;
   }
 
   async function toggleFollow(): Promise<boolean> {
-    return isFollowing ? unfollow() : follow();
+    return followStatus ? unfollow() : follow();
   }
 
   return {
-    isFollowing,
+    followStatus,
     busy,
     canFollow: Boolean(viewerUserId && !isOwner && enabled),
     follow,

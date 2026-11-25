@@ -10,6 +10,7 @@ describe("renderBlogPageHtml", () => {
       owner: {
         displayName: "Joram",
         avatarUrl: null,
+        gravatarHash: null,
         bio: "Traveler",
         profileSlug: "joram",
       },

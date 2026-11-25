@@ -6,8 +6,9 @@ import {
 } from "@/lib/public-map-crawler-block";
 
 describe("public-map-crawler-block", () => {
-  it("only blocks crawlers for unlisted content", () => {
+  it("blocks crawlers for unlisted maps and restricted profiles only", () => {
     expect(blocksPublicCrawlers({ visibility: "unlisted" })).toBe(true);
+    expect(blocksPublicCrawlers({ visibility: "restricted" })).toBe(true);
     expect(blocksPublicCrawlers({ visibility: "public" })).toBe(false);
     expect(blocksPublicCrawlers({ visibility: "private" })).toBe(false);
   });

@@ -7,9 +7,13 @@ export type ResolvedProfileSlug = {
   profileId: string;
   canonicalSlug: string;
   redirected: boolean;
+  visibility: Database["public"]["Enums"]["profile_visibility"];
 };
 
-/** Resolve a profile by current slug or a legacy redirect slug. */
+/**
+ * Resolve a profile by current slug or a legacy redirect slug. Works for any
+ * visibility (slugs are public in map URLs); profile rows stay RLS-gated.
+ */
 export async function resolveProfileBySlug(
   slug: string,
   client: SupabaseClient<Database> = supabase,
@@ -17,39 +21,16 @@ export async function resolveProfileBySlug(
   const slugNorm = slug.trim().toLowerCase();
   if (!slugNorm) return null;
 
-  const { data: profile, error: profileErr } = await client
-    .from("profiles")
-    .select("id, slug")
-    .eq("slug", slugNorm)
-    .maybeSingle();
-  if (profileErr) throw profileErr;
-  if (profile) {
-    return {
-      profileId: profile.id,
-      canonicalSlug: profile.slug,
-      redirected: false,
-    };
-  }
-
-  const { data: redirect, error: redirectErr } = await client
-    .from("profile_slug_redirects")
-    .select("profile_id")
-    .eq("slug", slugNorm)
-    .maybeSingle();
-  if (redirectErr) throw redirectErr;
-  if (!redirect) return null;
-
-  const { data: target, error: targetErr } = await client
-    .from("profiles")
-    .select("id, slug")
-    .eq("id", redirect.profile_id)
-    .maybeSingle();
-  if (targetErr) throw targetErr;
-  if (!target) return null;
-
+  const { data, error } = await client.rpc("resolve_profile_slug", {
+    p_slug: slugNorm,
+  });
+  if (error) throw error;
+  const row = data?.[0];
+  if (!row) return null;
   return {
-    profileId: target.id,
-    canonicalSlug: target.slug,
-    redirected: true,
+    profileId: row.profile_id,
+    canonicalSlug: row.canonical_slug,
+    redirected: row.redirected,
+    visibility: row.visibility,
   };
 }

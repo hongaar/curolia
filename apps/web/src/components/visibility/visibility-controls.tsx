@@ -1,11 +1,7 @@
-import {
-  VISIBILITY_LABELS,
-  VISIBILITY_OPTIONS,
-  isVisibility,
-  type Visibility,
-} from "@/lib/visibility";
+import type { VisibilityScheme } from "@/lib/visibility-schemes";
 import { Button } from "@curolia/ui/button";
 import { ChoiceCard, ChoiceCards } from "@curolia/ui/choice-cards";
+import { InfoTip } from "@curolia/ui/info-tip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,26 +10,25 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@curolia/ui/dropdown-menu";
-import { ChevronDown, Globe, Link, Lock } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
 
-const VISIBILITY_ICONS: Record<Visibility, typeof Globe> = {
-  public: Globe,
-  unlisted: Link,
-  private: Lock,
-};
+type IconComponent = VisibilityScheme<string>["icons"][string];
 
-export function VisibilityMenu({
+export function VisibilityMenu<T extends string>({
+  scheme,
   value,
   onValueChange,
   disabled = false,
   ariaLabel,
 }: {
-  value: Visibility;
-  onValueChange: (next: Visibility) => void;
+  scheme: VisibilityScheme<T>;
+  value: T;
+  onValueChange: (next: T) => void;
   disabled?: boolean;
   ariaLabel: string;
 }) {
-  const Icon = VISIBILITY_ICONS[value];
+  const Icon: IconComponent = scheme.icons[value];
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -46,7 +41,7 @@ export function VisibilityMenu({
         }
       >
         <Icon aria-hidden size={16} />
-        {VISIBILITY_LABELS[value]}
+        {scheme.labels[value]}
         <ChevronDown aria-hidden size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
@@ -54,12 +49,13 @@ export function VisibilityMenu({
           <DropdownMenuRadioGroup
             value={value}
             onValueChange={(next) => {
-              if (isVisibility(next) && next !== value) onValueChange(next);
+              const match = scheme.options.find((option) => option === next);
+              if (match && match !== value) onValueChange(match);
             }}
           >
-            {VISIBILITY_OPTIONS.map((option) => (
+            {scheme.options.map((option) => (
               <DropdownMenuRadioItem key={option} value={option}>
-                {VISIBILITY_LABELS[option]}
+                {scheme.labels[option]}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
@@ -69,23 +65,31 @@ export function VisibilityMenu({
   );
 }
 
-export function VisibilityChoiceCards({
+export function VisibilityChoiceCards<T extends string>({
+  scheme,
   name,
   value,
   hints,
+  details,
+  footers,
   onValueChange,
   disabled = false,
   "aria-labelledby": ariaLabelledBy,
 }: {
+  scheme: VisibilityScheme<T>;
   name: string;
-  value: Visibility;
-  hints: Record<Visibility, string>;
-  onValueChange: (next: Visibility) => void;
+  value: T;
+  hints: Record<T, string>;
+  /** Optional longer explanation per option, behind a "Learn more" tip. */
+  details?: Partial<Record<T, string>>;
+  /** Extra controls inside an option's card (clicks don't select it). */
+  footers?: Partial<Record<T, ReactNode>>;
+  onValueChange: (next: T) => void;
   disabled?: boolean;
   "aria-labelledby"?: string;
 }) {
   return (
-    <ChoiceCards<Visibility>
+    <ChoiceCards<T>
       name={name}
       value={value}
       disabled={disabled}
@@ -94,16 +98,25 @@ export function VisibilityChoiceCards({
         if (next !== value) onValueChange(next);
       }}
     >
-      {VISIBILITY_OPTIONS.map((option) => {
-        const Icon = VISIBILITY_ICONS[option];
+      {scheme.options.map((option) => {
+        const Icon: IconComponent = scheme.icons[option];
         return (
-          <ChoiceCard<Visibility>
+          <ChoiceCard<T>
             key={option}
             value={option}
-            label={VISIBILITY_LABELS[option]}
-            description={hints[option]}
+            label={scheme.labels[option]}
+            description={
+              details?.[option] ? (
+                <>
+                  {hints[option]} <InfoTip>{details[option]}</InfoTip>
+                </>
+              ) : (
+                hints[option]
+              )
+            }
             previewIcon={<Icon aria-hidden size={24} />}
             previewTone="muted"
+            footer={footers?.[option]}
           />
         );
       })}

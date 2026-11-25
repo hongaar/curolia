@@ -1,3 +1,4 @@
+import { MAP_VISIBILITY_SCHEME } from "@/lib/visibility-schemes";
 import { VisibilityMenu } from "@/components/visibility/visibility-controls";
 import { useMapVisibility } from "@/lib/use-map-visibility";
 import type { Visibility } from "@/lib/visibility";
@@ -19,6 +20,7 @@ export function MapVisibilityMenu({
 
   return (
     <VisibilityMenu
+      scheme={MAP_VISIBILITY_SCHEME}
       value={map.visibility}
       disabled={disabled || visibilityBusy}
       ariaLabel="Map visibility"

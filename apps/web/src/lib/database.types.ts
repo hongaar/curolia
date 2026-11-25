@@ -293,6 +293,7 @@ export type Database = {
           icon_emoji: string | null;
           id: string;
           name: string;
+          show_on_profile: boolean;
           show_pin_metadata: Json;
           show_pin_route: boolean;
           show_plugin_outputs: Json;
@@ -314,6 +315,7 @@ export type Database = {
           icon_emoji?: string | null;
           id?: string;
           name: string;
+          show_on_profile?: boolean;
           show_pin_metadata?: Json;
           show_pin_route?: boolean;
           show_plugin_outputs?: Json;
@@ -335,6 +337,7 @@ export type Database = {
           icon_emoji?: string | null;
           id?: string;
           name?: string;
+          show_on_profile?: boolean;
           show_pin_metadata?: Json;
           show_pin_route?: boolean;
           show_plugin_outputs?: Json;
@@ -1100,16 +1103,19 @@ export type Database = {
           created_at: string;
           follower_id: string;
           following_id: string;
+          status: Database["public"]["Enums"]["follow_status"];
         };
         Insert: {
           created_at?: string;
           follower_id: string;
           following_id: string;
+          status?: Database["public"]["Enums"]["follow_status"];
         };
         Update: {
           created_at?: string;
           follower_id?: string;
           following_id?: string;
+          status?: Database["public"]["Enums"]["follow_status"];
         };
         Relationships: [
           {
@@ -1161,7 +1167,7 @@ export type Database = {
           onboarding_completed: boolean;
           slug: string;
           updated_at: string;
-          visibility: Database["public"]["Enums"]["visibility"];
+          visibility: Database["public"]["Enums"]["profile_visibility"];
         };
         Insert: {
           avatar_url?: string | null;
@@ -1176,7 +1182,7 @@ export type Database = {
           onboarding_completed?: boolean;
           slug?: string;
           updated_at?: string;
-          visibility?: Database["public"]["Enums"]["visibility"];
+          visibility?: Database["public"]["Enums"]["profile_visibility"];
         };
         Update: {
           avatar_url?: string | null;
@@ -1191,7 +1197,7 @@ export type Database = {
           onboarding_completed?: boolean;
           slug?: string;
           updated_at?: string;
-          visibility?: Database["public"]["Enums"]["visibility"];
+          visibility?: Database["public"]["Enums"]["profile_visibility"];
         };
         Relationships: [
           {
@@ -1420,6 +1426,10 @@ export type Database = {
     };
     Functions: {
       accept_map_invitation: { Args: { p_token: string }; Returns: string };
+      approve_follow_request: {
+        Args: { p_follower_id: string };
+        Returns: undefined;
+      };
       can_view_map: { Args: { p_map_id: string }; Returns: boolean };
       can_view_profile_follow_lists: {
         Args: { p_profile_id: string };
@@ -1437,6 +1447,10 @@ export type Database = {
           prefix: string;
         }[];
       };
+      decline_follow_request: {
+        Args: { p_follower_id: string };
+        Returns: undefined;
+      };
       decline_map_invitation: { Args: { p_token: string }; Returns: undefined };
       delete_map: { Args: { p_map_id: string }; Returns: undefined };
       enqueue_place_enrichment_job: {
@@ -1447,7 +1461,32 @@ export type Database = {
         };
         Returns: undefined;
       };
-      follow_profile: { Args: { p_following_id: string }; Returns: undefined };
+      follow_profile: {
+        Args: { p_following_id: string };
+        Returns: Database["public"]["Enums"]["follow_status"];
+      };
+      get_map_owner_card: {
+        Args: { p_map_id: string };
+        Returns: {
+          avatar_url: string;
+          bio: string;
+          display_name: string;
+          gravatar_hash: string;
+          profile_id: string;
+          slug: string;
+        }[];
+      };
+      get_restricted_profile_card: {
+        Args: { p_slug: string };
+        Returns: {
+          avatar_url: string;
+          display_name: string;
+          follow_status: Database["public"]["Enums"]["follow_status"];
+          gravatar_hash: string;
+          id: string;
+          slug: string;
+        }[];
+      };
       gravatar_hash_for_email: { Args: { p_email: string }; Returns: string };
       home_map_pin_count: { Args: { p_map_id: string }; Returns: number };
       invite_map_member: {
@@ -1459,6 +1498,10 @@ export type Database = {
         Returns: string;
       };
       is_app_admin: { Args: never; Returns: boolean };
+      is_approved_follower: {
+        Args: { p_profile_id: string };
+        Returns: boolean;
+      };
       is_following_profile: {
         Args: { p_following_id: string };
         Returns: boolean;
@@ -1518,6 +1561,18 @@ export type Database = {
           visited_at: string;
         }[];
       };
+      list_pending_follow_requests: {
+        Args: never;
+        Returns: {
+          avatar_url: string;
+          display_name: string;
+          gravatar_hash: string;
+          is_private: boolean;
+          profile_id: string;
+          requested_at: string;
+          slug: string;
+        }[];
+      };
       list_profile_followers: {
         Args: { p_profile_id: string };
         Returns: {
@@ -1539,6 +1594,10 @@ export type Database = {
           profile_id: string;
           slug: string;
         }[];
+      };
+      list_profile_map_ids: {
+        Args: { p_profile_id: string };
+        Returns: string[];
       };
       list_recently_edited_maps: {
         Args: { p_limit?: number };
@@ -1658,6 +1717,10 @@ export type Database = {
         Args: { p_desired: string; p_profile_id: string };
         Returns: string;
       };
+      profile_follow_status: {
+        Args: { p_following_id: string };
+        Returns: Database["public"]["Enums"]["follow_status"];
+      };
       profile_follower_count: {
         Args: { p_profile_id: string };
         Returns: number;
@@ -1667,6 +1730,13 @@ export type Database = {
         Returns: number;
       };
       profile_path: { Args: { p_profile_id: string }; Returns: string };
+      profile_slugs: {
+        Args: { p_ids: string[] };
+        Returns: {
+          id: string;
+          slug: string;
+        }[];
+      };
       recompute_place_pin_count: {
         Args: { p_place_id: string };
         Returns: undefined;
@@ -1685,6 +1755,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      remove_follower: { Args: { p_follower_id: string }; Returns: undefined };
       remove_map_member: {
         Args: { p_map_id: string; p_user_id: string };
         Returns: undefined;
@@ -1696,6 +1767,19 @@ export type Database = {
           user_id: string;
         }[];
       };
+      resolve_profile_slug: {
+        Args: { p_slug: string };
+        Returns: {
+          canonical_slug: string;
+          profile_id: string;
+          redirected: boolean;
+          visibility: Database["public"]["Enums"]["profile_visibility"];
+        }[];
+      };
+      set_map_show_on_profile: {
+        Args: { p_map_id: string; p_show: boolean };
+        Returns: undefined;
+      };
       set_map_visibility: {
         Args: {
           p_map_id: string;
@@ -1704,7 +1788,9 @@ export type Database = {
         Returns: undefined;
       };
       set_profile_visibility: {
-        Args: { p_visibility: Database["public"]["Enums"]["visibility"] };
+        Args: {
+          p_visibility: Database["public"]["Enums"]["profile_visibility"];
+        };
         Returns: undefined;
       };
       slugify_text: { Args: { p_raw: string }; Returns: string };
@@ -1756,6 +1842,7 @@ export type Database = {
       };
     };
     Enums: {
+      follow_status: "pending" | "approved";
       map_invitation_status: "pending" | "accepted" | "declined" | "cancelled";
       map_member_role: "owner" | "editor" | "viewer";
       map_style: "auto" | "street" | "satellite";
@@ -1766,7 +1853,9 @@ export type Database = {
         | "map_ownership_received"
         | "pin_comment"
         | "pin_reaction"
-        | "profile_follow";
+        | "profile_follow"
+        | "profile_follow_request"
+        | "profile_follow_approved";
       place_enrichment_job_status:
         | "pending"
         | "processing"
@@ -1774,6 +1863,7 @@ export type Database = {
         | "failed";
       plugin_link_status: "disabled" | "pending" | "error" | "connected";
       plugin_sync_job_status: "pending" | "processing" | "completed" | "failed";
+      profile_visibility: "public" | "restricted" | "private";
       push_delivery_status: "pending" | "sent" | "failed";
       visibility: "public" | "unlisted" | "private";
     };
@@ -1909,6 +1999,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      follow_status: ["pending", "approved"],
       map_invitation_status: ["pending", "accepted", "declined", "cancelled"],
       map_member_role: ["owner", "editor", "viewer"],
       map_style: ["auto", "street", "satellite"],
@@ -1920,6 +2011,8 @@ export const Constants = {
         "pin_comment",
         "pin_reaction",
         "profile_follow",
+        "profile_follow_request",
+        "profile_follow_approved",
       ],
       place_enrichment_job_status: [
         "pending",
@@ -1929,6 +2022,7 @@ export const Constants = {
       ],
       plugin_link_status: ["disabled", "pending", "error", "connected"],
       plugin_sync_job_status: ["pending", "processing", "completed", "failed"],
+      profile_visibility: ["public", "restricted", "private"],
       push_delivery_status: ["pending", "sent", "failed"],
       visibility: ["public", "unlisted", "private"],
     },

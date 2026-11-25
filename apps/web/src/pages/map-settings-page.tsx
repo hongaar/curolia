@@ -666,6 +666,7 @@ export function MapSettingsPage() {
             ownerProfileSlug={mapRouteForMap(map).profileSlug}
             mapSlug={map.slug}
             visibility={map.visibility}
+            showOnProfile={map.show_on_profile}
             isOwner={isOwner}
           />
         </PageAnchoredSection>
