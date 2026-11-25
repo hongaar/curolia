@@ -9,6 +9,11 @@
   user-select: none;
 }
 
+/* Checkbox/radio option labels read as body text, distinct from field labels. */
+.root:has([data-slot="checkbox"]) {
+  font-weight: var(--font-weight-normal);
+}
+
 :global(.group[data-disabled="true"]) .root {
   pointer-events: none;
   opacity: 0.5;
