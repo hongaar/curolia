@@ -385,7 +385,7 @@ function connectorColorStyle(color?: string): React.CSSProperties | undefined {
     : undefined;
 }
 
-/** Blog segment portaled into the side panel — below pin content and gallery. */
+/** Blog segment portaled into the side panel (panel-local coordinates) — below pin content and gallery. */
 export function MapBlogPinConnectorInPanel({
   x1,
   y1,
@@ -403,6 +403,7 @@ export function MapBlogPinConnectorInPanel({
   return (
     <svg
       className={styles.blogPinConnectorInPanel}
+      data-pin-connector="panel"
       style={connectorColorStyle(color)}
       aria-hidden
       xmlns="http://www.w3.org/2000/svg"
@@ -436,6 +437,7 @@ export function MapBlogPinConnectorMap({
   return (
     <svg
       className={styles.blogPinConnectorMap}
+      data-pin-connector="map"
       style={connectorColorStyle(color)}
       aria-hidden
       xmlns="http://www.w3.org/2000/svg"

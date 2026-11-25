@@ -71,15 +71,26 @@ function shortenToward(
   return { x: fromX + dx * f, y: fromY + dy * f };
 }
 
-function toMapLocal(
+function toLocal(
   viewportX: number,
   viewportY: number,
-  containerRect: DOMRect,
+  rect: DOMRect,
 ): { x: number; y: number } {
-  return {
-    x: viewportX - containerRect.left,
-    y: viewportY - containerRect.top,
-  };
+  return { x: viewportX - rect.left, y: viewportY - rect.top };
+}
+
+const SEGMENT_EPSILON_PX = 0.5;
+
+function sameSegments(
+  a: ConnectorSegments | null,
+  b: ConnectorSegments | null,
+): boolean {
+  if (!a || !b) return a === b;
+  return (["panel", "map"] as const).every((k) =>
+    (["x1", "y1", "x2", "y2"] as const).every(
+      (c) => Math.abs(a[k][c] - b[k][c]) < SEGMENT_EPSILON_PX,
+    ),
+  );
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -139,23 +150,42 @@ export function MapPanelPinConnectorOverlay({
   useEffect(() => {
     if (!show) return;
 
+    let last: ConnectorSegments | null = null;
+    let lastContainer: HTMLElement | null = null;
+    let lastSidePanel: HTMLElement | null = null;
+    const commit = (
+      next: ConnectorSegments | null,
+      container: HTMLElement | null,
+      sidePanel: HTMLElement | null,
+    ) => {
+      if (
+        container === lastContainer &&
+        sidePanel === lastSidePanel &&
+        sameSegments(next, last)
+      ) {
+        return;
+      }
+      last = next;
+      lastContainer = container;
+      lastSidePanel = sidePanel;
+      setSegments(next);
+      setMapContainer(container);
+      setSidePanelEl(sidePanel);
+    };
+
     const update = () => {
       const anchor = getAnchor();
       const map = mapRef.current;
       const container = map?.getMapContainer() ?? null;
       const sidePanel = sidePanelRef.current;
       if (!anchor || !map || !container || !sidePanel) {
-        setSegments(null);
-        setMapContainer(null);
-        setSidePanelEl(null);
+        commit(null, null, null);
         return;
       }
 
       const screen = map.lngLatToScreen(pinLng, pinLat);
       if (!screen) {
-        setSegments(null);
-        setMapContainer(null);
-        setSidePanelEl(null);
+        commit(null, null, null);
         return;
       }
 
@@ -165,15 +195,15 @@ export function MapPanelPinConnectorOverlay({
         scrollRootRef.current,
       );
 
-      const panelLeft =
-        sidePanelRef.current?.getBoundingClientRect().left ?? anchorX - 1;
+      // Includes the slide-in transform, so local coords stay correct mid-animation.
+      const panelRect = sidePanel.getBoundingClientRect();
 
       const { splitX, splitY } = splitConnectorAtPanelEdge(
         anchorX,
         anchorY,
         screen.x,
         screen.y,
-        panelLeft,
+        panelRect.left,
       );
 
       const markerEnd = shortenToward(
@@ -185,29 +215,45 @@ export function MapPanelPinConnectorOverlay({
       );
 
       const containerRect = container.getBoundingClientRect();
-      const splitLocal = toMapLocal(splitX, splitY, containerRect);
-      const markerLocal = toMapLocal(markerEnd.x, markerEnd.y, containerRect);
+      const anchorPanel = toLocal(anchorX, anchorY, panelRect);
+      const splitPanel = toLocal(splitX, splitY, panelRect);
+      const splitLocal = toLocal(splitX, splitY, containerRect);
+      const markerLocal = toLocal(markerEnd.x, markerEnd.y, containerRect);
 
-      setMapContainer(container);
-      setSidePanelEl(sidePanel);
-      setSegments({
-        panel: { x1: anchorX, y1: anchorY, x2: splitX, y2: splitY },
-        map: {
-          x1: splitLocal.x,
-          y1: splitLocal.y,
-          x2: markerLocal.x,
-          y2: markerLocal.y,
+      commit(
+        {
+          panel: {
+            x1: anchorPanel.x,
+            y1: anchorPanel.y,
+            x2: splitPanel.x,
+            y2: splitPanel.y,
+          },
+          map: {
+            x1: splitLocal.x,
+            y1: splitLocal.y,
+            x2: markerLocal.x,
+            y2: markerLocal.y,
+          },
         },
-      });
+        container,
+        sidePanel,
+      );
     };
 
-    update();
+    // Panel content reflows (gallery masonry, image loads, slide-in) without
+    // scroll or camera events, so follow layout every frame; `commit` skips
+    // re-renders when nothing moved. Camera/scroll listeners keep same-frame sync.
+    let frame = 0;
+    const loop = () => {
+      update();
+      frame = requestAnimationFrame(loop);
+    };
+    loop();
     const unsubCamera = mapRef.current?.subscribeCamera(update) ?? (() => {});
-    window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
     return () => {
+      cancelAnimationFrame(frame);
       unsubCamera();
-      window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
   }, [show, pinLng, pinLat, getAnchor, scrollRootRef, sidePanelRef, mapRef]);
