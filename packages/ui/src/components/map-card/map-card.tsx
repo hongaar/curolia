@@ -69,7 +69,7 @@ export function MapCardMasonryGrid({
   columns = 3,
 }: {
   children: React.ReactNode;
-  /** Default profile grid uses 3 columns; home feed uses 4. */
+  /** Max columns at the 80rem breakpoint: profile grid uses 3, home feed 4. Both grow further on very wide screens. */
   columns?: 3 | 4;
 }) {
   return (

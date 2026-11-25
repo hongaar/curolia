@@ -41,6 +41,23 @@
   }
 }
 
+/* Profile grid sits beside a ~22rem aside, so it widens later than the feed. */
+@media (min-width: 100rem) {
+  .masonry {
+    column-count: 4;
+  }
+}
+
+@media (min-width: 125rem) {
+  .masonry {
+    column-count: 5;
+  }
+
+  .masonry[data-columns="4"] {
+    column-count: 5;
+  }
+}
+
 .itemWrap {
   break-inside: avoid;
   margin-bottom: var(--space-4);
