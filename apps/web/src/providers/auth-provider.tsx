@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Provider module also exports storage helpers and useAuth */
+import { clearPinPhotoUrlCache } from "@curolia/plugin-contract";
 import { enableNativePushIfEligible } from "@/lib/native-push";
 import { supabase } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
@@ -118,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     skipLoginNextRedirect = true;
     setStoredActiveMapId(null);
+    clearPinPhotoUrlCache();
     await supabase.auth.signOut();
   }, []);
 

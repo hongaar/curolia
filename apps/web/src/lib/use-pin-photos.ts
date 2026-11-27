@@ -5,15 +5,29 @@ import {
 } from "@/lib/photo-display-url";
 import { supabase } from "@/lib/supabase";
 import type { Photo } from "@/types/database";
-import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { signPinPhotoPaths } from "@curolia/plugin-contract";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
+/** Display URLs by photo id: cached signed URLs for stored photos, else external URLs. */
+async function signedUrlsForPhotos(
+  photos: Photo[],
+): Promise<Record<string, string>> {
+  const signed = await signPinPhotoPaths(
+    supabase,
+    photos.flatMap((p) => (p.storage_path ? [p.storage_path] : [])),
+  );
+  const out: Record<string, string> = {};
+  for (const photo of photos) {
+    const url =
+      (photo.storage_path && signed[photo.storage_path]) ||
+      externalPhotoDisplayUrl(photo.external_ref);
+    if (url) out[photo.id] = url;
+  }
+  return out;
+}
+
 export function usePinPhotosSignedUrls(pinId: string | undefined) {
-  const qc = useQueryClient();
   const photosQuery = useQuery({
     queryKey: ["photos", pinId],
     queryFn: async () => {
@@ -34,43 +48,7 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
 
   const signedUrlsQuery = useQuery({
     queryKey: ["photo-urls", pinId, idsKey],
-    queryFn: async () => {
-      const out: Record<string, string> = {};
-      if (pinId) {
-        for (const [, cached] of qc.getQueriesData<Record<string, string>>({
-          queryKey: ["photo-urls", pinId],
-        })) {
-          if (cached) Object.assign(out, cached);
-        }
-      }
-
-      const paths = photos
-        .filter((p) => p.storage_path && !out[p.id])
-        .map((p) => ({ id: p.id, path: p.storage_path! }));
-      if (paths.length === 0) return out;
-
-      const { data, error } = await supabase.storage
-        .from("pin-photos")
-        .createSignedUrls(
-          paths.map((p) => p.path),
-          3600,
-        );
-      if (error) {
-        console.error("pin-photos createSignedUrls", error);
-        return out;
-      }
-      for (let i = 0; i < paths.length; i++) {
-        const row = data?.[i];
-        if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
-        else if (row?.error) console.error(paths[i]!.path, row.error);
-      }
-      for (const photo of photos) {
-        if (out[photo.id]) continue;
-        const external = externalPhotoDisplayUrl(photo.external_ref);
-        if (external) out[photo.id] = external;
-      }
-      return out;
-    },
+    queryFn: () => signedUrlsForPhotos(photos),
     placeholderData: keepPreviousData,
     // Wait until the photos list has settled so we don't sign URLs for a stale set
     // (e.g. while a long Google Photos import is invalidating/refetching photos).
@@ -90,8 +68,6 @@ export function usePinPhotosSignedUrls(pinId: string | undefined) {
 
 /** All photos on a map (e.g. cover picker), with signed URLs. */
 export function useMapAllPhotosSignedUrls(mapId: string | undefined) {
-  const qc = useQueryClient();
-
   const photosQuery = useQuery({
     queryKey: ["map-pin-photos", mapId],
     queryFn: async () => {
@@ -112,43 +88,7 @@ export function useMapAllPhotosSignedUrls(mapId: string | undefined) {
 
   const signedUrlsQuery = useQuery({
     queryKey: ["photo-urls-batch", mapId, idsKey],
-    queryFn: async () => {
-      const out: Record<string, string> = {};
-      if (mapId) {
-        for (const [, cached] of qc.getQueriesData<Record<string, string>>({
-          queryKey: ["photo-urls-batch", mapId],
-        })) {
-          if (cached) Object.assign(out, cached);
-        }
-      }
-
-      const paths = photos
-        .filter((p) => p.storage_path && !out[p.id])
-        .map((p) => ({ id: p.id, path: p.storage_path! }));
-      if (paths.length === 0) return out;
-
-      const { data, error } = await supabase.storage
-        .from("pin-photos")
-        .createSignedUrls(
-          paths.map((p) => p.path),
-          3600,
-        );
-      if (error) {
-        console.error("pin-photos createSignedUrls", error);
-        return out;
-      }
-      for (let i = 0; i < paths.length; i++) {
-        const row = data?.[i];
-        if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
-        else if (row?.error) console.error(paths[i]!.path, row.error);
-      }
-      for (const photo of photos) {
-        if (out[photo.id]) continue;
-        const external = externalPhotoDisplayUrl(photo.external_ref);
-        if (external) out[photo.id] = external;
-      }
-      return out;
-    },
+    queryFn: () => signedUrlsForPhotos(photos),
     placeholderData: keepPreviousData,
     enabled: Boolean(mapId) && photos.length > 0 && !photosQuery.isFetching,
   });
@@ -169,7 +109,6 @@ export function useMapPinsPhotosSignedUrls(
   mapId: string | undefined,
   pinIds: string[],
 ) {
-  const qc = useQueryClient();
   const pinIdSet = useMemo(() => new Set(pinIds), [pinIds]);
 
   const photosQuery = useQuery({
@@ -196,43 +135,7 @@ export function useMapPinsPhotosSignedUrls(
 
   const signedUrlsQuery = useQuery({
     queryKey: ["photo-urls-batch", mapId, idsKey],
-    queryFn: async () => {
-      const out: Record<string, string> = {};
-      if (mapId) {
-        for (const [, cached] of qc.getQueriesData<Record<string, string>>({
-          queryKey: ["photo-urls-batch", mapId],
-        })) {
-          if (cached) Object.assign(out, cached);
-        }
-      }
-
-      const paths = photos
-        .filter((p) => p.storage_path && !out[p.id])
-        .map((p) => ({ id: p.id, path: p.storage_path! }));
-      if (paths.length === 0) return out;
-
-      const { data, error } = await supabase.storage
-        .from("pin-photos")
-        .createSignedUrls(
-          paths.map((p) => p.path),
-          3600,
-        );
-      if (error) {
-        console.error("pin-photos createSignedUrls", error);
-        return out;
-      }
-      for (let i = 0; i < paths.length; i++) {
-        const row = data?.[i];
-        if (row?.signedUrl && !row.error) out[paths[i]!.id] = row.signedUrl;
-        else if (row?.error) console.error(paths[i]!.path, row.error);
-      }
-      for (const photo of photos) {
-        if (out[photo.id]) continue;
-        const external = externalPhotoDisplayUrl(photo.external_ref);
-        if (external) out[photo.id] = external;
-      }
-      return out;
-    },
+    queryFn: () => signedUrlsForPhotos(photos),
     placeholderData: keepPreviousData,
     enabled: Boolean(mapId) && photos.length > 0 && !photosQuery.isFetching,
   });

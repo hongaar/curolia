@@ -1,3 +1,4 @@
+import { signPinPhotoPaths } from "@curolia/plugin-contract";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -10,19 +11,6 @@ type PinPhotoRow = {
 
 function photoIdsKey(photos: PinPhotoRow[]) {
   return photos.map((p) => `${p.id}:${p.storage_path ?? ""}`).join("|");
-}
-
-function mergedSignedUrlsForPin(
-  qc: QueryClient,
-  pinId: string,
-): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [, data] of qc.getQueriesData<Record<string, string>>({
-    queryKey: ["photo-urls", pinId],
-  })) {
-    if (data) Object.assign(out, data);
-  }
-  return out;
 }
 
 /**
@@ -45,25 +33,14 @@ export async function syncPinPhotosToCache(
   const photos = data as PinPhotoRow[];
   qc.setQueryData(["photos", pinId], photos);
 
-  const urls = mergedSignedUrlsForPin(qc, pinId);
-  const missing = photos.filter((p) => p.storage_path && !urls[p.id]);
-  if (missing.length > 0) {
-    const paths = missing.map((p) => ({
-      id: p.id,
-      path: p.storage_path!,
-    }));
-    const { data: signed, error: signErr } = await supabase.storage
-      .from("pin-photos")
-      .createSignedUrls(
-        paths.map((p) => p.path),
-        3600,
-      );
-    if (!signErr && signed) {
-      for (let i = 0; i < paths.length; i++) {
-        const row = signed[i];
-        if (row?.signedUrl && !row.error) urls[paths[i]!.id] = row.signedUrl;
-      }
-    }
+  const signed = await signPinPhotoPaths(
+    supabase,
+    photos.flatMap((p) => (p.storage_path ? [p.storage_path] : [])),
+  );
+  const urls: Record<string, string> = {};
+  for (const photo of photos) {
+    const url = photo.storage_path && signed[photo.storage_path];
+    if (url) urls[photo.id] = url;
   }
 
   qc.setQueryData(["photo-urls", pinId, photoIdsKey(photos)], urls);
