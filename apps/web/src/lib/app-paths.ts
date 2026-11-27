@@ -4,10 +4,7 @@ import {
   MAP_VIEW_PARAM,
   stripMapCameraFromSearchParams,
 } from "@/lib/map-view-params";
-import {
-  normalizeMapViewSettings,
-  resolveAccessibleMapView,
-} from "@/lib/map-view-settings";
+import { normalizeMapViewSettings } from "@/lib/map-view-settings";
 import type { CuroliaMap } from "@/types/database";
 
 export type MapViewSegment = "map" | "blog" | "gallery";
@@ -93,12 +90,9 @@ export function mapViewSwitchHref(
 
 export function mapSwitchHref(
   nextMap: MapWithOwnerSlug,
-  currentPathname: string,
   currentSearch: string,
 ): string {
-  const segment = mapViewSegmentFromPathname(currentPathname);
-  const settings = normalizeMapViewSettings(nextMap);
-  const view = resolveAccessibleMapView(settings, segment);
+  const view = normalizeMapViewSettings(nextMap).defaultView;
   const route = {
     profileSlug: nextMap.owner_profile_slug,
     mapSlug: nextMap.slug,

@@ -42,7 +42,7 @@ export type MapPickerMenuContentProps =
 
 export function MapPickerMenuContent(props: MapPickerMenuContentProps) {
   const navigate = useNavigate();
-  const { pathname, search } = useLocation();
+  const { search } = useLocation();
 
   if (props.variant === "foreign") {
     return (
@@ -64,7 +64,7 @@ export function MapPickerMenuContent(props: MapPickerMenuContentProps) {
             <DropdownMenuCheckItem
               key={j.id}
               onClick={() => {
-                navigate(mapSwitchHref(j, pathname, search));
+                navigate(mapSwitchHref(j, search));
               }}
             >
               <DropdownMenuItemEmoji>{mapEmoji(j)}</DropdownMenuItemEmoji>

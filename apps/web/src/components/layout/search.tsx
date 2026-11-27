@@ -621,10 +621,10 @@ export function Search() {
   const onPickMap = useCallback(
     (j: MapWithOwnerSlug) => {
       if (!j.slug.trim()) return;
-      navigate(mapSwitchHref(j, location.pathname, location.search));
+      navigate(mapSwitchHref(j, location.search));
       dismissSearchAfterPick();
     },
-    [dismissSearchAfterPick, location.pathname, location.search, navigate],
+    [dismissSearchAfterPick, location.search, navigate],
   );
 
   const onPickProfile = useCallback(
